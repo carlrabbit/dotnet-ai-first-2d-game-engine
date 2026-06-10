@@ -10,5 +10,6 @@
   <ItemGroup>
     <ProjectReference Include="../../../src/Agentic2D.Contracts/Agentic2D.Contracts.csproj" />
     <ProjectReference Include="../../../src/Agentic2D.Engine/Agentic2D.Engine.csproj" />
+    <ProjectReference Include="../../../src/Agentic2D.Tools/Agentic2D.Tools.csproj" />
   </ItemGroup>
 </Project>

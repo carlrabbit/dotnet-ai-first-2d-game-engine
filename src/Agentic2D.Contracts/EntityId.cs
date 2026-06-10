@@ -1,8 +1,8 @@
 namespace Agentic2D.Contracts;
 
-public readonly record struct EntityId(Guid Value)
+public readonly record struct EntityId(string Value)
 {
-    public static EntityId Empty { get; } = new(Guid.Empty);
+    public static EntityId Player { get; } = new("entity.player");
 
-    public override string ToString() => Value.ToString("D");
+    public override string ToString() => Value;
 }

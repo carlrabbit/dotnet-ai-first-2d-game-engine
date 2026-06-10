@@ -1,6 +1,6 @@
 namespace Agentic2D.Contracts;
 
-public readonly record struct Tick(ulong Value) : IComparable<Tick>
+public readonly record struct Tick(int Value) : IComparable<Tick>
 {
     public static Tick Zero { get; } = new(0);
 
