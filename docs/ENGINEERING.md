@@ -6,7 +6,11 @@ This document indexes build, validation, command contracts, and engineering poli
 
 ## Current status
 
-The repository is an initialization skeleton. It intentionally has no executable `eng/` scripts and no .NET projects yet.
+The repository has the base engineering substrate established by Milestone 001:
+
+- shared .NET/editor configuration at the repository root;
+- executable canonical `eng/` scripts;
+- a minimal `.slnx` solution with contracts, engine, and unit test projects.
 
 ## Indexed documents
 
@@ -15,9 +19,9 @@ The repository is an initialization skeleton. It intentionally has no executable
 - `docs/engineering/future-dotnet-solution.md`
 - `docs/engineering/product-cli.md`
 
-## Intended engineering model
+## Canonical engineering commands
 
-The project will use canonical `eng/` commands once the engineering substrate is created:
+The project uses these canonical `eng/` commands:
 
 ```text
 ./eng/restore.sh
@@ -26,6 +30,8 @@ The project will use canonical `eng/` commands once the engineering substrate is
 ./eng/format.sh
 ./eng/check.sh
 ```
+
+Command details and validation tier mapping are defined in `docs/engineering/command-contract.md`.
 
 Additional artifact-first commands are expected later:
 

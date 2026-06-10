@@ -1,0 +1,10 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/Agentic2D.Contracts/Agentic2D.Contracts.csproj" />
+    <Project Path="src/Agentic2D.Engine/Agentic2D.Engine.csproj" />
+  </Folder>
+  <Folder Name="/tests/" />
+  <Folder Name="/tests/unit/">
+    <Project Path="tests/unit/Agentic2D.Tests.Unit/Agentic2D.Tests.Unit.csproj" />
+  </Folder>
+</Solution>

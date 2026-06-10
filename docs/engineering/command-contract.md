@@ -4,11 +4,7 @@
 
 This document is authoritative for engineering command expectations.
 
-## Current state
-
-No executable `eng/` scripts exist yet. This is intentional.
-
-## Future base commands
+## Current base commands
 
 ```text
 ./eng/restore.sh
@@ -17,6 +13,17 @@ No executable `eng/` scripts exist yet. This is intentional.
 ./eng/format.sh
 ./eng/check.sh
 ```
+
+These commands are the canonical local engineering API.
+
+| Command | Behavior | Validation tier |
+|---|---|---|
+| `./eng/restore.sh` | Restores `dotnet-ai-first-2d-game-engine.slnx`. | Tier 1 focused implementation |
+| `./eng/build.sh` | Builds `dotnet-ai-first-2d-game-engine.slnx` with `--no-restore`. | Tier 1 focused implementation |
+| `./eng/test.sh` | Runs fast unit tests under `tests/unit/Agentic2D.Tests.Unit` with `--no-build`. | Tier 1 focused implementation |
+| `./eng/format.sh` | Applies `dotnet format` to the solution. | Tier 1 focused implementation |
+| `./eng/format.sh --verify` | Verifies formatting with `--verify-no-changes`. | Tier 1 focused implementation |
+| `./eng/check.sh` | Runs restore, build, test, and format verification. | Tier 2 standard local gate |
 
 ## Future focused commands
 
