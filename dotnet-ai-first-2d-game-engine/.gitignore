@@ -1,0 +1,23 @@
+# Build outputs
+bin/
+obj/
+artifacts/**
+!artifacts/.gitkeep
+
+# Generated game assets and local previews
+game/assets/generated/**
+!game/assets/generated/.gitkeep
+
+# IDE/editor
+.vs/
+.vscode/.ropeproject
+.idea/
+*.user
+*.suo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
