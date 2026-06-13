@@ -5,24 +5,42 @@
 Read:
 
 - `README.md`
-- `docs/INITIALIZATION.md`
 - `docs/ENGINEERING.md`
+- `docs/engineering/command-contract.md`
 - the relevant milestone or task document under `docs/milestones/`
-- relevant specs under `docs/specs/`
+- the authority documents explicitly listed by that milestone or task
 
-Use canonical `eng/` commands only after they exist. At this initialization stage, the `eng/` folder is a placeholder and scripts must be created explicitly by a setup milestone.
+Use canonical `eng/` commands. Do not invent build, test, format, product-validation, or artifact-validation flows when repository commands exist.
 
 ## Task-mode routing
 
-### Planning
-
-Read broadly across `docs/`, including architecture, decisions, milestones, content, scenarios, artifacts, and human review docs.
-
 ### Implementation
 
-Read the relevant milestone focus area, directly relevant specs, and engineering command contracts. Do not perform broad documentation synchronization unless the task explicitly asks for it.
+Read the relevant milestone focus area, directly relevant specs, and engineering command contracts. Do not perform broad documentation synchronization unless explicitly requested.
 
-### Scenario/content validation
+Default validation is the validation tier named by the milestone. For ordinary implementation, prefer focused validation first and then the required local gate.
+
+### Product CLI/runtime work
+
+Read:
+
+- `docs/specs/runtime-principles.md`
+- `docs/specs/minimal-deterministic-runtime.md` when changing the minimal runtime
+- `docs/specs/product-cli-contract.md` when changing the product CLI
+- `docs/engineering/product-cli.md`
+- `docs/artifacts/runtime-result-contract.md` or `docs/artifacts/product-cli-result-contract.md` when changing result artifacts
+
+Use:
+
+```bash
+./eng/check.sh
+./eng/cli-smoke.sh
+./eng/product-validate.sh
+```
+
+when the milestone requires product CLI validation.
+
+### Scenario/content/artifact validation
 
 Read:
 
@@ -31,9 +49,13 @@ Read:
 - `docs/ARTIFACTS.md`
 - relevant documents under `docs/scenarios/`, `docs/content/`, and `docs/artifacts/`
 
+Only use scenario/content/artifact validation commands that exist and validate meaningful state.
+
 ### Documentation synchronization
 
-Read broadly across project docs. Normalize indexes, cross-links, terminology, and deferred documentation impact.
+Read broadly across relevant project docs. Normalize indexes, cross-links, terminology, milestone status, and deferred documentation impact.
+
+Do not add TBPs, issue templates, public docs, release docs, or workflow docs unless the synchronization task explicitly activates those layers.
 
 ### Human review
 
@@ -43,14 +65,20 @@ Read:
 - relevant scenario/content/artifact documents
 - generated review packs when they exist
 
+Human review is required only where a milestone, spec, or review document explicitly requires it.
+
 ## Authority rule
 
-Do not treat `docs/research/project-setup-guide-v7.md`, `docs/research/engineering-guide-v6.md`, or `docs/research/agentic-2d-game-engine-project-summary.md` as operational authority. They are retained as source research. Project-specific rules must be extracted into active docs.
+Do not treat `docs/research/project-setup-guide-v7.md`, `docs/research/engineering-guide-v6.md`, `docs/research/agentic-2d-game-engine-project-summary.md`, or other copied guide material as operational authority.
+
+Research documents are retained for traceability. Project-specific rules must exist in active repository docs before implementation agents rely on them.
+
+External guide-system documents are planning/documentation-sync inputs only. Ordinary implementation agents should use this repository's localized project docs.
 
 ## Current hard constraints
 
 - Do not add non-root `README.md` files.
-- Do not create executable `eng/` scripts until the setup milestone explicitly does so.
-- Do not create `.csproj`, `.slnx`, or package references until the .NET solution milestone explicitly does so.
 - Do not add TBPs or issue templates by default.
+- Do not add public documentation, release-readiness structure, samples, package publishing, or workflows unless a milestone explicitly activates them.
 - Generated outputs belong under `artifacts/` or `game/assets/generated/` and must not be treated as hand-authored source.
+- Do not treat `eng/` scripts as the product API. `eng/` scripts are repository engineering wrappers; `agentic2d` is the product/runtime CLI.

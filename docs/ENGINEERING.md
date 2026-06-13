@@ -10,14 +10,22 @@ The repository has the base engineering substrate established by Milestone 001:
 
 - shared .NET/editor configuration at the repository root;
 - executable canonical `eng/` scripts;
-- a minimal `.slnx` solution with contracts, engine, and unit test projects.
+- a `.slnx` solution with contracts, engine, tools, and unit test projects.
+
+Milestones 002 and 003 added:
+
+- a minimal deterministic runtime;
+- a development product CLI host under `src/Agentic2D.Tools`;
+- product CLI validation wrappers for the current command surface.
 
 ## Indexed documents
 
-- `docs/engineering/command-contract.md`
-- `docs/engineering/validation-tiers.md`
-- `docs/engineering/future-dotnet-solution.md`
-- `docs/engineering/product-cli.md`
+| Document | Purpose |
+|---|---|
+| `docs/engineering/command-contract.md` | Canonical repository engineering command behavior and validation tier mapping. |
+| `docs/engineering/validation-tiers.md` | Validation tier names and expected usage. |
+| `docs/engineering/future-dotnet-solution.md` | Current and candidate .NET solution/project layout. |
+| `docs/engineering/product-cli.md` | Repository-local product CLI invocation and validation contract. |
 
 ## Canonical engineering commands
 
@@ -33,21 +41,39 @@ The project uses these canonical `eng/` commands:
 
 Command details and validation tier mapping are defined in `docs/engineering/command-contract.md`.
 
-Additional artifact-first commands are expected later:
+## Product CLI validation wrappers
 
-```text
-./eng/scenario.sh <scenario-id>
-./eng/scenario-smoke.sh
-./eng/content-validate.sh <scope>
-./eng/artifacts-validate.sh <artifact-path>
-./eng/review-pack.sh <run-id-or-artifact-path>
-```
-
-Product CLI validation wrappers now exist for the Milestone 003 command surface:
+The current product CLI validation wrappers are:
 
 ```text
 ./eng/cli-smoke.sh
 ./eng/product-validate.sh
 ```
 
-Do not create commands that pass without validating meaningful state. Before the .NET solution exists, command creation should either be deferred or fail clearly with an initialization message.
+These wrappers validate product CLI behavior through `src/Agentic2D.Tools`. They are repository engineering commands, not the product API.
+
+The product/runtime API is documented separately in:
+
+```text
+docs/specs/product-cli-contract.md
+docs/engineering/product-cli.md
+```
+
+## Future artifact-first commands
+
+The following commands are planned candidates only:
+
+```text
+./eng/scenario.sh <scenario-id>
+./eng/scenario-smoke.sh
+./eng/scenario-packaged.sh <scenario-id>
+./eng/content-validate.sh <scope>
+./eng/artifacts-validate.sh <artifact-path>
+./eng/review-pack.sh <run-id-or-artifact-path>
+```
+
+Do not document or rely on future commands as supported until a milestone implements them and updates the command contract.
+
+## Command rule
+
+Commands must either validate meaningful state or fail clearly. Do not create success-only placeholder scripts.

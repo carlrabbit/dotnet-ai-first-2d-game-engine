@@ -2,7 +2,7 @@
 
 ## Status
 
-Proposed for Milestone 003.
+Accepted.
 
 ## Context
 
@@ -10,13 +10,13 @@ The project is headless-first and agentic. Agents need a stable command surface 
 
 Milestone 001 established repository engineering commands under `eng/`.
 
-Milestone 002 is expected to establish a minimal deterministic runtime and a first runtime execution path.
+Milestone 002 established a minimal deterministic runtime and runtime smoke execution path.
 
-Without a clear boundary, future agents may treat `eng/` scripts as the product API or may add ad-hoc commands that do not produce stable artifacts.
+Without a clear boundary, future agents might treat `eng/` scripts as the product API or add ad-hoc commands that do not produce stable artifacts.
 
 ## Decision
 
-Milestone 003 introduces the `agentic2d` product CLI as the agent-facing product/runtime API.
+Milestone 003 introduced the `agentic2d` product CLI as the agent-facing product/runtime API.
 
 `eng/` scripts remain repository engineering wrappers.
 
@@ -54,7 +54,7 @@ Repository validation can wrap product behavior through:
 
 Product behavior remains documented independently from engineering wrapper behavior.
 
-The CLI becomes the natural expansion point for future scenario, asset, map, content, shader, and package commands, but those commands are not introduced in this milestone.
+The CLI becomes the natural expansion point for future scenario, asset, map, content, shader, and package commands, but those commands are not introduced by this decision.
 
 ## Alternatives considered
 
@@ -68,11 +68,11 @@ Rejected. `eng/` scripts are repository engineering commands. They are useful wr
 
 ### Add a full scenario runner now
 
-Rejected for Milestone 003. A full scenario runner should be a later milestone. This milestone only formalizes product CLI invocation around the minimal runtime.
+Rejected for Milestone 003. A full scenario runner should be a later milestone. Milestone 003 only formalized product CLI invocation around the minimal runtime.
 
 ### Package as a .NET tool now
 
-Deferred. Tool packaging belongs to a later release/package maturity stage. Development invocation through `dotnet run --project src/Agentic2D.Tools -- <args>` is sufficient for this milestone.
+Deferred. Tool packaging belongs to a later release/package maturity stage. Development invocation through `dotnet run --project src/Agentic2D.Tools -- <args>` is sufficient for the current maturity.
 
 ## Follow-up
 
