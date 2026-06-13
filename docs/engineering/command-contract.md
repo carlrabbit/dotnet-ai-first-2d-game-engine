@@ -24,6 +24,8 @@ These commands are the canonical local engineering API.
 | `./eng/format.sh` | Applies `dotnet format` to the solution. | Tier 1 focused implementation |
 | `./eng/format.sh --verify` | Verifies formatting with `--verify-no-changes`. | Tier 1 focused implementation |
 | `./eng/check.sh` | Runs restore, build, test, and format verification. | Tier 2 standard local gate |
+| `./eng/cli-smoke.sh` | Runs product CLI help/version checks and `agentic2d runtime smoke` through `src/Agentic2D.Tools`. | Tier 1/2 focused product CLI smoke |
+| `./eng/product-validate.sh` | Runs `agentic2d validate` through `src/Agentic2D.Tools`. | Tier 2 product validation gate for current maturity |
 
 ## Future focused commands
 
@@ -37,8 +39,6 @@ These commands are the canonical local engineering API.
 ## Future artifact-first commands
 
 ```text
-./eng/product-validate.sh
-./eng/cli-smoke.sh
 ./eng/scenario.sh <scenario-id>
 ./eng/scenario-smoke.sh
 ./eng/scenario-packaged.sh <scenario-id>

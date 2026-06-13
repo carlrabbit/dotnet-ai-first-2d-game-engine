@@ -5,9 +5,37 @@ namespace Agentic2D.Tools;
 
 public static class ToolsCli
 {
-    public static async Task<int> RunAsync(string[] args, TextWriter error)
+    public static async Task<int> RunAsync(string[] args, TextWriter output, TextWriter error)
     {
-        var parseResult = RuntimeSmokeCommand.TryParse(args);
+        if (args is ["--help"] or ["-h"])
+        {
+            await output.WriteLineAsync(
+                """
+                agentic2d
+
+                Usage:
+                  agentic2d --help
+                  agentic2d --version
+                  agentic2d runtime smoke --output <directory>
+                  agentic2d validate --output <directory>
+
+                Exit codes:
+                  0  Command completed and validation passed.
+                  1  Command completed and validation failed.
+                  2  Invalid command-line usage.
+                  3  Runtime execution error or unhandled command failure.
+                """);
+            return 0;
+        }
+
+        if (args is ["--version"])
+        {
+            var version = typeof(ToolsCli).Assembly.GetName().Version?.ToString() ?? "0.0.0-dev";
+            await output.WriteLineAsync($"agentic2d {version}");
+            return 0;
+        }
+
+        var parseResult = ToolsCliParser.TryParse(args);
 
         if (!parseResult.IsSuccess)
         {
@@ -15,24 +43,29 @@ public static class ToolsCli
             return 2;
         }
 
+        return await RunArtifactCommandAsync(parseResult.Command, output, error);
+    }
+
+    private static async Task<int> RunArtifactCommandAsync(CliCommand command, TextWriter output, TextWriter error)
+    {
+        var outputPath = Path.Combine(command.OutputDirectory, "result.json");
         RuntimeResult result;
 
         try
         {
-            result = RuntimeSmokeScenario.Run(parseResult.Ticks);
+            result = RuntimeSmokeScenario.Run(command.Ticks);
         }
         catch (Exception exception) when (exception is ArgumentException or InvalidOperationException or OverflowException)
         {
-            await error.WriteLineAsync(exception.Message);
-            return 3;
+            return await WriteErrorResultAsync(command, outputPath, exception.Message, output, error);
         }
 
-        var outputPath = Path.Combine(parseResult.OutputDirectory, "result.json");
+        var productResult = ProductCliResultJson.FromRuntimeResult(command.Name, result);
 
         try
         {
-            Directory.CreateDirectory(parseResult.OutputDirectory);
-            await RuntimeResultJson.WriteAsync(outputPath, result);
+            Directory.CreateDirectory(command.OutputDirectory);
+            await ProductCliResultJson.WriteAsync(outputPath, productResult);
         }
         catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
         {
@@ -40,11 +73,33 @@ public static class ToolsCli
             return 3;
         }
 
-        return result.Status switch
+        await output.WriteLineAsync($"{command.Name}: {productResult.Status}; result: {outputPath}");
+        return productResult.ExitCode;
+    }
+
+    private static async Task<int> WriteErrorResultAsync(
+        CliCommand command,
+        string outputPath,
+        string message,
+        TextWriter output,
+        TextWriter error)
+    {
+        var productResult = ProductCliResultJson.Error(command.Name, "CLI0003", message);
+
+        try
         {
-            RuntimeStatus.Passed => 0,
-            RuntimeStatus.Failed => 1,
-            _ => 3,
-        };
+            Directory.CreateDirectory(command.OutputDirectory);
+            await ProductCliResultJson.WriteAsync(outputPath, productResult);
+        }
+        catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
+        {
+            await error.WriteLineAsync($"runtime execution failed and diagnostic artifact could not be written: {exception.Message}");
+            await error.WriteLineAsync(message);
+            return 3;
+        }
+
+        await error.WriteLineAsync(message);
+        await output.WriteLineAsync($"{command.Name}: error; result: {outputPath}");
+        return 3;
     }
 }

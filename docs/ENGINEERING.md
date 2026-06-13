@@ -36,13 +36,18 @@ Command details and validation tier mapping are defined in `docs/engineering/com
 Additional artifact-first commands are expected later:
 
 ```text
-./eng/product-validate.sh
-./eng/cli-smoke.sh
 ./eng/scenario.sh <scenario-id>
 ./eng/scenario-smoke.sh
 ./eng/content-validate.sh <scope>
 ./eng/artifacts-validate.sh <artifact-path>
 ./eng/review-pack.sh <run-id-or-artifact-path>
+```
+
+Product CLI validation wrappers now exist for the Milestone 003 command surface:
+
+```text
+./eng/cli-smoke.sh
+./eng/product-validate.sh
 ```
 
 Do not create commands that pass without validating meaningful state. Before the .NET solution exists, command creation should either be deferred or fail clearly with an initialization message.

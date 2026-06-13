@@ -1,3 +1,3 @@
 using Agentic2D.Tools;
 
-return await ToolsCli.RunAsync(args, Console.Error);
+return await ToolsCli.RunAsync(args, Console.Out, Console.Error);

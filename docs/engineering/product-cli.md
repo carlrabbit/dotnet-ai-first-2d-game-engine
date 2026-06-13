@@ -2,151 +2,132 @@
 
 ## Authority
 
-This document is authoritative for the product/runtime CLI command surface.
+This document is authoritative for the repository-local product CLI command contract.
 
-This document is not authoritative for repository engineering scripts under `eng/`; those are defined in `docs/engineering/command-contract.md`.
+This document complements `docs/specs/product-cli-contract.md`, which defines product CLI behavior. This document records how the CLI is invoked and validated inside this repository.
 
 ## Product CLI principle
 
 The product CLI is the engine/runtime API for agents, CI, and humans. It is separate from `eng/` repository scripts.
 
-The product CLI should expose meaningful engine behavior and produce machine-readable output where practical.
+The product CLI must execute real product behavior and produce structured artifacts. It must not contain success-only placeholders.
 
-## Current command surface
+## CLI host
 
-Milestone 002 introduces the first required product CLI command through `Agentic2D.Tools`:
+The CLI host project is:
+
+```text
+src/Agentic2D.Tools
+```
+
+The product command identity is:
+
+```text
+agentic2d
+```
+
+Until packaging or tool installation exists, use the development invocation form:
 
 ```bash
-dotnet run --project src/Agentic2D.Tools -- runtime smoke --output artifacts/runtime-smoke
+dotnet run --project src/Agentic2D.Tools -- <args>
 ```
 
-Equivalent explicit form:
+## Milestone 003 command surface
+
+The first supported product CLI commands are:
+
+```text
+agentic2d --help
+agentic2d --version
+agentic2d runtime smoke --output <directory>
+agentic2d validate --output <directory>
+```
+
+Development equivalents:
 
 ```bash
-dotnet run --project src/Agentic2D.Tools -- runtime smoke --ticks 3 --output artifacts/runtime-smoke
+dotnet run --project src/Agentic2D.Tools -- --help
+dotnet run --project src/Agentic2D.Tools -- --version
+dotnet run --project src/Agentic2D.Tools -- runtime smoke --output artifacts/cli/runtime-smoke
+dotnet run --project src/Agentic2D.Tools -- validate --output artifacts/cli/validate
 ```
 
-## `runtime smoke`
+## Command table
 
-### Purpose
+| Command | Purpose | Artifact output | Validation tier |
+|---|---|---|---:|
+| `agentic2d --help` | Show available product CLI commands. | None required. | Tier 1 |
+| `agentic2d --version` | Show CLI/runtime version. | None required. | Tier 1 |
+| `agentic2d runtime smoke --output <directory>` | Run minimal deterministic runtime smoke execution. | `<directory>/result.json` | Tier 1 |
+| `agentic2d validate --output <directory>` | Run current product validation for the minimal runtime maturity. | `<directory>/result.json` | Tier 2 when called by `eng/product-validate.sh` |
 
-Run the minimal deterministic runtime smoke scenario and write a machine-readable result artifact.
+## Artifact contract
 
-### Syntax
+Artifact-producing commands must follow:
 
 ```text
-runtime smoke [--ticks <positive-integer>] --output <directory>
+docs/artifacts/product-cli-result-contract.md
 ```
 
-### Defaults
-
-```text
---ticks 3
-```
-
-There is no default output directory. The caller must provide `--output`.
-
-### Deterministic behavior
-
-The command must run the smoke behavior defined by:
-
-```text
-docs/specs/minimal-deterministic-runtime.md
-docs/scenarios/minimal-runtime-scenarios.md
-```
-
-Meaningful result contents must be stable for identical arguments and source revision.
-
-### Output path
-
-The command writes:
+Required artifact:
 
 ```text
 <output>/result.json
 ```
 
-For the required smoke example:
+Optional artifacts:
 
 ```text
-artifacts/runtime-smoke/result.json
+<output>/events.jsonl
+<output>/diagnostics.json
 ```
 
-### Artifact schema
-
-The result artifact must conform to:
-
-```text
-docs/artifacts/runtime-result-contract.md
-```
-
-### Diagnostics behavior
-
-The command must produce useful diagnostics for:
-
-```text
-unknown command
-invalid --ticks value
-missing --output value
-runtime assertion failure
-artifact write failure
-```
-
-Diagnostics may be printed to stderr. When execution reaches result creation, diagnostics should also appear in `result.json`.
-
-### Exit codes
+## Exit codes
 
 | Exit code | Meaning |
 |---:|---|
-| 0 | Command executed and runtime result status is `passed`. |
-| 1 | Command executed but runtime result status is `failed`. |
-| 2 | CLI usage error such as unknown command, invalid argument, missing argument, or invalid value. |
-| 3 | Runtime or artifact write error. |
+| 0 | Command completed and validation passed. |
+| 1 | Command completed and validation failed. |
+| 2 | Invalid command-line usage. |
+| 3 | Runtime execution error or unhandled command failure. |
 
-If the implementation uses a simpler initial exit-code model, it must still distinguish success from failure with `0` vs non-zero and document the exact mapping here.
+## Engineering wrappers
 
-### Required validation command
+Milestone 003 introduces these repository engineering wrappers:
+
+```text
+./eng/cli-smoke.sh
+./eng/product-validate.sh
+```
+
+Expected behavior:
+
+```text
+./eng/cli-smoke.sh
+  runs product CLI help/version checks and runtime smoke execution
+
+./eng/product-validate.sh
+  runs `agentic2d validate` through the development invocation path
+```
+
+The wrappers are allowed to call:
 
 ```bash
-dotnet run --project src/Agentic2D.Tools -- runtime smoke --ticks 3 --output artifacts/runtime-smoke
+dotnet run --project src/Agentic2D.Tools -- <args>
 ```
 
-Then inspect:
+They must fail with a non-zero exit code when the product CLI fails.
+
+## Current non-goals
+
+The following commands are not required yet:
 
 ```text
-artifacts/runtime-smoke/result.json
-```
-
-Expected result:
-
-```text
-status == passed
-finalTick == 3
-entity.player final position == 1
-expected events are present
-```
-
-## Future command candidates
-
-These commands remain future candidates and must not be implemented by Milestone 002 unless separately scoped:
-
-```text
-agentic2d validate
 agentic2d scenario run <scenario-id>
 agentic2d asset inspect <path>
 agentic2d map preview <map-id>
 agentic2d content validate <scope>
+agentic2d package build
 ```
 
-## Command contract fields for future commands
-
-Each future command must define:
-
-- purpose;
-- input syntax;
-- deterministic behavior;
-- output path;
-- artifact schema;
-- diagnostics behavior;
-- exit codes;
-- examples;
-- validation command.
+Do not document these as supported until implemented by a later milestone.

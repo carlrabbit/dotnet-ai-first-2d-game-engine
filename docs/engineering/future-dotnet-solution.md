@@ -6,7 +6,7 @@ This document records the intended .NET project layout. It is not an instruction
 
 ## Current project layout
 
-Milestone 002 extends the smallest useful solution with the first product CLI project:
+Milestone 003 uses the smallest useful solution with the first product CLI project:
 
 ```text
 dotnet-ai-first-2d-game-engine.slnx
