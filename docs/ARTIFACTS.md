@@ -19,6 +19,8 @@ A failed scenario, content validation, asset import, preview generation, product
 | `docs/artifacts/scenario-runner-artifact-contract.md` | `result.json`, `events.jsonl`, and `diagnostics.json` artifacts produced by Milestone 005 scenario runner commands. |
 | `docs/artifacts/content-validation-artifact-contract.md` | `result.json`, `diagnostics.json`, and `validated-items.json` artifacts produced by Milestone 006 content validation commands. |
 | `docs/artifacts/asset-inspection-artifact-contract.md` | `result.json`, `diagnostics.json`, `asset-summary.json`, and `tiles.json` artifacts produced by Milestone 007 asset inspection commands. |
+| `docs/artifacts/review-pack-artifact-contract.md` | `review-summary.md`, `review-manifest.json`, and `diagnostics.json` artifacts produced by Milestone 010 review pack commands. |
+| `docs/artifacts/asset-curation-workbench-artifact-contract.md` | `index.html`, `review-data.json`, and `diagnostics.json` artifacts produced by Milestone 010 asset curation workbench commands. |
 
 ## Artifact roots
 
@@ -102,6 +104,34 @@ Current asset inspection artifact contract:
 
 ```text
 docs/artifacts/asset-inspection-artifact-contract.md
+```
+
+Current review pack commands write:
+
+```text
+<output>/review-summary.md
+<output>/review-manifest.json
+<output>/diagnostics.json
+```
+
+Current review pack artifact contract:
+
+```text
+docs/artifacts/review-pack-artifact-contract.md
+```
+
+Current asset curation workbench commands write:
+
+```text
+<output>/index.html
+<output>/review-data.json
+<output>/diagnostics.json
+```
+
+Current asset curation workbench artifact contract:
+
+```text
+docs/artifacts/asset-curation-workbench-artifact-contract.md
 ```
 
 ## Generated/source rule

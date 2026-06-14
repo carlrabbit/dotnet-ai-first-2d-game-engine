@@ -19,6 +19,7 @@ Milestones define implementation focus areas. They should reference specs and en
 | 006 | `docs/milestones/MILESTONE-006-content-schema-validation-foundation.md` | Implemented | Content validation foundation for authored scenario JSON. |
 | 007 | `docs/milestones/MILESTONE-007-asset-metadata-and-tile-atlas-curation-slice.md` | Implemented | Asset metadata validation, tile atlas fixture, and asset inspection artifacts. |
 | 008 | `docs/milestones/MILESTONE-008-documentation-synchronization-after-m007.md` | Implemented | Documentation synchronization after Milestones 004 through 007. |
+| 010 | `docs/milestones/MILESTONE-010-asset-review-pack-and-curation-workbench-foundation.md` | Implemented | Review pack aggregation and generated static asset curation workbench foundation. |
 
 ## Deferred or superseded milestone documents
 

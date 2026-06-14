@@ -36,6 +36,12 @@ Milestone 007 added:
 - a product CLI asset inspection command;
 - an asset inspection smoke validation wrapper.
 
+Milestone 010 added:
+
+- a product CLI review pack command for aggregating generated scenario, content validation, and asset inspection evidence;
+- a generated static asset curation workbench command for the smoke tile atlas asset;
+- review pack and asset curation smoke validation wrappers.
+
 ## Indexed documents
 
 | Document | Purpose |
@@ -70,6 +76,8 @@ The current product CLI validation wrappers are:
 ./eng/content-validate.sh scenarios
 ./eng/content-validate.sh assets
 ./eng/asset-inspect-smoke.sh
+./eng/review-pack-smoke.sh
+./eng/asset-curation-smoke.sh
 ```
 
 These wrappers validate product CLI behavior through `src/Agentic2D.Tools`. They are repository engineering commands, not the product API.
@@ -89,7 +97,6 @@ The following commands are planned candidates only:
 ./eng/scenario.sh <scenario-id>
 ./eng/scenario-packaged.sh <scenario-id>
 ./eng/artifacts-validate.sh <artifact-path>
-./eng/review-pack.sh <run-id-or-artifact-path>
 ```
 
 Do not document or rely on future commands as supported until a milestone implements them and updates the command contract.

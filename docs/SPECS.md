@@ -19,6 +19,8 @@ Specs define what must be true. Milestones sequence work but do not define perma
 | `docs/specs/content-validation-contract.md` | Content validation behavior introduced by Milestone 006 and extended by Milestone 007. |
 | `docs/specs/asset-metadata-contract.md` | Authored asset metadata behavior introduced by Milestone 007. |
 | `docs/specs/asset-pipeline.md` | Initial asset pipeline principles. |
+| `docs/specs/review-pack-contract.md` | Review pack evidence aggregation introduced by Milestone 010. |
+| `docs/specs/asset-curation-workbench-contract.md` | Generated static asset curation workbench behavior introduced by Milestone 010. |
 | `docs/specs/behavior-modules.md` | Initial behavior module principles. |
 
 ## Initial invariants

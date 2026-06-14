@@ -24,6 +24,8 @@ public static class ToolsCli
                   agentic2d scenario run <scenario-id-or-path> --output <directory>
                   agentic2d content validate <scope-or-path> --output <directory>
                   agentic2d asset inspect <asset-id-or-path> --output <directory>
+                  agentic2d review pack --input <artifact-root> --output <directory>
+                  agentic2d asset curate --asset <asset-id-or-path> --review-pack <review-pack-path> --output <directory>
 
                 Exit codes:
                   0  Command completed and validation passed.
@@ -67,6 +69,16 @@ public static class ToolsCli
         if (command.Name == "asset inspect")
         {
             return await RunAssetInspectCommandAsync(command, output, error);
+        }
+
+        if (command.Name == "review pack")
+        {
+            return await RunReviewPackCommandAsync(command, output, error);
+        }
+
+        if (command.Name == "asset curate")
+        {
+            return await RunAssetCurateCommandAsync(command, output, error);
         }
 
         var outputPath = Path.Combine(command.OutputDirectory, "result.json");
@@ -136,6 +148,46 @@ public static class ToolsCli
         var resultPath = Path.Combine(command.OutputDirectory, "result.json");
         await output.WriteLineAsync($"{command.Name}: {result.Result.Status}; result: {resultPath}");
         return result.Result.ExitCode;
+    }
+
+    private static async Task<int> RunReviewPackCommandAsync(CliCommand command, TextWriter output, TextWriter error)
+    {
+        var generator = new ReviewPackGenerator();
+        var result = generator.Generate(command.InputDirectory ?? string.Empty);
+
+        try
+        {
+            await ReviewPackArtifactWriter.WriteAsync(command.OutputDirectory, result);
+        }
+        catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
+        {
+            await error.WriteLineAsync($"failed to write review pack artifacts: {exception.Message}");
+            return 3;
+        }
+
+        var manifestPath = Path.Combine(command.OutputDirectory, "review-manifest.json");
+        await output.WriteLineAsync($"{command.Name}: {result.Manifest.Status}; manifest: {manifestPath}");
+        return result.Manifest.ExitCode;
+    }
+
+    private static async Task<int> RunAssetCurateCommandAsync(CliCommand command, TextWriter output, TextWriter error)
+    {
+        var generator = new AssetCurationWorkbenchGenerator();
+        var result = generator.Generate(command.AssetTarget ?? string.Empty, command.ReviewPackPath ?? string.Empty);
+
+        try
+        {
+            await AssetCurationWorkbenchArtifactWriter.WriteAsync(command.OutputDirectory, result);
+        }
+        catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
+        {
+            await error.WriteLineAsync($"failed to write asset curation workbench artifacts: {exception.Message}");
+            return 3;
+        }
+
+        var dataPath = Path.Combine(command.OutputDirectory, "review-data.json");
+        await output.WriteLineAsync($"{command.Name}: {result.ReviewData.Status}; review data: {dataPath}");
+        return result.ReviewData.ExitCode;
     }
 
     private static async Task<int> RunScenarioCommandAsync(CliCommand command, TextWriter output, TextWriter error)

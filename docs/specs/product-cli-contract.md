@@ -38,6 +38,8 @@ agentic2d validate --output <directory>
 agentic2d scenario run <scenario-id-or-path> --output <directory>
 agentic2d content validate <scope-or-path> --output <directory>
 agentic2d asset inspect <asset-id-or-path> --output <directory>
+agentic2d review pack --input <artifact-root> --output <directory>
+agentic2d asset curate --asset <asset-id-or-path> --review-pack <review-pack-path> --output <directory>
 ```
 
 ## Command semantics
@@ -127,6 +129,38 @@ Required behavior:
 - exits `2` for invalid CLI usage, unsupported target form, or malformed option;
 - exits `3` for unexpected IO, parsing, artifact writing, or command failure.
 
+### `agentic2d review pack --input <artifact-root> --output <directory>`
+
+Aggregates existing generated evidence into a bounded review pack.
+
+Required behavior:
+
+- supports artifact root `artifacts`;
+- discovers scenario runner, content validation, and asset inspection artifact groups by known contract shape;
+- does not interpret arbitrary unknown files as product evidence;
+- produces `<directory>/review-summary.md`, `<directory>/review-manifest.json`, and `<directory>/diagnostics.json`;
+- exits `0` when pack generation completes and no error diagnostics exist;
+- exits `1` when known artifact groups report failed/error statuses or contract-level errors;
+- exits `2` for invalid CLI usage;
+- exits `3` for unexpected IO, serialization, artifact writing, or command failure.
+
+### `agentic2d asset curate --asset <asset-id-or-path> --review-pack <review-pack-path> --output <directory>`
+
+Generates static asset curation workbench artifacts for human inspection.
+
+Required behavior:
+
+- supports asset ID `asset.tile-atlas-smoke`;
+- supports repository-relative metadata path `game/assets/metadata/tile-atlas-smoke.asset.json`;
+- consumes a review pack directory or `review-manifest.json` path;
+- produces `<directory>/index.html`, `<directory>/review-data.json`, and `<directory>/diagnostics.json`;
+- keeps proposed visual labels separate from approved physical/gameplay behaviors;
+- does not modify source asset metadata or raw asset files;
+- exits `0` when workbench generation completes and no error diagnostics exist;
+- exits `1` when review pack or asset evidence is missing or malformed;
+- exits `2` for invalid CLI usage;
+- exits `3` for unexpected IO, serialization, artifact writing, or command failure.
+
 ## Required options
 
 Artifact-producing commands must support:
@@ -139,13 +173,13 @@ The implementation may add aliases only if the canonical option remains supporte
 
 ## Output behavior
 
-Artifact-producing commands must create:
+Artifact-producing commands with product-result contracts create:
 
 ```text
 <output>/result.json
 ```
 
-The result artifact is the source of truth for command outcome.
+Commands with command-specific artifact contracts may define a different source-of-truth artifact, such as `review-manifest.json` or `review-data.json`.
 
 Stdout should be concise and must include the artifact path or output directory.
 

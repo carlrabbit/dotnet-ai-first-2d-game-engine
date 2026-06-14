@@ -44,6 +44,8 @@ agentic2d validate --output <directory>
 agentic2d scenario run <scenario-id-or-path> --output <directory>
 agentic2d content validate <scope-or-path> --output <directory>
 agentic2d asset inspect <asset-id-or-path> --output <directory>
+agentic2d review pack --input <artifact-root> --output <directory>
+agentic2d asset curate --asset <asset-id-or-path> --review-pack <review-pack-path> --output <directory>
 ```
 
 Development equivalents:
@@ -61,6 +63,8 @@ dotnet run --project src/Agentic2D.Tools -- content validate assets --output art
 dotnet run --project src/Agentic2D.Tools -- content validate game/assets/metadata/tile-atlas-smoke.asset.json --output artifacts/content/tile-atlas-smoke
 dotnet run --project src/Agentic2D.Tools -- asset inspect asset.tile-atlas-smoke --output artifacts/assets/tile-atlas-smoke
 dotnet run --project src/Agentic2D.Tools -- asset inspect game/assets/metadata/tile-atlas-smoke.asset.json --output artifacts/assets/tile-atlas-smoke
+dotnet run --project src/Agentic2D.Tools -- review pack --input artifacts --output artifacts/review/latest
+dotnet run --project src/Agentic2D.Tools -- asset curate --asset asset.tile-atlas-smoke --review-pack artifacts/review/latest --output artifacts/workbench/asset-curation
 ```
 
 ## Command table
@@ -74,6 +78,8 @@ dotnet run --project src/Agentic2D.Tools -- asset inspect game/assets/metadata/t
 | `agentic2d scenario run <scenario-id-or-path> --output <directory>` | Run an authored scenario through the scenario runner. | `<directory>/result.json`, `<directory>/events.jsonl`, `<directory>/diagnostics.json` | Tier 2 when called by `eng/scenario-smoke.sh` |
 | `agentic2d content validate <scope-or-path> --output <directory>` | Validate authored content without running runtime behavior. Supported scopes are `scenarios` and `assets`. | `<directory>/result.json`, `<directory>/diagnostics.json`, `<directory>/validated-items.json` | Tier 2 when called by `eng/content-validate.sh` |
 | `agentic2d asset inspect <asset-id-or-path> --output <directory>` | Inspect authored asset metadata and referenced raw PNG structure. | `<directory>/result.json`, `<directory>/diagnostics.json`, `<directory>/asset-summary.json`, `<directory>/tiles.json` | Tier 2 when called by `eng/asset-inspect-smoke.sh` |
+| `agentic2d review pack --input <artifact-root> --output <directory>` | Aggregate current scenario, content validation, and asset inspection evidence into a review pack. | `<directory>/review-summary.md`, `<directory>/review-manifest.json`, `<directory>/diagnostics.json` | Tier 2 when called by `eng/review-pack-smoke.sh` |
+| `agentic2d asset curate --asset <asset-id-or-path> --review-pack <review-pack-path> --output <directory>` | Generate a static, non-mutating asset curation workbench artifact. | `<directory>/index.html`, `<directory>/review-data.json`, `<directory>/diagnostics.json` | Tier 2 when called by `eng/asset-curation-smoke.sh` |
 
 ## Artifact contract
 
@@ -114,6 +120,18 @@ docs/artifacts/content-validation-artifact-contract.md
 docs/artifacts/asset-inspection-artifact-contract.md
 ```
 
+`agentic2d review pack` uses the review pack artifact contract:
+
+```text
+docs/artifacts/review-pack-artifact-contract.md
+```
+
+`agentic2d asset curate` uses the asset curation workbench artifact contract:
+
+```text
+docs/artifacts/asset-curation-workbench-artifact-contract.md
+```
+
 ## Exit codes
 
 | Exit code | Meaning |
@@ -134,6 +152,8 @@ The current repository engineering wrappers for the product CLI are:
 ./eng/content-validate.sh scenarios
 ./eng/content-validate.sh assets
 ./eng/asset-inspect-smoke.sh
+./eng/review-pack-smoke.sh
+./eng/asset-curation-smoke.sh
 ```
 
 Expected behavior:
@@ -156,6 +176,12 @@ Expected behavior:
 
 ./eng/asset-inspect-smoke.sh
   runs `agentic2d asset inspect asset.tile-atlas-smoke` and verifies required asset inspection artifacts exist
+
+./eng/review-pack-smoke.sh
+  runs required smoke artifact producers, runs `agentic2d review pack`, and verifies required review pack artifacts exist
+
+./eng/asset-curation-smoke.sh
+  runs or refreshes the smoke review pack, runs `agentic2d asset curate`, and verifies required workbench artifacts exist
 ```
 
 The wrappers are allowed to call:

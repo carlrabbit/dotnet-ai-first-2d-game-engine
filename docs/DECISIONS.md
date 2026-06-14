@@ -20,6 +20,7 @@ This document indexes durable project decisions and rationale.
 | `docs/decisions/ADR-0010-scenario-runner-before-asset-workbench.md` | Accepted | Build scenario runner and runtime evidence before asset workbench. |
 | `docs/decisions/ADR-0011-content-validation-before-asset-curation.md` | Accepted | Establish content validation before asset curation. |
 | `docs/decisions/ADR-0012-asset-metadata-before-visual-workbench.md` | Accepted | Establish asset metadata before visual workbench. |
+| `docs/decisions/ADR-0013-review-pack-before-interactive-curation-editor.md` | Accepted | Build review pack and generated curation workbench before interactive curation editor. |
 
 ## Decision policy
 
