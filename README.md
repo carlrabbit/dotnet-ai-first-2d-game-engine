@@ -22,6 +22,7 @@ The current solution contains:
 dotnet-ai-first-2d-game-engine.slnx
 src/Agentic2D.Contracts
 src/Agentic2D.Engine
+src/Agentic2D.ScenarioRunner
 src/Agentic2D.Tools
 tests/unit/Agentic2D.Tests.Unit
 ```
@@ -56,6 +57,7 @@ Product CLI validation wrappers also exist for the current CLI surface:
 ```bash
 ./eng/cli-smoke.sh
 ./eng/product-validate.sh
+./eng/scenario-smoke.sh
 ```
 
 ## Product CLI
@@ -74,6 +76,7 @@ Examples:
 dotnet run --project src/Agentic2D.Tools -- --help
 dotnet run --project src/Agentic2D.Tools -- runtime smoke --output artifacts/cli/runtime-smoke
 dotnet run --project src/Agentic2D.Tools -- validate --output artifacts/cli/validate
+dotnet run --project src/Agentic2D.Tools -- scenario run game/scenarios/smoke/runtime-smoke.json --output artifacts/scenarios/runtime-smoke
 ```
 
 Artifact-producing CLI commands write structured evidence under the requested output directory.

@@ -16,6 +16,7 @@ A failed scenario, content validation, asset import, preview generation, product
 | `docs/artifacts/generated-artifacts.md` | Generated file handling rules. |
 | `docs/artifacts/runtime-result-contract.md` | `result.json` artifacts produced by Milestone 002 runtime smoke execution. |
 | `docs/artifacts/product-cli-result-contract.md` | `result.json` artifacts produced by Milestone 003 product CLI commands. |
+| `docs/artifacts/scenario-runner-artifact-contract.md` | `result.json`, `events.jsonl`, and `diagnostics.json` artifacts produced by Milestone 005 scenario runner commands. |
 
 ## Artifact roots
 
@@ -56,6 +57,20 @@ Current contracts:
 ```text
 docs/artifacts/runtime-result-contract.md
 docs/artifacts/product-cli-result-contract.md
+```
+
+Current scenario runner commands write:
+
+```text
+<output>/result.json
+<output>/events.jsonl
+<output>/diagnostics.json
+```
+
+Current scenario artifact contract:
+
+```text
+docs/artifacts/scenario-runner-artifact-contract.md
 ```
 
 ## Generated/source rule

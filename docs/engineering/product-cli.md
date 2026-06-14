@@ -34,13 +34,14 @@ dotnet run --project src/Agentic2D.Tools -- <args>
 
 ## Milestone 003 command surface
 
-The first supported product CLI commands are:
+The currently supported product CLI commands are:
 
 ```text
 agentic2d --help
 agentic2d --version
 agentic2d runtime smoke --output <directory>
 agentic2d validate --output <directory>
+agentic2d scenario run <scenario-id-or-path> --output <directory>
 ```
 
 Development equivalents:
@@ -50,6 +51,8 @@ dotnet run --project src/Agentic2D.Tools -- --help
 dotnet run --project src/Agentic2D.Tools -- --version
 dotnet run --project src/Agentic2D.Tools -- runtime smoke --output artifacts/cli/runtime-smoke
 dotnet run --project src/Agentic2D.Tools -- validate --output artifacts/cli/validate
+dotnet run --project src/Agentic2D.Tools -- scenario run game/scenarios/smoke/runtime-smoke.json --output artifacts/scenarios/runtime-smoke
+dotnet run --project src/Agentic2D.Tools -- scenario run runtime.smoke --output artifacts/scenarios/runtime-smoke
 ```
 
 ## Command table
@@ -60,6 +63,7 @@ dotnet run --project src/Agentic2D.Tools -- validate --output artifacts/cli/vali
 | `agentic2d --version` | Show CLI/runtime version. | None required. | Tier 1 |
 | `agentic2d runtime smoke --output <directory>` | Run minimal deterministic runtime smoke execution. | `<directory>/result.json` | Tier 1 |
 | `agentic2d validate --output <directory>` | Run current product validation for the minimal runtime maturity. | `<directory>/result.json` | Tier 2 when called by `eng/product-validate.sh` |
+| `agentic2d scenario run <scenario-id-or-path> --output <directory>` | Run an authored scenario through the scenario runner. | `<directory>/result.json`, `<directory>/events.jsonl`, `<directory>/diagnostics.json` | Tier 2 when called by `eng/scenario-smoke.sh` |
 
 ## Artifact contract
 
@@ -82,14 +86,20 @@ Optional artifacts:
 <output>/diagnostics.json
 ```
 
+`agentic2d scenario run` uses the scenario artifact contract instead:
+
+```text
+docs/artifacts/scenario-runner-artifact-contract.md
+```
+
 ## Exit codes
 
 | Exit code | Meaning |
 |---:|---|
 | 0 | Command completed and validation passed. |
 | 1 | Command completed and validation failed. |
-| 2 | Invalid command-line usage. |
-| 3 | Runtime execution error or unhandled command failure. |
+| 2 | Invalid command-line usage or invalid scenario input. |
+| 3 | Runtime execution error, artifact writing failure, or unhandled command failure. |
 
 ## Engineering wrappers
 
@@ -98,6 +108,7 @@ Milestone 003 introduces these repository engineering wrappers:
 ```text
 ./eng/cli-smoke.sh
 ./eng/product-validate.sh
+./eng/scenario-smoke.sh
 ```
 
 Expected behavior:
@@ -108,6 +119,9 @@ Expected behavior:
 
 ./eng/product-validate.sh
   runs `agentic2d validate` through the development invocation path
+
+./eng/scenario-smoke.sh
+  runs `agentic2d scenario run game/scenarios/smoke/runtime-smoke.json` and verifies required scenario artifacts exist
 ```
 
 The wrappers are allowed to call:
@@ -123,7 +137,6 @@ They must fail with a non-zero exit code when the product CLI fails.
 The following commands are not required yet:
 
 ```text
-agentic2d scenario run <scenario-id>
 agentic2d asset inspect <path>
 agentic2d map preview <map-id>
 agentic2d content validate <scope>

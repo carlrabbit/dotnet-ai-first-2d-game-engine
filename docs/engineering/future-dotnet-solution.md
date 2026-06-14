@@ -6,12 +6,13 @@ This document records the intended .NET project layout. It is not an instruction
 
 ## Current project layout
 
-Milestone 003 uses the smallest useful solution with the first product CLI project:
+The current solution contains the base contracts, engine, scenario runner, product CLI, and unit tests:
 
 ```text
 dotnet-ai-first-2d-game-engine.slnx
 src/Agentic2D.Contracts
 src/Agentic2D.Engine
+src/Agentic2D.ScenarioRunner
 src/Agentic2D.Tools
 tests/unit/Agentic2D.Tests.Unit
 ```
@@ -20,10 +21,14 @@ Current project references:
 
 ```text
 Agentic2D.Engine -> Agentic2D.Contracts
+Agentic2D.ScenarioRunner -> Agentic2D.Contracts
+Agentic2D.ScenarioRunner -> Agentic2D.Engine
 Agentic2D.Tools -> Agentic2D.Contracts
 Agentic2D.Tools -> Agentic2D.Engine
+Agentic2D.Tools -> Agentic2D.ScenarioRunner
 Agentic2D.Tests.Unit -> Agentic2D.Contracts
 Agentic2D.Tests.Unit -> Agentic2D.Engine
+Agentic2D.Tests.Unit -> Agentic2D.ScenarioRunner
 Agentic2D.Tests.Unit -> Agentic2D.Tools
 ```
 
@@ -35,7 +40,6 @@ src/Agentic2D.Runtime.Debug
 src/Agentic2D.Runtime.Packaged
 src/Agentic2D.SourceGen
 src/Agentic2D.AssetPipeline
-src/Agentic2D.ScenarioRunner
 src/Agentic2D.Validation
 tests/unit/Agentic2D.Tests.Unit
 tests/integration/Agentic2D.Tests.Integration
@@ -49,7 +53,6 @@ The current projects are enough for the base engineering substrate. Add candidat
 
 ```text
 Agentic2D.AssetPipeline: asset inspection or import work
-Agentic2D.ScenarioRunner: deterministic scenario execution
 Agentic2D.Runtime*: runtime host implementation
 Agentic2D.SourceGen: source generation implementation
 Agentic2D.Validation: shared validation behavior

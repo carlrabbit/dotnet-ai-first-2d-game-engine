@@ -8,7 +8,7 @@ This document indexes deterministic scenario validation concepts and scenario do
 
 Scenarios validate runtime, content, asset import, UI, save/load, packaged-mode equivalence, and other behavior that ordinary unit tests cannot prove alone.
 
-The repository currently has a built-in minimal runtime smoke scenario. It does not yet have a full scenario runner project.
+The repository currently has a built-in minimal runtime smoke path and an authored `runtime.smoke` scenario executed by the scenario runner foundation.
 
 ## Current scenario documents
 
@@ -16,6 +16,7 @@ The repository currently has a built-in minimal runtime smoke scenario. It does 
 |---|---|
 | `docs/scenarios/scenario-contract.md` | Placeholder contract for future scenario definitions. |
 | `docs/scenarios/minimal-runtime-scenarios.md` | `runtime.smoke` scenario semantics introduced by Milestone 002. |
+| `docs/scenarios/scenario-runner-foundation.md` | Authored scenario runner foundation and `runtime.smoke` scenario source semantics introduced by Milestone 005. |
 
 ## Initial scenario categories
 
@@ -65,19 +66,20 @@ Milestone 003 also exposes product CLI engineering wrappers:
 ./eng/product-validate.sh
 ```
 
-## Future scenario command shape
+Milestone 005 exposes authored scenario execution:
 
-A future scenario runner milestone may introduce:
-
-```text
-agentic2d scenario run <scenario-id> --output artifacts/scenarios/<run-id>
+```bash
+dotnet run --project src/Agentic2D.Tools -- scenario run game/scenarios/smoke/runtime-smoke.json --output artifacts/scenarios/runtime-smoke
+dotnet run --project src/Agentic2D.Tools -- scenario run runtime.smoke --output artifacts/scenarios/runtime-smoke
+./eng/scenario-smoke.sh
 ```
 
-or engineering wrappers such as:
+## Future scenario command shape
+
+Future scenario runner milestones may introduce broader scenario wrappers such as:
 
 ```text
 ./eng/scenario.sh <scenario-id>
-./eng/scenario-smoke.sh
 ./eng/scenario-packaged.sh <scenario-id>
 ```
 

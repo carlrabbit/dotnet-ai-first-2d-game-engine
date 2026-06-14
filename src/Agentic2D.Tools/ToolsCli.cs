@@ -1,5 +1,7 @@
 using Agentic2D.Contracts;
 using Agentic2D.Engine;
+using Agentic2D.ScenarioRunner;
+using ScenarioRunnerEngine = Agentic2D.ScenarioRunner.ScenarioRunner;
 
 namespace Agentic2D.Tools;
 
@@ -18,6 +20,7 @@ public static class ToolsCli
                   agentic2d --version
                   agentic2d runtime smoke --output <directory>
                   agentic2d validate --output <directory>
+                  agentic2d scenario run <scenario-id-or-path> --output <directory>
 
                 Exit codes:
                   0  Command completed and validation passed.
@@ -48,6 +51,11 @@ public static class ToolsCli
 
     private static async Task<int> RunArtifactCommandAsync(CliCommand command, TextWriter output, TextWriter error)
     {
+        if (command.Name == "scenario run")
+        {
+            return await RunScenarioCommandAsync(command, output, error);
+        }
+
         var outputPath = Path.Combine(command.OutputDirectory, "result.json");
         RuntimeResult result;
 
@@ -75,6 +83,26 @@ public static class ToolsCli
 
         await output.WriteLineAsync($"{command.Name}: {productResult.Status}; result: {outputPath}");
         return productResult.ExitCode;
+    }
+
+    private static async Task<int> RunScenarioCommandAsync(CliCommand command, TextWriter output, TextWriter error)
+    {
+        var runner = new ScenarioRunnerEngine();
+        var result = runner.Run(command.ScenarioReference ?? string.Empty);
+
+        try
+        {
+            await ScenarioArtifactWriter.WriteAsync(command.OutputDirectory, result);
+        }
+        catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
+        {
+            await error.WriteLineAsync($"failed to write scenario artifacts: {exception.Message}");
+            return 3;
+        }
+
+        var resultPath = Path.Combine(command.OutputDirectory, "result.json");
+        await output.WriteLineAsync($"{command.Name}: {result.Result.Status}; result: {resultPath}");
+        return result.Result.ExitCode;
     }
 
     private static async Task<int> WriteErrorResultAsync(

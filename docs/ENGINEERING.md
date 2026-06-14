@@ -18,6 +18,12 @@ Milestones 002 and 003 added:
 - a development product CLI host under `src/Agentic2D.Tools`;
 - product CLI validation wrappers for the current command surface.
 
+Milestone 005 added:
+
+- a scenario runner foundation under `src/Agentic2D.ScenarioRunner`;
+- an authored `runtime.smoke` scenario;
+- a scenario smoke validation wrapper.
+
 ## Indexed documents
 
 | Document | Purpose |
@@ -48,6 +54,7 @@ The current product CLI validation wrappers are:
 ```text
 ./eng/cli-smoke.sh
 ./eng/product-validate.sh
+./eng/scenario-smoke.sh
 ```
 
 These wrappers validate product CLI behavior through `src/Agentic2D.Tools`. They are repository engineering commands, not the product API.
@@ -65,7 +72,6 @@ The following commands are planned candidates only:
 
 ```text
 ./eng/scenario.sh <scenario-id>
-./eng/scenario-smoke.sh
 ./eng/scenario-packaged.sh <scenario-id>
 ./eng/content-validate.sh <scope>
 ./eng/artifacts-validate.sh <artifact-path>

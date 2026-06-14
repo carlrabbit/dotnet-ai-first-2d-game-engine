@@ -26,15 +26,16 @@ Before packaging or tool installation exists, development invocation may use:
 dotnet run --project src/Agentic2D.Tools -- <args>
 ```
 
-## Initial supported commands
+## Supported commands
 
-Milestone 003 supports this initial command set:
+The current command set is:
 
 ```text
 agentic2d --help
 agentic2d --version
 agentic2d runtime smoke --output <directory>
 agentic2d validate --output <directory>
+agentic2d scenario run <scenario-id-or-path> --output <directory>
 ```
 
 ## Command semantics
@@ -72,6 +73,21 @@ For Milestone 003, this command validates the minimal deterministic runtime thro
 
 It must not claim to validate content, assets, maps, shaders, full scenarios, packaged runtime, public docs, or release artifacts.
 
+### `agentic2d scenario run <scenario-id-or-path> --output <directory>`
+
+Runs an authored scenario through the scenario runner.
+
+Required behavior:
+
+- invokes scenario runner behavior rather than duplicating scenario execution inside CLI parsing;
+- supports file-path execution for `game/scenarios/smoke/runtime-smoke.json`;
+- supports scenario ID execution for `runtime.smoke`;
+- produces `<directory>/result.json`, `<directory>/events.jsonl`, and `<directory>/diagnostics.json`;
+- exits `0` when scenario execution completes and assertions pass;
+- exits `1` when scenario execution completes but assertions fail;
+- exits `2` for invalid CLI usage or invalid scenario input;
+- exits `3` for runtime execution errors, artifact writing failures, or unhandled command failures.
+
 ## Required options
 
 Artifact-producing commands must support:
@@ -100,8 +116,8 @@ Stdout should be concise and must include the artifact path or output directory.
 |---:|---|
 | 0 | Command completed and validation passed. |
 | 1 | Command completed and validation failed. |
-| 2 | Invalid command-line usage. |
-| 3 | Runtime execution error or unhandled command failure. |
+| 2 | Invalid command-line usage or invalid scenario input. |
+| 3 | Runtime execution error, artifact writing failure, or unhandled command failure. |
 
 Invalid command names, missing required options, unknown options, and malformed option values must return exit code `2`.
 

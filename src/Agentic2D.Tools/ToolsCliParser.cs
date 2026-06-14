@@ -16,12 +16,17 @@ public static class ToolsCliParser
             return TryParseRuntimeSmoke(args);
         }
 
+        if (args.Count >= 2 && args[0] == "scenario" && args[1] == "run")
+        {
+            return TryParseScenarioRun(args);
+        }
+
         if (args.Count >= 1 && args[0] == "validate")
         {
             return TryParseValidate(args);
         }
 
-        return CliParseResult.Failure("unknown command. expected: runtime smoke --output <directory> or validate --output <directory>");
+        return CliParseResult.Failure("unknown command. expected: runtime smoke --output <directory>, validate --output <directory>, or scenario run <scenario-id-or-path> --output <directory>");
     }
 
     private static CliParseResult TryParseRuntimeSmoke(IReadOnlyList<string> args)
@@ -104,5 +109,45 @@ public static class ToolsCliParser
         return output is null
             ? CliParseResult.Failure("missing required --output <directory>")
             : CliParseResult.Success(new CliCommand("validate", output));
+    }
+
+    private static CliParseResult TryParseScenarioRun(IReadOnlyList<string> args)
+    {
+        if (args.Count < 3 || args[2].StartsWith("--", StringComparison.Ordinal))
+        {
+            return CliParseResult.Failure("missing required scenario ID or path");
+        }
+
+        var scenarioReference = args[2];
+        string? output = null;
+
+        for (var index = 3; index < args.Count; index++)
+        {
+            var current = args[index];
+
+            switch (current)
+            {
+                case "--output":
+                    if (++index >= args.Count)
+                    {
+                        return CliParseResult.Failure("missing value for --output");
+                    }
+
+                    output = args[index];
+                    if (string.IsNullOrWhiteSpace(output))
+                    {
+                        return CliParseResult.Failure("--output must not be empty");
+                    }
+
+                    break;
+
+                default:
+                    return CliParseResult.Failure($"unknown argument: {current}");
+            }
+        }
+
+        return output is null
+            ? CliParseResult.Failure("missing required --output <directory>")
+            : CliParseResult.Success(new CliCommand("scenario run", output, ScenarioReference: scenarioReference));
     }
 }

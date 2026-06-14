@@ -1,0 +1,86 @@
+{
+  "schema": "agentic2d.scenario.v1",
+  "id": "runtime.smoke",
+  "category": "smoke",
+  "title": "Runtime smoke",
+  "purpose": "Validate deterministic runtime execution through the scenario runner.",
+  "seedPolicy": "none",
+  "runtime": {
+    "ticks": 3
+  },
+  "initialState": {
+    "entities": [
+      {
+        "id": "entity.player",
+        "position": 0
+      }
+    ]
+  },
+  "steps": [
+    {
+      "id": "step.move-player",
+      "command": {
+        "type": "move",
+        "entityId": "entity.player",
+        "amount": 1
+      }
+    }
+  ],
+  "expectedEvents": [
+    "runtime.started",
+    "entity.created",
+    "command.accepted",
+    "entity.moved",
+    "runtime.completed"
+  ],
+  "assertions": [
+    {
+      "id": "assert.finalTick",
+      "type": "finalTickEqualsRequested"
+    },
+    {
+      "id": "assert.playerExists",
+      "type": "entityExists",
+      "entityId": "entity.player"
+    },
+    {
+      "id": "assert.playerPosition",
+      "type": "entityPositionEquals",
+      "entityId": "entity.player",
+      "position": 1
+    },
+    {
+      "id": "assert.runtimeStartedEvent",
+      "type": "eventOccurred",
+      "eventType": "runtime.started"
+    },
+    {
+      "id": "assert.entityCreatedEvent",
+      "type": "eventOccurred",
+      "eventType": "entity.created"
+    },
+    {
+      "id": "assert.commandAcceptedEvent",
+      "type": "eventOccurred",
+      "eventType": "command.accepted"
+    },
+    {
+      "id": "assert.entityMovedEvent",
+      "type": "eventOccurred",
+      "eventType": "entity.moved"
+    },
+    {
+      "id": "assert.runtimeCompletedEvent",
+      "type": "eventOccurred",
+      "eventType": "runtime.completed"
+    }
+  ],
+  "artifacts": {
+    "result": "result.json",
+    "events": "events.jsonl",
+    "diagnostics": "diagnostics.json"
+  },
+  "humanReview": {
+    "required": false
+  }
+}
