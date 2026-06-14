@@ -1,0 +1,35 @@
+{
+  "schemaVersion": 1,
+  "guideSystemVersion": "0.2.0",
+  "guideRepository": "carlrabbit/agentic-project-guides",
+  "targetRepository": "carlrabbit/dotnet-ai-first-2d-game-engine",
+  "repositoryRole": "capability-provider",
+  "repositoryProfiles": [
+    "artifact-first-agentic-authoring",
+    "runtime-tool",
+    "game-simulation"
+  ],
+  "maturityModes": [
+    "implementation-ready",
+    "artifact-first"
+  ],
+  "executionMode": "migration",
+  "guideUse": [
+    "planning",
+    "migration",
+    "documentation-synchronization",
+    "release-readiness"
+  ],
+  "ordinaryImplementationAgents": {
+    "mustRead": false,
+    "ignorePaths": [
+      ".guide-profile.json",
+      ".guide-sync/"
+    ]
+  },
+  "notes": [
+    "This file is guide-selection and traceability metadata only.",
+    "Project truth remains in README.md, AGENTS.md, docs/, eng/, source, tests, and authored project data.",
+    "Do not copy guide documents or prompt templates into this repository."
+  ]
+}
