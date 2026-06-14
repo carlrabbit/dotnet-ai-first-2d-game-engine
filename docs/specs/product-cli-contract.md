@@ -36,6 +36,7 @@ agentic2d --version
 agentic2d runtime smoke --output <directory>
 agentic2d validate --output <directory>
 agentic2d scenario run <scenario-id-or-path> --output <directory>
+agentic2d content validate <scope-or-path> --output <directory>
 ```
 
 ## Command semantics
@@ -87,6 +88,22 @@ Required behavior:
 - exits `1` when scenario execution completes but assertions fail;
 - exits `2` for invalid CLI usage or invalid scenario input;
 - exits `3` for runtime execution errors, artifact writing failures, or unhandled command failures.
+
+### `agentic2d content validate <scope-or-path> --output <directory>`
+
+Validates authored content without requiring runtime or scenario execution.
+
+Required initial behavior:
+
+- supports `scenarios` scope;
+- supports validating `game/scenarios/smoke/runtime-smoke.json` by path;
+- parses scenario JSON and validates the supported `agentic2d.scenario.v1` contract;
+- validates stable IDs, duplicate IDs, supported command and assertion types, references, artifact declarations, and `humanReview.required`;
+- produces `<directory>/result.json`, `<directory>/diagnostics.json`, and `<directory>/validated-items.json`;
+- exits `0` when validation completes and passes;
+- exits `1` when validation completes and content contract validation fails;
+- exits `2` for invalid CLI usage, unsupported scope, malformed option, or invalid target form;
+- exits `3` for unexpected validation or artifact writing failures.
 
 ## Required options
 

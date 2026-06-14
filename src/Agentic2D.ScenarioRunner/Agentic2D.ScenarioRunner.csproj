@@ -2,5 +2,6 @@
   <ItemGroup>
     <ProjectReference Include="../Agentic2D.Contracts/Agentic2D.Contracts.csproj" />
     <ProjectReference Include="../Agentic2D.Engine/Agentic2D.Engine.csproj" />
+    <ProjectReference Include="../Agentic2D.Validation/Agentic2D.Validation.csproj" />
   </ItemGroup>
 </Project>

@@ -27,6 +27,7 @@ These commands are the canonical local engineering API.
 | `./eng/cli-smoke.sh` | Runs product CLI help/version checks and `agentic2d runtime smoke` through `src/Agentic2D.Tools`. | Tier 1/2 focused product CLI smoke |
 | `./eng/product-validate.sh` | Runs `agentic2d validate` through `src/Agentic2D.Tools`. | Tier 2 product validation gate for current maturity |
 | `./eng/scenario-smoke.sh` | Runs authored `runtime.smoke` through `agentic2d scenario run` and verifies `result.json`, `events.jsonl`, and `diagnostics.json` exist. | Tier 2 scenario validation gate for current maturity |
+| `./eng/content-validate.sh <scope-or-path>` | Runs `agentic2d content validate <scope-or-path>` through `src/Agentic2D.Tools` and verifies content validation artifacts exist. | Tier 2 content validation gate for current maturity |
 
 ## Future focused commands
 
@@ -42,7 +43,6 @@ These commands are the canonical local engineering API.
 
 ```text
 ./eng/scenario-packaged.sh <scenario-id>
-./eng/content-validate.sh <scope>
 ./eng/artifacts-validate.sh <artifact-path>
 ./eng/review-pack.sh <run-id-or-artifact-path>
 ```

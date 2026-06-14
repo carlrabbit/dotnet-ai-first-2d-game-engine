@@ -21,12 +21,17 @@ public static class ToolsCliParser
             return TryParseScenarioRun(args);
         }
 
+        if (args.Count >= 2 && args[0] == "content" && args[1] == "validate")
+        {
+            return TryParseContentValidate(args);
+        }
+
         if (args.Count >= 1 && args[0] == "validate")
         {
             return TryParseValidate(args);
         }
 
-        return CliParseResult.Failure("unknown command. expected: runtime smoke --output <directory>, validate --output <directory>, or scenario run <scenario-id-or-path> --output <directory>");
+        return CliParseResult.Failure("unknown command. expected: runtime smoke --output <directory>, validate --output <directory>, scenario run <scenario-id-or-path> --output <directory>, or content validate <scope-or-path> --output <directory>");
     }
 
     private static CliParseResult TryParseRuntimeSmoke(IReadOnlyList<string> args)
@@ -149,5 +154,45 @@ public static class ToolsCliParser
         return output is null
             ? CliParseResult.Failure("missing required --output <directory>")
             : CliParseResult.Success(new CliCommand("scenario run", output, ScenarioReference: scenarioReference));
+    }
+
+    private static CliParseResult TryParseContentValidate(IReadOnlyList<string> args)
+    {
+        if (args.Count < 3 || args[2].StartsWith("--", StringComparison.Ordinal))
+        {
+            return CliParseResult.Failure("missing required content scope or path");
+        }
+
+        var contentTarget = args[2];
+        string? output = null;
+
+        for (var index = 3; index < args.Count; index++)
+        {
+            var current = args[index];
+
+            switch (current)
+            {
+                case "--output":
+                    if (++index >= args.Count)
+                    {
+                        return CliParseResult.Failure("missing value for --output");
+                    }
+
+                    output = args[index];
+                    if (string.IsNullOrWhiteSpace(output))
+                    {
+                        return CliParseResult.Failure("--output must not be empty");
+                    }
+
+                    break;
+
+                default:
+                    return CliParseResult.Failure($"unknown argument: {current}");
+            }
+        }
+
+        return output is null
+            ? CliParseResult.Failure("missing required --output <directory>")
+            : CliParseResult.Success(new CliCommand("content validate", output, ContentTarget: contentTarget));
     }
 }

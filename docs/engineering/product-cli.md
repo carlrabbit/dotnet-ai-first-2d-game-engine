@@ -32,7 +32,7 @@ Until packaging or tool installation exists, use the development invocation form
 dotnet run --project src/Agentic2D.Tools -- <args>
 ```
 
-## Milestone 003 command surface
+## Current command surface
 
 The currently supported product CLI commands are:
 
@@ -42,6 +42,7 @@ agentic2d --version
 agentic2d runtime smoke --output <directory>
 agentic2d validate --output <directory>
 agentic2d scenario run <scenario-id-or-path> --output <directory>
+agentic2d content validate <scope-or-path> --output <directory>
 ```
 
 Development equivalents:
@@ -53,6 +54,8 @@ dotnet run --project src/Agentic2D.Tools -- runtime smoke --output artifacts/cli
 dotnet run --project src/Agentic2D.Tools -- validate --output artifacts/cli/validate
 dotnet run --project src/Agentic2D.Tools -- scenario run game/scenarios/smoke/runtime-smoke.json --output artifacts/scenarios/runtime-smoke
 dotnet run --project src/Agentic2D.Tools -- scenario run runtime.smoke --output artifacts/scenarios/runtime-smoke
+dotnet run --project src/Agentic2D.Tools -- content validate scenarios --output artifacts/content/scenarios
+dotnet run --project src/Agentic2D.Tools -- content validate game/scenarios/smoke/runtime-smoke.json --output artifacts/content/runtime-smoke
 ```
 
 ## Command table
@@ -64,6 +67,7 @@ dotnet run --project src/Agentic2D.Tools -- scenario run runtime.smoke --output 
 | `agentic2d runtime smoke --output <directory>` | Run minimal deterministic runtime smoke execution. | `<directory>/result.json` | Tier 1 |
 | `agentic2d validate --output <directory>` | Run current product validation for the minimal runtime maturity. | `<directory>/result.json` | Tier 2 when called by `eng/product-validate.sh` |
 | `agentic2d scenario run <scenario-id-or-path> --output <directory>` | Run an authored scenario through the scenario runner. | `<directory>/result.json`, `<directory>/events.jsonl`, `<directory>/diagnostics.json` | Tier 2 when called by `eng/scenario-smoke.sh` |
+| `agentic2d content validate <scope-or-path> --output <directory>` | Validate authored content without running runtime behavior. Initial supported scope is `scenarios`. | `<directory>/result.json`, `<directory>/diagnostics.json`, `<directory>/validated-items.json` | Tier 2 when called by `eng/content-validate.sh` |
 
 ## Artifact contract
 
@@ -92,6 +96,12 @@ Optional artifacts:
 docs/artifacts/scenario-runner-artifact-contract.md
 ```
 
+`agentic2d content validate` uses the content validation artifact contract:
+
+```text
+docs/artifacts/content-validation-artifact-contract.md
+```
+
 ## Exit codes
 
 | Exit code | Meaning |
@@ -109,6 +119,7 @@ Milestone 003 introduces these repository engineering wrappers:
 ./eng/cli-smoke.sh
 ./eng/product-validate.sh
 ./eng/scenario-smoke.sh
+./eng/content-validate.sh scenarios
 ```
 
 Expected behavior:
@@ -122,6 +133,9 @@ Expected behavior:
 
 ./eng/scenario-smoke.sh
   runs `agentic2d scenario run game/scenarios/smoke/runtime-smoke.json` and verifies required scenario artifacts exist
+
+./eng/content-validate.sh scenarios
+  runs `agentic2d content validate scenarios` and verifies required content validation artifacts exist
 ```
 
 The wrappers are allowed to call:
@@ -139,7 +153,6 @@ The following commands are not required yet:
 ```text
 agentic2d asset inspect <path>
 agentic2d map preview <map-id>
-agentic2d content validate <scope>
 agentic2d package build
 ```
 

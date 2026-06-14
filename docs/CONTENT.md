@@ -16,6 +16,31 @@ Source content must be:
 - reviewable by humans;
 - separated from generated outputs.
 
+## Current validation surface
+
+The current content validation foundation supports authored scenario JSON as the first content domain.
+
+Supported product CLI forms:
+
+```bash
+dotnet run --project src/Agentic2D.Tools -- content validate scenarios --output artifacts/content/scenarios
+dotnet run --project src/Agentic2D.Tools -- content validate game/scenarios/smoke/runtime-smoke.json --output artifacts/content/runtime-smoke
+```
+
+Supported engineering wrapper:
+
+```bash
+./eng/content-validate.sh scenarios
+```
+
+The validator writes generated evidence under the requested output directory:
+
+```text
+result.json
+diagnostics.json
+validated-items.json
+```
+
 ## Game content domains
 
 ```text

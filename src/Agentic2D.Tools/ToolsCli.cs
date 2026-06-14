@@ -1,6 +1,7 @@
 using Agentic2D.Contracts;
 using Agentic2D.Engine;
 using Agentic2D.ScenarioRunner;
+using Agentic2D.Validation;
 using ScenarioRunnerEngine = Agentic2D.ScenarioRunner.ScenarioRunner;
 
 namespace Agentic2D.Tools;
@@ -21,12 +22,13 @@ public static class ToolsCli
                   agentic2d runtime smoke --output <directory>
                   agentic2d validate --output <directory>
                   agentic2d scenario run <scenario-id-or-path> --output <directory>
+                  agentic2d content validate <scope-or-path> --output <directory>
 
                 Exit codes:
                   0  Command completed and validation passed.
                   1  Command completed and validation failed.
-                  2  Invalid command-line usage.
-                  3  Runtime execution error or unhandled command failure.
+                  2  Invalid command-line usage or invalid content input/scope.
+                  3  Runtime execution, artifact writing, or unhandled command failure.
                 """);
             return 0;
         }
@@ -56,6 +58,11 @@ public static class ToolsCli
             return await RunScenarioCommandAsync(command, output, error);
         }
 
+        if (command.Name == "content validate")
+        {
+            return await RunContentValidateCommandAsync(command, output, error);
+        }
+
         var outputPath = Path.Combine(command.OutputDirectory, "result.json");
         RuntimeResult result;
 
@@ -83,6 +90,26 @@ public static class ToolsCli
 
         await output.WriteLineAsync($"{command.Name}: {productResult.Status}; result: {outputPath}");
         return productResult.ExitCode;
+    }
+
+    private static async Task<int> RunContentValidateCommandAsync(CliCommand command, TextWriter output, TextWriter error)
+    {
+        var validator = new ContentValidator();
+        var result = validator.Validate(command.ContentTarget ?? string.Empty);
+
+        try
+        {
+            await ContentValidationArtifactWriter.WriteAsync(command.OutputDirectory, result);
+        }
+        catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
+        {
+            await error.WriteLineAsync($"failed to write content validation artifacts: {exception.Message}");
+            return 3;
+        }
+
+        var resultPath = Path.Combine(command.OutputDirectory, "result.json");
+        await output.WriteLineAsync($"{command.Name}: {result.Result.Status}; result: {resultPath}");
+        return result.Result.ExitCode;
     }
 
     private static async Task<int> RunScenarioCommandAsync(CliCommand command, TextWriter output, TextWriter error)

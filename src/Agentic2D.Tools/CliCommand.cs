@@ -1,3 +1,8 @@
 namespace Agentic2D.Tools;
 
-public sealed record CliCommand(string Name, string OutputDirectory, int Ticks = 3, string? ScenarioReference = null);
+public sealed record CliCommand(
+    string Name,
+    string OutputDirectory,
+    int Ticks = 3,
+    string? ScenarioReference = null,
+    string? ContentTarget = null);
