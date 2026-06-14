@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "guideSystemVersion": "0.2.0",
+  "guideSystemVersion": "0.3.0",
   "guideRepository": "carlrabbit/agentic-project-guides",
   "targetRepository": "carlrabbit/dotnet-ai-first-2d-game-engine",
   "repositoryRole": "capability-provider",
@@ -27,9 +27,15 @@
       ".guide-sync/"
     ]
   },
+  "planningWorkflow": {
+    "requiresExecutionPromptHandoff": true,
+    "latestGuideVersionResolvedAtPlanningTime": true,
+    "externalGuideRepositoryRequiredForImplementation": false
+  },
   "notes": [
     "This file is guide-selection and traceability metadata only.",
     "Project truth remains in README.md, AGENTS.md, docs/, eng/, source, tests, and authored project data.",
-    "Do not copy guide documents or prompt templates into this repository."
+    "Do not copy guide documents or prompt templates into this repository.",
+    "Planning packages for disconnected implementation agents should include a filled execution prompt in chat."
   ]
 }
