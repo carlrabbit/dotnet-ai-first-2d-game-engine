@@ -43,6 +43,7 @@ agentic2d runtime smoke --output <directory>
 agentic2d validate --output <directory>
 agentic2d scenario run <scenario-id-or-path> --output <directory>
 agentic2d content validate <scope-or-path> --output <directory>
+agentic2d asset inspect <asset-id-or-path> --output <directory>
 ```
 
 Development equivalents:
@@ -56,6 +57,10 @@ dotnet run --project src/Agentic2D.Tools -- scenario run game/scenarios/smoke/ru
 dotnet run --project src/Agentic2D.Tools -- scenario run runtime.smoke --output artifacts/scenarios/runtime-smoke
 dotnet run --project src/Agentic2D.Tools -- content validate scenarios --output artifacts/content/scenarios
 dotnet run --project src/Agentic2D.Tools -- content validate game/scenarios/smoke/runtime-smoke.json --output artifacts/content/runtime-smoke
+dotnet run --project src/Agentic2D.Tools -- content validate assets --output artifacts/content/assets
+dotnet run --project src/Agentic2D.Tools -- content validate game/assets/metadata/tile-atlas-smoke.asset.json --output artifacts/content/tile-atlas-smoke
+dotnet run --project src/Agentic2D.Tools -- asset inspect asset.tile-atlas-smoke --output artifacts/assets/tile-atlas-smoke
+dotnet run --project src/Agentic2D.Tools -- asset inspect game/assets/metadata/tile-atlas-smoke.asset.json --output artifacts/assets/tile-atlas-smoke
 ```
 
 ## Command table
@@ -67,7 +72,8 @@ dotnet run --project src/Agentic2D.Tools -- content validate game/scenarios/smok
 | `agentic2d runtime smoke --output <directory>` | Run minimal deterministic runtime smoke execution. | `<directory>/result.json` | Tier 1 |
 | `agentic2d validate --output <directory>` | Run current product validation for the minimal runtime maturity. | `<directory>/result.json` | Tier 2 when called by `eng/product-validate.sh` |
 | `agentic2d scenario run <scenario-id-or-path> --output <directory>` | Run an authored scenario through the scenario runner. | `<directory>/result.json`, `<directory>/events.jsonl`, `<directory>/diagnostics.json` | Tier 2 when called by `eng/scenario-smoke.sh` |
-| `agentic2d content validate <scope-or-path> --output <directory>` | Validate authored content without running runtime behavior. Initial supported scope is `scenarios`. | `<directory>/result.json`, `<directory>/diagnostics.json`, `<directory>/validated-items.json` | Tier 2 when called by `eng/content-validate.sh` |
+| `agentic2d content validate <scope-or-path> --output <directory>` | Validate authored content without running runtime behavior. Supported scopes are `scenarios` and `assets`. | `<directory>/result.json`, `<directory>/diagnostics.json`, `<directory>/validated-items.json` | Tier 2 when called by `eng/content-validate.sh` |
+| `agentic2d asset inspect <asset-id-or-path> --output <directory>` | Inspect authored asset metadata and referenced raw PNG structure. | `<directory>/result.json`, `<directory>/diagnostics.json`, `<directory>/asset-summary.json`, `<directory>/tiles.json` | Tier 2 when called by `eng/asset-inspect-smoke.sh` |
 
 ## Artifact contract
 
@@ -102,6 +108,12 @@ docs/artifacts/scenario-runner-artifact-contract.md
 docs/artifacts/content-validation-artifact-contract.md
 ```
 
+`agentic2d asset inspect` uses the asset inspection artifact contract:
+
+```text
+docs/artifacts/asset-inspection-artifact-contract.md
+```
+
 ## Exit codes
 
 | Exit code | Meaning |
@@ -120,6 +132,8 @@ Milestone 003 introduces these repository engineering wrappers:
 ./eng/product-validate.sh
 ./eng/scenario-smoke.sh
 ./eng/content-validate.sh scenarios
+./eng/content-validate.sh assets
+./eng/asset-inspect-smoke.sh
 ```
 
 Expected behavior:
@@ -136,6 +150,12 @@ Expected behavior:
 
 ./eng/content-validate.sh scenarios
   runs `agentic2d content validate scenarios` and verifies required content validation artifacts exist
+
+./eng/content-validate.sh assets
+  runs `agentic2d content validate assets` and verifies required content validation artifacts exist
+
+./eng/asset-inspect-smoke.sh
+  runs `agentic2d asset inspect asset.tile-atlas-smoke` and verifies required asset inspection artifacts exist
 ```
 
 The wrappers are allowed to call:
@@ -151,7 +171,6 @@ They must fail with a non-zero exit code when the product CLI fails.
 The following commands are not required yet:
 
 ```text
-agentic2d asset inspect <path>
 agentic2d map preview <map-id>
 agentic2d package build
 ```

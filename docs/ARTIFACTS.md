@@ -18,6 +18,7 @@ A failed scenario, content validation, asset import, preview generation, product
 | `docs/artifacts/product-cli-result-contract.md` | `result.json` artifacts produced by Milestone 003 product CLI commands. |
 | `docs/artifacts/scenario-runner-artifact-contract.md` | `result.json`, `events.jsonl`, and `diagnostics.json` artifacts produced by Milestone 005 scenario runner commands. |
 | `docs/artifacts/content-validation-artifact-contract.md` | `result.json`, `diagnostics.json`, and `validated-items.json` artifacts produced by Milestone 006 content validation commands. |
+| `docs/artifacts/asset-inspection-artifact-contract.md` | `result.json`, `diagnostics.json`, `asset-summary.json`, and `tiles.json` artifacts produced by Milestone 007 asset inspection commands. |
 
 ## Artifact roots
 
@@ -86,6 +87,21 @@ Current content validation artifact contract:
 
 ```text
 docs/artifacts/content-validation-artifact-contract.md
+```
+
+Current asset inspection commands write:
+
+```text
+<output>/result.json
+<output>/diagnostics.json
+<output>/asset-summary.json
+<output>/tiles.json
+```
+
+Current asset inspection artifact contract:
+
+```text
+docs/artifacts/asset-inspection-artifact-contract.md
 ```
 
 ## Generated/source rule

@@ -108,6 +108,7 @@ Additional deterministic counts are allowed, for example:
 infos
 filesRead
 scenariosValidated
+assetsValidated
 ```
 
 ## Diagnostic shape
@@ -167,6 +168,12 @@ If `validated-items.json` is produced, it should use this shape:
       "id": "runtime.smoke",
       "path": "game/scenarios/smoke/runtime-smoke.json",
       "status": "passed"
+    },
+    {
+      "kind": "asset",
+      "id": "asset.tile-atlas-smoke",
+      "path": "game/assets/metadata/tile-atlas-smoke.asset.json",
+      "status": "passed"
     }
   ]
 }
@@ -176,7 +183,7 @@ Required item fields:
 
 | Field | Type | Meaning |
 |---|---|---|
-| `kind` | string | Content kind, initially `scenario`. |
+| `kind` | string | Content kind, currently `scenario` or `asset`. |
 | `id` | string | Stable content item ID. |
 | `path` | string | Repository-relative source path. |
 | `status` | string | `passed`, `failed`, or `error` for that item. |

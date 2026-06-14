@@ -6,7 +6,7 @@ This document is authoritative for the first reusable content validation foundat
 
 This document is not authoritative for:
 
-- asset curation workflows;
+- asset curation workflows beyond metadata validation;
 - image inspection;
 - map, animation, shader, or UI-specific content semantics;
 - packaged-runtime validation;
@@ -18,7 +18,7 @@ This document is not authoritative for:
 
 The content validation foundation validates authored non-code project data before runtime or scenario execution depends on it.
 
-The first supported validation domain is authored scenario JSON.
+The first supported validation domain was authored scenario JSON. Milestone 007 adds authored asset metadata JSON validation.
 
 Initial validation flow:
 
@@ -38,9 +38,9 @@ Validation must produce enough evidence for an agent or human to diagnose malfor
 
 Content validation must enforce the repository's source content principles where they apply to the supported domain:
 
-| Principle | Initial Milestone 006 meaning |
+| Principle | Current meaning |
 |---|---|
-| Schema-validated | Scenario JSON must conform to `agentic2d.scenario.v1` and the supported Milestone 006 shape. |
+| Schema-validated | Scenario JSON must conform to `agentic2d.scenario.v1`; asset metadata JSON must conform to `agentic2d.asset-metadata.v1`. |
 | Diff-friendly | Authored content remains plain JSON. |
 | Merge-friendly | Stable IDs and deterministic ordering are preferred where validation outputs lists. |
 | Stable-ID addressable | Scenario IDs, entity IDs, step IDs, and assertion IDs must be stable strings. |
@@ -50,28 +50,37 @@ Content validation must enforce the repository's source content principles where
 
 ## Supported content domains
 
-Milestone 006 supports only:
+The supported content domains are:
 
 ```text
 scenarios
+assets
 ```
 
 Supported paths:
 
 ```text
 game/scenarios/smoke/runtime-smoke.json
+game/assets/metadata/tile-atlas-smoke.asset.json
 ```
 
-Supported scope:
+Supported scopes:
 
 ```text
 scenarios
+assets
 ```
 
 The `scenarios` scope validates authored scenario files under:
 
 ```text
 game/scenarios/
+```
+
+The `assets` scope validates authored asset metadata files under:
+
+```text
+game/assets/metadata/
 ```
 
 The implementation may initially validate the known smoke scenario and deterministic nested JSON files under `game/scenarios/`. File discovery must be deterministic if more than one file is discovered.
@@ -89,6 +98,8 @@ Development invocations:
 ```bash
 dotnet run --project src/Agentic2D.Tools -- content validate scenarios --output artifacts/content/scenarios
 dotnet run --project src/Agentic2D.Tools -- content validate game/scenarios/smoke/runtime-smoke.json --output artifacts/content/runtime-smoke
+dotnet run --project src/Agentic2D.Tools -- content validate assets --output artifacts/content/assets
+dotnet run --project src/Agentic2D.Tools -- content validate game/assets/metadata/tile-atlas-smoke.asset.json --output artifacts/content/tile-atlas-smoke
 ```
 
 ## Supported target forms
@@ -98,10 +109,12 @@ dotnet run --project src/Agentic2D.Tools -- content validate game/scenarios/smok
 | Form | Required support | Meaning |
 |---|---:|---|
 | `scenarios` | Yes | Validate known authored scenario content. |
+| `assets` | Yes | Validate known authored asset metadata content. |
 | repository-relative `.json` path | Yes | Validate a single supported content file. |
+| repository-relative `.asset.json` path | Yes | Validate a single asset metadata file. |
 | arbitrary folder path | No | Deferred. |
 | glob expression | No | Deferred. |
-| asset/map/animation domain name | No | Deferred. |
+| map/animation domain name | No | Deferred. |
 
 Unsupported scopes or malformed paths must produce a stable diagnostic and a non-zero exit code.
 
@@ -156,6 +169,27 @@ Required checks for scenario JSON:
 | `assertions` | Must contain supported assertion types and valid references. |
 | `artifacts` | Declared artifact names must be relative filenames, not absolute paths. |
 | `humanReview.required` | Must be a boolean. |
+
+## Asset metadata validation
+
+Asset metadata validation must validate `docs/specs/asset-metadata-contract.md` for the supported Milestone 007 subset.
+
+Required checks for asset metadata JSON:
+
+| Check | Required behavior |
+|---|---|
+| JSON parse | File must be valid JSON. |
+| `schema` | Must equal `agentic2d.asset-metadata.v1`. |
+| Required fields | Required top-level fields from the asset metadata contract must exist. |
+| `id` | Must be a valid stable asset ID. |
+| `kind` | Must be supported, initially `tile-atlas`. |
+| `source.path` | Must be repository-relative, safe, and exist in the repository context. |
+| `source.mediaType` | Must be `image/png`. |
+| `tileAtlas` | Tile size, columns, and rows must be positive integers. |
+| `tiles` | Tile IDs must be unique; coordinates must be within the declared grid and not duplicated. |
+| `semantics` | Visual labels are proposals; approved physical/gameplay behaviors require review evidence. |
+| `provenance` | `sourceKind` and `createdBy` must be present. |
+| `humanReview` | Approved physical behavior review gate must be declared. |
 
 ## Stable ID policy
 
@@ -226,6 +260,14 @@ Recommended diagnostic IDs:
 | `CONTENT0008` | Invalid artifact declaration. |
 | `CONTENT0009` | Invalid human review declaration. |
 | `CONTENT0010` | Invalid scope or path. |
+| `ASSET0001` | Missing required asset metadata field. |
+| `ASSET0002` | Invalid asset source reference. |
+| `ASSET0003` | Invalid tile grid. |
+| `ASSET0004` | Duplicate tile ID or coordinate. |
+| `ASSET0005` | Semantic approval violation. |
+| `ASSET0006` | Invalid provenance. |
+| `ASSET0007` | Unsupported asset kind. |
+| `ASSET0008` | Unsupported asset media type. |
 
 Exact IDs may vary if they are stable and tests assert the chosen IDs.
 
@@ -294,4 +336,4 @@ Human review is not required to decide whether content validation passes.
 
 Human review is required for milestone acceptance only to judge whether diagnostics and artifacts are useful for future agents and humans.
 
-Review-gated asset semantics remain governed by `docs/CONTENT.md` and are outside Milestone 006.
+Review-gated asset semantics remain governed by `docs/CONTENT.md` and `docs/specs/asset-metadata-contract.md`.

@@ -1,0 +1,60 @@
+{
+  "schema": "agentic2d.asset-metadata.v1",
+  "id": "asset.tile-atlas-smoke",
+  "kind": "tile-atlas",
+  "title": "Tile atlas smoke asset",
+  "purpose": "Validate structural asset metadata and tile atlas inspection.",
+  "source": {
+    "path": "game/assets/raw/samples/tile-atlas-smoke.png",
+    "mediaType": "image/png"
+  },
+  "tileAtlas": {
+    "tileWidth": 8,
+    "tileHeight": 8,
+    "columns": 2,
+    "rows": 2
+  },
+  "tiles": [
+    {
+      "id": "tile.smoke.grass",
+      "x": 0,
+      "y": 0,
+      "visualLabelsProposed": ["grass"],
+      "physicalBehaviorsApproved": []
+    },
+    {
+      "id": "tile.smoke.stone",
+      "x": 1,
+      "y": 0,
+      "visualLabelsProposed": ["stone"],
+      "physicalBehaviorsApproved": []
+    },
+    {
+      "id": "tile.smoke.water",
+      "x": 0,
+      "y": 1,
+      "visualLabelsProposed": ["water"],
+      "physicalBehaviorsApproved": []
+    },
+    {
+      "id": "tile.smoke.flower",
+      "x": 1,
+      "y": 1,
+      "visualLabelsProposed": ["flower"],
+      "physicalBehaviorsApproved": []
+    }
+  ],
+  "provenance": {
+    "sourceKind": "repository-fixture",
+    "createdBy": "milestone-007",
+    "notes": "Synthetic fixture for structural validation only."
+  },
+  "semantics": {
+    "visualLabelsProposed": ["grass", "stone", "water", "flower"],
+    "physicalBehaviorsApproved": []
+  },
+  "humanReview": {
+    "requiredForApprovedPhysicalBehaviors": true,
+    "approvals": []
+  }
+}

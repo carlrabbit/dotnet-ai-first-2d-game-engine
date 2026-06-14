@@ -77,6 +77,8 @@ dotnet run --project src/Agentic2D.Tools -- --help
 dotnet run --project src/Agentic2D.Tools -- runtime smoke --output artifacts/cli/runtime-smoke
 dotnet run --project src/Agentic2D.Tools -- validate --output artifacts/cli/validate
 dotnet run --project src/Agentic2D.Tools -- scenario run game/scenarios/smoke/runtime-smoke.json --output artifacts/scenarios/runtime-smoke
+dotnet run --project src/Agentic2D.Tools -- content validate assets --output artifacts/content/assets
+dotnet run --project src/Agentic2D.Tools -- asset inspect asset.tile-atlas-smoke --output artifacts/assets/tile-atlas-smoke
 ```
 
 Artifact-producing CLI commands write structured evidence under the requested output directory.

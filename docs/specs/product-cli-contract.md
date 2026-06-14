@@ -37,6 +37,7 @@ agentic2d runtime smoke --output <directory>
 agentic2d validate --output <directory>
 agentic2d scenario run <scenario-id-or-path> --output <directory>
 agentic2d content validate <scope-or-path> --output <directory>
+agentic2d asset inspect <asset-id-or-path> --output <directory>
 ```
 
 ## Command semantics
@@ -96,14 +97,35 @@ Validates authored content without requiring runtime or scenario execution.
 Required initial behavior:
 
 - supports `scenarios` scope;
+- supports `assets` scope;
 - supports validating `game/scenarios/smoke/runtime-smoke.json` by path;
+- supports validating `game/assets/metadata/tile-atlas-smoke.asset.json` by path;
 - parses scenario JSON and validates the supported `agentic2d.scenario.v1` contract;
+- parses asset metadata JSON and validates the supported `agentic2d.asset-metadata.v1` contract;
 - validates stable IDs, duplicate IDs, supported command and assertion types, references, artifact declarations, and `humanReview.required`;
+- validates asset source references, tile grid declarations, duplicate tile IDs/coordinates, provenance, and review-gated semantic approvals;
 - produces `<directory>/result.json`, `<directory>/diagnostics.json`, and `<directory>/validated-items.json`;
 - exits `0` when validation completes and passes;
 - exits `1` when validation completes and content contract validation fails;
 - exits `2` for invalid CLI usage, unsupported scope, malformed option, or invalid target form;
 - exits `3` for unexpected validation or artifact writing failures.
+
+### `agentic2d asset inspect <asset-id-or-path> --output <directory>`
+
+Inspects authored asset metadata and the referenced raw PNG structurally.
+
+Required behavior:
+
+- supports asset ID `asset.tile-atlas-smoke`;
+- supports repository-relative `.asset.json` metadata paths;
+- loads and validates asset metadata before structural inspection;
+- parses the raw PNG header to observe image width and height;
+- verifies declared tile atlas dimensions match the PNG dimensions;
+- produces `<directory>/result.json`, `<directory>/diagnostics.json`, `<directory>/asset-summary.json`, and `<directory>/tiles.json`;
+- exits `0` when inspection completes and passes;
+- exits `1` when inspection completes but metadata or structural consistency checks fail;
+- exits `2` for invalid CLI usage, unsupported target form, or malformed option;
+- exits `3` for unexpected IO, parsing, artifact writing, or command failure.
 
 ## Required options
 

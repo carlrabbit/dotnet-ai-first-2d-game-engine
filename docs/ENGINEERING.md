@@ -30,6 +30,12 @@ Milestone 006 added:
 - scenario JSON content validation as the first supported domain;
 - a content validation product CLI command and engineering wrapper.
 
+Milestone 007 added:
+
+- authored asset metadata validation for the first tile atlas slice;
+- a product CLI asset inspection command;
+- an asset inspection smoke validation wrapper.
+
 ## Indexed documents
 
 | Document | Purpose |
@@ -62,6 +68,8 @@ The current product CLI validation wrappers are:
 ./eng/product-validate.sh
 ./eng/scenario-smoke.sh
 ./eng/content-validate.sh scenarios
+./eng/content-validate.sh assets
+./eng/asset-inspect-smoke.sh
 ```
 
 These wrappers validate product CLI behavior through `src/Agentic2D.Tools`. They are repository engineering commands, not the product API.

@@ -30,7 +30,14 @@ public sealed class ContentValidator
 
         foreach (var path in resolution.Paths)
         {
-            ValidateScenarioFile(path, items, diagnostics);
+            if (path.EndsWith(".asset.json", StringComparison.OrdinalIgnoreCase))
+            {
+                ValidateAssetFile(path, items, diagnostics);
+            }
+            else
+            {
+                ValidateScenarioFile(path, items, diagnostics);
+            }
         }
 
         var status = diagnostics.Any(static diagnostic => diagnostic.Severity == ContentDiagnosticSeverity.Error)
@@ -39,6 +46,16 @@ public sealed class ContentValidator
         var exitCode = status == ContentValidationStatus.Passed ? 0 : 1;
 
         return ContentValidationRun.FromDiagnostics(target, status, exitCode, items, diagnostics);
+    }
+
+    private static void ValidateAssetFile(
+        string path,
+        List<ValidatedContentItem> items,
+        List<ContentValidationDiagnostic> diagnostics)
+    {
+        var item = new AssetMetadataValidator().ValidateFile(path);
+        diagnostics.AddRange(item.Diagnostics);
+        items.Add(new ValidatedContentItem(ContentKind.Asset, item.Id, item.Path, item.Status));
     }
 
     private static void ValidateScenarioFile(
@@ -444,9 +461,31 @@ public static class ContentTargetResolver
                 : ContentTargetResolution.Success(paths);
         }
 
-        if (!Path.GetExtension(target).Equals(".json", StringComparison.OrdinalIgnoreCase))
+        if (StringComparer.Ordinal.Equals(target, AssetMetadataValidator.AssetsScope))
         {
-            return ContentTargetResolution.Failure([ContentDiagnostic.InvalidScopeOrPath(target, "Unsupported content target. Expected scenarios or a repository-relative .json path.")]);
+            var assetMetadataRoot = Path.Combine(FindRepositoryRoot(), "game", "assets", "metadata");
+            if (!Directory.Exists(assetMetadataRoot))
+            {
+                return ContentTargetResolution.Failure([ContentDiagnostic.InvalidScopeOrPath(target, "Asset metadata directory was not found: game/assets/metadata")]);
+            }
+
+            var paths = Directory.EnumerateFiles(assetMetadataRoot, "*.asset.json", SearchOption.AllDirectories)
+                .Order(StringComparer.Ordinal)
+                .ToArray();
+
+            return paths.Length == 0
+                ? ContentTargetResolution.Failure([ContentDiagnostic.InvalidScopeOrPath(target, "No asset metadata JSON files were found under game/assets/metadata.")])
+                : ContentTargetResolution.Success(paths);
+        }
+
+        if (!target.EndsWith(".json", StringComparison.OrdinalIgnoreCase))
+        {
+            return ContentTargetResolution.Failure([ContentDiagnostic.InvalidScopeOrPath(target, "Unsupported content target. Expected scenarios, assets, or a repository-relative .json path.")]);
+        }
+
+        if (!Path.IsPathRooted(target) && target.Split(['/', '\\']).Contains("..", StringComparer.Ordinal))
+        {
+            return ContentTargetResolution.Failure([ContentDiagnostic.InvalidScopeOrPath(target, "Content path must be repository-relative and must not escape the repository.")]);
         }
 
         var resolvedPath = Path.IsPathRooted(target)
@@ -539,7 +578,8 @@ public sealed record ContentValidationRun(
                 diagnostics.Count(static diagnostic => diagnostic.Severity == ContentDiagnosticSeverity.Error),
                 diagnostics.Count(static diagnostic => diagnostic.Severity == ContentDiagnosticSeverity.Warning),
                 diagnostics.Count(static diagnostic => diagnostic.Severity == ContentDiagnosticSeverity.Info),
-                items.Count(static item => item.Kind == ContentKind.Scenario)),
+                items.Count(static item => item.Kind == ContentKind.Scenario),
+                items.Count(static item => item.Kind == ContentKind.Asset)),
             diagnostics,
             artifacts);
 
@@ -565,7 +605,8 @@ public sealed record ContentValidationSummary(
     [property: JsonPropertyName("errors")] int Errors,
     [property: JsonPropertyName("warnings")] int Warnings,
     [property: JsonPropertyName("infos")] int Infos,
-    [property: JsonPropertyName("scenariosValidated")] int ScenariosValidated);
+    [property: JsonPropertyName("scenariosValidated")] int ScenariosValidated,
+    [property: JsonPropertyName("assetsValidated")] int AssetsValidated);
 
 public sealed record ContentDiagnosticsDocument(
     [property: JsonPropertyName("schema")] string Schema,
@@ -663,6 +704,7 @@ public static class ContentDiagnosticSeverity
 public static class ContentKind
 {
     public const string Scenario = "scenario";
+    public const string Asset = "asset";
 }
 
 public static class ContentValidationJson

@@ -18,19 +18,22 @@ Source content must be:
 
 ## Current validation surface
 
-The current content validation foundation supports authored scenario JSON as the first content domain.
+The current content validation foundation supports authored scenario JSON and authored asset metadata JSON.
 
 Supported product CLI forms:
 
 ```bash
 dotnet run --project src/Agentic2D.Tools -- content validate scenarios --output artifacts/content/scenarios
 dotnet run --project src/Agentic2D.Tools -- content validate game/scenarios/smoke/runtime-smoke.json --output artifacts/content/runtime-smoke
+dotnet run --project src/Agentic2D.Tools -- content validate assets --output artifacts/content/assets
+dotnet run --project src/Agentic2D.Tools -- content validate game/assets/metadata/tile-atlas-smoke.asset.json --output artifacts/content/tile-atlas-smoke
 ```
 
 Supported engineering wrapper:
 
 ```bash
 ./eng/content-validate.sh scenarios
+./eng/content-validate.sh assets
 ```
 
 The validator writes generated evidence under the requested output directory:

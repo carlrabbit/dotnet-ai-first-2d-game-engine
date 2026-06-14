@@ -7,6 +7,7 @@ namespace Agentic2D.Tests.Unit;
 public sealed class ContentValidationTests
 {
     private const string SmokeScenarioPath = "game/scenarios/smoke/runtime-smoke.json";
+    private const string SmokeAssetPath = "game/assets/metadata/tile-atlas-smoke.asset.json";
 
     [Test]
     public async Task ScenariosScopeValidatesAuthoredSmokeScenario()
@@ -196,13 +197,204 @@ public sealed class ContentValidationTests
         var stdout = new StringWriter();
         var stderr = new StringWriter();
 
-        var exitCode = await ToolsCli.RunAsync(["content", "validate", "assets", "--output", outputDirectory], stdout, stderr);
+        var exitCode = await ToolsCli.RunAsync(["content", "validate", "maps", "--output", outputDirectory], stdout, stderr);
 
         await Assert.That(exitCode).IsEqualTo(2);
         await Assert.That(File.Exists(Path.Combine(outputDirectory, "diagnostics.json"))).IsTrue();
 
         using var diagnosticsDocument = JsonDocument.Parse(await File.ReadAllTextAsync(Path.Combine(outputDirectory, "diagnostics.json")));
         await Assert.That(diagnosticsDocument.RootElement.GetProperty("diagnostics")[0].GetProperty("id").GetString()).IsEqualTo("CONTENT0010");
+    }
+
+    [Test]
+    public async Task AssetsScopeValidatesAuthoredSmokeAssetMetadata()
+    {
+        var result = new ContentValidator().Validate("assets");
+
+        await Assert.That(result.Result.Status).IsEqualTo("passed");
+        await Assert.That(result.Result.ExitCode).IsEqualTo(0);
+        await Assert.That(result.ValidatedItemsDocument.Items.Single().Id).IsEqualTo("asset.tile-atlas-smoke");
+        await Assert.That(result.ValidatedItemsDocument.Items.Single().Kind).IsEqualTo("asset");
+        await Assert.That(result.ValidatedItemsDocument.Items.Single().Path).IsEqualTo(SmokeAssetPath);
+    }
+
+    [Test]
+    public async Task SingleAssetMetadataPathValidatesAuthoredSmokeAssetMetadata()
+    {
+        var result = new ContentValidator().Validate(SmokeAssetPath);
+
+        await Assert.That(result.Result.Status).IsEqualTo("passed");
+        await Assert.That(result.Result.ExitCode).IsEqualTo(0);
+        await Assert.That(result.Result.Summary.AssetsValidated).IsEqualTo(1);
+    }
+
+    [Test]
+    public async Task AssetMetadataValidationCatchesMissingRawSource()
+    {
+        var asset = ValidAsset();
+        asset["source"] = new Dictionary<string, object?>
+        {
+            ["path"] = "game/assets/raw/samples/missing.png",
+            ["mediaType"] = "image/png",
+        };
+        var path = await WriteAssetAsync(asset);
+
+        var result = new ContentValidator().Validate(path);
+
+        await Assert.That(result.Result.Status).IsEqualTo("failed");
+        await Assert.That(result.Result.Diagnostics.Select(static diagnostic => diagnostic.Id)).Contains("ASSET0002");
+    }
+
+    [Test]
+    public async Task AssetMetadataValidationCatchesInvalidTileGrid()
+    {
+        var asset = ValidAsset();
+        asset["tileAtlas"] = new Dictionary<string, object?>
+        {
+            ["tileWidth"] = 8,
+            ["tileHeight"] = 8,
+            ["columns"] = 0,
+            ["rows"] = 2,
+        };
+        var path = await WriteAssetAsync(asset);
+
+        var result = new ContentValidator().Validate(path);
+
+        await Assert.That(result.Result.Status).IsEqualTo("failed");
+        await Assert.That(result.Result.Diagnostics.Select(static diagnostic => diagnostic.Id)).Contains("ASSET0003");
+    }
+
+    [Test]
+    public async Task AssetMetadataValidationCatchesDuplicateTileId()
+    {
+        var asset = ValidAsset();
+        asset["tiles"] = new object[]
+        {
+            new Dictionary<string, object?>
+            {
+                ["id"] = "tile.smoke.duplicate",
+                ["x"] = 0,
+                ["y"] = 0,
+                ["visualLabelsProposed"] = new[] { "grass" },
+                ["physicalBehaviorsApproved"] = Array.Empty<string>(),
+            },
+            new Dictionary<string, object?>
+            {
+                ["id"] = "tile.smoke.duplicate",
+                ["x"] = 1,
+                ["y"] = 0,
+                ["visualLabelsProposed"] = new[] { "stone" },
+                ["physicalBehaviorsApproved"] = Array.Empty<string>(),
+            },
+        };
+        var path = await WriteAssetAsync(asset);
+
+        var result = new ContentValidator().Validate(path);
+
+        await Assert.That(result.Result.Status).IsEqualTo("failed");
+        await Assert.That(result.Result.Diagnostics.Select(static diagnostic => diagnostic.Id)).Contains("ASSET0004");
+    }
+
+    [Test]
+    public async Task AssetMetadataValidationCatchesApprovedSemanticsWithoutReviewEvidence()
+    {
+        var asset = ValidAsset();
+        asset["tiles"] = new object[]
+        {
+            new Dictionary<string, object?>
+            {
+                ["id"] = "tile.smoke.grass",
+                ["x"] = 0,
+                ["y"] = 0,
+                ["visualLabelsProposed"] = new[] { "grass" },
+                ["physicalBehaviorsApproved"] = new[] { "walkable" },
+            },
+        };
+        var path = await WriteAssetAsync(asset);
+
+        var result = new ContentValidator().Validate(path);
+
+        await Assert.That(result.Result.Status).IsEqualTo("failed");
+        await Assert.That(result.Result.Diagnostics.Select(static diagnostic => diagnostic.Id)).Contains("ASSET0005");
+    }
+
+    [Test]
+    public async Task AssetInspectCommandWritesDeterministicArtifactsForAssetId()
+    {
+        var outputDirectory = CreateTempDirectory();
+        var stdout = new StringWriter();
+        var stderr = new StringWriter();
+
+        var exitCode = await ToolsCli.RunAsync(["asset", "inspect", "asset.tile-atlas-smoke", "--output", outputDirectory], stdout, stderr);
+
+        await Assert.That(exitCode).IsEqualTo(0);
+        await Assert.That(stderr.ToString()).IsEqualTo(string.Empty);
+        await Assert.That(File.Exists(Path.Combine(outputDirectory, "result.json"))).IsTrue();
+        await Assert.That(File.Exists(Path.Combine(outputDirectory, "diagnostics.json"))).IsTrue();
+        await Assert.That(File.Exists(Path.Combine(outputDirectory, "asset-summary.json"))).IsTrue();
+        await Assert.That(File.Exists(Path.Combine(outputDirectory, "tiles.json"))).IsTrue();
+
+        using var resultDocument = JsonDocument.Parse(await File.ReadAllTextAsync(Path.Combine(outputDirectory, "result.json")));
+        await Assert.That(resultDocument.RootElement.GetProperty("schema").GetString()).IsEqualTo("agentic2d.asset-inspection.result.v1");
+        await Assert.That(resultDocument.RootElement.GetProperty("target").GetString()).IsEqualTo("asset.tile-atlas-smoke");
+        await Assert.That(resultDocument.RootElement.GetProperty("summary").GetProperty("tilesDeclared").GetInt32()).IsEqualTo(4);
+
+        using var summaryDocument = JsonDocument.Parse(await File.ReadAllTextAsync(Path.Combine(outputDirectory, "asset-summary.json")));
+        await Assert.That(summaryDocument.RootElement.GetProperty("asset").GetProperty("id").GetString()).IsEqualTo("asset.tile-atlas-smoke");
+        await Assert.That(summaryDocument.RootElement.GetProperty("image").GetProperty("width").GetInt32()).IsEqualTo(16);
+        await Assert.That(summaryDocument.RootElement.GetProperty("image").GetProperty("height").GetInt32()).IsEqualTo(16);
+        await Assert.That(summaryDocument.RootElement.GetProperty("semantics").GetProperty("reviewRequiredForApprovedPhysicalBehaviors").GetBoolean()).IsTrue();
+
+        using var tilesDocument = JsonDocument.Parse(await File.ReadAllTextAsync(Path.Combine(outputDirectory, "tiles.json")));
+        await Assert.That(tilesDocument.RootElement.GetProperty("tiles").GetArrayLength()).IsEqualTo(4);
+        await Assert.That(tilesDocument.RootElement.GetProperty("tiles")[0].GetProperty("reviewStatus").GetString()).IsEqualTo("not-required-for-proposals");
+    }
+
+    [Test]
+    public async Task AssetInspectCommandSupportsRepositoryRelativeMetadataPath()
+    {
+        var outputDirectory = CreateTempDirectory();
+        var stdout = new StringWriter();
+        var stderr = new StringWriter();
+
+        var exitCode = await ToolsCli.RunAsync(["asset", "inspect", SmokeAssetPath, "--output", outputDirectory], stdout, stderr);
+
+        await Assert.That(exitCode).IsEqualTo(0);
+        await Assert.That(stderr.ToString()).IsEqualTo(string.Empty);
+        await Assert.That(File.Exists(Path.Combine(outputDirectory, "result.json"))).IsTrue();
+    }
+
+    [Test]
+    public async Task AssetInspectCommandReturnsUsageExitCodeWhenOutputIsMissing()
+    {
+        var stdout = new StringWriter();
+        var stderr = new StringWriter();
+
+        var exitCode = await ToolsCli.RunAsync(["asset", "inspect", "asset.tile-atlas-smoke"], stdout, stderr);
+
+        await Assert.That(exitCode).IsEqualTo(2);
+        await Assert.That(stdout.ToString()).IsEqualTo(string.Empty);
+        await Assert.That(stderr.ToString()).Contains("missing required --output");
+    }
+
+    [Test]
+    public async Task AssetInspectionCatchesPngGridMismatch()
+    {
+        var asset = ValidAsset();
+        asset["tileAtlas"] = new Dictionary<string, object?>
+        {
+            ["tileWidth"] = 7,
+            ["tileHeight"] = 8,
+            ["columns"] = 2,
+            ["rows"] = 2,
+        };
+        var path = await WriteAssetAsync(asset);
+
+        var result = new AssetInspector().Inspect(path);
+
+        await Assert.That(result.Result.Status).IsEqualTo("failed");
+        await Assert.That(result.Result.ExitCode).IsEqualTo(1);
+        await Assert.That(result.Result.Diagnostics.Select(static diagnostic => diagnostic.Id)).Contains("ASSET0003");
     }
 
     private static Dictionary<string, object?> ValidScenario()
@@ -243,6 +435,57 @@ public sealed class ContentValidationTests
         };
     }
 
+    private static Dictionary<string, object?> ValidAsset()
+    {
+        return new Dictionary<string, object?>
+        {
+            ["schema"] = "agentic2d.asset-metadata.v1",
+            ["id"] = "asset.tile-atlas-smoke",
+            ["kind"] = "tile-atlas",
+            ["title"] = "Tile atlas smoke asset",
+            ["purpose"] = "Validate structural asset metadata and tile atlas inspection.",
+            ["source"] = new Dictionary<string, object?>
+            {
+                ["path"] = "game/assets/raw/samples/tile-atlas-smoke.png",
+                ["mediaType"] = "image/png",
+            },
+            ["tileAtlas"] = new Dictionary<string, object?>
+            {
+                ["tileWidth"] = 8,
+                ["tileHeight"] = 8,
+                ["columns"] = 2,
+                ["rows"] = 2,
+            },
+            ["tiles"] = new object[]
+            {
+                new Dictionary<string, object?>
+                {
+                    ["id"] = "tile.smoke.grass",
+                    ["x"] = 0,
+                    ["y"] = 0,
+                    ["visualLabelsProposed"] = new[] { "grass" },
+                    ["physicalBehaviorsApproved"] = Array.Empty<string>(),
+                },
+            },
+            ["provenance"] = new Dictionary<string, object?>
+            {
+                ["sourceKind"] = "repository-fixture",
+                ["createdBy"] = "milestone-007",
+                ["notes"] = "Synthetic fixture for structural validation only.",
+            },
+            ["semantics"] = new Dictionary<string, object?>
+            {
+                ["visualLabelsProposed"] = new[] { "grass" },
+                ["physicalBehaviorsApproved"] = Array.Empty<string>(),
+            },
+            ["humanReview"] = new Dictionary<string, object?>
+            {
+                ["requiredForApprovedPhysicalBehaviors"] = true,
+                ["approvals"] = Array.Empty<object>(),
+            },
+        };
+    }
+
     private static Dictionary<string, object?> RemoveProperty(Dictionary<string, object?> source, string propertyName)
     {
         source.Remove(propertyName);
@@ -256,6 +499,15 @@ public sealed class ContentValidationTests
         var path = Path.Combine(root, "scenario.json");
         await File.WriteAllTextAsync(path, JsonSerializer.Serialize(scenario, ContentValidationJson.Options));
         return path;
+    }
+
+    private static async Task<string> WriteAssetAsync(Dictionary<string, object?> asset)
+    {
+        var root = Path.Combine(ContentTargetResolver.FindRepositoryRoot(), "artifacts", "tests", Guid.NewGuid().ToString("N"));
+        Directory.CreateDirectory(root);
+        var path = Path.Combine(root, "asset.asset.json");
+        await File.WriteAllTextAsync(path, JsonSerializer.Serialize(asset, ContentValidationJson.Options));
+        return ContentTargetResolver.ToRepositoryRelativePath(path);
     }
 
     private static string CreateTempDirectory()

@@ -23,6 +23,7 @@ public static class ToolsCli
                   agentic2d validate --output <directory>
                   agentic2d scenario run <scenario-id-or-path> --output <directory>
                   agentic2d content validate <scope-or-path> --output <directory>
+                  agentic2d asset inspect <asset-id-or-path> --output <directory>
 
                 Exit codes:
                   0  Command completed and validation passed.
@@ -61,6 +62,11 @@ public static class ToolsCli
         if (command.Name == "content validate")
         {
             return await RunContentValidateCommandAsync(command, output, error);
+        }
+
+        if (command.Name == "asset inspect")
+        {
+            return await RunAssetInspectCommandAsync(command, output, error);
         }
 
         var outputPath = Path.Combine(command.OutputDirectory, "result.json");
@@ -104,6 +110,26 @@ public static class ToolsCli
         catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
         {
             await error.WriteLineAsync($"failed to write content validation artifacts: {exception.Message}");
+            return 3;
+        }
+
+        var resultPath = Path.Combine(command.OutputDirectory, "result.json");
+        await output.WriteLineAsync($"{command.Name}: {result.Result.Status}; result: {resultPath}");
+        return result.Result.ExitCode;
+    }
+
+    private static async Task<int> RunAssetInspectCommandAsync(CliCommand command, TextWriter output, TextWriter error)
+    {
+        var inspector = new AssetInspector();
+        var result = inspector.Inspect(command.AssetTarget ?? string.Empty);
+
+        try
+        {
+            await AssetInspectionArtifactWriter.WriteAsync(command.OutputDirectory, result);
+        }
+        catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
+        {
+            await error.WriteLineAsync($"failed to write asset inspection artifacts: {exception.Message}");
             return 3;
         }
 
