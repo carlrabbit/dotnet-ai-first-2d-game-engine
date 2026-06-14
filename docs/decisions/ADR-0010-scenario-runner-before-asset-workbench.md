@@ -2,7 +2,7 @@
 
 ## Status
 
-Proposed for Milestone 005.
+Accepted.
 
 ## Context
 

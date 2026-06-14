@@ -23,6 +23,7 @@ dotnet-ai-first-2d-game-engine.slnx
 src/Agentic2D.Contracts
 src/Agentic2D.Engine
 src/Agentic2D.ScenarioRunner
+src/Agentic2D.Validation
 src/Agentic2D.Tools
 tests/unit/Agentic2D.Tests.Unit
 ```

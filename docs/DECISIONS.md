@@ -16,6 +16,10 @@ This document indexes durable project decisions and rationale.
 | `docs/decisions/ADR-0006-establish-engineering-substrate-before-runtime.md` | Accepted | Establish engineering substrate before runtime work. |
 | `docs/decisions/ADR-0007-expose-minimal-runtime-through-tools-cli.md` | Accepted | Expose minimal runtime through `Agentic2D.Tools`. |
 | `docs/decisions/ADR-0008-product-cli-is-the-agent-facing-product-api.md` | Accepted | Product CLI is the agent-facing product API. |
+| `docs/decisions/ADR-0009-adopt-external-guide-system-v0.2.0.md` | Accepted | Adopt external guide-system routing and sync metadata. |
+| `docs/decisions/ADR-0010-scenario-runner-before-asset-workbench.md` | Accepted | Build scenario runner and runtime evidence before asset workbench. |
+| `docs/decisions/ADR-0011-content-validation-before-asset-curation.md` | Accepted | Establish content validation before asset curation. |
+| `docs/decisions/ADR-0012-asset-metadata-before-visual-workbench.md` | Accepted | Establish asset metadata before visual workbench. |
 
 ## Decision policy
 

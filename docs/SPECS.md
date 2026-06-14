@@ -15,6 +15,9 @@ Specs define what must be true. Milestones sequence work but do not define perma
 | `docs/specs/agentic-workflow.md` | Intended human-agent workflow. |
 | `docs/specs/minimal-deterministic-runtime.md` | Minimal runtime semantics introduced by Milestone 002. |
 | `docs/specs/product-cli-contract.md` | Initial `agentic2d` product CLI behavior introduced by Milestone 003. |
+| `docs/specs/scenario-runner-contract.md` | Authored scenario runner behavior introduced by Milestone 005. |
+| `docs/specs/content-validation-contract.md` | Content validation behavior introduced by Milestone 006 and extended by Milestone 007. |
+| `docs/specs/asset-metadata-contract.md` | Authored asset metadata behavior introduced by Milestone 007. |
 | `docs/specs/asset-pipeline.md` | Initial asset pipeline principles. |
 | `docs/specs/behavior-modules.md` | Initial behavior module principles. |
 

@@ -125,7 +125,7 @@ docs/artifacts/asset-inspection-artifact-contract.md
 
 ## Engineering wrappers
 
-Milestone 003 introduces these repository engineering wrappers:
+The current repository engineering wrappers for the product CLI are:
 
 ```text
 ./eng/cli-smoke.sh

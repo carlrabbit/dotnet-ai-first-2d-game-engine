@@ -2,7 +2,7 @@
 
 ## Status
 
-Proposed for the guide-system migration milestone.
+Accepted.
 
 ## Context
 
