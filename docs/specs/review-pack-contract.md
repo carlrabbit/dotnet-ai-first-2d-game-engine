@@ -66,7 +66,16 @@ Milestone 010 must support these known artifact families:
 | Content validation | `docs/artifacts/content-validation-artifact-contract.md` |
 | Asset inspection | `docs/artifacts/asset-inspection-artifact-contract.md` |
 
-Optional future artifact families must be ignored or diagnosed without breaking current review pack generation.
+Milestone 011 additionally recognizes these optional artifact families when present without requiring them for backward-compatible review pack generation:
+
+| Artifact family | Existing contract |
+|---|---|
+| Asset perception | `docs/artifacts/asset-authoring-artifact-contract.md` |
+| Asset review apply | `docs/artifacts/asset-authoring-artifact-contract.md` |
+| Map inspection | `docs/artifacts/map-inspection-artifact-contract.md` |
+| Runtime inspection | `docs/artifacts/runtime-inspection-artifact-contract.md` |
+
+Unknown or future artifact families must still be ignored or diagnosed without breaking review pack generation.
 
 ## Output
 
@@ -118,6 +127,8 @@ Initial required review questions:
 - Are any approved physical/gameplay behaviors backed by human review evidence?
 - Are diagnostics clear enough to diagnose failures?
 - Are source references and artifact references sufficient for follow-up work?
+
+When Milestone 011 artifact families are present, the pack should also surface whether perception proposals stay distinct from approvals, whether map diagnostics identify resolved references clearly, and whether runtime inspection makes executed state diagnosable without source reading.
 
 ## Determinism requirements
 

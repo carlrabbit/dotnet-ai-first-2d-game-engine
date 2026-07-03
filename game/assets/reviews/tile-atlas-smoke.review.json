@@ -1,0 +1,26 @@
+{
+  "schema": "agentic2d.asset-review-decisions.v1",
+  "id": "review.asset.tile-atlas-smoke",
+  "assetId": "asset.tile-atlas-smoke",
+  "metadataPath": "game/assets/metadata/tile-atlas-smoke.asset.json",
+  "expectedSourceFingerprint": "sha256:a4e50f5c995c1d5f8cd8f76388b75968138201bc187f0fdebded918e12132da0",
+  "provenance": {
+    "sourceKind": "repository-fixture",
+    "createdBy": "milestone-011",
+    "reviewedBy": "human.smoke-fixture",
+    "reviewedAt": "2026-07-03",
+    "notes": "Synthetic capability-validation review evidence. Not production approval."
+  },
+  "decisions": [
+    {
+      "id": "decision.tile.smoke.0.walkable",
+      "target": {
+        "tileId": "tile.smoke.0",
+        "field": "physicalBehaviorsApproved",
+        "value": "walkable"
+      },
+      "state": "approved",
+      "reason": "Synthetic smoke fixture decision for capability validation only."
+    }
+  ]
+}

@@ -16,28 +16,28 @@
   },
   "tiles": [
     {
-      "id": "tile.smoke.grass",
+      "id": "tile.smoke.0",
       "x": 0,
       "y": 0,
       "visualLabelsProposed": ["grass"],
       "physicalBehaviorsApproved": []
     },
     {
-      "id": "tile.smoke.stone",
+      "id": "tile.smoke.1",
       "x": 1,
       "y": 0,
       "visualLabelsProposed": ["stone"],
       "physicalBehaviorsApproved": []
     },
     {
-      "id": "tile.smoke.water",
+      "id": "tile.smoke.2",
       "x": 0,
       "y": 1,
       "visualLabelsProposed": ["water"],
       "physicalBehaviorsApproved": []
     },
     {
-      "id": "tile.smoke.flower",
+      "id": "tile.smoke.3",
       "x": 1,
       "y": 1,
       "visualLabelsProposed": ["flower"],

@@ -59,6 +59,12 @@ Product CLI validation wrappers also exist for the current CLI surface:
 ./eng/cli-smoke.sh
 ./eng/product-validate.sh
 ./eng/scenario-smoke.sh
+./eng/content-validate.sh maps
+./eng/asset-review-smoke.sh
+./eng/asset-perception-smoke.sh
+./eng/map-smoke.sh
+./eng/runtime-inspect-smoke.sh
+./eng/m011-smoke.sh
 ```
 
 ## Product CLI
@@ -80,6 +86,11 @@ dotnet run --project src/Agentic2D.Tools -- validate --output artifacts/cli/vali
 dotnet run --project src/Agentic2D.Tools -- scenario run game/scenarios/smoke/runtime-smoke.json --output artifacts/scenarios/runtime-smoke
 dotnet run --project src/Agentic2D.Tools -- content validate assets --output artifacts/content/assets
 dotnet run --project src/Agentic2D.Tools -- asset inspect asset.tile-atlas-smoke --output artifacts/assets/tile-atlas-smoke
+dotnet run --project src/Agentic2D.Tools -- asset perceive asset.tile-atlas-smoke --output artifacts/assets/perception/tile-atlas-smoke
+dotnet run --project src/Agentic2D.Tools -- asset review apply --decisions game/assets/reviews/tile-atlas-smoke.review.json --dry-run --output artifacts/asset-review/dry-run
+dotnet run --project src/Agentic2D.Tools -- content validate maps --output artifacts/content/maps
+dotnet run --project src/Agentic2D.Tools -- map inspect map.smoke --output artifacts/maps/map-smoke
+dotnet run --project src/Agentic2D.Tools -- runtime inspect --scenario runtime.smoke --map map.smoke --output artifacts/runtime/inspect
 ```
 
 Artifact-producing CLI commands write structured evidence under the requested output directory.

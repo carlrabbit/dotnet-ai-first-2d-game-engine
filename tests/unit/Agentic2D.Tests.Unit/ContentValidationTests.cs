@@ -8,6 +8,7 @@ public sealed class ContentValidationTests
 {
     private const string SmokeScenarioPath = "game/scenarios/smoke/runtime-smoke.json";
     private const string SmokeAssetPath = "game/assets/metadata/tile-atlas-smoke.asset.json";
+    private const string SmokeMapPath = "game/maps/smoke/map-smoke.map.json";
 
     [Test]
     public async Task ScenariosScopeValidatesAuthoredSmokeScenario()
@@ -197,13 +198,36 @@ public sealed class ContentValidationTests
         var stdout = new StringWriter();
         var stderr = new StringWriter();
 
-        var exitCode = await ToolsCli.RunAsync(["content", "validate", "maps", "--output", outputDirectory], stdout, stderr);
+        var exitCode = await ToolsCli.RunAsync(["content", "validate", "widgets", "--output", outputDirectory], stdout, stderr);
 
         await Assert.That(exitCode).IsEqualTo(2);
         await Assert.That(File.Exists(Path.Combine(outputDirectory, "diagnostics.json"))).IsTrue();
 
         using var diagnosticsDocument = JsonDocument.Parse(await File.ReadAllTextAsync(Path.Combine(outputDirectory, "diagnostics.json")));
         await Assert.That(diagnosticsDocument.RootElement.GetProperty("diagnostics")[0].GetProperty("id").GetString()).IsEqualTo("CONTENT0010");
+    }
+
+    [Test]
+    public async Task MapsScopeValidatesAuthoredSmokeMap()
+    {
+        var result = new ContentValidator().Validate("maps");
+
+        await Assert.That(result.Result.Status).IsEqualTo("passed");
+        await Assert.That(result.Result.ExitCode).IsEqualTo(0);
+        await Assert.That(result.Result.Summary.MapsValidated).IsEqualTo(1);
+        await Assert.That(result.ValidatedItemsDocument.Items.Single().Id).IsEqualTo("map.smoke");
+        await Assert.That(result.ValidatedItemsDocument.Items.Single().Kind).IsEqualTo("map");
+        await Assert.That(result.ValidatedItemsDocument.Items.Single().Path).IsEqualTo(SmokeMapPath);
+    }
+
+    [Test]
+    public async Task SingleMapPathValidatesAuthoredSmokeMap()
+    {
+        var result = new ContentValidator().Validate(SmokeMapPath);
+
+        await Assert.That(result.Result.Status).IsEqualTo("passed");
+        await Assert.That(result.Result.ExitCode).IsEqualTo(0);
+        await Assert.That(result.ValidatedItemsDocument.Items.Single().Status).IsEqualTo("passed");
     }
 
     [Test]
@@ -460,7 +484,7 @@ public sealed class ContentValidationTests
             {
                 new Dictionary<string, object?>
                 {
-                    ["id"] = "tile.smoke.grass",
+                    ["id"] = "tile.smoke.0",
                     ["x"] = 0,
                     ["y"] = 0,
                     ["visualLabelsProposed"] = new[] { "grass" },

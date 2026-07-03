@@ -8,7 +8,7 @@ public sealed class AssetInspector
 {
     public AssetInspectionRun Inspect(string target)
     {
-        var resolution = ResolveTarget(target);
+        var resolution = AssetMetadataLocator.ResolveTarget(target);
         if (!resolution.IsSuccess)
         {
             return AssetInspectionRun.FromDiagnostics(target, ContentValidationStatus.Failed, 2, null, null, null, resolution.Diagnostics);
@@ -51,37 +51,6 @@ public sealed class AssetInspector
             validationItem.Path,
             imageInfo,
             diagnostics);
-    }
-
-    private static AssetTargetResolution ResolveTarget(string target)
-    {
-        if (string.IsNullOrWhiteSpace(target))
-        {
-            return AssetTargetResolution.Failure([ContentDiagnostic.InvalidScopeOrPath(target, "Asset inspection target must not be empty.")]);
-        }
-
-        if (StringComparer.Ordinal.Equals(target, AssetMetadataValidator.SmokeAssetId))
-        {
-            var path = Path.Combine(ContentTargetResolver.FindRepositoryRoot(), AssetMetadataValidator.SmokeAssetPath);
-            return File.Exists(path)
-                ? AssetTargetResolution.Success(path)
-                : AssetTargetResolution.Failure([ContentDiagnostic.InvalidScopeOrPath(target, $"Asset metadata file was not found: {AssetMetadataValidator.SmokeAssetPath}")]);
-        }
-
-        if (!target.EndsWith(".asset.json", StringComparison.OrdinalIgnoreCase))
-        {
-            return AssetTargetResolution.Failure([ContentDiagnostic.InvalidScopeOrPath(target, "Unsupported asset target. Expected asset.tile-atlas-smoke or a repository-relative .asset.json path.")]);
-        }
-
-        if (Path.IsPathRooted(target) || target.Split(['/', '\\']).Contains("..", StringComparer.Ordinal))
-        {
-            return AssetTargetResolution.Failure([ContentDiagnostic.InvalidScopeOrPath(target, "Asset metadata path must be repository-relative and must not escape the repository.")]);
-        }
-
-        var resolvedPath = Path.Combine(ContentTargetResolver.FindRepositoryRoot(), target);
-        return File.Exists(resolvedPath)
-            ? AssetTargetResolution.Success(resolvedPath)
-            : AssetTargetResolution.Failure([ContentDiagnostic.InvalidScopeOrPath(target, $"Asset metadata file was not found: {target}")]);
     }
 }
 

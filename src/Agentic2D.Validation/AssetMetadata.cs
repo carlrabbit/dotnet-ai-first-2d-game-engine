@@ -28,24 +28,34 @@ public sealed class AssetMetadataValidator
     public AssetValidationItem ValidateFile(string path)
     {
         var relativePath = ContentTargetResolver.ToRepositoryRelativePath(path);
+        return ValidateJsonCore(relativePath, path, () => File.OpenRead(path));
+    }
+
+    public AssetValidationItem ValidateJson(string displayPath, string json)
+    {
+        return ValidateJsonCore(displayPath, displayPath, () => new MemoryStream(System.Text.Encoding.UTF8.GetBytes(json)));
+    }
+
+    private AssetValidationItem ValidateJsonCore(string relativePath, string idFallbackPath, Func<Stream> openStream)
+    {
         JsonDocument document;
         AssetMetadataSource? metadata;
 
         try
         {
-            using var stream = File.OpenRead(path);
+            using var stream = openStream();
             document = JsonDocument.Parse(stream);
             metadata = document.Deserialize<AssetMetadataSource>(ContentValidationJson.Options);
         }
         catch (JsonException exception)
         {
             var diagnostic = AssetDiagnostic.InvalidSchemaValue(relativePath, "json", $"Asset metadata JSON is malformed: {exception.Message}");
-            return AssetValidationItem.Failed(relativePath, Path.GetFileNameWithoutExtension(path), [diagnostic]);
+            return AssetValidationItem.Failed(relativePath, Path.GetFileNameWithoutExtension(idFallbackPath), [diagnostic]);
         }
         catch (IOException exception)
         {
             var diagnostic = AssetDiagnostic.InvalidSourceReference(relativePath, "$", $"Could not read asset metadata file: {exception.Message}");
-            return AssetValidationItem.Error(relativePath, Path.GetFileNameWithoutExtension(path), [diagnostic]);
+            return AssetValidationItem.Error(relativePath, Path.GetFileNameWithoutExtension(idFallbackPath), [diagnostic]);
         }
 
         using (document)
@@ -53,7 +63,7 @@ public sealed class AssetMetadataValidator
             if (metadata is null)
             {
                 var diagnostic = AssetDiagnostic.MissingRequiredField(relativePath, "$", "Asset metadata JSON must contain an object.");
-                return AssetValidationItem.Failed(relativePath, Path.GetFileNameWithoutExtension(path), [diagnostic]);
+                return AssetValidationItem.Failed(relativePath, Path.GetFileNameWithoutExtension(idFallbackPath), [diagnostic]);
             }
 
             var diagnostics = new List<ContentValidationDiagnostic>();
@@ -61,7 +71,7 @@ public sealed class AssetMetadataValidator
             var status = diagnostics.Any(static diagnostic => diagnostic.Severity == ContentDiagnosticSeverity.Error)
                 ? ContentValidationStatus.Failed
                 : ContentValidationStatus.Passed;
-            var id = string.IsNullOrWhiteSpace(metadata.Id) ? Path.GetFileNameWithoutExtension(path) : metadata.Id;
+            var id = string.IsNullOrWhiteSpace(metadata.Id) ? Path.GetFileNameWithoutExtension(idFallbackPath) : metadata.Id;
             return new AssetValidationItem(metadata, relativePath, id, status, diagnostics);
         }
     }
@@ -380,6 +390,65 @@ public sealed class AssetMetadataValidator
     }
 }
 
+public static class AssetMetadataLocator
+{
+    public static AssetTargetResolution ResolveTarget(string target)
+    {
+        if (string.IsNullOrWhiteSpace(target))
+        {
+            return AssetTargetResolution.Failure([ContentDiagnostic.InvalidScopeOrPath(target, "Asset target must not be empty.")]);
+        }
+
+        if (StringComparer.Ordinal.Equals(target, AssetMetadataValidator.SmokeAssetId))
+        {
+            var path = Path.Combine(ContentTargetResolver.FindRepositoryRoot(), AssetMetadataValidator.SmokeAssetPath);
+            return File.Exists(path)
+                ? AssetTargetResolution.Success(path)
+                : AssetTargetResolution.Failure([ContentDiagnostic.InvalidScopeOrPath(target, $"Asset metadata file was not found: {AssetMetadataValidator.SmokeAssetPath}")]);
+        }
+
+        if (!target.EndsWith(".asset.json", StringComparison.OrdinalIgnoreCase))
+        {
+            return AssetTargetResolution.Failure([ContentDiagnostic.InvalidScopeOrPath(target, "Unsupported asset target. Expected asset.tile-atlas-smoke or a repository-relative .asset.json path.")]);
+        }
+
+        if (Path.IsPathRooted(target) || target.Split(['/', '\\']).Contains("..", StringComparer.Ordinal))
+        {
+            return AssetTargetResolution.Failure([ContentDiagnostic.InvalidScopeOrPath(target, "Asset metadata path must be repository-relative and must not escape the repository.")]);
+        }
+
+        var resolvedPath = Path.Combine(ContentTargetResolver.FindRepositoryRoot(), target);
+        return File.Exists(resolvedPath)
+            ? AssetTargetResolution.Success(resolvedPath)
+            : AssetTargetResolution.Failure([ContentDiagnostic.InvalidScopeOrPath(target, $"Asset metadata file was not found: {target}")]);
+    }
+
+    public static AssetTargetResolution ResolveById(string assetId)
+    {
+        if (StringComparer.Ordinal.Equals(assetId, AssetMetadataValidator.SmokeAssetId))
+        {
+            return ResolveTarget(assetId);
+        }
+
+        var assetMetadataRoot = Path.Combine(ContentTargetResolver.FindRepositoryRoot(), "game", "assets", "metadata");
+        if (!Directory.Exists(assetMetadataRoot))
+        {
+            return AssetTargetResolution.Failure([ContentDiagnostic.InvalidScopeOrPath(assetId, "Asset metadata directory was not found: game/assets/metadata")]);
+        }
+
+        foreach (var candidate in Directory.EnumerateFiles(assetMetadataRoot, "*.asset.json", SearchOption.AllDirectories).Order(StringComparer.Ordinal))
+        {
+            var validation = new AssetMetadataValidator().ValidateFile(candidate);
+            if (StringComparer.Ordinal.Equals(validation.Id, assetId))
+            {
+                return AssetTargetResolution.Success(candidate);
+            }
+        }
+
+        return AssetTargetResolution.Failure([ContentDiagnostic.InvalidScopeOrPath(assetId, $"Asset metadata file was not found for ID: {assetId}")]);
+    }
+}
+
 public sealed record AssetValidationItem(
     AssetMetadataSource? Metadata,
     string Path,
@@ -489,7 +558,11 @@ public sealed record AssetHumanReviewApproval(
     [property: JsonPropertyName("id")] string? Id,
     [property: JsonPropertyName("approvedBy")] string? ApprovedBy,
     [property: JsonPropertyName("scope")] string? Scope,
-    [property: JsonPropertyName("approvedAt")] string? ApprovedAt);
+    [property: JsonPropertyName("approvedAt")] string? ApprovedAt,
+    [property: JsonPropertyName("reason")] string? Reason = null,
+    [property: JsonPropertyName("decisionId")] string? DecisionId = null,
+    [property: JsonPropertyName("sourceFingerprint")]
+    string? SourceFingerprint = null);
 
 public static class AssetDiagnostic
 {

@@ -31,6 +31,11 @@ These commands are the canonical local engineering API.
 | `./eng/asset-inspect-smoke.sh` | Runs `agentic2d asset inspect asset.tile-atlas-smoke` through `src/Agentic2D.Tools` and verifies `result.json`, `diagnostics.json`, `asset-summary.json`, and `tiles.json` exist. | Tier 2 asset smoke gate for current maturity |
 | `./eng/review-pack-smoke.sh` | Runs required smoke artifact producers, runs `agentic2d review pack --input artifacts`, and verifies `review-summary.md`, `review-manifest.json`, and `diagnostics.json` exist. | Tier 2 review pack smoke gate for current maturity |
 | `./eng/asset-curation-smoke.sh` | Runs or refreshes the smoke review pack, runs `agentic2d asset curate` for `asset.tile-atlas-smoke`, and verifies `index.html`, `review-data.json`, and `diagnostics.json` exist. | Tier 2 asset curation smoke gate for current maturity |
+| `./eng/asset-review-smoke.sh` | Runs `agentic2d asset review apply` dry-run and isolated real-apply smoke checks, verifies stale-fingerprint rejection and post-apply validation, and leaves the tracked worktree unchanged. | Tier 2 asset authoring smoke gate |
+| `./eng/asset-perception-smoke.sh` | Runs `agentic2d asset perceive asset.tile-atlas-smoke` and verifies required perception artifacts exist. | Tier 2 asset perception smoke gate |
+| `./eng/map-smoke.sh` | Runs map scope and direct-path content validation plus `agentic2d map inspect`, and verifies required map artifacts exist. | Tier 2 map smoke gate |
+| `./eng/runtime-inspect-smoke.sh` | Runs `agentic2d runtime inspect --scenario runtime.smoke --map map.smoke` and verifies required runtime inspection artifacts exist. | Tier 2 runtime inspection smoke gate |
+| `./eng/m011-smoke.sh` | Runs the bounded Milestone 011 end-to-end smoke journey and verifies final review-pack/workbench artifacts while leaving tracked source unchanged. | Tier 2 milestone smoke gate |
 
 ## Future focused commands
 

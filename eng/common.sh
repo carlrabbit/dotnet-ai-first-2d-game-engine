@@ -18,6 +18,18 @@ require_file() {
   [ -f "$1" ] || fail "required file not found: $1"
 }
 
+capture_git_status() {
+  require_command git
+  git status --short --untracked-files=normal
+}
+
+assert_git_status_unchanged() {
+  local before_status="$1"
+  local after_status
+  after_status="$(capture_git_status)"
+  [ "$before_status" = "$after_status" ] || fail "working tree changed unexpectedly"
+}
+
 dotnet_cmd() {
   require_command dotnet
   DOTNET_CLI_HOME="${DOTNET_CLI_HOME:-/tmp/dotnet-home}" dotnet "$@"
