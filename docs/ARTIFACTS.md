@@ -21,6 +21,9 @@ A failed scenario, content validation, asset import, preview generation, product
 | `docs/artifacts/asset-inspection-artifact-contract.md` | `result.json`, `diagnostics.json`, `asset-summary.json`, and `tiles.json` artifacts produced by Milestone 007 asset inspection commands. |
 | `docs/artifacts/review-pack-artifact-contract.md` | `review-summary.md`, `review-manifest.json`, and `diagnostics.json` artifacts produced by Milestone 010 review pack commands. |
 | `docs/artifacts/asset-curation-workbench-artifact-contract.md` | `index.html`, `review-data.json`, and `diagnostics.json` artifacts produced by Milestone 010 asset curation workbench commands. |
+| `docs/artifacts/asset-authoring-artifact-contract.md` | Asset review apply and asset perception artifacts introduced by Milestone 011. |
+| `docs/artifacts/map-inspection-artifact-contract.md` | Map inspection artifacts introduced by Milestone 011. |
+| `docs/artifacts/runtime-inspection-artifact-contract.md` | Runtime inspection artifacts introduced by Milestone 011. |
 
 ## Artifact roots
 
@@ -132,6 +135,15 @@ Current asset curation workbench artifact contract:
 
 ```text
 docs/artifacts/asset-curation-workbench-artifact-contract.md
+```
+
+Current Milestone 011 artifact-producing commands additionally write:
+
+```text
+asset review apply -> result.json, diagnostics.json, mutation-plan.json, validation-result.json, proposed-metadata.json (dry-run only)
+asset perceive -> result.json, diagnostics.json, tile-features.json, semantic-proposals.json
+map inspect -> result.json, diagnostics.json, map-summary.json, layers.json, resolved-references.json
+runtime inspect -> result.json, diagnostics.json, runtime-summary.json, entities.json, commands.jsonl, events.jsonl, final-state.json, assertions.json, content-references.json
 ```
 
 ## Generated/source rule

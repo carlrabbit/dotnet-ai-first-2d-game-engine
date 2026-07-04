@@ -25,6 +25,7 @@ Initial flow:
 ```text
 asset metadata
 + asset inspection artifacts
++ asset perception artifacts when available
 + content validation artifacts
 + review pack
 → generated workbench artifacts
@@ -113,12 +114,15 @@ The workbench must keep these separate:
 visualLabelsProposed
 physicalBehaviorsApproved
 gameplay-relevant approved semantics
+deterministic perception proposals and observations
 ```
 
 Rules:
 
 - proposed visual labels may be displayed as proposals;
+- deterministic perception proposals may be displayed as proposals;
 - proposed visual labels must not be displayed as approved physical/gameplay behavior;
+- perception proposals must not be displayed as approved physical/gameplay behavior;
 - approved physical/gameplay behavior must show the review evidence or mark the approval evidence as missing;
 - missing review evidence for physical/gameplay approval must be visible to the reviewer.
 
@@ -138,6 +142,7 @@ review state per tile or semantic item
 diagnostics summary
 links or references to generated evidence artifacts
 human review questions
+perception evidence when available
 ```
 
 ## Relationship to source metadata

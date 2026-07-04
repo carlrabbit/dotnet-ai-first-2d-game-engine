@@ -40,10 +40,14 @@ The currently supported product CLI commands are:
 agentic2d --help
 agentic2d --version
 agentic2d runtime smoke --output <directory>
+agentic2d runtime inspect --scenario <scenario-id-or-path> [--map <map-id-or-path>] --output <directory>
 agentic2d validate --output <directory>
 agentic2d scenario run <scenario-id-or-path> --output <directory>
 agentic2d content validate <scope-or-path> --output <directory>
 agentic2d asset inspect <asset-id-or-path> --output <directory>
+agentic2d asset perceive <asset-id-or-path> --output <directory>
+agentic2d asset review apply --decisions <review-file> [--dry-run] --output <directory>
+agentic2d map inspect <map-id-or-path> --output <directory>
 agentic2d review pack --input <artifact-root> --output <directory>
 agentic2d asset curate --asset <asset-id-or-path> --review-pack <review-pack-path> --output <directory>
 ```
@@ -54,6 +58,7 @@ Development equivalents:
 dotnet run --project src/Agentic2D.Tools -- --help
 dotnet run --project src/Agentic2D.Tools -- --version
 dotnet run --project src/Agentic2D.Tools -- runtime smoke --output artifacts/cli/runtime-smoke
+dotnet run --project src/Agentic2D.Tools -- runtime inspect --scenario runtime.smoke --map map.smoke --output artifacts/runtime/inspect
 dotnet run --project src/Agentic2D.Tools -- validate --output artifacts/cli/validate
 dotnet run --project src/Agentic2D.Tools -- scenario run game/scenarios/smoke/runtime-smoke.json --output artifacts/scenarios/runtime-smoke
 dotnet run --project src/Agentic2D.Tools -- scenario run runtime.smoke --output artifacts/scenarios/runtime-smoke
@@ -61,8 +66,13 @@ dotnet run --project src/Agentic2D.Tools -- content validate scenarios --output 
 dotnet run --project src/Agentic2D.Tools -- content validate game/scenarios/smoke/runtime-smoke.json --output artifacts/content/runtime-smoke
 dotnet run --project src/Agentic2D.Tools -- content validate assets --output artifacts/content/assets
 dotnet run --project src/Agentic2D.Tools -- content validate game/assets/metadata/tile-atlas-smoke.asset.json --output artifacts/content/tile-atlas-smoke
+dotnet run --project src/Agentic2D.Tools -- content validate maps --output artifacts/content/maps
+dotnet run --project src/Agentic2D.Tools -- content validate game/maps/smoke/map-smoke.map.json --output artifacts/content/map-smoke
 dotnet run --project src/Agentic2D.Tools -- asset inspect asset.tile-atlas-smoke --output artifacts/assets/tile-atlas-smoke
 dotnet run --project src/Agentic2D.Tools -- asset inspect game/assets/metadata/tile-atlas-smoke.asset.json --output artifacts/assets/tile-atlas-smoke
+dotnet run --project src/Agentic2D.Tools -- asset perceive asset.tile-atlas-smoke --output artifacts/assets/perception/tile-atlas-smoke
+dotnet run --project src/Agentic2D.Tools -- asset review apply --decisions game/assets/reviews/tile-atlas-smoke.review.json --dry-run --output artifacts/asset-review/dry-run
+dotnet run --project src/Agentic2D.Tools -- map inspect map.smoke --output artifacts/maps/map-smoke
 dotnet run --project src/Agentic2D.Tools -- review pack --input artifacts --output artifacts/review/latest
 dotnet run --project src/Agentic2D.Tools -- asset curate --asset asset.tile-atlas-smoke --review-pack artifacts/review/latest --output artifacts/workbench/asset-curation
 ```
@@ -74,10 +84,14 @@ dotnet run --project src/Agentic2D.Tools -- asset curate --asset asset.tile-atla
 | `agentic2d --help` | Show available product CLI commands. | None required. | Tier 1 |
 | `agentic2d --version` | Show CLI/runtime version. | None required. | Tier 1 |
 | `agentic2d runtime smoke --output <directory>` | Run minimal deterministic runtime smoke execution. | `<directory>/result.json` | Tier 1 |
+| `agentic2d runtime inspect --scenario <scenario-id-or-path> [--map <map-id-or-path>] --output <directory>` | Execute deterministic runtime inspection and structured state projection. | `result.json`, `diagnostics.json`, `runtime-summary.json`, `entities.json`, `commands.jsonl`, `events.jsonl`, `final-state.json`, `assertions.json`, `content-references.json` | Tier 2 when called by `eng/runtime-inspect-smoke.sh` |
 | `agentic2d validate --output <directory>` | Run current product validation for the minimal runtime maturity. | `<directory>/result.json` | Tier 2 when called by `eng/product-validate.sh` |
 | `agentic2d scenario run <scenario-id-or-path> --output <directory>` | Run an authored scenario through the scenario runner. | `<directory>/result.json`, `<directory>/events.jsonl`, `<directory>/diagnostics.json` | Tier 2 when called by `eng/scenario-smoke.sh` |
-| `agentic2d content validate <scope-or-path> --output <directory>` | Validate authored content without running runtime behavior. Supported scopes are `scenarios` and `assets`. | `<directory>/result.json`, `<directory>/diagnostics.json`, `<directory>/validated-items.json` | Tier 2 when called by `eng/content-validate.sh` |
+| `agentic2d content validate <scope-or-path> --output <directory>` | Validate authored content without running runtime behavior. Supported scopes are `scenarios`, `assets`, and `maps`. | `<directory>/result.json`, `<directory>/diagnostics.json`, `<directory>/validated-items.json` | Tier 2 when called by `eng/content-validate.sh` |
 | `agentic2d asset inspect <asset-id-or-path> --output <directory>` | Inspect authored asset metadata and referenced raw PNG structure. | `<directory>/result.json`, `<directory>/diagnostics.json`, `<directory>/asset-summary.json`, `<directory>/tiles.json` | Tier 2 when called by `eng/asset-inspect-smoke.sh` |
+| `agentic2d asset perceive <asset-id-or-path> --output <directory>` | Decode bounded PNG pixels and emit deterministic feature/proposal evidence. | `<directory>/result.json`, `<directory>/diagnostics.json`, `<directory>/tile-features.json`, `<directory>/semantic-proposals.json` | Tier 2 when called by `eng/asset-perception-smoke.sh` |
+| `agentic2d asset review apply --decisions <review-file> [--dry-run] --output <directory>` | Validate authored review decisions, enforce source fingerprints, and safely apply approved metadata changes. | `<directory>/result.json`, `<directory>/diagnostics.json`, `<directory>/mutation-plan.json`, `<directory>/validation-result.json`, `proposed-metadata.json` for dry-run | Tier 2 when called by `eng/asset-review-smoke.sh` |
+| `agentic2d map inspect <map-id-or-path> --output <directory>` | Validate and inspect authored map content and resolved stable references. | `<directory>/result.json`, `<directory>/diagnostics.json`, `<directory>/map-summary.json`, `<directory>/layers.json`, `<directory>/resolved-references.json` | Tier 2 when called by `eng/map-smoke.sh` |
 | `agentic2d review pack --input <artifact-root> --output <directory>` | Aggregate current scenario, content validation, and asset inspection evidence into a review pack. | `<directory>/review-summary.md`, `<directory>/review-manifest.json`, `<directory>/diagnostics.json` | Tier 2 when called by `eng/review-pack-smoke.sh` |
 | `agentic2d asset curate --asset <asset-id-or-path> --review-pack <review-pack-path> --output <directory>` | Generate a static, non-mutating asset curation workbench artifact. | `<directory>/index.html`, `<directory>/review-data.json`, `<directory>/diagnostics.json` | Tier 2 when called by `eng/asset-curation-smoke.sh` |
 
@@ -120,6 +134,24 @@ docs/artifacts/content-validation-artifact-contract.md
 docs/artifacts/asset-inspection-artifact-contract.md
 ```
 
+`agentic2d asset perceive` and `agentic2d asset review apply` use the asset authoring artifact contract:
+
+```text
+docs/artifacts/asset-authoring-artifact-contract.md
+```
+
+`agentic2d map inspect` uses the map inspection artifact contract:
+
+```text
+docs/artifacts/map-inspection-artifact-contract.md
+```
+
+`agentic2d runtime inspect` uses the runtime inspection artifact contract:
+
+```text
+docs/artifacts/runtime-inspection-artifact-contract.md
+```
+
 `agentic2d review pack` uses the review pack artifact contract:
 
 ```text
@@ -151,9 +183,15 @@ The current repository engineering wrappers for the product CLI are:
 ./eng/scenario-smoke.sh
 ./eng/content-validate.sh scenarios
 ./eng/content-validate.sh assets
+./eng/content-validate.sh maps
 ./eng/asset-inspect-smoke.sh
 ./eng/review-pack-smoke.sh
 ./eng/asset-curation-smoke.sh
+./eng/asset-review-smoke.sh
+./eng/asset-perception-smoke.sh
+./eng/map-smoke.sh
+./eng/runtime-inspect-smoke.sh
+./eng/m011-smoke.sh
 ```
 
 Expected behavior:

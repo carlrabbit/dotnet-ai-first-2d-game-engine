@@ -1,0 +1,56 @@
+{
+  "schema": "agentic2d.map.v1",
+  "id": "map.smoke",
+  "title": "Smoke map",
+  "width": 2,
+  "height": 2,
+  "tileSize": {
+    "width": 8,
+    "height": 8
+  },
+  "assetRefs": [
+    {
+      "assetId": "asset.tile-atlas-smoke"
+    }
+  ],
+  "layers": [
+    {
+      "id": "layer.ground",
+      "kind": "tile",
+      "cells": [
+        {
+          "x": 0,
+          "y": 0,
+          "assetId": "asset.tile-atlas-smoke",
+          "tileId": "tile.smoke.0"
+        },
+        {
+          "x": 1,
+          "y": 0,
+          "assetId": "asset.tile-atlas-smoke",
+          "tileId": "tile.smoke.1"
+        },
+        {
+          "x": 0,
+          "y": 1,
+          "assetId": "asset.tile-atlas-smoke",
+          "tileId": "tile.smoke.2"
+        },
+        {
+          "x": 1,
+          "y": 1,
+          "assetId": "asset.tile-atlas-smoke",
+          "tileId": "tile.smoke.3"
+        }
+      ]
+    }
+  ],
+  "markers": [
+    {
+      "id": "marker.player-spawn",
+      "kind": "spawn",
+      "x": 0,
+      "y": 0
+    }
+  ]
+}

@@ -150,6 +150,6 @@ public sealed class RuntimeSmokeTests
 
         await Assert.That(exitCode).IsEqualTo(2);
         await Assert.That(stdout.ToString()).IsEqualTo(string.Empty);
-        await Assert.That(stderr.ToString()).Contains("unknown command");
+        await Assert.That(stderr.ToString()).Contains("missing required asset ID or path");
     }
 }

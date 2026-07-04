@@ -42,6 +42,13 @@ Milestone 010 added:
 - a generated static asset curation workbench command for the smoke tile atlas asset;
 - review pack and asset curation smoke validation wrappers.
 
+Milestone 011 added:
+
+- asset review apply and deterministic asset perception commands;
+- authored map validation and map inspection;
+- deterministic runtime inspection with structured state evidence;
+- asset review, asset perception, map, runtime inspection, and end-to-end smoke wrappers.
+
 ## Indexed documents
 
 | Document | Purpose |
@@ -75,9 +82,15 @@ The current product CLI validation wrappers are:
 ./eng/scenario-smoke.sh
 ./eng/content-validate.sh scenarios
 ./eng/content-validate.sh assets
+./eng/content-validate.sh maps
 ./eng/asset-inspect-smoke.sh
 ./eng/review-pack-smoke.sh
 ./eng/asset-curation-smoke.sh
+./eng/asset-review-smoke.sh
+./eng/asset-perception-smoke.sh
+./eng/map-smoke.sh
+./eng/runtime-inspect-smoke.sh
+./eng/m011-smoke.sh
 ```
 
 These wrappers validate product CLI behavior through `src/Agentic2D.Tools`. They are repository engineering commands, not the product API.

@@ -20,10 +20,14 @@ public static class ToolsCli
                   agentic2d --help
                   agentic2d --version
                   agentic2d runtime smoke --output <directory>
+                  agentic2d runtime inspect --scenario <scenario-id-or-path> [--map <map-id-or-path>] --output <directory>
                   agentic2d validate --output <directory>
                   agentic2d scenario run <scenario-id-or-path> --output <directory>
                   agentic2d content validate <scope-or-path> --output <directory>
                   agentic2d asset inspect <asset-id-or-path> --output <directory>
+                  agentic2d asset perceive <asset-id-or-path> --output <directory>
+                  agentic2d asset review apply --decisions <review-file> [--dry-run] --output <directory>
+                  agentic2d map inspect <map-id-or-path> --output <directory>
                   agentic2d review pack --input <artifact-root> --output <directory>
                   agentic2d asset curate --asset <asset-id-or-path> --review-pack <review-pack-path> --output <directory>
 
@@ -61,6 +65,11 @@ public static class ToolsCli
             return await RunScenarioCommandAsync(command, output, error);
         }
 
+        if (command.Name == "runtime inspect")
+        {
+            return await RunRuntimeInspectCommandAsync(command, output, error);
+        }
+
         if (command.Name == "content validate")
         {
             return await RunContentValidateCommandAsync(command, output, error);
@@ -69,6 +78,21 @@ public static class ToolsCli
         if (command.Name == "asset inspect")
         {
             return await RunAssetInspectCommandAsync(command, output, error);
+        }
+
+        if (command.Name == "asset perceive")
+        {
+            return await RunAssetPerceiveCommandAsync(command, output, error);
+        }
+
+        if (command.Name == "asset review apply")
+        {
+            return await RunAssetReviewApplyCommandAsync(command, output, error);
+        }
+
+        if (command.Name == "map inspect")
+        {
+            return await RunMapInspectCommandAsync(command, output, error);
         }
 
         if (command.Name == "review pack")
@@ -150,6 +174,66 @@ public static class ToolsCli
         return result.Result.ExitCode;
     }
 
+    private static async Task<int> RunAssetPerceiveCommandAsync(CliCommand command, TextWriter output, TextWriter error)
+    {
+        var perceiver = new AssetPerceiver();
+        var result = perceiver.Perceive(command.AssetTarget ?? string.Empty);
+
+        try
+        {
+            await AssetPerceptionArtifactWriter.WriteAsync(command.OutputDirectory, result);
+        }
+        catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
+        {
+            await error.WriteLineAsync($"failed to write asset perception artifacts: {exception.Message}");
+            return 3;
+        }
+
+        var resultPath = Path.Combine(command.OutputDirectory, "result.json");
+        await output.WriteLineAsync($"{command.Name}: {result.Result.Status}; result: {resultPath}");
+        return result.Result.ExitCode;
+    }
+
+    private static async Task<int> RunAssetReviewApplyCommandAsync(CliCommand command, TextWriter output, TextWriter error)
+    {
+        var applier = new AssetReviewApplier();
+        var result = applier.Apply(command.DecisionPath ?? string.Empty, command.DryRun);
+
+        try
+        {
+            await AssetReviewApplyArtifactWriter.WriteAsync(command.OutputDirectory, result);
+        }
+        catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
+        {
+            await error.WriteLineAsync($"failed to write asset review artifacts: {exception.Message}");
+            return 3;
+        }
+
+        var resultPath = Path.Combine(command.OutputDirectory, "result.json");
+        await output.WriteLineAsync($"{command.Name}: {result.Result.Status}; result: {resultPath}");
+        return result.Result.ExitCode;
+    }
+
+    private static async Task<int> RunMapInspectCommandAsync(CliCommand command, TextWriter output, TextWriter error)
+    {
+        var inspector = new MapInspector();
+        var result = inspector.Inspect(command.MapTarget ?? string.Empty);
+
+        try
+        {
+            await MapInspectionArtifactWriter.WriteAsync(command.OutputDirectory, result);
+        }
+        catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
+        {
+            await error.WriteLineAsync($"failed to write map inspection artifacts: {exception.Message}");
+            return 3;
+        }
+
+        var resultPath = Path.Combine(command.OutputDirectory, "result.json");
+        await output.WriteLineAsync($"{command.Name}: {result.Result.Status}; result: {resultPath}");
+        return result.Result.ExitCode;
+    }
+
     private static async Task<int> RunReviewPackCommandAsync(CliCommand command, TextWriter output, TextWriter error)
     {
         var generator = new ReviewPackGenerator();
@@ -202,6 +286,26 @@ public static class ToolsCli
         catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
         {
             await error.WriteLineAsync($"failed to write scenario artifacts: {exception.Message}");
+            return 3;
+        }
+
+        var resultPath = Path.Combine(command.OutputDirectory, "result.json");
+        await output.WriteLineAsync($"{command.Name}: {result.Result.Status}; result: {resultPath}");
+        return result.Result.ExitCode;
+    }
+
+    private static async Task<int> RunRuntimeInspectCommandAsync(CliCommand command, TextWriter output, TextWriter error)
+    {
+        var inspector = new RuntimeInspector();
+        var result = inspector.Inspect(command.ScenarioReference ?? string.Empty, command.MapTarget);
+
+        try
+        {
+            await RuntimeInspectionArtifactWriter.WriteAsync(command.OutputDirectory, result);
+        }
+        catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
+        {
+            await error.WriteLineAsync($"failed to write runtime inspection artifacts: {exception.Message}");
             return 3;
         }
 

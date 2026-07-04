@@ -20,6 +20,7 @@ Milestones define implementation focus areas. They should reference specs and en
 | 007 | `docs/milestones/MILESTONE-007-asset-metadata-and-tile-atlas-curation-slice.md` | Implemented | Asset metadata validation, tile atlas fixture, and asset inspection artifacts. |
 | 008 | `docs/milestones/MILESTONE-008-documentation-synchronization-after-m007.md` | Implemented | Documentation synchronization after Milestones 004 through 007. |
 | 010 | `docs/milestones/MILESTONE-010-asset-review-pack-and-curation-workbench-foundation.md` | Implemented | Review pack aggregation and generated static asset curation workbench foundation. |
+| 011 | `docs/milestones/MILESTONE-011-asset-authoring-map-validation-and-runtime-evidence-expansion.md` | Implemented | Safe asset review application, deterministic asset perception, authored map validation/inspection, runtime inspection, and the bounded end-to-end smoke journey. |
 
 ## Deferred or superseded milestone documents
 
@@ -29,13 +30,4 @@ Milestones define implementation focus areas. They should reference specs and en
 
 ## Next milestone direction
 
-The next implementation milestone should be selected explicitly. Likely candidates include:
-
-```text
-asset curation workbench spike
-runtime inspection/reporting expansion
-map/content validation expansion
-human review pack criteria
-```
-
-Do not treat candidate directions as approved implementation scope without a milestone document.
+The next implementation milestone should be selected explicitly after Milestone 011 acceptance and follow-up human review.

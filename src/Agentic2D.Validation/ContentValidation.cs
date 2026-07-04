@@ -34,6 +34,10 @@ public sealed class ContentValidator
             {
                 ValidateAssetFile(path, items, diagnostics);
             }
+            else if (path.EndsWith(".map.json", StringComparison.OrdinalIgnoreCase))
+            {
+                ValidateMapFile(path, items, diagnostics);
+            }
             else
             {
                 ValidateScenarioFile(path, items, diagnostics);
@@ -56,6 +60,16 @@ public sealed class ContentValidator
         var item = new AssetMetadataValidator().ValidateFile(path);
         diagnostics.AddRange(item.Diagnostics);
         items.Add(new ValidatedContentItem(ContentKind.Asset, item.Id, item.Path, item.Status));
+    }
+
+    private static void ValidateMapFile(
+        string path,
+        List<ValidatedContentItem> items,
+        List<ContentValidationDiagnostic> diagnostics)
+    {
+        var item = new MapContentValidator().ValidateFile(path);
+        diagnostics.AddRange(item.Diagnostics);
+        items.Add(new ValidatedContentItem(ContentKind.Map, item.Id, item.Path, item.Status));
     }
 
     private static void ValidateScenarioFile(
@@ -478,9 +492,26 @@ public static class ContentTargetResolver
                 : ContentTargetResolution.Success(paths);
         }
 
+        if (StringComparer.Ordinal.Equals(target, MapContentValidator.MapsScope))
+        {
+            var mapRoot = Path.Combine(FindRepositoryRoot(), "game", "maps");
+            if (!Directory.Exists(mapRoot))
+            {
+                return ContentTargetResolution.Failure([ContentDiagnostic.InvalidScopeOrPath(target, "Map content directory was not found: game/maps")]);
+            }
+
+            var paths = Directory.EnumerateFiles(mapRoot, "*.map.json", SearchOption.AllDirectories)
+                .Order(StringComparer.Ordinal)
+                .ToArray();
+
+            return paths.Length == 0
+                ? ContentTargetResolution.Failure([ContentDiagnostic.InvalidScopeOrPath(target, "No map JSON files were found under game/maps.")])
+                : ContentTargetResolution.Success(paths);
+        }
+
         if (!target.EndsWith(".json", StringComparison.OrdinalIgnoreCase))
         {
-            return ContentTargetResolution.Failure([ContentDiagnostic.InvalidScopeOrPath(target, "Unsupported content target. Expected scenarios, assets, or a repository-relative .json path.")]);
+            return ContentTargetResolution.Failure([ContentDiagnostic.InvalidScopeOrPath(target, "Unsupported content target. Expected scenarios, assets, maps, or a repository-relative .json path.")]);
         }
 
         if (!Path.IsPathRooted(target) && target.Split(['/', '\\']).Contains("..", StringComparer.Ordinal))
@@ -579,7 +610,8 @@ public sealed record ContentValidationRun(
                 diagnostics.Count(static diagnostic => diagnostic.Severity == ContentDiagnosticSeverity.Warning),
                 diagnostics.Count(static diagnostic => diagnostic.Severity == ContentDiagnosticSeverity.Info),
                 items.Count(static item => item.Kind == ContentKind.Scenario),
-                items.Count(static item => item.Kind == ContentKind.Asset)),
+                items.Count(static item => item.Kind == ContentKind.Asset),
+                items.Count(static item => item.Kind == ContentKind.Map)),
             diagnostics,
             artifacts);
 
@@ -606,7 +638,8 @@ public sealed record ContentValidationSummary(
     [property: JsonPropertyName("warnings")] int Warnings,
     [property: JsonPropertyName("infos")] int Infos,
     [property: JsonPropertyName("scenariosValidated")] int ScenariosValidated,
-    [property: JsonPropertyName("assetsValidated")] int AssetsValidated);
+    [property: JsonPropertyName("assetsValidated")] int AssetsValidated,
+    [property: JsonPropertyName("mapsValidated")] int MapsValidated);
 
 public sealed record ContentDiagnosticsDocument(
     [property: JsonPropertyName("schema")] string Schema,
@@ -705,6 +738,7 @@ public static class ContentKind
 {
     public const string Scenario = "scenario";
     public const string Asset = "asset";
+    public const string Map = "map";
 }
 
 public static class ContentValidationJson

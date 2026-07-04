@@ -18,7 +18,7 @@ This document is not authoritative for:
 
 The content validation foundation validates authored non-code project data before runtime or scenario execution depends on it.
 
-The first supported validation domain was authored scenario JSON. Milestone 007 adds authored asset metadata JSON validation.
+The first supported validation domain was authored scenario JSON. Milestone 007 adds authored asset metadata JSON validation. Milestone 011 adds authored map JSON validation.
 
 Initial validation flow:
 
@@ -55,6 +55,7 @@ The supported content domains are:
 ```text
 scenarios
 assets
+maps
 ```
 
 Supported paths:
@@ -62,6 +63,7 @@ Supported paths:
 ```text
 game/scenarios/smoke/runtime-smoke.json
 game/assets/metadata/tile-atlas-smoke.asset.json
+game/maps/smoke/map-smoke.map.json
 ```
 
 Supported scopes:
@@ -69,6 +71,7 @@ Supported scopes:
 ```text
 scenarios
 assets
+maps
 ```
 
 The `scenarios` scope validates authored scenario files under:
@@ -81,6 +84,12 @@ The `assets` scope validates authored asset metadata files under:
 
 ```text
 game/assets/metadata/
+```
+
+The `maps` scope validates authored map files under:
+
+```text
+game/maps/
 ```
 
 The implementation may initially validate the known smoke scenario and deterministic nested JSON files under `game/scenarios/`. File discovery must be deterministic if more than one file is discovered.
@@ -100,6 +109,8 @@ dotnet run --project src/Agentic2D.Tools -- content validate scenarios --output 
 dotnet run --project src/Agentic2D.Tools -- content validate game/scenarios/smoke/runtime-smoke.json --output artifacts/content/runtime-smoke
 dotnet run --project src/Agentic2D.Tools -- content validate assets --output artifacts/content/assets
 dotnet run --project src/Agentic2D.Tools -- content validate game/assets/metadata/tile-atlas-smoke.asset.json --output artifacts/content/tile-atlas-smoke
+dotnet run --project src/Agentic2D.Tools -- content validate maps --output artifacts/content/maps
+dotnet run --project src/Agentic2D.Tools -- content validate game/maps/smoke/map-smoke.map.json --output artifacts/content/map-smoke
 ```
 
 ## Supported target forms
@@ -110,8 +121,10 @@ dotnet run --project src/Agentic2D.Tools -- content validate game/assets/metadat
 |---|---:|---|
 | `scenarios` | Yes | Validate known authored scenario content. |
 | `assets` | Yes | Validate known authored asset metadata content. |
+| `maps` | Yes | Validate known authored map content. |
 | repository-relative `.json` path | Yes | Validate a single supported content file. |
 | repository-relative `.asset.json` path | Yes | Validate a single asset metadata file. |
+| repository-relative `.map.json` path | Yes | Validate a single map file. |
 | arbitrary folder path | No | Deferred. |
 | glob expression | No | Deferred. |
 | map/animation domain name | No | Deferred. |
@@ -202,6 +215,7 @@ Milestone 006 must validate these ID classes:
 | Step ID | `step.move-player` | Non-empty stable string. Unique within a scenario when present. |
 | Assertion ID | `assert.playerPosition` | Non-empty stable string. Unique within a scenario. |
 | Event type | `entity.moved` | Non-empty stable string. |
+| Map ID | `map.smoke` | Lowercase dotted segments. Stable across file moves. |
 
 The implementation may accept existing mixed-case assertion IDs such as `assert.playerPosition` to preserve compatibility with Milestone 005. If stricter ID rules are added, they must not invalidate the existing authored `runtime.smoke` scenario without updating that scenario source as part of the same implementation.
 
@@ -337,3 +351,21 @@ Human review is not required to decide whether content validation passes.
 Human review is required for milestone acceptance only to judge whether diagnostics and artifacts are useful for future agents and humans.
 
 Review-gated asset semantics remain governed by `docs/CONTENT.md` and `docs/specs/asset-metadata-contract.md`.
+
+## Map content validation
+
+Map content validation must validate `docs/specs/map-content-contract.md` for the supported Milestone 011 subset.
+
+Required checks for map JSON:
+
+| Check | Required behavior |
+|---|---|
+| JSON parse | File must be valid JSON. |
+| `schema` | Must equal `agentic2d.map.v1`. |
+| `id` | Must be a valid stable map ID. |
+| `width` / `height` | Must be positive integers. |
+| `tileSize` | Width and height must be positive integers. |
+| `assetRefs` | Referenced asset IDs must resolve deterministically. |
+| `layers` | Layer IDs must be unique; supported kind is `tile`. |
+| `cells` | Cell coordinates must be in bounds and resolve stable asset/tile references. |
+| `markers` | Marker IDs must be unique and coordinates must be in bounds. |

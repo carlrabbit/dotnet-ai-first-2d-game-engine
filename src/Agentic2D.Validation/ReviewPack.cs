@@ -34,7 +34,7 @@ public sealed class ReviewPackGenerator
 
         var reviewQuestions = BuildReviewQuestions(sourceItems, groups, diagnostics);
         var hasErrors = diagnostics.Any(static diagnostic => diagnostic.Severity == ContentDiagnosticSeverity.Error);
-        var hasFailedGroups = groups.Any(static group => group.Status is ContentValidationStatus.Failed or ContentValidationStatus.Error);
+        var hasFailedGroups = groups.Any(static group => group.Kind != "asset-review-apply" && (group.Status is ContentValidationStatus.Failed or ContentValidationStatus.Error));
         var status = hasErrors || hasFailedGroups ? ContentValidationStatus.Failed : ContentValidationStatus.Passed;
         var exitCode = status == ContentValidationStatus.Passed ? 0 : 1;
 
@@ -108,6 +108,30 @@ public sealed class ReviewPackGenerator
                     groups.Add(new ReviewArtifactGroup("asset-inspection", status, relativeResultPath, command));
                     AddAssetInspectionSourceItem(resultPath, sourceItems, diagnostics);
                     AddFailedGroupDiagnostic(relativeResultPath, "asset-inspection", status, diagnostics);
+                    break;
+
+                case "agentic2d.asset-perception.result.v1":
+                    groups.Add(new ReviewArtifactGroup("asset-perception", status, relativeResultPath, command));
+                    AddAssetPerceptionSourceItem(resultPath, sourceItems, diagnostics);
+                    AddFailedGroupDiagnostic(relativeResultPath, "asset-perception", status, diagnostics);
+                    break;
+
+                case "agentic2d.asset-review-apply.result.v1":
+                    groups.Add(new ReviewArtifactGroup("asset-review-apply", status, relativeResultPath, command));
+                    AddAssetReviewSourceItem(root, sourceItems);
+                    AddFailedGroupDiagnostic(relativeResultPath, "asset-review-apply", status, diagnostics);
+                    break;
+
+                case "agentic2d.map-inspection.result.v1":
+                    groups.Add(new ReviewArtifactGroup("map-inspection", status, relativeResultPath, command));
+                    AddMapInspectionSourceItem(resultPath, sourceItems, diagnostics);
+                    AddFailedGroupDiagnostic(relativeResultPath, "map-inspection", status, diagnostics);
+                    break;
+
+                case "agentic2d.runtime-inspection.result.v1":
+                    groups.Add(new ReviewArtifactGroup("runtime-inspection", status, relativeResultPath, command));
+                    AddRuntimeInspectionSourceItems(resultPath, sourceItems, diagnostics);
+                    AddFailedGroupDiagnostic(relativeResultPath, "runtime-inspection", status, diagnostics);
                     break;
             }
         }
@@ -232,6 +256,161 @@ public sealed class ReviewPackGenerator
         }
     }
 
+    private static void AddAssetPerceptionSourceItem(
+        string resultPath,
+        List<ReviewSourceItem> sourceItems,
+        List<ContentValidationDiagnostic> diagnostics)
+    {
+        var featuresPath = Path.Combine(Path.GetDirectoryName(resultPath) ?? string.Empty, "tile-features.json");
+        if (!File.Exists(featuresPath))
+        {
+            diagnostics.Add(ReviewDiagnostic.IncompleteSourceReference(
+                NormalizeReference(ContentTargetResolver.ToRepositoryRelativePath(resultPath)),
+                "tile-features.json",
+                "Asset perception artifact is missing tile-features.json."));
+            return;
+        }
+
+        try
+        {
+            using var document = JsonDocument.Parse(File.ReadAllText(featuresPath));
+            var assetId = GetString(document.RootElement, "assetId");
+            var path = GetString(document.RootElement, "metadataPath");
+            if (!string.IsNullOrWhiteSpace(assetId) && !string.IsNullOrWhiteSpace(path))
+            {
+                sourceItems.Add(new ReviewSourceItem(ContentKind.Asset, assetId, NormalizeReference(path)));
+            }
+        }
+        catch (JsonException exception)
+        {
+            diagnostics.Add(ReviewDiagnostic.MalformedArtifactGroup(
+                NormalizeReference(ContentTargetResolver.ToRepositoryRelativePath(featuresPath)),
+                "tile-features.json",
+                $"Asset perception features JSON is malformed: {exception.Message}"));
+        }
+        catch (IOException exception)
+        {
+            diagnostics.Add(ReviewDiagnostic.MalformedArtifactGroup(
+                NormalizeReference(ContentTargetResolver.ToRepositoryRelativePath(featuresPath)),
+                "tile-features.json",
+                $"Could not read asset perception features: {exception.Message}"));
+        }
+    }
+
+    private static void AddAssetReviewSourceItem(JsonElement root, List<ReviewSourceItem> sourceItems)
+    {
+        var assetId = GetString(root, "assetId");
+        var metadataPath = GetString(root, "metadataPath");
+        if (!string.IsNullOrWhiteSpace(assetId) && !string.IsNullOrWhiteSpace(metadataPath))
+        {
+            sourceItems.Add(new ReviewSourceItem(ContentKind.Asset, assetId, NormalizeReference(metadataPath)));
+        }
+    }
+
+    private static void AddMapInspectionSourceItem(
+        string resultPath,
+        List<ReviewSourceItem> sourceItems,
+        List<ContentValidationDiagnostic> diagnostics)
+    {
+        var summaryPath = Path.Combine(Path.GetDirectoryName(resultPath) ?? string.Empty, "map-summary.json");
+        if (!File.Exists(summaryPath))
+        {
+            diagnostics.Add(ReviewDiagnostic.IncompleteSourceReference(
+                NormalizeReference(ContentTargetResolver.ToRepositoryRelativePath(resultPath)),
+                "map-summary.json",
+                "Map inspection artifact is missing map-summary.json."));
+            return;
+        }
+
+        try
+        {
+            using var document = JsonDocument.Parse(File.ReadAllText(summaryPath));
+            if (!document.RootElement.TryGetProperty("map", out var map))
+            {
+                diagnostics.Add(ReviewDiagnostic.MalformedArtifactGroup(
+                    NormalizeReference(ContentTargetResolver.ToRepositoryRelativePath(summaryPath)),
+                    "map",
+                    "Map inspection summary is missing map identity."));
+                return;
+            }
+
+            var id = GetString(map, "id");
+            var path = GetString(map, "path");
+            if (!string.IsNullOrWhiteSpace(id) && !string.IsNullOrWhiteSpace(path))
+            {
+                sourceItems.Add(new ReviewSourceItem(ContentKind.Map, id, NormalizeReference(path)));
+            }
+        }
+        catch (JsonException exception)
+        {
+            diagnostics.Add(ReviewDiagnostic.MalformedArtifactGroup(
+                NormalizeReference(ContentTargetResolver.ToRepositoryRelativePath(summaryPath)),
+                "map-summary.json",
+                $"Map inspection summary JSON is malformed: {exception.Message}"));
+        }
+        catch (IOException exception)
+        {
+            diagnostics.Add(ReviewDiagnostic.MalformedArtifactGroup(
+                NormalizeReference(ContentTargetResolver.ToRepositoryRelativePath(summaryPath)),
+                "map-summary.json",
+                $"Could not read map inspection summary: {exception.Message}"));
+        }
+    }
+
+    private static void AddRuntimeInspectionSourceItems(
+        string resultPath,
+        List<ReviewSourceItem> sourceItems,
+        List<ContentValidationDiagnostic> diagnostics)
+    {
+        var referencesPath = Path.Combine(Path.GetDirectoryName(resultPath) ?? string.Empty, "content-references.json");
+        if (!File.Exists(referencesPath))
+        {
+            diagnostics.Add(ReviewDiagnostic.IncompleteSourceReference(
+                NormalizeReference(ContentTargetResolver.ToRepositoryRelativePath(resultPath)),
+                "content-references.json",
+                "Runtime inspection artifact is missing content-references.json."));
+            return;
+        }
+
+        try
+        {
+            using var document = JsonDocument.Parse(File.ReadAllText(referencesPath));
+            if (document.RootElement.TryGetProperty("scenario", out var scenario))
+            {
+                var id = GetString(scenario, "id");
+                var path = GetString(scenario, "path");
+                if (!string.IsNullOrWhiteSpace(id) && !string.IsNullOrWhiteSpace(path))
+                {
+                    sourceItems.Add(new ReviewSourceItem(ContentKind.Scenario, id, NormalizeReference(path)));
+                }
+            }
+
+            if (document.RootElement.TryGetProperty("map", out var map) && map.ValueKind == JsonValueKind.Object)
+            {
+                var id = GetString(map, "id");
+                var path = GetString(map, "path");
+                if (!string.IsNullOrWhiteSpace(id) && !string.IsNullOrWhiteSpace(path))
+                {
+                    sourceItems.Add(new ReviewSourceItem(ContentKind.Map, id, NormalizeReference(path)));
+                }
+            }
+        }
+        catch (JsonException exception)
+        {
+            diagnostics.Add(ReviewDiagnostic.MalformedArtifactGroup(
+                NormalizeReference(ContentTargetResolver.ToRepositoryRelativePath(referencesPath)),
+                "content-references.json",
+                $"Runtime inspection content references JSON is malformed: {exception.Message}"));
+        }
+        catch (IOException exception)
+        {
+            diagnostics.Add(ReviewDiagnostic.MalformedArtifactGroup(
+                NormalizeReference(ContentTargetResolver.ToRepositoryRelativePath(referencesPath)),
+                "content-references.json",
+                $"Could not read runtime inspection content references: {exception.Message}"));
+        }
+    }
+
     private static IReadOnlyList<ReviewQuestion> BuildReviewQuestions(
         IReadOnlyList<ReviewSourceItem> sourceItems,
         IReadOnlyList<ReviewArtifactGroup> groups,
@@ -253,6 +432,30 @@ public sealed class ReviewPackGenerator
                 $"review.{asset.Id}.physical-approval-evidence",
                 asset.Id,
                 "Are any approved physical/gameplay behaviors backed by human review evidence?"));
+        }
+
+        foreach (var map in sourceItems.Where(static item => item.Kind == ContentKind.Map).OrderBy(static item => item.Id, StringComparer.Ordinal))
+        {
+            questions.Add(new ReviewQuestion(
+                $"review.{map.Id}.map-diagnostics",
+                map.Id,
+                "Do map diagnostics clearly identify map, layer, cell, asset, and tile references?"));
+        }
+
+        if (groups.Any(static group => group.Kind == "asset-perception"))
+        {
+            questions.Add(new ReviewQuestion(
+                "review.asset-perception.proposal-boundary",
+                "asset-perception",
+                "Are perception proposals visibly distinct from approved semantics?"));
+        }
+
+        if (groups.Any(static group => group.Kind == "runtime-inspection"))
+        {
+            questions.Add(new ReviewQuestion(
+                "review.runtime-inspection.diagnosis",
+                "runtime-inspection",
+                "Does runtime inspection make the executed state diagnosable without reading source?"));
         }
 
         if (groups.Count == 0 || diagnostics.Count > 0)
@@ -289,6 +492,11 @@ public sealed class ReviewPackGenerator
         string status,
         List<ContentValidationDiagnostic> diagnostics)
     {
+        if (kind == "asset-review-apply")
+        {
+            return;
+        }
+
         if (status is ContentValidationStatus.Failed or ContentValidationStatus.Error)
         {
             diagnostics.Add(ReviewDiagnostic.FailedArtifactGroup(
@@ -303,7 +511,10 @@ public sealed class ReviewPackGenerator
         var relative = Path.GetRelativePath(artifactRoot, resultPath).Replace(Path.DirectorySeparatorChar, '/');
         return relative.StartsWith("scenarios/", StringComparison.Ordinal)
             || relative.StartsWith("content/", StringComparison.Ordinal)
-            || relative.StartsWith("assets/", StringComparison.Ordinal);
+            || relative.StartsWith("assets/", StringComparison.Ordinal)
+            || relative.StartsWith("maps/", StringComparison.Ordinal)
+            || relative.StartsWith("runtime/", StringComparison.Ordinal)
+            || relative.StartsWith("asset-review/", StringComparison.Ordinal);
     }
 
     private static string? GetString(JsonElement element, string propertyName)
@@ -594,6 +805,10 @@ public sealed class AssetCurationWorkbenchGenerator
                 assetId));
         }
 
+        var perception = metadata?.Id is { Length: > 0 } perceptionAssetId && manifest is not null
+            ? TryLoadPerceptionEvidence(manifest, perceptionAssetId, diagnostics)
+            : null;
+
         var hasErrors = diagnostics.Any(static diagnostic => diagnostic.Severity == ContentDiagnosticSeverity.Error);
         var status = hasErrors ? ContentValidationStatus.Failed : ContentValidationStatus.Passed;
         var exitCode = status == ContentValidationStatus.Passed ? 0 : 1;
@@ -602,6 +817,7 @@ public sealed class AssetCurationWorkbenchGenerator
             metadata,
             metadataPath,
             ReviewPackGenerator.NormalizeReference(ContentTargetResolver.ToRepositoryRelativePath(reviewPackManifestPath)),
+            perception,
             status,
             exitCode,
             diagnostics);
@@ -642,6 +858,53 @@ public sealed class AssetCurationWorkbenchGenerator
             ? path
             : Path.Combine(ContentTargetResolver.FindRepositoryRoot(), path);
     }
+
+    private static AssetPerceptionEvidence? TryLoadPerceptionEvidence(
+        ReviewPackManifest manifest,
+        string assetId,
+        List<ContentValidationDiagnostic> diagnostics)
+    {
+        var group = manifest.ArtifactGroups.FirstOrDefault(static item => item.Kind == "asset-perception");
+        if (group is null)
+        {
+            return null;
+        }
+
+        var resultPath = Path.Combine(ContentTargetResolver.FindRepositoryRoot(), group.Path);
+        var directory = Path.GetDirectoryName(resultPath) ?? string.Empty;
+        var featuresPath = Path.Combine(directory, "tile-features.json");
+        var proposalsPath = Path.Combine(directory, "semantic-proposals.json");
+        if (!File.Exists(featuresPath) || !File.Exists(proposalsPath))
+        {
+            diagnostics.Add(new ContentValidationDiagnostic(
+                "CURATION0004",
+                ContentDiagnosticSeverity.Warning,
+                "Asset perception artifacts were referenced by the review pack but are incomplete.",
+                group.Path));
+            return null;
+        }
+
+        try
+        {
+            var features = JsonSerializer.Deserialize<AssetTileFeaturesDocument>(File.ReadAllText(featuresPath), ContentValidationJson.Options);
+            var proposals = JsonSerializer.Deserialize<AssetSemanticProposalsDocument>(File.ReadAllText(proposalsPath), ContentValidationJson.Options);
+            if (features?.AssetId != assetId || proposals?.AssetId != assetId)
+            {
+                return null;
+            }
+
+            return new AssetPerceptionEvidence(features, proposals);
+        }
+        catch (JsonException exception)
+        {
+            diagnostics.Add(new ContentValidationDiagnostic(
+                "CURATION0004",
+                ContentDiagnosticSeverity.Warning,
+                $"Asset perception artifacts are malformed: {exception.Message}",
+                group.Path));
+            return null;
+        }
+    }
 }
 
 public static class AssetCurationWorkbenchArtifactWriter
@@ -678,6 +941,7 @@ public sealed record AssetCurationWorkbenchRun(
         AssetMetadataSource? metadata,
         string metadataPath,
         string reviewPackManifestPath,
+        AssetPerceptionEvidence? perception,
         string status,
         int exitCode,
         IReadOnlyList<ContentValidationDiagnostic> diagnostics)
@@ -692,15 +956,28 @@ public sealed record AssetCurationWorkbenchRun(
             .OrderBy(static tile => tile.Y)
             .ThenBy(static tile => tile.X)
             .ThenBy(static tile => tile.Id, StringComparer.Ordinal)
-            .Select(tile => new AssetCurationTile(
-                tile.Id ?? string.Empty,
-                tile.X,
-                tile.Y,
-                tile.VisualLabelsProposed.Order(StringComparer.Ordinal).Select(static label => new ReviewStateValue(label, "proposed")).ToArray(),
-                tile.PhysicalBehaviorsApproved.Order(StringComparer.Ordinal).Select(behavior => new ReviewStateValue(
-                    behavior,
-                    approvals.Contains(tile.Id ?? string.Empty) ? "approved" : "needs-revision")).ToArray(),
-                BuildTileQuestions(tile, approvals)))
+            .Select(tile =>
+            {
+                var feature = perception?.Features.Tiles.SingleOrDefault(item => item.Id == (tile.Id ?? string.Empty));
+                var proposals = perception?.Proposals.Proposals.Where(item => item.TileId == (tile.Id ?? string.Empty)).OrderBy(static item => item.Value, StringComparer.Ordinal).ToArray() ?? [];
+                return new AssetCurationTile(
+                    tile.Id ?? string.Empty,
+                    tile.X,
+                    tile.Y,
+                    tile.VisualLabelsProposed.Order(StringComparer.Ordinal).Select(static label => new ReviewStateValue(label, "proposed")).ToArray(),
+                    tile.PhysicalBehaviorsApproved.Order(StringComparer.Ordinal).Select(behavior => new ReviewStateValue(
+                        behavior,
+                        approvals.Contains(tile.Id ?? string.Empty) ? "approved" : "needs-revision")).ToArray(),
+                    feature is null
+                        ? null
+                        : new AssetCurationPerception(
+                            feature.AlphaCoverage,
+                            feature.RepresentativeAverageColor,
+                            feature.RepresentativeDominantColor,
+                            feature.DuplicateGroupId,
+                            proposals.Select(static proposal => new ReviewStateValue(proposal.Value, proposal.State)).ToArray()),
+                    BuildTileQuestions(tile, approvals, proposals.Length));
+            })
             .ToArray();
 
         var reviewData = new AssetCurationReviewData(
@@ -733,7 +1010,7 @@ public sealed record AssetCurationWorkbenchRun(
             new AssetCurationDiagnosticsDocument("agentic2d.asset-curation-workbench.diagnostics.v1", diagnostics));
     }
 
-    private static IReadOnlyList<ReviewQuestion> BuildTileQuestions(AssetTileSource tile, HashSet<string> approvals)
+    private static IReadOnlyList<ReviewQuestion> BuildTileQuestions(AssetTileSource tile, HashSet<string> approvals, int perceptionProposalCount)
     {
         var questions = new List<ReviewQuestion>();
         if (tile.VisualLabelsProposed.Count > 0)
@@ -750,6 +1027,14 @@ public sealed record AssetCurationWorkbenchRun(
                 $"review.{tile.Id}.physical-approval-evidence",
                 tile.Id ?? string.Empty,
                 "Approved physical/gameplay behavior is missing explicit human review evidence."));
+        }
+
+        if (perceptionProposalCount > 0)
+        {
+            questions.Add(new ReviewQuestion(
+                $"review.{tile.Id}.perception-proposals",
+                tile.Id ?? string.Empty,
+                "Are deterministic perception proposals acceptable as proposals and still distinct from approvals?"));
         }
 
         return questions;
@@ -783,7 +1068,15 @@ public sealed record AssetCurationTile(
     [property: JsonPropertyName("y")] int Y,
     [property: JsonPropertyName("visualLabels")] IReadOnlyList<ReviewStateValue> VisualLabels,
     [property: JsonPropertyName("physicalBehaviors")] IReadOnlyList<ReviewStateValue> PhysicalBehaviors,
+    [property: JsonPropertyName("perception")] AssetCurationPerception? Perception,
     [property: JsonPropertyName("reviewQuestions")] IReadOnlyList<ReviewQuestion> ReviewQuestions);
+
+public sealed record AssetCurationPerception(
+    [property: JsonPropertyName("alphaCoverage")] double AlphaCoverage,
+    [property: JsonPropertyName("averageColor")] string AverageColor,
+    [property: JsonPropertyName("dominantColor")] string DominantColor,
+    [property: JsonPropertyName("duplicateGroupId")] string DuplicateGroupId,
+    [property: JsonPropertyName("proposals")] IReadOnlyList<ReviewStateValue> Proposals);
 
 public sealed record ReviewStateValue(
     [property: JsonPropertyName("value")] string Value,
@@ -825,7 +1118,7 @@ internal static class AssetCurationWorkbenchHtml
         }
 
         builder.AppendLine("<h2>Tiles</h2>");
-        builder.AppendLine("<table><thead><tr><th>Tile ID</th><th>Coordinate</th><th>Proposed visual labels</th><th>Approved physical/gameplay behavior</th><th>Review questions</th></tr></thead><tbody>");
+        builder.AppendLine("<table><thead><tr><th>Tile ID</th><th>Coordinate</th><th>Proposed visual labels</th><th>Approved physical/gameplay behavior</th><th>Perception evidence</th><th>Review questions</th></tr></thead><tbody>");
         foreach (var tile in data.Tiles)
         {
             builder.AppendLine("<tr>");
@@ -833,6 +1126,7 @@ internal static class AssetCurationWorkbenchHtml
             builder.AppendLine($"<td>{tile.X}, {tile.Y}</td>");
             builder.AppendLine($"<td>{Values(tile.VisualLabels)}</td>");
             builder.AppendLine($"<td>{Values(tile.PhysicalBehaviors)}</td>");
+            builder.AppendLine($"<td>{Perception(tile.Perception)}</td>");
             builder.AppendLine($"<td>{Questions(tile.ReviewQuestions)}</td>");
             builder.AppendLine("</tr>");
         }
@@ -886,8 +1180,33 @@ internal static class AssetCurationWorkbenchHtml
         return string.Join("<br>", questions.Select(static question => Encode(question.Question)));
     }
 
+    private static string Perception(AssetCurationPerception? perception)
+    {
+        if (perception is null)
+        {
+            return "<span class=\"empty\">None</span>";
+        }
+
+        var lines = new List<string>
+        {
+            $"alpha {perception.AlphaCoverage:0.######}",
+            $"avg <code>{Encode(perception.AverageColor)}</code>",
+            $"dominant <code>{Encode(perception.DominantColor)}</code>",
+            $"group <code>{Encode(perception.DuplicateGroupId)}</code>",
+        };
+
+        if (perception.Proposals.Count > 0)
+        {
+            lines.Add($"proposals {Values(perception.Proposals)}");
+        }
+
+        return string.Join("<br>", lines);
+    }
+
     private static string Encode(string? value)
     {
         return WebUtility.HtmlEncode(value ?? string.Empty);
     }
 }
+
+public sealed record AssetPerceptionEvidence(AssetTileFeaturesDocument Features, AssetSemanticProposalsDocument Proposals);

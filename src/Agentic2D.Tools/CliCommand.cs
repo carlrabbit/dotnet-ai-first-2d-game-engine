@@ -8,4 +8,7 @@ public sealed record CliCommand(
     string? ContentTarget = null,
     string? AssetTarget = null,
     string? InputDirectory = null,
-    string? ReviewPackPath = null);
+    string? ReviewPackPath = null,
+    string? DecisionPath = null,
+    bool DryRun = false,
+    string? MapTarget = null);
