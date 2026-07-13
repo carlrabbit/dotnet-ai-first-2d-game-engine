@@ -3,5 +3,7 @@
     <ProjectReference Include="../Agentic2D.Contracts/Agentic2D.Contracts.csproj" />
     <ProjectReference Include="../Agentic2D.Engine/Agentic2D.Engine.csproj" />
     <ProjectReference Include="../Agentic2D.Validation/Agentic2D.Validation.csproj" />
+    <ProjectReference Include="../Agentic2D.Behaviors/Agentic2D.Behaviors.csproj" />
+    <ProjectReference Include="../Agentic2D.Spatial.Grid/Agentic2D.Spatial.Grid.csproj" />
   </ItemGroup>
 </Project>

@@ -45,6 +45,11 @@
       ]
     }
   ],
+  "cellOverrides": [
+    {"x": 1, "y": 0, "physicalBehavior": "walkable"},
+    {"x": 0, "y": 1, "physicalBehavior": "blocked"},
+    {"x": 1, "y": 1, "physicalBehavior": "blocked"}
+  ],
   "markers": [
     {
       "id": "marker.player-spawn",

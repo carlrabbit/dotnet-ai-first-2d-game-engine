@@ -59,3 +59,6 @@ These commands are the canonical local engineering API.
 A command must either validate meaningful state or fail clearly with an explanation that the required substrate has not been initialized.
 
 Do not create success-only placeholder scripts.
+| `./eng/behavior-smoke.sh` | Validates behavior registration, activation, lifecycle scheduling, and intent emission. | Tier 2 milestone smoke gate |
+| `./eng/grid-spatial-smoke.sh` | Verifies accepted and expected-rejected `spatial.grid` movement evidence. | Tier 2 milestone smoke gate |
+| `./eng/m012-smoke.sh` | Executes the bounded behavior/grid scenario-to-review-pack journey. | Tier 2 milestone smoke gate |

@@ -10,6 +10,10 @@ public sealed class ScenarioRunner
 {
     public const string BuiltInRuntimeSmokeId = "runtime.smoke";
     public const string BuiltInRuntimeSmokePath = "game/scenarios/smoke/runtime-smoke.json";
+    public const string BuiltInBehaviorGridMovementSmokeId = "behavior.grid-movement-smoke";
+    public const string BuiltInBehaviorGridMovementSmokePath = "game/scenarios/smoke/behavior-grid-movement-smoke.json";
+    public const string BuiltInBehaviorGridMovementRejectedSmokeId = "behavior.grid-movement-rejected-smoke";
+    public const string BuiltInBehaviorGridMovementRejectedSmokePath = "game/scenarios/smoke/behavior-grid-movement-rejected-smoke.json";
 
     private static readonly JsonSerializerOptions SerializerOptions = new()
     {
@@ -50,6 +54,11 @@ public sealed class ScenarioRunner
         }
 
         var scenario = loadResult.SourceScenario;
+        if (BehaviorGridScenarioExecutor.IsBehaviorScenario(scenario))
+        {
+            return BehaviorGridScenarioExecutor.Run(scenario, sourcePath);
+        }
+
         var runtime = new MinimalRuntime();
 
         try
@@ -230,7 +239,11 @@ public static class ScenarioSourceResolver
 
         var path = StringComparer.Ordinal.Equals(scenarioReference, ScenarioRunner.BuiltInRuntimeSmokeId)
             ? ScenarioRunner.BuiltInRuntimeSmokePath
-            : scenarioReference;
+            : StringComparer.Ordinal.Equals(scenarioReference, ScenarioRunner.BuiltInBehaviorGridMovementSmokeId)
+                ? ScenarioRunner.BuiltInBehaviorGridMovementSmokePath
+                : StringComparer.Ordinal.Equals(scenarioReference, ScenarioRunner.BuiltInBehaviorGridMovementRejectedSmokeId)
+                    ? ScenarioRunner.BuiltInBehaviorGridMovementRejectedSmokePath
+                    : scenarioReference;
 
         if (!Path.GetExtension(path).Equals(".json", StringComparison.OrdinalIgnoreCase))
         {
@@ -306,9 +319,9 @@ public static class ScenarioSourceLoader
             diagnostics.Add(new ScenarioDiagnostic("SCENARIO0002", "error", "Scenario category must be smoke for Milestone 005."));
         }
 
-        if (!StringComparer.Ordinal.Equals(scenario.SeedPolicy, "none"))
+        if (scenario.Behaviors.Count == 0 && !StringComparer.Ordinal.Equals(scenario.SeedPolicy, "none"))
         {
-            diagnostics.Add(new ScenarioDiagnostic("SCENARIO0002", "error", "Scenario seedPolicy must be none for Milestone 005."));
+            diagnostics.Add(new ScenarioDiagnostic("SCENARIO0002", "error", "Scenario seedPolicy must be none for minimal scenarios."));
         }
 
         if (scenario.Runtime is null)
@@ -321,7 +334,14 @@ public static class ScenarioSourceLoader
         }
 
         ValidateEntities(scenario, diagnostics);
-        ValidateSteps(scenario, diagnostics);
+        if (scenario.Behaviors.Count == 0)
+        {
+            ValidateSteps(scenario, diagnostics);
+        }
+        else
+        {
+            ValidateBehaviors(scenario, diagnostics);
+        }
         ValidateExpectedEvents(scenario, diagnostics);
         ValidateAssertions(scenario, diagnostics);
 
@@ -409,6 +429,22 @@ public static class ScenarioSourceLoader
         {
             diagnostics.Add(new ScenarioDiagnostic("SCENARIO0005", "error", "Move command amount must be non-zero."));
         }
+    }
+
+    private static void ValidateBehaviors(ScenarioSource scenario, List<ScenarioDiagnostic> diagnostics)
+    {
+        var ids = new HashSet<string>(StringComparer.Ordinal);
+        var entities = scenario.InitialState?.Entities.Select(item => item.Id).ToHashSet(StringComparer.Ordinal) ?? [];
+        var active = new HashSet<string>(StringComparer.Ordinal);
+        foreach (var assignment in scenario.Behaviors)
+        {
+            if (!ids.Add(assignment.Id)) diagnostics.Add(new ScenarioDiagnostic("BEHAVIOR0003", "error", "Duplicate behavior assignment: " + assignment.Id));
+            if (!entities.Contains(assignment.EntityId)) diagnostics.Add(new ScenarioDiagnostic("BEHAVIOR0005", "error", "Missing assignment entity: " + assignment.EntityId));
+            if (!active.Add(assignment.EntityId)) diagnostics.Add(new ScenarioDiagnostic("BEHAVIOR0003", "error", "Multiple active behaviors for entity: " + assignment.EntityId));
+            if (assignment.Lifecycle is not "once" and not "each-tick") diagnostics.Add(new ScenarioDiagnostic("BEHAVIOR0004", "error", "Unsupported lifecycle: " + assignment.Lifecycle));
+            if (assignment.BehaviorId != "behavior.player-move-east") diagnostics.Add(new ScenarioDiagnostic("BEHAVIOR0001", "error", "Unknown behavior: " + assignment.BehaviorId));
+        }
+        if (scenario.Runtime?.SpatialModule != "spatial.grid") diagnostics.Add(new ScenarioDiagnostic("BEHAVIOR0002", "error", "Unknown spatial module."));
     }
 
     private static void ValidateExpectedEvents(ScenarioSource scenario, List<ScenarioDiagnostic> diagnostics)

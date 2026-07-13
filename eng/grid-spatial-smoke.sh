@@ -1,0 +1,20 @@
+#!/usr/bin/env bash
+source "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/common.sh"
+
+output_dir="${repo_root}/artifacts/runtime/behavior-grid-movement-smoke"
+dotnet_cmd run --no-build --project src/Agentic2D.Tools -- runtime inspect --scenario behavior.grid-movement-smoke --map map.smoke --output "$output_dir"
+require_file "${output_dir}/behaviors.json"
+require_file "${output_dir}/intents.jsonl"
+require_file "${output_dir}/spatial-resolutions.jsonl"
+grep -q 'map-cell-override' "${output_dir}/spatial-resolutions.jsonl" || fail "grid override resolution was not recorded"
+grep -q '"Accepted":true' "${output_dir}/spatial-resolutions.jsonl" || fail "accepted grid resolution was not recorded"
+grep -q '"position": 1' "${output_dir}/final-state.json" || fail "accepted movement did not change final position"
+
+rejected_output_dir="${repo_root}/artifacts/runtime/behavior-grid-movement-rejected-smoke"
+dotnet_cmd run --no-build --project src/Agentic2D.Tools -- runtime inspect --scenario behavior.grid-movement-rejected-smoke --map map.smoke --output "$rejected_output_dir"
+require_file "${rejected_output_dir}/spatial-resolutions.jsonl"
+grep -q '"Accepted":false' "${rejected_output_dir}/spatial-resolutions.jsonl" || fail "rejected grid resolution was not recorded"
+grep -q '"Reason":"blocked"' "${rejected_output_dir}/spatial-resolutions.jsonl" || fail "rejection reason was not recorded"
+grep -q 'spatial.movement-rejected' "${rejected_output_dir}/events.jsonl" || fail "rejection event was not recorded"
+grep -q '"position": 0' "${rejected_output_dir}/final-state.json" || fail "rejected movement changed final position"
+grep -q '"id": "assert.rejected"' "${rejected_output_dir}/assertions.json" || fail "rejection assertion was not projected"

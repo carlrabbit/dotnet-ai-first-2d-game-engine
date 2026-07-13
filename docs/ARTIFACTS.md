@@ -149,3 +149,6 @@ runtime inspect -> result.json, diagnostics.json, runtime-summary.json, entities
 ## Generated/source rule
 
 Generated artifacts are not source truth unless a specific document declares them committed baselines.
+## Behavior and spatial execution artifacts
+
+Milestone 012 runtime inspection additionally emits `behaviors.json`, `intents.jsonl`, and `spatial-resolutions.jsonl` for behavior scenarios.

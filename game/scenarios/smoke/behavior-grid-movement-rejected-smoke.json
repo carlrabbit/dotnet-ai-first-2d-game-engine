@@ -1,0 +1,20 @@
+{
+  "schema": "agentic2d.scenario.v1",
+  "id": "behavior.grid-movement-rejected-smoke",
+  "category": "smoke",
+  "title": "Behavior grid movement rejection smoke",
+  "purpose": "Validate expected blocked spatial movement as a normal domain result.",
+  "seedPolicy": "scenario",
+  "runtime": { "ticks": 1, "spatialModule": "spatial.grid", "mapId": "map.smoke", "randomSeed": 12012 },
+  "initialState": { "entities": [{ "id": "entity.player", "position": 0, "gridPosition": { "x": 0, "y": 1 } }] },
+  "steps": [],
+  "behaviors": [{ "id": "assignment.player-move-east", "entityId": "entity.player", "behaviorId": "behavior.player-move-east", "lifecycle": "once" }],
+  "expectedEvents": ["behavior.started", "behavior.intent-emitted", "behavior.completed", "spatial.movement-rejected"],
+  "assertions": [
+    { "id": "assert.finalTick", "type": "finalTickEqualsRequested" },
+    { "id": "assert.playerUnchanged", "type": "entityPositionEquals", "entityId": "entity.player", "position": 0 },
+    { "id": "assert.rejected", "type": "eventOccurred", "eventType": "spatial.movement-rejected" }
+  ],
+  "artifacts": { "result": "result.json", "events": "events.jsonl", "diagnostics": "diagnostics.json" },
+  "humanReview": { "required": true }
+}
