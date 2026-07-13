@@ -6,6 +6,11 @@ public static class ToolsCliParser
 {
     public static CliParseResult TryParse(IReadOnlyList<string> args)
     {
+        if (args.Count >= 2 && args[0] == "render" && args[1] == "project")
+        {
+            return TryParseRenderProject(args);
+        }
+
         if (args.Count >= 2 && args[0] == "runtime" && args[1] == "inspect")
         {
             return TryParseRuntimeInspect(args);
@@ -606,4 +611,20 @@ public static class ToolsCliParser
             ? CliParseResult.Failure("missing required --output <directory>")
             : CliParseResult.Success(new CliCommand("asset curate", output, AssetTarget: asset, ReviewPackPath: reviewPack));
     }
+    private static CliParseResult TryParseRenderProject(IReadOnlyList<string> args)
+    {
+        string? scenario = null; string? output = null;
+        for (var index = 2; index < args.Count; index++)
+        {
+            switch (args[index])
+            {
+                case "--scenario": if (++index >= args.Count) return CliParseResult.Failure("missing value for --scenario"); scenario = args[index]; break;
+                case "--tick": if (++index >= args.Count || args[index] != "final") return CliParseResult.Failure("--tick currently supports final"); break;
+                case "--output": if (++index >= args.Count) return CliParseResult.Failure("missing value for --output"); output = args[index]; break;
+                default: return CliParseResult.Failure($"unknown argument: {args[index]}");
+            }
+        }
+        return scenario is null ? CliParseResult.Failure("missing required --scenario <scenario-id-or-path>") : output is null ? CliParseResult.Failure("missing required --output <directory>") : CliParseResult.Success(new CliCommand("render project", output, ScenarioReference: scenario));
+    }
+
 }

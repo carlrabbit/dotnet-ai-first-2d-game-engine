@@ -636,7 +636,7 @@ public sealed record MapCellOverrideSource(
     [property: JsonPropertyName("y")] int Y,
     [property: JsonPropertyName("physicalBehavior")] string PhysicalBehavior);
 
-public sealed record MapObjectSource([property: JsonPropertyName("id")] string Id, [property: JsonPropertyName("kind")] string Kind, [property: JsonPropertyName("assetId")] string? AssetId, [property: JsonPropertyName("position")] MapObjectPosition Position, [property: JsonPropertyName("bounds")] MapObjectBounds Bounds);
+public sealed record MapObjectSource([property: JsonPropertyName("id")] string Id, [property: JsonPropertyName("kind")] string Kind, [property: JsonPropertyName("assetId")] string? AssetId, [property: JsonPropertyName("position")] MapObjectPosition Position, [property: JsonPropertyName("bounds")] MapObjectBounds Bounds, [property: JsonPropertyName("visualDefinitionId")] string? VisualDefinitionId = null);
 public sealed record MapObjectPosition([property: JsonPropertyName("x")] double X, [property: JsonPropertyName("y")] double Y);
 public sealed record MapObjectBounds([property: JsonPropertyName("kind")] string Kind, [property: JsonPropertyName("halfWidth")] double HalfWidth, [property: JsonPropertyName("halfHeight")] double HalfHeight);
 

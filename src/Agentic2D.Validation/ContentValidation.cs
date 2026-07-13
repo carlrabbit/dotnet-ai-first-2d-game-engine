@@ -30,7 +30,11 @@ public sealed class ContentValidator
 
         foreach (var path in resolution.Paths)
         {
-            if (path.Replace('\\', '/').Contains("game/entities/", StringComparison.Ordinal) || Path.GetFileName(path).StartsWith("entity-definition.", StringComparison.Ordinal))
+            if (path.Replace('\\', '/').Contains("game/visuals/", StringComparison.Ordinal) || Path.GetFileName(path).StartsWith("visual-definition.", StringComparison.Ordinal))
+            {
+                ValidateVisualDefinitionFile(path, items, diagnostics);
+            }
+            else if (path.Replace('\\', '/').Contains("game/entities/", StringComparison.Ordinal) || Path.GetFileName(path).StartsWith("entity-definition.", StringComparison.Ordinal))
             {
                 ValidateEntityDefinitionFile(path, items, diagnostics);
             }
@@ -65,6 +69,9 @@ public sealed class ContentValidator
         diagnostics.AddRange(item.Diagnostics);
         items.Add(new ValidatedContentItem(ContentKind.EntityDefinition, item.Id, item.Path, item.Status));
     }
+
+    private static void ValidateVisualDefinitionFile(string path, List<ValidatedContentItem> items, List<ContentValidationDiagnostic> diagnostics)
+    { var item = new VisualDefinitionValidator().ValidateFile(path); diagnostics.AddRange(item.Diagnostics); items.Add(new ValidatedContentItem(ContentKind.VisualDefinition, item.Definition?.Id ?? Path.GetFileNameWithoutExtension(path), item.Path, item.Status)); }
 
     private static void ValidateAssetFile(
         string path,
@@ -497,6 +504,13 @@ public static class ContentTargetResolver
                 : ContentTargetResolution.Success(paths);
         }
 
+        if (StringComparer.Ordinal.Equals(target, VisualDefinitionValidator.VisualsScope))
+        {
+            var root = Path.Combine(FindRepositoryRoot(), "game", "visuals");
+            var paths = Directory.Exists(root) ? Directory.EnumerateFiles(root, "visual-definition.*.json", SearchOption.AllDirectories).Order(StringComparer.Ordinal).ToArray() : [];
+            return paths.Length == 0 ? ContentTargetResolution.Failure([ContentDiagnostic.InvalidScopeOrPath(target, "No visual definition JSON files were found under game/visuals.")]) : ContentTargetResolution.Success(paths);
+        }
+
         if (StringComparer.Ordinal.Equals(target, EntityDefinitionValidator.EntitiesScope))
         {
             var root = Path.Combine(FindRepositoryRoot(), "game", "entities");
@@ -540,7 +554,7 @@ public static class ContentTargetResolver
 
         if (!target.EndsWith(".json", StringComparison.OrdinalIgnoreCase))
         {
-            return ContentTargetResolution.Failure([ContentDiagnostic.InvalidScopeOrPath(target, "Unsupported content target. Expected scenarios, assets, maps, entities, or a repository-relative .json path.")]);
+            return ContentTargetResolution.Failure([ContentDiagnostic.InvalidScopeOrPath(target, "Unsupported content target. Expected scenarios, assets, maps, entities, visuals, or a repository-relative .json path.")]);
         }
 
         if (!Path.IsPathRooted(target) && target.Split(['/', '\\']).Contains("..", StringComparer.Ordinal))
@@ -769,6 +783,7 @@ public static class ContentKind
     public const string Asset = "asset";
     public const string Map = "map";
     public const string EntityDefinition = "entity-definition";
+    public const string VisualDefinition = "visual-definition";
 }
 
 public static class ContentValidationJson

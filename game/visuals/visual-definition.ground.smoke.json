@@ -1,0 +1,1 @@
+{"schema":"agentic2d.visual-definition.v1","id":"visual-definition.ground.smoke","parts":[{"id":"part.ground","assetId":"asset.render-atlas-smoke","regionId":"region.ground","anchor":"top-left","offset":{"x":0,"y":0},"worldSize":{"width":1,"height":1},"layer":"ground","order":0,"sortMode":"fixed","tint":{"r":255,"g":255,"b":255,"a":255}}]}

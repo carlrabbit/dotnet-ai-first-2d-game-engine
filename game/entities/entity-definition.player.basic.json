@@ -7,4 +7,6 @@
     { "componentType": "component.collision-aabb-2d", "value": { "halfWidth": 0.2, "halfHeight": 0.2 } }
   ],
   "behavior": { "id": "assignment.player-interact", "behaviorId": "behavior.player-interact", "lifecycle": "once" }
+,
+  "visualDefinitionId": "visual-definition.player.basic"
 }

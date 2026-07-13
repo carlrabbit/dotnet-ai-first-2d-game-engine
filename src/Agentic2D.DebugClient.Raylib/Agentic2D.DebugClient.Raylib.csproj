@@ -1,0 +1,7 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup><OutputType>Exe</OutputType></PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="../Agentic2D.Rendering/Agentic2D.Rendering.csproj" />
+    <PackageReference Include="Raylib-cs" />
+  </ItemGroup>
+</Project>

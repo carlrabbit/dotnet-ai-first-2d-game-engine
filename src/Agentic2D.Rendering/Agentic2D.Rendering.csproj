@@ -1,0 +1,7 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <ItemGroup>
+    <ProjectReference Include="../Agentic2D.Validation/Agentic2D.Validation.csproj" />
+    <ProjectReference Include="../Agentic2D.ScenarioRunner/Agentic2D.ScenarioRunner.csproj" />
+    <ProjectReference Include="../Agentic2D.Engine/Agentic2D.Engine.csproj" />
+  </ItemGroup>
+</Project>
