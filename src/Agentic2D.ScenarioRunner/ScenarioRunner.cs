@@ -20,6 +20,12 @@ public sealed class ScenarioRunner
     public const string BuiltInContinuousTreeSmokePath = "game/scenarios/smoke/continuous-kinematic-tree-collision-smoke.json";
     public const string BuiltInEntityComponentSmokeId = "entity.component-runtime-smoke";
     public const string BuiltInEntityComponentSmokePath = "game/scenarios/smoke/entity-component-runtime-smoke.json";
+    public const string BuiltInEntityDefinitionInstantiationSmokeId = "entity.definition-instantiation-smoke";
+    public const string BuiltInEntityDefinitionInstantiationSmokePath = "game/scenarios/smoke/entity-definition-instantiation-smoke.json";
+    public const string BuiltInTriggerEnterExitSmokeId = "trigger.enter-exit-smoke";
+    public const string BuiltInTriggerEnterExitSmokePath = "game/scenarios/smoke/trigger-enter-exit-smoke.json";
+    public const string BuiltInNpcInteractionSmokeId = "interaction.npc-smoke";
+    public const string BuiltInNpcInteractionSmokePath = "game/scenarios/smoke/npc-interaction-smoke.json";
 
     private static readonly JsonSerializerOptions SerializerOptions = new()
     {
@@ -60,6 +66,11 @@ public sealed class ScenarioRunner
         }
 
         var scenario = loadResult.SourceScenario;
+        if (M014ScenarioExecutor.IsM014(scenario))
+        {
+            return M014ScenarioExecutor.Run(scenario, sourcePath);
+        }
+
         if (ContinuousScenarioExecutor.IsContinuous(scenario))
         {
             return ContinuousScenarioExecutor.Run(scenario, sourcePath);
@@ -260,7 +271,13 @@ public static class ScenarioSourceResolver
                             ? ScenarioRunner.BuiltInContinuousTreeSmokePath
                             : StringComparer.Ordinal.Equals(scenarioReference, ScenarioRunner.BuiltInEntityComponentSmokeId)
                                 ? ScenarioRunner.BuiltInEntityComponentSmokePath
-                                : scenarioReference;
+                                : StringComparer.Ordinal.Equals(scenarioReference, ScenarioRunner.BuiltInEntityDefinitionInstantiationSmokeId)
+                                    ? ScenarioRunner.BuiltInEntityDefinitionInstantiationSmokePath
+                                    : StringComparer.Ordinal.Equals(scenarioReference, ScenarioRunner.BuiltInTriggerEnterExitSmokeId)
+                                        ? ScenarioRunner.BuiltInTriggerEnterExitSmokePath
+                                        : StringComparer.Ordinal.Equals(scenarioReference, ScenarioRunner.BuiltInNpcInteractionSmokeId)
+                                            ? ScenarioRunner.BuiltInNpcInteractionSmokePath
+                                            : scenarioReference;
 
         if (!Path.GetExtension(path).Equals(".json", StringComparison.OrdinalIgnoreCase))
         {
@@ -350,14 +367,15 @@ public static class ScenarioSourceLoader
             diagnostics.Add(new ScenarioDiagnostic("SCENARIO0003", "error", "runtime.ticks must be a positive integer."));
         }
 
-        ValidateEntities(scenario, diagnostics);
-        if (scenario.Behaviors.Count == 0)
+        if (M014ScenarioExecutor.IsM014(scenario))
         {
-            ValidateSteps(scenario, diagnostics);
+            if (scenario.InitialState?.EntitySpawns is not null && scenario.InitialState.EntitySpawns.Any(spawn => string.IsNullOrWhiteSpace(spawn.Id) || string.IsNullOrWhiteSpace(spawn.EntityId) || string.IsNullOrWhiteSpace(spawn.DefinitionId)))
+                diagnostics.Add(new ScenarioDiagnostic("SCENARIO0014", "error", "M014 scenario spawn overrides require explicit stable identities."));
         }
         else
         {
-            ValidateBehaviors(scenario, diagnostics);
+            ValidateEntities(scenario, diagnostics);
+            if (scenario.Behaviors.Count == 0) ValidateSteps(scenario, diagnostics); else ValidateBehaviors(scenario, diagnostics);
         }
         ValidateExpectedEvents(scenario, diagnostics);
         ValidateAssertions(scenario, diagnostics);

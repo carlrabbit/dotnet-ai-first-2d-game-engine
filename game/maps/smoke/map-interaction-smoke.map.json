@@ -1,0 +1,17 @@
+{
+  "schema": "agentic2d.map.v1", "id": "map.interaction-smoke", "title": "Interaction smoke map", "width": 5, "height": 3,
+  "tileSize": { "width": 8, "height": 8 }, "assetRefs": [{ "assetId": "asset.tile-atlas-smoke" }],
+  "layers": [{ "id": "layer.ground", "kind": "tile", "cells": [{ "x": 0, "y": 0, "assetId": "asset.tile-atlas-smoke", "tileId": "tile.smoke.0" }]}],
+  "markers": [{ "id": "marker.player", "kind": "spawn", "x": 0, "y": 1 }],
+  "objects": [{ "id": "object.interaction-smoke-rock", "kind": "static-obstacle", "assetId": "asset.tile-atlas-smoke", "position": { "x": 4.5, "y": 2.5 }, "bounds": { "kind": "aabb", "halfWidth": 0.2, "halfHeight": 0.2 }}],
+  "entitySpawns": [
+    { "id": "spawn.player.basic", "entityId": "entity.player", "definitionId": "entity-definition.player.basic", "overrides": [
+      { "componentType": "component.continuous-transform-2d", "value": { "x": 0.5, "y": 1.5 } },
+      { "componentType": "component.spatial-membership", "value": { "worldId": "map.interaction-smoke", "spatialModuleId": "spatial.continuous-kinematic-2d" } }
+    ]},
+    { "id": "spawn.npc.talkable-smoke", "entityId": "entity.npc.talkable-smoke", "definitionId": "entity-definition.npc.talkable-smoke", "overrides": [
+      { "componentType": "component.continuous-transform-2d", "value": { "x": 3.5, "y": 1.5 } },
+      { "componentType": "component.spatial-membership", "value": { "worldId": "map.interaction-smoke", "spatialModuleId": "spatial.continuous-kinematic-2d" } }
+    ]}
+  ]
+}

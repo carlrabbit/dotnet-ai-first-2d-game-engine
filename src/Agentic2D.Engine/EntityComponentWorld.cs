@@ -13,11 +13,13 @@ public sealed class EntityComponentWorld
     private readonly Dictionary<string, Dictionary<string, object>> stores = new(StringComparer.Ordinal);
     private readonly List<EntityComponentMutation> mutations = [];
     private readonly List<RuntimeEvent> events = [];
+    private readonly Dictionary<string, RuntimeEntityProvenance> provenance = new(StringComparer.Ordinal);
 
     public IReadOnlyList<EntityComponentMutation> Mutations => mutations;
     public IReadOnlyList<RuntimeEvent> Events => events;
     public IReadOnlyList<string> EntityIds => entities.ToArray();
     public IReadOnlyList<string> RegisteredComponentTypeIds => registrations.Values.Select(x => x.TypeId).Order(StringComparer.Ordinal).ToArray();
+    public IReadOnlyDictionary<string, RuntimeEntityProvenance> Provenance => provenance;
 
     public void Register<T>(string typeId, string owner, Func<T, bool>? isValid = null) where T : notnull
     {
@@ -39,12 +41,22 @@ public sealed class EntityComponentWorld
     {
         if (!entities.Remove(id)) return Reject("ENTITY0002", "entity not found", id, null, "destroy");
         foreach (var store in stores.Values) store.Remove(id);
+        provenance.Remove(id);
         events.Add(new RuntimeEvent("entity.destroyed", tick, id));
         mutations.Add(new(tick, $"command.entity.destroy.{id}", id, null, "destroy", "accepted", null, null, ["entity.destroyed"], []));
         return new(true, "accepted", null);
     }
 
     public bool Exists(string id) => entities.Contains(id);
+    public EntityComponentResult SetProvenance(string id, RuntimeEntityProvenance value, int tick = 0, string? commandId = null)
+    {
+        if (!entities.Contains(id)) return Reject("ENTITY0002", "entity not found", id, "runtime.provenance", "set-provenance");
+        if (provenance.ContainsKey(id)) return Reject("ENTITY0004", "provenance already exists", id, "runtime.provenance", "set-provenance");
+        provenance.Add(id, value);
+        events.Add(new RuntimeEvent("entity.provenance-recorded", tick, id));
+        mutations.Add(new(tick, commandId ?? $"command.entity.provenance.{id}", id, "runtime.provenance", "add", "accepted", null, JsonSerializer.Serialize(value), ["entity.provenance-recorded"], []));
+        return new(true, "accepted", null);
+    }
     public EntityComponentResult Set<T>(string id, T value, int tick = 0, string? commandId = null) where T : notnull
     {
         if (!entities.Contains(id)) return Reject("ENTITY0002", "entity not found", id, TypeId<T>(), "set");

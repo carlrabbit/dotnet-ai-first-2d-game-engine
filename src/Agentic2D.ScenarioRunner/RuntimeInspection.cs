@@ -58,6 +58,15 @@ public sealed class RuntimeInspector
             mapPath = mapValidation.Path;
         }
 
+        if (M014ScenarioExecutor.IsM014(scenarioLoad.SourceScenario))
+        {
+            var m014 = M014ScenarioExecutor.Execute(scenarioLoad.SourceScenario);
+            var m014Events = (m014.Events ?? []).Select(item => new RuntimeInspectionEventRecord(item.Sequence, item.Tick, item.Type, item.Message)).ToArray();
+            var m014Assertions = scenarioLoad.SourceScenario.Assertions.Select(item => new RuntimeInspectionAssertion(item.Id, item.Type != "eventOccurred" || m014Events.Any(e => e.Type == item.EventType), item.Id, null, null)).ToArray();
+            var m014Diagnostics = m014.Diagnostics.Select(item => new ContentValidationDiagnostic(item.Id, item.Severity, item.Message, scenarioLoad.SourceScenario.Id)).ToArray();
+            return RuntimeInspectionRun.From(scenarioLoad.SourceScenario.Id, map?.Id ?? scenarioLoad.SourceScenario.Runtime!.MapId, BuildContentReferences(scenarioLoad.SourceScenario, scenarioResolution.Path, map, mapPath), m014.Entities, [], m014Events, m014Assertions, m014Diagnostics, m014Diagnostics.Any(x => x.Severity == ContentDiagnosticSeverity.Error) ? ContentValidationStatus.Failed : ContentValidationStatus.Passed, m014Diagnostics.Any(x => x.Severity == ContentDiagnosticSeverity.Error) ? 1 : 0, scenarioLoad.SourceScenario.Runtime!.Ticks, null, null, m014);
+        }
+
         if (ContinuousScenarioExecutor.IsContinuous(scenarioLoad.SourceScenario))
         {
             var continuous = ContinuousScenarioExecutor.Execute(scenarioLoad.SourceScenario);
@@ -180,6 +189,13 @@ public static class RuntimeInspectionArtifactWriter
             await File.WriteAllTextAsync(Path.Combine(outputDirectory, "component-mutations.jsonl"), M013EvidenceProjection.ComponentMutationsJsonl(run.ContinuousEvidence?.World));
             await File.WriteAllTextAsync(Path.Combine(outputDirectory, "static-spatial-world.json"), JsonSerializer.Serialize(new { schema = "agentic2d.static-spatial-world.v1", mapId = run.ContentReferences.Map?.Id, mapBounds = run.ContentReferences.Map is null ? null : "map-derived" }, ScenarioRunner.JsonOptions));
             await File.WriteAllTextAsync(Path.Combine(outputDirectory, "continuous-resolutions.jsonl"), M013EvidenceProjection.ContinuousResolutionsJsonl(run.ContinuousEvidence));
+            if (run.M014Evidence is not null)
+            {
+                await File.WriteAllTextAsync(Path.Combine(outputDirectory, "entity-instantiations.jsonl"), JsonLines(run.M014Evidence.Instantiations));
+                await File.WriteAllTextAsync(Path.Combine(outputDirectory, "spatial-queries.jsonl"), JsonLines(run.M014Evidence.SpatialQueries));
+                await File.WriteAllTextAsync(Path.Combine(outputDirectory, "trigger-transitions.jsonl"), JsonLines(run.M014Evidence.TriggerTransitions));
+                await File.WriteAllTextAsync(Path.Combine(outputDirectory, "interaction-resolutions.jsonl"), JsonLines(run.M014Evidence.InteractionResolutions));
+            }
 
             if (run.BehaviorEvidence is not null)
             {
@@ -205,6 +221,12 @@ public static class RuntimeInspectionArtifactWriter
             throw new IOException($"failed to write runtime inspection artifacts: {exception.Message}", exception);
         }
     }
+
+    private static string JsonLines(IEnumerable<object> records)
+    {
+        var lines = records.Select(item => JsonSerializer.Serialize(item, ScenarioRunner.JsonLineOptions)).ToArray();
+        return lines.Length == 0 ? string.Empty : string.Join(Environment.NewLine, lines) + Environment.NewLine;
+    }
 }
 
 public sealed record RuntimeInspectionRun(
@@ -218,7 +240,8 @@ public sealed record RuntimeInspectionRun(
     RuntimeInspectionAssertionsDocument AssertionsDocument,
     RuntimeContentReferencesDocument ContentReferences,
     BehaviorExecutionEvidence? BehaviorEvidence = null,
-    ContinuousScenarioExecutor.ContinuousExecution? ContinuousEvidence = null)
+    ContinuousScenarioExecutor.ContinuousExecution? ContinuousEvidence = null,
+    M014Execution? M014Evidence = null)
 {
     public static RuntimeInspectionRun From(
         string scenarioId,
@@ -233,9 +256,10 @@ public sealed record RuntimeInspectionRun(
         int exitCode,
         int finalTick,
         BehaviorExecutionEvidence? behaviorEvidence = null,
-        ContinuousScenarioExecutor.ContinuousExecution? continuousEvidence = null)
+        ContinuousScenarioExecutor.ContinuousExecution? continuousEvidence = null,
+        M014Execution? m014Evidence = null)
     {
-        var artifacts = new[]
+        var artifacts = new List<ContentArtifactReference>
         {
             new ContentArtifactReference("diagnostics.json", "diagnostics"),
             new ContentArtifactReference("runtime-summary.json", "runtime-summary"),
@@ -251,6 +275,13 @@ public sealed record RuntimeInspectionRun(
             new ContentArtifactReference("static-spatial-world.json", "static-spatial-world"),
             new ContentArtifactReference("continuous-resolutions.jsonl", "continuous-resolutions"),
         };
+        if (m014Evidence is not null)
+        {
+            artifacts.Add(new("entity-instantiations.jsonl", "entity-instantiations"));
+            artifacts.Add(new("spatial-queries.jsonl", "spatial-queries"));
+            artifacts.Add(new("trigger-transitions.jsonl", "trigger-transitions"));
+            artifacts.Add(new("interaction-resolutions.jsonl", "interaction-resolutions"));
+        }
 
         return new RuntimeInspectionRun(
             new RuntimeInspectionResultDocument(
@@ -272,7 +303,8 @@ public sealed record RuntimeInspectionRun(
             new RuntimeInspectionAssertionsDocument("agentic2d.runtime-inspection.assertions.v1", assertions),
             contentReferences,
             behaviorEvidence,
-            continuousEvidence);
+            continuousEvidence,
+            m014Evidence);
     }
 }
 
