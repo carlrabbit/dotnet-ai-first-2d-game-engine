@@ -49,3 +49,6 @@ Resolve/validate scenario and optional map, execute supported deterministic beha
 ## Determinism
 
 Equivalent inputs produce equivalent artifacts. Events follow runtime occurrence; other lists use deterministic ordering.
+## Behavior/spatial evidence
+
+Behavior scenarios emit `behaviors.json`, `intents.jsonl`, and `spatial-resolutions.jsonl`. Runtime inspection records accepted and rejected domain resolutions, including semantic source and final state.

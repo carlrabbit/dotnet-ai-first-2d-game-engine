@@ -1,0 +1,20 @@
+{
+  "schema": "agentic2d.scenario.v1",
+  "id": "behavior.grid-movement-smoke",
+  "category": "smoke",
+  "title": "Behavior grid movement smoke",
+  "purpose": "Validate immutable behavior intent emission and spatial.grid resolution.",
+  "seedPolicy": "scenario",
+  "runtime": { "ticks": 1, "spatialModule": "spatial.grid", "mapId": "map.smoke", "randomSeed": 12012 },
+  "initialState": { "entities": [{ "id": "entity.player", "position": 0, "gridPosition": { "x": 0, "y": 0 } }] },
+  "steps": [],
+  "behaviors": [{ "id": "assignment.player-move-east", "entityId": "entity.player", "behaviorId": "behavior.player-move-east", "lifecycle": "once" }],
+  "expectedEvents": ["behavior.started", "behavior.intent-emitted", "behavior.completed", "spatial.movement-accepted", "entity.grid-position-changed"],
+  "assertions": [
+    { "id": "assert.finalTick", "type": "finalTickEqualsRequested" },
+    { "id": "assert.playerMovedEast", "type": "entityPositionEquals", "entityId": "entity.player", "position": 1 },
+    { "id": "assert.accepted", "type": "eventOccurred", "eventType": "spatial.movement-accepted" }
+  ],
+  "artifacts": { "result": "result.json", "events": "events.jsonl", "diagnostics": "diagnostics.json" },
+  "humanReview": { "required": true }
+}

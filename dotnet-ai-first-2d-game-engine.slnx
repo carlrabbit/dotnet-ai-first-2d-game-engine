@@ -1,8 +1,10 @@
 <Solution>
   <Folder Name="/src/">
     <Project Path="src/Agentic2D.Contracts/Agentic2D.Contracts.csproj" />
+    <Project Path="src/Agentic2D.Behaviors/Agentic2D.Behaviors.csproj" />
     <Project Path="src/Agentic2D.Engine/Agentic2D.Engine.csproj" />
     <Project Path="src/Agentic2D.ScenarioRunner/Agentic2D.ScenarioRunner.csproj" />
+    <Project Path="src/Agentic2D.Spatial.Grid/Agentic2D.Spatial.Grid.csproj" />
     <Project Path="src/Agentic2D.Tools/Agentic2D.Tools.csproj" />
     <Project Path="src/Agentic2D.Validation/Agentic2D.Validation.csproj" />
   </Folder>

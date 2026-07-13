@@ -9,7 +9,7 @@ public sealed class ContentValidator
     public const string ScenariosScope = "scenarios";
     public const string ScenarioSchema = "agentic2d.scenario.v1";
 
-    private static readonly Regex ScenarioIdPattern = new("^[a-z0-9]+(\\.[a-z0-9]+)*$", RegexOptions.CultureInvariant);
+    private static readonly Regex ScenarioIdPattern = new("^[a-z0-9]+([.-][a-z0-9]+)*$", RegexOptions.CultureInvariant);
     private static readonly Regex StableIdPattern = new("^[A-Za-z0-9]+([._-][A-Za-z0-9]+)*$", RegexOptions.CultureInvariant);
 
     public ContentValidationRun Validate(string target)
@@ -155,9 +155,9 @@ public sealed class ContentValidator
             diagnostics.Add(ContentDiagnostic.InvalidSchemaValue(target, "category", "Scenario category must be smoke for Milestone 006."));
         }
 
-        if (!StringComparer.Ordinal.Equals(scenario.SeedPolicy, "none"))
+        if (scenario.SeedPolicy is not "none" and not "scenario")
         {
-            diagnostics.Add(ContentDiagnostic.InvalidSchemaValue(target, "seedPolicy", "Scenario seedPolicy must be none for Milestone 006."));
+            diagnostics.Add(ContentDiagnostic.InvalidSchemaValue(target, "seedPolicy", "Scenario seedPolicy must be none or scenario."));
         }
 
         ValidateRuntime(root, scenario, target, diagnostics);
@@ -223,7 +223,7 @@ public sealed class ContentValidator
 
     private static void ValidateSteps(ScenarioSource scenario, string target, List<ContentValidationDiagnostic> diagnostics)
     {
-        if (scenario.Steps.Count == 0)
+        if (scenario.Behaviors.Count == 0 && scenario.Steps.Count == 0)
         {
             diagnostics.Add(ContentDiagnostic.MissingRequiredField(target, "steps", "steps must contain at least one step."));
             return;

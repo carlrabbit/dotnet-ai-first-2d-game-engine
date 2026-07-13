@@ -129,7 +129,7 @@ public sealed class ReviewPackGenerator
                     break;
 
                 case "agentic2d.runtime-inspection.result.v1":
-                    groups.Add(new ReviewArtifactGroup("runtime-inspection", status, relativeResultPath, command));
+                    groups.Add(new ReviewArtifactGroup("runtime-inspection", status, relativeResultPath, command, RuntimeCapabilities(resultPath)));
                     AddRuntimeInspectionSourceItems(resultPath, sourceItems, diagnostics);
                     AddFailedGroupDiagnostic(relativeResultPath, "runtime-inspection", status, diagnostics);
                     break;
@@ -356,6 +356,16 @@ public sealed class ReviewPackGenerator
                 $"Could not read map inspection summary: {exception.Message}"));
         }
     }
+
+    private static IReadOnlyList<string>? RuntimeCapabilities(string resultPath)
+    {
+        var directory = Path.GetDirectoryName(resultPath) ?? string.Empty;
+        var capabilities = new List<string>();
+        if (File.Exists(Path.Combine(directory, "behaviors.json"))) capabilities.Add("behavior-execution");
+        if (File.Exists(Path.Combine(directory, "spatial-resolutions.jsonl"))) capabilities.Add("spatial-resolution");
+        return capabilities.Count == 0 ? null : capabilities;
+    }
+
 
     private static void AddRuntimeInspectionSourceItems(
         string resultPath,
@@ -616,7 +626,8 @@ public sealed record ReviewArtifactGroup(
     [property: JsonPropertyName("kind")] string Kind,
     [property: JsonPropertyName("status")] string Status,
     [property: JsonPropertyName("path")] string Path,
-    [property: JsonPropertyName("command")] string? Command = null);
+    [property: JsonPropertyName("command")] string? Command = null,
+    [property: JsonPropertyName("capabilities")] IReadOnlyList<string>? Capabilities = null);
 
 public sealed record ReviewSourceItem(
     [property: JsonPropertyName("kind")] string Kind,

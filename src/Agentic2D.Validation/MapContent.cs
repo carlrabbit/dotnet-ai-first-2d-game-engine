@@ -557,6 +557,9 @@ public sealed class MapContentSource
 
     [JsonPropertyName("markers")]
     public IReadOnlyList<MapMarkerSource> Markers { get; init; } = [];
+
+    [JsonPropertyName("cellOverrides")]
+    public IReadOnlyList<MapCellOverrideSource> CellOverrides { get; init; } = [];
 }
 
 public sealed record MapTileSizeSource(
@@ -587,6 +590,11 @@ public sealed record MapMarkerSource(
     [property: JsonPropertyName("kind")] string Kind,
     [property: JsonPropertyName("x")] int X,
     [property: JsonPropertyName("y")] int Y);
+
+public sealed record MapCellOverrideSource(
+    [property: JsonPropertyName("x")] int X,
+    [property: JsonPropertyName("y")] int Y,
+    [property: JsonPropertyName("physicalBehavior")] string PhysicalBehavior);
 
 public static class MapDiagnostic
 {

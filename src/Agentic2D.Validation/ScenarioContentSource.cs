@@ -25,6 +25,9 @@ public sealed class ScenarioSource
     [JsonPropertyName("runtime")]
     public ScenarioRuntimeSource? Runtime { get; init; }
 
+    [JsonPropertyName("behaviors")]
+    public IReadOnlyList<ScenarioBehaviorAssignmentSource> Behaviors { get; init; } = [];
+
     [JsonPropertyName("initialState")]
     public ScenarioInitialStateSource? InitialState { get; init; }
 
@@ -45,7 +48,16 @@ public sealed class ScenarioSource
 }
 
 public sealed record ScenarioRuntimeSource(
-    [property: JsonPropertyName("ticks")] int Ticks = 0);
+    [property: JsonPropertyName("ticks")] int Ticks = 0,
+    [property: JsonPropertyName("spatialModule")] string? SpatialModule = null,
+    [property: JsonPropertyName("mapId")] string? MapId = null,
+    [property: JsonPropertyName("randomSeed")] int? RandomSeed = null);
+
+public sealed record ScenarioBehaviorAssignmentSource(
+    [property: JsonPropertyName("id")] string Id,
+    [property: JsonPropertyName("entityId")] string EntityId,
+    [property: JsonPropertyName("behaviorId")] string BehaviorId,
+    [property: JsonPropertyName("lifecycle")] string Lifecycle);
 
 public sealed record ScenarioInitialStateSource(
     [property: JsonPropertyName("entities")] IReadOnlyList<ScenarioEntitySource> Entities)
@@ -58,7 +70,12 @@ public sealed record ScenarioInitialStateSource(
 
 public sealed record ScenarioEntitySource(
     [property: JsonPropertyName("id")] string Id,
-    [property: JsonPropertyName("position")] int Position);
+    [property: JsonPropertyName("position")] int Position,
+    [property: JsonPropertyName("gridPosition")] ScenarioGridPositionSource? GridPosition = null);
+
+public sealed record ScenarioGridPositionSource(
+    [property: JsonPropertyName("x")] int X,
+    [property: JsonPropertyName("y")] int Y);
 
 public sealed record ScenarioStepSource(
     [property: JsonPropertyName("id")] string Id,

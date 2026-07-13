@@ -170,3 +170,6 @@ The review pack must therefore expose stable asset references and review questio
 Human review is required for milestone acceptance to judge evidence usefulness.
 
 The review pack does not approve gameplay semantics. It only reports evidence and review state.
+## Milestone 012 evidence
+
+Runtime-inspection groups may declare `behavior-execution` and `spatial-resolution` capabilities when their artifact directory contains the corresponding evidence. No separate review-pack family is required.

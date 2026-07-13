@@ -240,3 +240,6 @@ agentic2d package build
 ```
 
 Do not document these as supported until implemented by a later milestone.
+## Behavior/grid validation wrappers
+
+`./eng/behavior-smoke.sh`, `./eng/grid-spatial-smoke.sh`, and `./eng/m012-smoke.sh` validate the compiled behavior and `spatial.grid` reference slice. The grid wrapper executes both accepted and expected-rejected movement inspection paths.

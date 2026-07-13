@@ -84,3 +84,6 @@ Future scenario runner milestones may introduce broader scenario wrappers such a
 ```
 
 Do not document these future commands as supported until implemented by a later milestone.
+## Milestone 012 smoke scenarios
+
+`behavior.grid-movement-smoke` proves accepted east movement. `behavior.grid-movement-rejected-smoke` proves explicitly blocked movement is a passing domain outcome with unchanged grid state and a rejection event.

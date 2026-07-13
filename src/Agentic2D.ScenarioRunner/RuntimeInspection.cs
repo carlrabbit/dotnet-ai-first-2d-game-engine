@@ -58,6 +58,16 @@ public sealed class RuntimeInspector
             mapPath = mapValidation.Path;
         }
 
+        if (BehaviorGridScenarioExecutor.IsBehaviorScenario(scenarioLoad.SourceScenario))
+        {
+            var behavior = BehaviorGridScenarioExecutor.Execute(scenarioLoad.SourceScenario);
+            var behaviorDiagnostics = behavior.Diagnostics.Select(item => new ContentValidationDiagnostic(item.Id, item.Severity, item.Message, scenarioLoad.SourceScenario.Id)).ToArray();
+            var behaviorAssertions = scenarioLoad.SourceScenario.Assertions.Select(item => BehaviorGridScenarioExecutor.EvaluateAssertion(item, scenarioLoad.SourceScenario.Runtime!.Ticks, behavior)).Select(item => new RuntimeInspectionAssertion(item.Id, item.Passed, item.Message, item.Expected, item.Actual)).ToArray();
+            var behaviorCommands = behavior.Resolutions.Select((item, index) => new RuntimeInspectionCommandRecord(index + 1, item.IntentId, "move", item.IntentId, item.Accepted ? 1 : 0, item.Accepted ? "accepted" : "rejected", item.Reason)).ToArray();
+            var behaviorEvents = behavior.Events.Select(item => new RuntimeInspectionEventRecord(item.Sequence, item.Tick, item.Type, item.Message)).ToArray();
+            return RuntimeInspectionRun.From(scenarioLoad.SourceScenario.Id, map?.Id ?? mapReference, BuildContentReferences(scenarioLoad.SourceScenario, scenarioResolution.Path, map, mapPath), behavior.Entities, behaviorCommands, behaviorEvents, behaviorAssertions, behaviorDiagnostics, behavior.Diagnostics.Any(item => item.Severity == "error") ? ContentValidationStatus.Failed : ContentValidationStatus.Passed, behavior.Diagnostics.Any(item => item.Severity == "error") ? 1 : 0, scenarioLoad.SourceScenario.Runtime!.Ticks, behavior);
+        }
+
         var runtime = new MinimalRuntime();
         var commandRecords = new List<RuntimeInspectionCommandRecord>();
         try
@@ -156,6 +166,13 @@ public static class RuntimeInspectionArtifactWriter
             await File.WriteAllTextAsync(Path.Combine(outputDirectory, "assertions.json"), JsonSerializer.Serialize(run.AssertionsDocument, ScenarioRunner.JsonOptions));
             await File.WriteAllTextAsync(Path.Combine(outputDirectory, "content-references.json"), JsonSerializer.Serialize(run.ContentReferences, ScenarioRunner.JsonOptions));
 
+            if (run.BehaviorEvidence is not null)
+            {
+                await File.WriteAllTextAsync(Path.Combine(outputDirectory, "behaviors.json"), JsonSerializer.Serialize(new { schema = "agentic2d.behavior-execution.v1", assignments = run.BehaviorEvidence.Behaviors, finalGridPositions = run.BehaviorEvidence.GridPositions }, ScenarioRunner.JsonOptions));
+                await File.WriteAllTextAsync(Path.Combine(outputDirectory, "intents.jsonl"), string.Join(Environment.NewLine, run.BehaviorEvidence.Intents.Select(item => JsonSerializer.Serialize(item, ScenarioRunner.JsonLineOptions))) + (run.BehaviorEvidence.Intents.Count == 0 ? string.Empty : Environment.NewLine));
+                await File.WriteAllTextAsync(Path.Combine(outputDirectory, "spatial-resolutions.jsonl"), string.Join(Environment.NewLine, run.BehaviorEvidence.Resolutions.Select(item => JsonSerializer.Serialize(item, ScenarioRunner.JsonLineOptions))) + (run.BehaviorEvidence.Resolutions.Count == 0 ? string.Empty : Environment.NewLine));
+            }
+
             var commandsJsonl = run.CommandsDocument.Commands.Count == 0
                 ? string.Empty
                 : string.Join(Environment.NewLine, run.CommandsDocument.Commands.Select(command => JsonSerializer.Serialize(command, ScenarioRunner.JsonLineOptions))) + Environment.NewLine;
@@ -184,7 +201,8 @@ public sealed record RuntimeInspectionRun(
     RuntimeInspectionEventsDocument EventsDocument,
     RuntimeInspectionFinalStateDocument FinalState,
     RuntimeInspectionAssertionsDocument AssertionsDocument,
-    RuntimeContentReferencesDocument ContentReferences)
+    RuntimeContentReferencesDocument ContentReferences,
+    BehaviorExecutionEvidence? BehaviorEvidence = null)
 {
     public static RuntimeInspectionRun From(
         string scenarioId,
@@ -197,7 +215,8 @@ public sealed record RuntimeInspectionRun(
         IReadOnlyList<ContentValidationDiagnostic> diagnostics,
         string status,
         int exitCode,
-        int finalTick)
+        int finalTick,
+        BehaviorExecutionEvidence? behaviorEvidence = null)
     {
         var artifacts = new[]
         {
@@ -229,7 +248,8 @@ public sealed record RuntimeInspectionRun(
             new RuntimeInspectionEventsDocument("agentic2d.runtime-inspection.events.v1", events),
             new RuntimeInspectionFinalStateDocument("agentic2d.runtime-inspection.final-state.v1", finalTick, entities),
             new RuntimeInspectionAssertionsDocument("agentic2d.runtime-inspection.assertions.v1", assertions),
-            contentReferences);
+            contentReferences,
+            behaviorEvidence);
     }
 }
 
