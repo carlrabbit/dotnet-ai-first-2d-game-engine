@@ -30,7 +30,11 @@ public sealed class ContentValidator
 
         foreach (var path in resolution.Paths)
         {
-            if (path.EndsWith(".asset.json", StringComparison.OrdinalIgnoreCase))
+            if (path.Replace('\\', '/').Contains("game/entities/", StringComparison.Ordinal) || Path.GetFileName(path).StartsWith("entity-definition.", StringComparison.Ordinal))
+            {
+                ValidateEntityDefinitionFile(path, items, diagnostics);
+            }
+            else if (path.EndsWith(".asset.json", StringComparison.OrdinalIgnoreCase))
             {
                 ValidateAssetFile(path, items, diagnostics);
             }
@@ -50,6 +54,16 @@ public sealed class ContentValidator
         var exitCode = status == ContentValidationStatus.Passed ? 0 : 1;
 
         return ContentValidationRun.FromDiagnostics(target, status, exitCode, items, diagnostics);
+    }
+
+    private static void ValidateEntityDefinitionFile(
+        string path,
+        List<ValidatedContentItem> items,
+        List<ContentValidationDiagnostic> diagnostics)
+    {
+        var item = new EntityDefinitionValidator().ValidateFile(path);
+        diagnostics.AddRange(item.Diagnostics);
+        items.Add(new ValidatedContentItem(ContentKind.EntityDefinition, item.Id, item.Path, item.Status));
     }
 
     private static void ValidateAssetFile(
@@ -161,8 +175,16 @@ public sealed class ContentValidator
         }
 
         ValidateRuntime(root, scenario, target, diagnostics);
-        ValidateEntities(scenario, target, diagnostics);
-        ValidateSteps(scenario, target, diagnostics);
+        if (scenario.Runtime?.MapId == "map.interaction-smoke")
+        {
+            if (scenario.InitialState?.EntitySpawns is not null && scenario.InitialState.EntitySpawns.Any(spawn => string.IsNullOrWhiteSpace(spawn.Id) || string.IsNullOrWhiteSpace(spawn.EntityId) || string.IsNullOrWhiteSpace(spawn.DefinitionId)))
+                diagnostics.Add(ContentDiagnostic.InvalidReference(target, "initialState.entitySpawns", null, "M014 spawn overrides require explicit identities."));
+        }
+        else
+        {
+            ValidateEntities(scenario, target, diagnostics);
+            ValidateSteps(scenario, target, diagnostics);
+        }
         ValidateExpectedEvents(scenario, target, diagnostics);
         ValidateAssertions(scenario, target, diagnostics);
         ValidateArtifacts(scenario, target, diagnostics);
@@ -475,6 +497,13 @@ public static class ContentTargetResolver
                 : ContentTargetResolution.Success(paths);
         }
 
+        if (StringComparer.Ordinal.Equals(target, EntityDefinitionValidator.EntitiesScope))
+        {
+            var root = Path.Combine(FindRepositoryRoot(), "game", "entities");
+            var paths = Directory.Exists(root) ? Directory.EnumerateFiles(root, "entity-definition.*.json", SearchOption.AllDirectories).Order(StringComparer.Ordinal).ToArray() : [];
+            return paths.Length == 0 ? ContentTargetResolution.Failure([ContentDiagnostic.InvalidScopeOrPath(target, "No entity definition JSON files were found under game/entities.")]) : ContentTargetResolution.Success(paths);
+        }
+
         if (StringComparer.Ordinal.Equals(target, AssetMetadataValidator.AssetsScope))
         {
             var assetMetadataRoot = Path.Combine(FindRepositoryRoot(), "game", "assets", "metadata");
@@ -511,7 +540,7 @@ public static class ContentTargetResolver
 
         if (!target.EndsWith(".json", StringComparison.OrdinalIgnoreCase))
         {
-            return ContentTargetResolution.Failure([ContentDiagnostic.InvalidScopeOrPath(target, "Unsupported content target. Expected scenarios, assets, maps, or a repository-relative .json path.")]);
+            return ContentTargetResolution.Failure([ContentDiagnostic.InvalidScopeOrPath(target, "Unsupported content target. Expected scenarios, assets, maps, entities, or a repository-relative .json path.")]);
         }
 
         if (!Path.IsPathRooted(target) && target.Split(['/', '\\']).Contains("..", StringComparer.Ordinal))
@@ -739,6 +768,7 @@ public static class ContentKind
     public const string Scenario = "scenario";
     public const string Asset = "asset";
     public const string Map = "map";
+    public const string EntityDefinition = "entity-definition";
 }
 
 public static class ContentValidationJson

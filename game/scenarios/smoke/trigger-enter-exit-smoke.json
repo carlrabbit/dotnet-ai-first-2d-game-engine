@@ -1,0 +1,7 @@
+{
+  "schema": "agentic2d.scenario.v1", "id": "trigger.enter-exit-smoke", "category": "smoke", "title": "Trigger enter and exit", "purpose": "Prove entity-owned trigger entered and exited transitions only.", "seedPolicy": "none",
+  "runtime": { "ticks": 2, "spatialModule": "spatial.continuous-kinematic-2d", "mapId": "map.interaction-smoke", "randomSeed": 14 },
+  "initialState": { "entities": [], "entitySpawns": [] }, "steps": [], "behaviors": [], "expectedEvents": ["trigger.entered", "trigger.exited"],
+  "assertions": [{ "id": "assert.events", "type": "eventOccurred", "eventType": "trigger.entered" }],
+  "artifacts": { "result": "result.json", "events": "events.jsonl", "diagnostics": "diagnostics.json" }, "humanReview": { "required": true }
+}

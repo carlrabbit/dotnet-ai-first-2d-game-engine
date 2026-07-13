@@ -104,5 +104,6 @@ internal static class BehaviorGridExecutionV2
     {
         public void Emit(MoveIntent intent) => intents.Add(intent);
         public void Emit(ContinuousMoveIntent intent) { }
+        public void Emit(InteractIntent intent) { }
     }
 }

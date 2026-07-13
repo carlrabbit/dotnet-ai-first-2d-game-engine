@@ -1,0 +1,7 @@
+{
+  "schema": "agentic2d.scenario.v1", "id": "interaction.npc-smoke", "category": "smoke", "title": "NPC interaction", "purpose": "Prove explicit interaction intent resolves a deterministic talk target.", "seedPolicy": "none",
+  "runtime": { "ticks": 1, "spatialModule": "spatial.continuous-kinematic-2d", "mapId": "map.interaction-smoke", "randomSeed": 14 },
+  "initialState": { "entities": [], "entitySpawns": [] }, "steps": [], "behaviors": [], "expectedEvents": ["trigger.entered", "interaction.started"],
+  "assertions": [{ "id": "assert.events", "type": "eventOccurred", "eventType": "trigger.entered" }],
+  "artifacts": { "result": "result.json", "events": "events.jsonl", "diagnostics": "diagnostics.json" }, "humanReview": { "required": true }
+}

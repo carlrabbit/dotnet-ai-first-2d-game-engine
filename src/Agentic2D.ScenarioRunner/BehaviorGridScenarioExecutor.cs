@@ -106,5 +106,5 @@ internal static class BehaviorGridScenarioExecutor
         };
     }
 
-    private sealed class ListIntentEmitter(List<MoveIntent> intents) : IIntentEmitter { public void Emit(MoveIntent intent) => intents.Add(intent); public void Emit(ContinuousMoveIntent intent) { } }
+    private sealed class ListIntentEmitter(List<MoveIntent> intents) : IIntentEmitter { public void Emit(MoveIntent intent) => intents.Add(intent); public void Emit(ContinuousMoveIntent intent) { } public void Emit(InteractIntent intent) { } }
 }

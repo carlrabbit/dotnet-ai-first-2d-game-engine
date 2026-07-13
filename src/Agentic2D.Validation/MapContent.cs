@@ -11,6 +11,8 @@ public sealed class MapContentValidator
     public const string SmokeMapPath = "game/maps/smoke/map-smoke.map.json";
     public const string ContinuousSmokeMapId = "map.continuous-smoke";
     public const string ContinuousSmokeMapPath = "game/maps/smoke/map-continuous-smoke.map.json";
+    public const string InteractionSmokeMapId = "map.interaction-smoke";
+    public const string InteractionSmokeMapPath = "game/maps/smoke/map-interaction-smoke.map.json";
 
     public MapValidationItem ValidateFile(string path)
     {
@@ -101,6 +103,7 @@ public sealed class MapContentValidator
         ValidateLayers(map, target, resolvedAssets, diagnostics);
         ValidateMarkers(map, target, diagnostics);
         ValidateObjects(map, target, diagnostics);
+        ValidateEntitySpawns(map, target, diagnostics);
 
         return diagnostics.OrderBy(static diagnostic => diagnostic.Id, StringComparer.Ordinal)
             .ThenBy(static diagnostic => diagnostic.Target, StringComparer.Ordinal)
@@ -234,6 +237,19 @@ public sealed class MapContentValidator
         }
     }
 
+    private static void ValidateEntitySpawns(MapContentSource map, string target, List<ContentValidationDiagnostic> diagnostics)
+    {
+        var ids = new HashSet<string>(StringComparer.Ordinal);
+        var entities = new HashSet<string>(StringComparer.Ordinal);
+        foreach (var spawn in map.EntitySpawns)
+        {
+            if (!IsStableId(spawn.Id) || !ids.Add(spawn.Id) || !IsStableId(spawn.EntityId) || !entities.Add(spawn.EntityId) || !IsStableId(spawn.DefinitionId))
+                diagnostics.Add(MapDiagnostic.InvalidField(target, "entitySpawns", "Entity spawns require unique stable spawn, entity, and definition IDs."));
+            if (spawn.Overrides.GroupBy(x => x.ComponentType, StringComparer.Ordinal).Any(x => x.Count() != 1))
+                diagnostics.Add(MapDiagnostic.InvalidField(target, "entitySpawns.overrides", "Spawn overrides replace complete values and cannot repeat a component type."));
+        }
+    }
+
     private static void ValidateMarkers(MapContentSource map, string target, List<ContentValidationDiagnostic> diagnostics)
     {
         var markerIds = new HashSet<string>(StringComparer.Ordinal);
@@ -304,7 +320,9 @@ public sealed class MapInspector
             ? MapContentValidator.SmokeMapPath
             : StringComparer.Ordinal.Equals(target, MapContentValidator.ContinuousSmokeMapId)
                 ? MapContentValidator.ContinuousSmokeMapPath
-            : target;
+                : StringComparer.Ordinal.Equals(target, MapContentValidator.InteractionSmokeMapId)
+                    ? MapContentValidator.InteractionSmokeMapPath
+                    : target;
 
         if (!candidate.EndsWith(".map.json", StringComparison.OrdinalIgnoreCase))
         {
@@ -579,6 +597,9 @@ public sealed class MapContentSource
 
     [JsonPropertyName("objects")]
     public IReadOnlyList<MapObjectSource> Objects { get; init; } = [];
+
+    [JsonPropertyName("entitySpawns")]
+    public IReadOnlyList<EntitySpawnSource> EntitySpawns { get; init; } = [];
 }
 
 public sealed record MapTileSizeSource(

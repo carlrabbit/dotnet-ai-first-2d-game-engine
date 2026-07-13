@@ -61,10 +61,11 @@ public sealed record ScenarioBehaviorAssignmentSource(
     [property: JsonPropertyName("lifecycle")] string Lifecycle);
 
 public sealed record ScenarioInitialStateSource(
-    [property: JsonPropertyName("entities")] IReadOnlyList<ScenarioEntitySource> Entities)
+    [property: JsonPropertyName("entities")] IReadOnlyList<ScenarioEntitySource> Entities,
+    [property: JsonPropertyName("entitySpawns")] IReadOnlyList<EntitySpawnSource>? EntitySpawns = null)
 {
     public ScenarioInitialStateSource()
-        : this([])
+        : this([], [])
     {
     }
 }

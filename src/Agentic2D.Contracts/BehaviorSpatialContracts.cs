@@ -5,11 +5,13 @@ public sealed record BehaviorSnapshot(int Tick, string Fingerprint, IReadOnlySet
 
 public sealed record MoveIntent(string Id, string AssignmentId, string BehaviorId, string EntityId, string Direction, string OrderingKey);
 public sealed record ContinuousMoveIntent(string Id, string AssignmentId, string BehaviorId, string EntityId, double DirectionX, double DirectionY, string OrderingKey);
+public sealed record InteractIntent(string Id, string InteractorEntityId, string? ExplicitTargetEntityId, string? RequestedInteractionKind, string BehaviorAssignmentId, string OrderingKey);
 
 public interface IIntentEmitter
 {
     void Emit(MoveIntent intent);
     void Emit(ContinuousMoveIntent intent);
+    void Emit(InteractIntent intent);
 }
 
 public interface IDeterministicRandom
