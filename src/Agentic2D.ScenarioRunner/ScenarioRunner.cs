@@ -14,6 +14,12 @@ public sealed class ScenarioRunner
     public const string BuiltInBehaviorGridMovementSmokePath = "game/scenarios/smoke/behavior-grid-movement-smoke.json";
     public const string BuiltInBehaviorGridMovementRejectedSmokeId = "behavior.grid-movement-rejected-smoke";
     public const string BuiltInBehaviorGridMovementRejectedSmokePath = "game/scenarios/smoke/behavior-grid-movement-rejected-smoke.json";
+    public const string BuiltInContinuousMovementSmokeId = "continuous.kinematic-movement-smoke";
+    public const string BuiltInContinuousMovementSmokePath = "game/scenarios/smoke/continuous-kinematic-movement-smoke.json";
+    public const string BuiltInContinuousTreeSmokeId = "continuous.kinematic-tree-collision-smoke";
+    public const string BuiltInContinuousTreeSmokePath = "game/scenarios/smoke/continuous-kinematic-tree-collision-smoke.json";
+    public const string BuiltInEntityComponentSmokeId = "entity.component-runtime-smoke";
+    public const string BuiltInEntityComponentSmokePath = "game/scenarios/smoke/entity-component-runtime-smoke.json";
 
     private static readonly JsonSerializerOptions SerializerOptions = new()
     {
@@ -54,6 +60,11 @@ public sealed class ScenarioRunner
         }
 
         var scenario = loadResult.SourceScenario;
+        if (ContinuousScenarioExecutor.IsContinuous(scenario))
+        {
+            return ContinuousScenarioExecutor.Run(scenario, sourcePath);
+        }
+
         if (BehaviorGridScenarioExecutor.IsBehaviorScenario(scenario))
         {
             return BehaviorGridScenarioExecutor.Run(scenario, sourcePath);
@@ -243,7 +254,13 @@ public static class ScenarioSourceResolver
                 ? ScenarioRunner.BuiltInBehaviorGridMovementSmokePath
                 : StringComparer.Ordinal.Equals(scenarioReference, ScenarioRunner.BuiltInBehaviorGridMovementRejectedSmokeId)
                     ? ScenarioRunner.BuiltInBehaviorGridMovementRejectedSmokePath
-                    : scenarioReference;
+                    : StringComparer.Ordinal.Equals(scenarioReference, ScenarioRunner.BuiltInContinuousMovementSmokeId)
+                        ? ScenarioRunner.BuiltInContinuousMovementSmokePath
+                        : StringComparer.Ordinal.Equals(scenarioReference, ScenarioRunner.BuiltInContinuousTreeSmokeId)
+                            ? ScenarioRunner.BuiltInContinuousTreeSmokePath
+                            : StringComparer.Ordinal.Equals(scenarioReference, ScenarioRunner.BuiltInEntityComponentSmokeId)
+                                ? ScenarioRunner.BuiltInEntityComponentSmokePath
+                                : scenarioReference;
 
         if (!Path.GetExtension(path).Equals(".json", StringComparison.OrdinalIgnoreCase))
         {
@@ -442,9 +459,9 @@ public static class ScenarioSourceLoader
             if (!entities.Contains(assignment.EntityId)) diagnostics.Add(new ScenarioDiagnostic("BEHAVIOR0005", "error", "Missing assignment entity: " + assignment.EntityId));
             if (!active.Add(assignment.EntityId)) diagnostics.Add(new ScenarioDiagnostic("BEHAVIOR0003", "error", "Multiple active behaviors for entity: " + assignment.EntityId));
             if (assignment.Lifecycle is not "once" and not "each-tick") diagnostics.Add(new ScenarioDiagnostic("BEHAVIOR0004", "error", "Unsupported lifecycle: " + assignment.Lifecycle));
-            if (assignment.BehaviorId != "behavior.player-move-east") diagnostics.Add(new ScenarioDiagnostic("BEHAVIOR0001", "error", "Unknown behavior: " + assignment.BehaviorId));
+            if (assignment.BehaviorId != "behavior.player-move-east" && assignment.BehaviorId != "behavior.player-move-east-continuous") diagnostics.Add(new ScenarioDiagnostic("BEHAVIOR0001", "error", "Unknown behavior: " + assignment.BehaviorId));
         }
-        if (scenario.Runtime?.SpatialModule != "spatial.grid") diagnostics.Add(new ScenarioDiagnostic("BEHAVIOR0002", "error", "Unknown spatial module."));
+        if (scenario.Runtime?.SpatialModule != "spatial.grid" && scenario.Runtime?.SpatialModule != "spatial.continuous-kinematic-2d") diagnostics.Add(new ScenarioDiagnostic("BEHAVIOR0002", "error", "Unknown spatial module."));
     }
 
     private static void ValidateExpectedEvents(ScenarioSource scenario, List<ScenarioDiagnostic> diagnostics)

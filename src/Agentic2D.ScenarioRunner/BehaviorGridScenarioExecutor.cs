@@ -2,6 +2,7 @@ using System.Security.Cryptography;
 using System.Text;
 using Agentic2D.Behaviors;
 using Agentic2D.Contracts;
+using Agentic2D.Engine;
 using Agentic2D.Spatial.Grid;
 using Agentic2D.Validation;
 
@@ -51,10 +52,10 @@ internal static class BehaviorGridScenarioExecutor
             return new([], [], [], [], [], diagnostics);
         }
 
-        var entityIds = scenario.InitialState!.Entities.Select(entity => entity.Id).ToHashSet(StringComparer.Ordinal);
+        var world = new EntityComponentWorld(); world.Register<GridPosition>("component.grid-position", "spatial.grid"); foreach (var entity in scenario.InitialState!.Entities) { world.CreateEntity(entity.Id); world.Set(entity.Id, new GridPosition(entity.GridPosition?.X ?? entity.Position, entity.GridPosition?.Y ?? 0)); }
+        var entityIds = world.EntityIds.ToHashSet(StringComparer.Ordinal);
         var snapshot = new BehaviorSnapshot(1, Fingerprint(entityIds), entityIds);
-        var positions = scenario.InitialState.Entities.ToDictionary(entity => entity.Id, entity => new GridPosition(entity.GridPosition?.X ?? entity.Position, entity.GridPosition?.Y ?? 0), StringComparer.Ordinal);
-        var resolver = new GridSpatialResolver(mapItem.Map, positions);
+        var resolver = new GridSpatialResolver(mapItem.Map, world);
         var registry = new BehaviorRegistry();
         var intents = new List<MoveIntent>();
         var assignments = new List<BehaviorEvidenceAssignment>();
@@ -78,7 +79,7 @@ internal static class BehaviorGridScenarioExecutor
         foreach (var intent in intents.OrderBy(item => item.OrderingKey, StringComparer.Ordinal).ThenBy(item => item.Id, StringComparer.Ordinal))
         {
             var resolution = resolver.ResolveDetailed(intent);
-            resolver.ApplyAccepted(resolution);
+            resolver.ApplyAccepted(resolution, 1);
             resolutionEvidence.Add(new SpatialResolutionEvidence(intent.Id, resolution.Resolution.ModuleId, resolution.Resolution.Accepted, resolution.Resolution.Reason, resolution.SemanticSource, resolution.SemanticValue, resolution.AssetId, resolution.TileId, resolution.Resolution.CommandId, resolution.Resolution.Events, resolution.Resolution.Diagnostics, resolution.Destination?.X, resolution.Destination?.Y));
             foreach (var eventType in resolution.Resolution.Events) events.Add(new ScenarioEvent(events.Count + 1, 1, eventType, intent.Id));
         }
@@ -105,5 +106,5 @@ internal static class BehaviorGridScenarioExecutor
         };
     }
 
-    private sealed class ListIntentEmitter(List<MoveIntent> intents) : IIntentEmitter { public void Emit(MoveIntent intent) => intents.Add(intent); }
+    private sealed class ListIntentEmitter(List<MoveIntent> intents) : IIntentEmitter { public void Emit(MoveIntent intent) => intents.Add(intent); public void Emit(ContinuousMoveIntent intent) { } }
 }

@@ -1,0 +1,8 @@
+{
+  "schema":"agentic2d.scenario.v1", "id":"continuous.kinematic-movement-smoke", "category":"smoke", "title":"Continuous movement", "purpose":"Prove unobstructed fixed-tick continuous movement.", "seedPolicy":"none",
+  "runtime":{"ticks":1,"spatialModule":"spatial.continuous-kinematic-2d","mapId":"map.continuous-smoke","randomSeed":13},
+  "initialState":{"entities":[
+    {"id":"entity.player","position":0,"components":[{"type":"component.continuous-transform-2d","value":{"x":0.5,"y":0.5}},{"type":"component.kinematic-motion-2d","value":{"velocityX":0,"velocityY":0,"maxSpeed":1.0}},{"type":"component.collision-aabb-2d","value":{"halfWidth":0.2,"halfHeight":0.2}},{"type":"component.spatial-membership","value":{"worldId":"map.continuous-smoke","spatialModuleId":"spatial.continuous-kinematic-2d"}}]},
+    {"id":"entity.npc.smoke","position":0,"components":[{"type":"component.continuous-transform-2d","value":{"x":0.5,"y":2.5}},{"type":"component.kinematic-motion-2d","value":{"velocityX":0,"velocityY":0,"maxSpeed":1.0}},{"type":"component.collision-aabb-2d","value":{"halfWidth":0.2,"halfHeight":0.2}},{"type":"component.spatial-membership","value":{"worldId":"map.continuous-smoke","spatialModuleId":"spatial.continuous-kinematic-2d"}}]}]},
+  "steps":[],"behaviors":[{"id":"assignment.player-east","entityId":"entity.player","behaviorId":"behavior.player-move-east-continuous","lifecycle":"once"}],"expectedEvents":["spatial.continuous-movement-accepted"],"assertions":[{"id":"assert.finalTick","type":"finalTickEqualsRequested"},{"id":"assert.moved","type":"eventOccurred","eventType":"spatial.continuous-movement-accepted"}],"artifacts":{"result":"result.json","events":"events.jsonl","diagnostics":"diagnostics.json"},"humanReview":{"required":true}
+}
