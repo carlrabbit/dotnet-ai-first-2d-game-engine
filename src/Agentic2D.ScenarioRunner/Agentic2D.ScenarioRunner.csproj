@@ -5,5 +5,6 @@
     <ProjectReference Include="../Agentic2D.Validation/Agentic2D.Validation.csproj" />
     <ProjectReference Include="../Agentic2D.Behaviors/Agentic2D.Behaviors.csproj" />
     <ProjectReference Include="../Agentic2D.Spatial.Grid/Agentic2D.Spatial.Grid.csproj" />
+    <ProjectReference Include="../Agentic2D.Spatial.Continuous/Agentic2D.Spatial.Continuous.csproj" />
   </ItemGroup>
 </Project>

@@ -1,3 +1,4 @@
+using System.Text.Json;
 using System.Text.Json.Serialization;
 
 namespace Agentic2D.Validation;
@@ -71,7 +72,10 @@ public sealed record ScenarioInitialStateSource(
 public sealed record ScenarioEntitySource(
     [property: JsonPropertyName("id")] string Id,
     [property: JsonPropertyName("position")] int Position,
-    [property: JsonPropertyName("gridPosition")] ScenarioGridPositionSource? GridPosition = null);
+    [property: JsonPropertyName("gridPosition")] ScenarioGridPositionSource? GridPosition = null,
+    [property: JsonPropertyName("components")] IReadOnlyList<ScenarioComponentSource>? Components = null);
+
+public sealed record ScenarioComponentSource([property: JsonPropertyName("type")] string Type, [property: JsonPropertyName("value")] JsonElement Value);
 
 public sealed record ScenarioGridPositionSource(
     [property: JsonPropertyName("x")] int X,

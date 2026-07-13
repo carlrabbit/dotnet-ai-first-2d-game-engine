@@ -1,0 +1,3 @@
+{
+  "schema":"agentic2d.scenario.v1", "id":"entity.component-runtime-smoke", "category":"smoke", "title":"Entity component runtime", "purpose":"Validate deterministic runtime entity and component ownership.", "seedPolicy":"none", "runtime":{"ticks":1}, "initialState":{"entities":[{"id":"entity.player","position":0}]}, "steps":[{"id":"step.move","command":{"type":"move","entityId":"entity.player","amount":1}}], "expectedEvents":["entity.created","entity.moved"], "assertions":[{"id":"assert.finalTick","type":"finalTickEqualsRequested"}], "artifacts":{"result":"result.json","events":"events.jsonl","diagnostics":"diagnostics.json"},"humanReview":{"required":true}
+}

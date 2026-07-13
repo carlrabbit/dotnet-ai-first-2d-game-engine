@@ -9,6 +9,8 @@ public sealed class MapContentValidator
     public const string MapSchema = "agentic2d.map.v1";
     public const string SmokeMapId = "map.smoke";
     public const string SmokeMapPath = "game/maps/smoke/map-smoke.map.json";
+    public const string ContinuousSmokeMapId = "map.continuous-smoke";
+    public const string ContinuousSmokeMapPath = "game/maps/smoke/map-continuous-smoke.map.json";
 
     public MapValidationItem ValidateFile(string path)
     {
@@ -98,6 +100,7 @@ public sealed class MapContentValidator
         var resolvedAssets = ResolveAssetRefs(map.AssetRefs, target, diagnostics);
         ValidateLayers(map, target, resolvedAssets, diagnostics);
         ValidateMarkers(map, target, diagnostics);
+        ValidateObjects(map, target, diagnostics);
 
         return diagnostics.OrderBy(static diagnostic => diagnostic.Id, StringComparer.Ordinal)
             .ThenBy(static diagnostic => diagnostic.Target, StringComparer.Ordinal)
@@ -220,6 +223,17 @@ public sealed class MapContentValidator
         }
     }
 
+    private static void ValidateObjects(MapContentSource map, string target, List<ContentValidationDiagnostic> diagnostics)
+    {
+        var ids = new HashSet<string>(StringComparer.Ordinal);
+        foreach (var item in map.Objects)
+        {
+            if (!IsStableId(item.Id) || !ids.Add(item.Id)) diagnostics.Add(MapDiagnostic.DuplicateIdentity(target, "objects[].id", item.Id));
+            if (item.Kind != "static-obstacle" || item.Bounds.Kind != "aabb" || !double.IsFinite(item.Position.X) || !double.IsFinite(item.Position.Y) || !double.IsFinite(item.Bounds.HalfWidth) || !double.IsFinite(item.Bounds.HalfHeight) || item.Bounds.HalfWidth <= 0 || item.Bounds.HalfHeight <= 0) diagnostics.Add(MapDiagnostic.InvalidField(target, "objects", "Static objects require finite AABB position and positive half-extents."));
+            if (item.AssetId is not null && map.AssetRefs.All(a => a.AssetId != item.AssetId)) diagnostics.Add(MapDiagnostic.MissingAsset(target, item.AssetId, "Object asset reference is not declared."));
+        }
+    }
+
     private static void ValidateMarkers(MapContentSource map, string target, List<ContentValidationDiagnostic> diagnostics)
     {
         var markerIds = new HashSet<string>(StringComparer.Ordinal);
@@ -288,6 +302,8 @@ public sealed class MapInspector
 
         var candidate = StringComparer.Ordinal.Equals(target, MapContentValidator.SmokeMapId)
             ? MapContentValidator.SmokeMapPath
+            : StringComparer.Ordinal.Equals(target, MapContentValidator.ContinuousSmokeMapId)
+                ? MapContentValidator.ContinuousSmokeMapPath
             : target;
 
         if (!candidate.EndsWith(".map.json", StringComparison.OrdinalIgnoreCase))
@@ -560,6 +576,9 @@ public sealed class MapContentSource
 
     [JsonPropertyName("cellOverrides")]
     public IReadOnlyList<MapCellOverrideSource> CellOverrides { get; init; } = [];
+
+    [JsonPropertyName("objects")]
+    public IReadOnlyList<MapObjectSource> Objects { get; init; } = [];
 }
 
 public sealed record MapTileSizeSource(
@@ -595,6 +614,10 @@ public sealed record MapCellOverrideSource(
     [property: JsonPropertyName("x")] int X,
     [property: JsonPropertyName("y")] int Y,
     [property: JsonPropertyName("physicalBehavior")] string PhysicalBehavior);
+
+public sealed record MapObjectSource([property: JsonPropertyName("id")] string Id, [property: JsonPropertyName("kind")] string Kind, [property: JsonPropertyName("assetId")] string? AssetId, [property: JsonPropertyName("position")] MapObjectPosition Position, [property: JsonPropertyName("bounds")] MapObjectBounds Bounds);
+public sealed record MapObjectPosition([property: JsonPropertyName("x")] double X, [property: JsonPropertyName("y")] double Y);
+public sealed record MapObjectBounds([property: JsonPropertyName("kind")] string Kind, [property: JsonPropertyName("halfWidth")] double HalfWidth, [property: JsonPropertyName("halfHeight")] double HalfHeight);
 
 public static class MapDiagnostic
 {

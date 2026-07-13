@@ -58,6 +58,16 @@ public sealed class RuntimeInspector
             mapPath = mapValidation.Path;
         }
 
+        if (ContinuousScenarioExecutor.IsContinuous(scenarioLoad.SourceScenario))
+        {
+            var continuous = ContinuousScenarioExecutor.Execute(scenarioLoad.SourceScenario);
+            var continuousCommands = continuous.Resolutions.Select((item, index) => new RuntimeInspectionCommandRecord(index + 1, item.IntentId, "continuous-move", item.EntityId, (int)Math.Round(item.AppliedX), item.Outcome, item.Outcome)).ToArray();
+            var continuousEvents = continuous.Events.Select(item => new RuntimeInspectionEventRecord(item.Sequence, item.Tick, item.Type, item.Message)).ToArray();
+            var continuousAssertions = scenarioLoad.SourceScenario.Assertions.Select(item => new RuntimeInspectionAssertion(item.Id, item.Type != "eventOccurred" || continuous.Events.Any(e => e.Type == item.EventType), item.Id, null, null)).ToArray();
+            var continuousDiagnostics = continuous.Diagnostics.Select(item => new ContentValidationDiagnostic(item.Id, item.Severity, item.Message, scenarioLoad.SourceScenario.Id)).ToArray();
+            return RuntimeInspectionRun.From(scenarioLoad.SourceScenario.Id, map?.Id ?? mapReference, BuildContentReferences(scenarioLoad.SourceScenario, scenarioResolution.Path, map, mapPath), continuous.Entities, continuousCommands, continuousEvents, continuousAssertions, continuousDiagnostics, continuousDiagnostics.Any(x => x.Severity == ContentDiagnosticSeverity.Error) ? ContentValidationStatus.Failed : ContentValidationStatus.Passed, continuousDiagnostics.Any(x => x.Severity == ContentDiagnosticSeverity.Error) ? 1 : 0, scenarioLoad.SourceScenario.Runtime!.Ticks, null, continuous);
+        }
+
         if (BehaviorGridScenarioExecutor.IsBehaviorScenario(scenarioLoad.SourceScenario))
         {
             var behavior = BehaviorGridScenarioExecutor.Execute(scenarioLoad.SourceScenario);
@@ -165,6 +175,11 @@ public static class RuntimeInspectionArtifactWriter
             await File.WriteAllTextAsync(Path.Combine(outputDirectory, "final-state.json"), JsonSerializer.Serialize(run.FinalState, ScenarioRunner.JsonOptions));
             await File.WriteAllTextAsync(Path.Combine(outputDirectory, "assertions.json"), JsonSerializer.Serialize(run.AssertionsDocument, ScenarioRunner.JsonOptions));
             await File.WriteAllTextAsync(Path.Combine(outputDirectory, "content-references.json"), JsonSerializer.Serialize(run.ContentReferences, ScenarioRunner.JsonOptions));
+            await File.WriteAllTextAsync(Path.Combine(outputDirectory, "entity-registry.json"), JsonSerializer.Serialize(new { schema = "agentic2d.entity-registry.v1", entities = run.EntitiesDocument.Entities.Select(x => x.Id).OrderBy(x => x, StringComparer.Ordinal) }, ScenarioRunner.JsonOptions));
+            await File.WriteAllTextAsync(Path.Combine(outputDirectory, "components.json"), JsonSerializer.Serialize(new { schema = "agentic2d.components.v1", registeredComponentTypeIds = new[] { "component.grid-position", "component.continuous-transform-2d", "component.kinematic-motion-2d", "component.collision-aabb-2d", "component.spatial-membership" }, entities = run.EntitiesDocument.Entities }, ScenarioRunner.JsonOptions));
+            await File.WriteAllTextAsync(Path.Combine(outputDirectory, "component-mutations.jsonl"), M013EvidenceProjection.ComponentMutationsJsonl(run.ContinuousEvidence?.World));
+            await File.WriteAllTextAsync(Path.Combine(outputDirectory, "static-spatial-world.json"), JsonSerializer.Serialize(new { schema = "agentic2d.static-spatial-world.v1", mapId = run.ContentReferences.Map?.Id, mapBounds = run.ContentReferences.Map is null ? null : "map-derived" }, ScenarioRunner.JsonOptions));
+            await File.WriteAllTextAsync(Path.Combine(outputDirectory, "continuous-resolutions.jsonl"), M013EvidenceProjection.ContinuousResolutionsJsonl(run.ContinuousEvidence));
 
             if (run.BehaviorEvidence is not null)
             {
@@ -202,7 +217,8 @@ public sealed record RuntimeInspectionRun(
     RuntimeInspectionFinalStateDocument FinalState,
     RuntimeInspectionAssertionsDocument AssertionsDocument,
     RuntimeContentReferencesDocument ContentReferences,
-    BehaviorExecutionEvidence? BehaviorEvidence = null)
+    BehaviorExecutionEvidence? BehaviorEvidence = null,
+    ContinuousScenarioExecutor.ContinuousExecution? ContinuousEvidence = null)
 {
     public static RuntimeInspectionRun From(
         string scenarioId,
@@ -216,7 +232,8 @@ public sealed record RuntimeInspectionRun(
         string status,
         int exitCode,
         int finalTick,
-        BehaviorExecutionEvidence? behaviorEvidence = null)
+        BehaviorExecutionEvidence? behaviorEvidence = null,
+        ContinuousScenarioExecutor.ContinuousExecution? continuousEvidence = null)
     {
         var artifacts = new[]
         {
@@ -228,6 +245,11 @@ public sealed record RuntimeInspectionRun(
             new ContentArtifactReference("final-state.json", "final-state"),
             new ContentArtifactReference("assertions.json", "assertions"),
             new ContentArtifactReference("content-references.json", "content-references"),
+            new ContentArtifactReference("entity-registry.json", "entity-registry"),
+            new ContentArtifactReference("components.json", "components"),
+            new ContentArtifactReference("component-mutations.jsonl", "component-mutations"),
+            new ContentArtifactReference("static-spatial-world.json", "static-spatial-world"),
+            new ContentArtifactReference("continuous-resolutions.jsonl", "continuous-resolutions"),
         };
 
         return new RuntimeInspectionRun(
@@ -249,7 +271,8 @@ public sealed record RuntimeInspectionRun(
             new RuntimeInspectionFinalStateDocument("agentic2d.runtime-inspection.final-state.v1", finalTick, entities),
             new RuntimeInspectionAssertionsDocument("agentic2d.runtime-inspection.assertions.v1", assertions),
             contentReferences,
-            behaviorEvidence);
+            behaviorEvidence,
+            continuousEvidence);
     }
 }
 

@@ -7,6 +7,7 @@ public sealed class BehaviorRegistry : IBehaviorRegistry
     private readonly IReadOnlyDictionary<string, IBehaviorModule> modules = new Dictionary<string, IBehaviorModule>(StringComparer.Ordinal)
     {
         [PlayerMoveEastBehavior.BehaviorId] = new PlayerMoveEastBehavior(),
+        [PlayerMoveEastContinuousBehavior.BehaviorId] = new PlayerMoveEastContinuousBehavior(),
     };
 
     public IReadOnlyList<string> RegisteredIds => modules.Keys.Order(StringComparer.Ordinal).ToArray();
@@ -18,4 +19,11 @@ public sealed class PlayerMoveEastBehavior : IBehaviorModule
     public const string BehaviorId = "behavior.player-move-east";
     public string Id => BehaviorId;
     public void Execute(BehaviorContext context) => context.Intents.Emit(new MoveIntent($"intent.{context.AssignmentId}.east.tick-{context.Snapshot.Tick}", context.AssignmentId, Id, context.EntityId, "east", $"{context.EntityId}:{context.AssignmentId}"));
+}
+
+public sealed class PlayerMoveEastContinuousBehavior : IBehaviorModule
+{
+    public const string BehaviorId = "behavior.player-move-east-continuous";
+    public string Id => BehaviorId;
+    public void Execute(BehaviorContext context) => context.Intents.Emit(new ContinuousMoveIntent("intent." + context.AssignmentId + ".east.tick-" + context.Snapshot.Tick, context.AssignmentId, Id, context.EntityId, 1d, 0d, context.EntityId + ":" + context.AssignmentId));
 }

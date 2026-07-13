@@ -17,7 +17,7 @@ public sealed class ContentValidationTests
 
         await Assert.That(result.Result.Status).IsEqualTo("passed");
         await Assert.That(result.Result.ExitCode).IsEqualTo(0);
-        await Assert.That(result.Result.Summary.ItemsValidated).IsEqualTo(3);
+        await Assert.That(result.Result.Summary.ItemsValidated).IsEqualTo(6);
         await Assert.That(result.Result.Summary.Errors).IsEqualTo(0);
         await Assert.That(result.ValidatedItemsDocument.Items.Select(static item => item.Id)).Contains("runtime.smoke");
         await Assert.That(result.ValidatedItemsDocument.Items.Select(static item => item.Id)).Contains("behavior.grid-movement-smoke");
@@ -215,10 +215,10 @@ public sealed class ContentValidationTests
 
         await Assert.That(result.Result.Status).IsEqualTo("passed");
         await Assert.That(result.Result.ExitCode).IsEqualTo(0);
-        await Assert.That(result.Result.Summary.MapsValidated).IsEqualTo(1);
-        await Assert.That(result.ValidatedItemsDocument.Items.Single().Id).IsEqualTo("map.smoke");
-        await Assert.That(result.ValidatedItemsDocument.Items.Single().Kind).IsEqualTo("map");
-        await Assert.That(result.ValidatedItemsDocument.Items.Single().Path).IsEqualTo(SmokeMapPath);
+        await Assert.That(result.Result.Summary.MapsValidated).IsEqualTo(2);
+        await Assert.That(result.ValidatedItemsDocument.Items.Single(item => item.Id == "map.smoke").Id).IsEqualTo("map.smoke");
+        await Assert.That(result.ValidatedItemsDocument.Items.Single(item => item.Id == "map.smoke").Kind).IsEqualTo("map");
+        await Assert.That(result.ValidatedItemsDocument.Items.Single(item => item.Id == "map.smoke").Path).IsEqualTo(SmokeMapPath);
     }
 
     [Test]
@@ -228,7 +228,7 @@ public sealed class ContentValidationTests
 
         await Assert.That(result.Result.Status).IsEqualTo("passed");
         await Assert.That(result.Result.ExitCode).IsEqualTo(0);
-        await Assert.That(result.ValidatedItemsDocument.Items.Single().Status).IsEqualTo("passed");
+        await Assert.That(result.ValidatedItemsDocument.Items.Single(item => item.Id == "map.smoke").Status).IsEqualTo("passed");
     }
 
     [Test]

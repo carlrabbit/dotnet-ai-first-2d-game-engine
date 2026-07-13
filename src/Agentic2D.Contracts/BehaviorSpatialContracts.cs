@@ -4,10 +4,12 @@ namespace Agentic2D.Contracts;
 public sealed record BehaviorSnapshot(int Tick, string Fingerprint, IReadOnlySet<string> EntityIds);
 
 public sealed record MoveIntent(string Id, string AssignmentId, string BehaviorId, string EntityId, string Direction, string OrderingKey);
+public sealed record ContinuousMoveIntent(string Id, string AssignmentId, string BehaviorId, string EntityId, double DirectionX, double DirectionY, string OrderingKey);
 
 public interface IIntentEmitter
 {
     void Emit(MoveIntent intent);
+    void Emit(ContinuousMoveIntent intent);
 }
 
 public interface IDeterministicRandom

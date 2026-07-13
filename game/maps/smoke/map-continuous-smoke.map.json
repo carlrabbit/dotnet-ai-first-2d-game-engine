@@ -1,0 +1,7 @@
+{
+  "schema": "agentic2d.map.v1", "id": "map.continuous-smoke", "title": "Continuous smoke map", "width": 5, "height": 3,
+  "tileSize": { "width": 8, "height": 8 }, "assetRefs": [{ "assetId": "asset.tile-atlas-smoke" }],
+  "layers": [{ "id": "layer.ground", "kind": "tile", "cells": [{ "x": 0, "y": 0, "assetId": "asset.tile-atlas-smoke", "tileId": "tile.smoke.0" }]}],
+  "markers": [{ "id": "marker.player-spawn", "kind": "spawn", "x": 0, "y": 0 }],
+  "objects": [{ "id": "object.tree.large.smoke", "kind": "static-obstacle", "assetId": "asset.tile-atlas-smoke", "position": { "x": 3.0, "y": 1.5 }, "bounds": { "kind": "aabb", "halfWidth": 0.45, "halfHeight": 0.45 }}]
+}

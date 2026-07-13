@@ -5,6 +5,7 @@
     <Project Path="src/Agentic2D.Engine/Agentic2D.Engine.csproj" />
     <Project Path="src/Agentic2D.ScenarioRunner/Agentic2D.ScenarioRunner.csproj" />
     <Project Path="src/Agentic2D.Spatial.Grid/Agentic2D.Spatial.Grid.csproj" />
+    <Project Path="src/Agentic2D.Spatial.Continuous/Agentic2D.Spatial.Continuous.csproj" />
     <Project Path="src/Agentic2D.Tools/Agentic2D.Tools.csproj" />
     <Project Path="src/Agentic2D.Validation/Agentic2D.Validation.csproj" />
   </Folder>
