@@ -1,0 +1,38 @@
+{
+  "baseCommit": "aec78a0dab9341044021b3ffe9f83e4759dd73d1",
+  "replacementFiles": [
+    "AGENTS.md",
+    "README.md",
+    "docs/ARTIFACTS.md",
+    "docs/CONTENT.md",
+    "docs/DECISIONS.md",
+    "docs/ENGINEERING.md",
+    "docs/HUMAN-REVIEW.md",
+    "docs/MILESTONES.md",
+    "docs/SCENARIOS.md",
+    "docs/SPECS.md",
+    "docs/TERMINOLOGY.md"
+  ],
+  "deleteMarkers": [
+    ".delete/.guide-sync/pending/2026-06-14-guide-system-v030-execution-handoff-audit.md.delete.md",
+    ".delete/.guide-sync/pending/2026-06-14-guide-system-v030-index-sync.md.delete.md",
+    ".delete/.guide-sync/pending/2026-06-14-m010-review-evidence-followup.md.delete.md",
+    ".delete/.guide-sync/pending/2026-06-14-m010-review-pack-index-sync.md.delete.md",
+    ".delete/.guide-sync/pending/2026-07-03-m011-human-review-and-evidence-followup.md.delete.md",
+    ".delete/.guide-sync/pending/2026-07-03-m011-index-and-crosslink-sync.md.delete.md",
+    ".delete/.guide-sync/pending/2026-07-13-m012-human-review-and-abstraction-followup.md.delete.md",
+    ".delete/.guide-sync/pending/2026-07-13-m012-index-and-crosslink-sync.md.delete.md",
+    ".delete/.guide-sync/pending/2026-07-13-m013-human-review-and-runtime-boundary-followup.md.delete.md",
+    ".delete/.guide-sync/pending/2026-07-13-m013-index-and-crosslink-sync.md.delete.md",
+    ".delete/.guide-sync/pending/2026-07-13-m014-human-review-and-interaction-boundary-followup.md.delete.md",
+    ".delete/.guide-sync/pending/2026-07-13-m014-index-and-crosslink-sync.md.delete.md",
+    ".delete/.guide-sync/pending/2026-07-13-m015-human-review-and-rendering-boundary-followup.md.delete.md",
+    ".delete/.guide-sync/pending/2026-07-13-m015-index-and-crosslink-sync.md.delete.md"
+  ],
+  "pendingHintsRemaining": [],
+  "notes": [
+    "Apply replacement files at repository-relative paths.",
+    "For each .delete marker, delete the target path named inside the marker.",
+    "No implementation source changes are included."
+  ]
+}
