@@ -26,7 +26,14 @@ public sealed class ScenarioRandomSource : IDeterministicRandom
     public int NextInt(int minimumInclusive, int maximumExclusive) => random.Next(minimumInclusive, maximumExclusive);
 }
 
-public sealed record BehaviorContext(BehaviorSnapshot Snapshot, string AssignmentId, string EntityId, IDeterministicRandom Random, IIntentEmitter Intents);
+public interface IBehaviorInput
+{
+    double Scalar(string actionId);
+    (double X, double Y) Vector2(string actionId);
+    string DigitalPhase(string actionId);
+}
+
+public sealed record BehaviorContext(BehaviorSnapshot Snapshot, string AssignmentId, string EntityId, IDeterministicRandom Random, IIntentEmitter Intents, IBehaviorInput? Input = null);
 
 public interface IBehaviorModule { string Id { get; } void Execute(BehaviorContext context); }
 public interface IBehaviorRegistry { bool TryGet(string behaviorId, out IBehaviorModule? behavior); IReadOnlyList<string> RegisteredIds { get; } }

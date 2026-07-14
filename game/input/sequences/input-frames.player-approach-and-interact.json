@@ -1,0 +1,8 @@
+{
+  "schema": "agentic2d.semantic-input-frame-sequence.v1", "id": "input-frames.player-approach-and-interact", "inputSourceId": "input-source.player-1",
+  "frames": [
+    { "tick": 1, "move": { "x": 1, "y": 0 }, "interact": "inactive", "zoom": 0 },
+    { "tick": 2, "move": { "x": 1, "y": 0 }, "interact": "pressed", "zoom": 0 },
+    { "tick": 3, "move": { "x": 0, "y": 0 }, "interact": "released", "zoom": 0 }
+  ]
+}

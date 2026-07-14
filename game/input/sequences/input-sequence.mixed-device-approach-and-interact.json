@@ -1,0 +1,13 @@
+{
+  "schema": "agentic2d.raw-input-sequence.v1", "id": "input-sequence.mixed-device-approach-and-interact", "inputSourceId": "input-source.player-1",
+  "samples": [
+    { "sequence": 1, "inputSourceId": "input-source.player-1", "physicalDeviceId": "device.synthetic.keyboard", "deviceKind": "keyboard", "presentationSampleIndex": 1, "control": "D", "value": 1 },
+    { "sequence": 2, "inputSourceId": "input-source.player-1", "physicalDeviceId": "device.synthetic.keyboard", "deviceKind": "keyboard", "presentationSampleIndex": 1, "control": "W", "value": 1 },
+    { "sequence": 3, "inputSourceId": "input-source.player-1", "physicalDeviceId": "device.synthetic.mouse", "deviceKind": "mouse", "presentationSampleIndex": 1, "control": "pointer.primary", "x": 30, "y": 20, "space": "window" },
+    { "sequence": 4, "inputSourceId": "input-source.player-1", "physicalDeviceId": "device.synthetic.mouse", "deviceKind": "mouse", "presentationSampleIndex": 1, "control": "wheel-y", "value": 1 },
+    { "sequence": 5, "inputSourceId": "input-source.player-1", "physicalDeviceId": "device.synthetic.controller", "deviceKind": "controller", "presentationSampleIndex": 1, "control": "left-stick", "x": 0.1, "y": 0.1 },
+    { "sequence": 6, "inputSourceId": "input-source.player-1", "physicalDeviceId": "device.synthetic.mouse", "deviceKind": "mouse", "presentationSampleIndex": 2, "control": "primary", "value": 1 },
+    { "sequence": 7, "inputSourceId": "input-source.player-1", "physicalDeviceId": "device.synthetic.controller", "deviceKind": "controller", "presentationSampleIndex": 2, "control": "left-stick", "x": 1, "y": 0 },
+    { "sequence": 8, "inputSourceId": "input-source.player-1", "physicalDeviceId": "device.synthetic.controller", "deviceKind": "controller", "presentationSampleIndex": 2, "control": "south", "value": 1 }
+  ]
+}

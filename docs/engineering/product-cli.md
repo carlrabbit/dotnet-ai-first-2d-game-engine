@@ -50,6 +50,8 @@ agentic2d asset review apply --decisions <review-file> [--dry-run] --output <dir
 agentic2d map inspect <map-id-or-path> --output <directory>
 agentic2d review pack --input <artifact-root> --output <directory>
 agentic2d asset curate --asset <asset-id-or-path> --review-pack <review-pack-path> --output <directory>
+agentic2d input inspect <input-sequence-id> --input-map <input-map-id> --output <directory>
+agentic2d input replay --scenario <scenario-id> --recording <recording> --output <directory>
 ```
 
 Development equivalents:

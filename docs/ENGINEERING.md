@@ -60,6 +60,11 @@ The repository includes deterministic runtime, product CLI, scenarios, content v
 ./eng/render-projection-smoke.sh
 ./eng/raylib-debug-client-smoke.sh
 ./eng/m015-smoke.sh
+./eng/input-content-smoke.sh
+./eng/input-mapping-smoke.sh
+./eng/input-runtime-smoke.sh
+./eng/input-replay-smoke.sh
+./eng/m016-smoke.sh
 ```
 
 ## Validation boundary

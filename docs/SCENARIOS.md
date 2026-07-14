@@ -18,6 +18,7 @@ Scenarios validate behavior that unit tests alone cannot prove, including runtim
 | M013 | Entity/component runtime and continuous kinematic movement/tree collision scenarios. |
 | M014 | `entity.definition-instantiation-smoke`, `trigger.enter-exit-smoke`, `interaction.npc-smoke`. |
 | M015 | Headless rendering of `interaction.npc-smoke` and snapshot reconstruction. |
+| M016 | `input.mapping-mixed-device-smoke`, `input.runtime-approach-and-interact-smoke`, and `input.semantic-replay-smoke`. |
 
 ## Current commands
 

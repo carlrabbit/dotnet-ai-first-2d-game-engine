@@ -36,6 +36,9 @@ This document indexes permanent behavioral authority. Milestones sequence work; 
 | `docs/specs/visual-definition-contract.md` | Presentation-only visual definitions. |
 | `docs/specs/render-projection-contract.md` | Read-only backend-neutral render projection. |
 | `docs/specs/raylib-debug-client-contract.md` | Isolated raylib-cs graphical client. |
+| `docs/specs/input-action-map-contract.md` | Backend-neutral input maps and mapping. |
+| `docs/specs/tick-bound-input-frame-contract.md` | Tick input frames and accumulator. |
+| `docs/specs/semantic-input-recording-and-replay-contract.md` | Semantic recording and replay. |
 
 ## Current invariants
 
