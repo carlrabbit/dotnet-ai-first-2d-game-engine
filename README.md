@@ -11,7 +11,7 @@ The engine is headless-first, CLI/API-first, validation-first, and artifact-firs
 - Repository role: capability provider.
 - Maturity: implementation-ready and artifact-first.
 - Profiles: artifact-first agentic authoring, runtime/tool, and game/simulation.
-- Implemented milestone range: M000 through M015, including the guide-system M009 update.
+- Implemented milestone range: M000 through M016, including the guide-system M009 update.
 - Current capability surface:
   - deterministic runtime and product CLI;
   - authored scenarios and content validation;
@@ -20,6 +20,7 @@ The engine is headless-first, CLI/API-first, validation-first, and artifact-firs
   - runtime entities and typed components;
   - authored entity definitions, transactional instantiation, provenance, spatial queries, triggers, and explicit interactions;
   - backend-neutral read-only rendering projection;
+  - deterministic backend-neutral semantic input mapping, tick frames, synthetic sources, and hardware-free replay;
   - isolated raylib-cs debug client with live and snapshot modes.
 
 ## Current solution shape
@@ -35,6 +36,7 @@ src/Agentic2D.Spatial.Continuous
 src/Agentic2D.ScenarioRunner
 src/Agentic2D.Validation
 src/Agentic2D.Rendering
+src/Agentic2D.Input
 src/Agentic2D.Tools
 src/Agentic2D.DebugClient.Raylib
 tests/unit/Agentic2D.Tests.Unit

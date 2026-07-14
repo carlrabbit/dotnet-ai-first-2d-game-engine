@@ -1,0 +1,21 @@
+{
+  "schema": "agentic2d.input-map.v1",
+  "id": "input-map.player.default",
+  "revision": "1",
+  "inputSourceId": "input-source.player-1",
+  "actions": [
+    { "id": "action.interact", "valueKind": "digital" },
+    { "id": "action.move", "valueKind": "vector2" },
+    { "id": "action.zoom", "valueKind": "scalar" }
+  ],
+  "bindings": [
+    { "id": "binding.interact.controller-south", "actionId": "action.interact", "kind": "controller-button", "control": "south" },
+    { "id": "binding.interact.keyboard-e", "actionId": "action.interact", "kind": "keyboard-key", "control": "E" },
+    { "id": "binding.interact.mouse-primary", "actionId": "action.interact", "kind": "mouse-button", "control": "primary" },
+    { "id": "binding.move.controller-left-stick", "actionId": "action.move", "kind": "controller-stick", "control": "left-stick", "deadZone": 0.2 },
+    { "id": "binding.move.keyboard-wasd", "actionId": "action.move", "kind": "composite-vector2", "composite": { "up": "W", "down": "S", "left": "A", "right": "D" } },
+    { "id": "binding.zoom.controller-left-trigger", "actionId": "action.zoom", "kind": "controller-axis", "control": "left-trigger", "deadZone": 0.1 },
+    { "id": "binding.zoom.mouse-wheel-x", "actionId": "action.zoom", "kind": "mouse-wheel-x", "control": "wheel-x" },
+    { "id": "binding.zoom.mouse-wheel-y", "actionId": "action.zoom", "kind": "mouse-wheel-y", "control": "wheel-y" }
+  ]
+}

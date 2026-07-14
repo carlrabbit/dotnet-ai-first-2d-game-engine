@@ -26,6 +26,12 @@ public sealed class ScenarioRunner
     public const string BuiltInTriggerEnterExitSmokePath = "game/scenarios/smoke/trigger-enter-exit-smoke.json";
     public const string BuiltInNpcInteractionSmokeId = "interaction.npc-smoke";
     public const string BuiltInNpcInteractionSmokePath = "game/scenarios/smoke/npc-interaction-smoke.json";
+    public const string BuiltInInputMappingSmokeId = "input.mapping-mixed-device-smoke";
+    public const string BuiltInInputMappingSmokePath = "game/scenarios/smoke/input-mapping-mixed-device-smoke.json";
+    public const string BuiltInInputRuntimeSmokeId = "input.runtime-approach-and-interact-smoke";
+    public const string BuiltInInputRuntimeSmokePath = "game/scenarios/smoke/input-runtime-approach-and-interact-smoke.json";
+    public const string BuiltInInputReplaySmokeId = "input.semantic-replay-smoke";
+    public const string BuiltInInputReplaySmokePath = "game/scenarios/smoke/input-semantic-replay-smoke.json";
 
     private static readonly JsonSerializerOptions SerializerOptions = new()
     {
@@ -66,6 +72,13 @@ public sealed class ScenarioRunner
         }
 
         var scenario = loadResult.SourceScenario;
+        if (M016InputScenarioExecutor.IsM016(scenario))
+        {
+            var execution = M016InputScenarioExecutor.Execute(scenario, scenario.Id == "input.mapping-mixed-device-smoke");
+            var inputStatus = execution.Assertions.All(x => x.Passed) ? RuntimeStatus.Passed : RuntimeStatus.Failed;
+            return new ScenarioRunResult(ScenarioResultDocument.FromExecution(new ScenarioSummary(scenario.Id, scenario.Category, ContentTargetResolver.ToRepositoryRelativePath(sourcePath)), inputStatus, inputStatus == RuntimeStatus.Passed ? 0 : 1, scenario.Runtime!.Ticks, scenario.Runtime.Ticks, execution.Events, execution.Entities, execution.Assertions, execution.Diagnostics.Select(x => new ScenarioDiagnostic(x.Id, x.Severity, x.Message)).ToArray()), execution.Events, execution.Diagnostics.Select(x => new ScenarioDiagnostic(x.Id, x.Severity, x.Message)).ToArray());
+        }
+
         if (M014ScenarioExecutor.IsM014(scenario))
         {
             return M014ScenarioExecutor.Run(scenario, sourcePath);
@@ -277,7 +290,13 @@ public static class ScenarioSourceResolver
                                         ? ScenarioRunner.BuiltInTriggerEnterExitSmokePath
                                         : StringComparer.Ordinal.Equals(scenarioReference, ScenarioRunner.BuiltInNpcInteractionSmokeId)
                                             ? ScenarioRunner.BuiltInNpcInteractionSmokePath
-                                            : scenarioReference;
+                                            : StringComparer.Ordinal.Equals(scenarioReference, ScenarioRunner.BuiltInInputMappingSmokeId)
+                                                ? ScenarioRunner.BuiltInInputMappingSmokePath
+                                                : StringComparer.Ordinal.Equals(scenarioReference, ScenarioRunner.BuiltInInputRuntimeSmokeId)
+                                                    ? ScenarioRunner.BuiltInInputRuntimeSmokePath
+                                                    : StringComparer.Ordinal.Equals(scenarioReference, ScenarioRunner.BuiltInInputReplaySmokeId)
+                                                        ? ScenarioRunner.BuiltInInputReplaySmokePath
+                                                        : scenarioReference;
 
         if (!Path.GetExtension(path).Equals(".json", StringComparison.OrdinalIgnoreCase))
         {

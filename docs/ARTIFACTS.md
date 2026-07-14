@@ -26,6 +26,8 @@ Failures must produce enough structured evidence for diagnosis. Generated artifa
 | `docs/artifacts/entity-component-continuous-spatial-artifact-contract.md` | Entity/component and continuous movement evidence. |
 | `docs/artifacts/entity-instantiation-query-trigger-interaction-artifact-contract.md` | Instantiation, queries, triggers, and interactions. |
 | `docs/artifacts/render-projection-artifact-contract.md` | Render projection and explicit capture evidence. |
+| `docs/artifacts/input-execution-and-replay-artifact-contract.md` | Input map, frame, recording, and replay evidence. |
+| `docs/artifacts/animation-execution-artifact-contract.md` | Animation compilation, samples, markers, and animated rendering. |
 
 ## Artifact roots
 

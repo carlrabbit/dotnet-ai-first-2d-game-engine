@@ -1,0 +1,12 @@
+{
+  "schema": "agentic2d.animation-definition.v1",
+  "id": "animation-definition.npc.talkable-smoke",
+  "visualDefinitionId": "visual-definition.npc.talkable-smoke",
+  "clips": [
+    { "id": "clip.interaction-pulse", "durationTicks": 3, "loop": "once", "tracks": [
+      { "id": "track.pulse.opacity", "partId": "part.npc", "property": "visual.opacity", "valueType": "scalar", "interpolation": "linear", "keyframes": [{ "id": "key.pulse.opacity.0", "tick": 0, "scalar": 1 }, { "id": "key.pulse.opacity.1", "tick": 1, "scalar": 0.5 }, { "id": "key.pulse.opacity.2", "tick": 2, "scalar": 1 }] },
+      { "id": "track.pulse.scale", "partId": "part.npc", "property": "visual.scale.x", "valueType": "scalar", "interpolation": "linear", "keyframes": [{ "id": "key.pulse.scale.0", "tick": 0, "scalar": 1 }, { "id": "key.pulse.scale.1", "tick": 1, "scalar": 1.2 }, { "id": "key.pulse.scale.2", "tick": 2, "scalar": 1 }] }
+    ], "markers": [{ "id": "marker.pulse.effect", "tick": 0, "kind": "presentation.effect", "payload": { "effect": "interaction-pulse" } }, { "id": "marker.pulse.complete", "tick": 2, "kind": "presentation.animation-complete", "payload": { "note": "authored-only" } }] }
+  ],
+  "provenance": { "sourceKind": "repository-fixture", "createdBy": "milestone-017" }
+}

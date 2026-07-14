@@ -9,6 +9,7 @@ public sealed class BehaviorRegistry : IBehaviorRegistry
         [PlayerMoveEastBehavior.BehaviorId] = new PlayerMoveEastBehavior(),
         [PlayerMoveEastContinuousBehavior.BehaviorId] = new PlayerMoveEastContinuousBehavior(),
         [PlayerInteractBehavior.BehaviorId] = new PlayerInteractBehavior(),
+        [PlayerInputBehavior.BehaviorId] = new PlayerInputBehavior(),
     };
 
     public IReadOnlyList<string> RegisteredIds => modules.Keys.Order(StringComparer.Ordinal).ToArray();
@@ -33,5 +34,17 @@ public sealed class PlayerInteractBehavior : IBehaviorModule
 {
     public const string BehaviorId = "behavior.player-interact";
     public string Id => BehaviorId;
-    public void Execute(BehaviorContext context) => context.Intents.Emit(new InteractIntent("intent." + context.AssignmentId + ".interact.tick-" + context.Snapshot.Tick, context.EntityId, null, "interaction.talk", context.AssignmentId, context.EntityId + ":" + context.AssignmentId));
+    public void Execute(BehaviorContext context) { if (context.Input is not null && context.Input.DigitalPhase("action.interact") != "pressed") return; context.Intents.Emit(new InteractIntent("intent." + context.AssignmentId + ".interact.tick-" + context.Snapshot.Tick, context.EntityId, null, "interaction.talk", context.AssignmentId, context.EntityId + ":" + context.AssignmentId)); }
+}
+
+public sealed class PlayerInputBehavior : IBehaviorModule
+{
+    public const string BehaviorId = "behavior.player-input";
+    public string Id => BehaviorId;
+    public void Execute(BehaviorContext context)
+    {
+        var input = context.Input; if (input is null) return;
+        var move = input.Vector2("action.move");
+        if (move.X != 0 || move.Y != 0) context.Intents.Emit(new ContinuousMoveIntent("intent." + context.AssignmentId + ".move.tick-" + context.Snapshot.Tick, context.AssignmentId, Id, context.EntityId, move.X, move.Y, context.EntityId + ":" + context.AssignmentId));
+    }
 }
