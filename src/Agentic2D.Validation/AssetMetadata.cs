@@ -11,6 +11,8 @@ public sealed class AssetMetadataValidator
     public const string TileAtlasKind = "tile-atlas";
     public const string SmokeAssetId = "asset.tile-atlas-smoke";
     public const string SmokeAssetPath = "game/assets/metadata/tile-atlas-smoke.asset.json";
+    public const string RenderSmokeAssetId = "asset.render-atlas-smoke";
+    public const string RenderSmokeAssetPath = "game/assets/metadata/render-atlas-smoke.asset.json";
 
     private static readonly Regex AssetIdPattern = new("^[a-z0-9]+([.-][a-z0-9]+)*$", RegexOptions.CultureInvariant);
     private static readonly HashSet<string> HighImpactSemantics = new(StringComparer.Ordinal)
@@ -399,12 +401,13 @@ public static class AssetMetadataLocator
             return AssetTargetResolution.Failure([ContentDiagnostic.InvalidScopeOrPath(target, "Asset target must not be empty.")]);
         }
 
-        if (StringComparer.Ordinal.Equals(target, AssetMetadataValidator.SmokeAssetId))
+        if (StringComparer.Ordinal.Equals(target, AssetMetadataValidator.SmokeAssetId) || StringComparer.Ordinal.Equals(target, AssetMetadataValidator.RenderSmokeAssetId))
         {
-            var path = Path.Combine(ContentTargetResolver.FindRepositoryRoot(), AssetMetadataValidator.SmokeAssetPath);
+            var knownPath = StringComparer.Ordinal.Equals(target, AssetMetadataValidator.RenderSmokeAssetId) ? AssetMetadataValidator.RenderSmokeAssetPath : AssetMetadataValidator.SmokeAssetPath;
+            var path = Path.Combine(ContentTargetResolver.FindRepositoryRoot(), knownPath);
             return File.Exists(path)
                 ? AssetTargetResolution.Success(path)
-                : AssetTargetResolution.Failure([ContentDiagnostic.InvalidScopeOrPath(target, $"Asset metadata file was not found: {AssetMetadataValidator.SmokeAssetPath}")]);
+                : AssetTargetResolution.Failure([ContentDiagnostic.InvalidScopeOrPath(target, $"Asset metadata file was not found: {knownPath}")]);
         }
 
         if (!target.EndsWith(".asset.json", StringComparison.OrdinalIgnoreCase))

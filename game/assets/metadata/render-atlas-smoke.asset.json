@@ -1,0 +1,74 @@
+{
+  "schema": "agentic2d.asset-metadata.v1",
+  "id": "asset.render-atlas-smoke",
+  "kind": "tile-atlas",
+  "title": "Render atlas smoke",
+  "purpose": "Checked-in PNG fixture for real texture-region rendering.",
+  "source": {
+    "path": "game/assets/raw/samples/render-atlas-smoke.png",
+    "mediaType": "image/png"
+  },
+  "tileAtlas": {
+    "tileWidth": 8,
+    "tileHeight": 8,
+    "columns": 3,
+    "rows": 2
+  },
+  "tiles": [
+    {
+      "id": "region.ground",
+      "x": 0,
+      "y": 0,
+      "visualLabelsProposed": [],
+      "physicalBehaviorsApproved": []
+    },
+    {
+      "id": "region.player",
+      "x": 1,
+      "y": 0,
+      "visualLabelsProposed": [],
+      "physicalBehaviorsApproved": []
+    },
+    {
+      "id": "region.npc",
+      "x": 2,
+      "y": 0,
+      "visualLabelsProposed": [],
+      "physicalBehaviorsApproved": []
+    },
+    {
+      "id": "region.blocked",
+      "x": 0,
+      "y": 1,
+      "visualLabelsProposed": [],
+      "physicalBehaviorsApproved": []
+    },
+    {
+      "id": "region.tree-base",
+      "x": 1,
+      "y": 1,
+      "visualLabelsProposed": [],
+      "physicalBehaviorsApproved": []
+    },
+    {
+      "id": "region.tree-canopy",
+      "x": 2,
+      "y": 1,
+      "visualLabelsProposed": [],
+      "physicalBehaviorsApproved": []
+    }
+  ],
+  "provenance": {
+    "sourceKind": "repository-fixture",
+    "createdBy": "milestone-015",
+    "notes": "24x16 RGBA PNG with six 8x8 single-color regions."
+  },
+  "semantics": {
+    "visualLabelsProposed": [],
+    "physicalBehaviorsApproved": []
+  },
+  "humanReview": {
+    "requiredForApprovedPhysicalBehaviors": true,
+    "approvals": []
+  }
+}

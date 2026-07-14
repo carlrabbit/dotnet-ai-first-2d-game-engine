@@ -243,3 +243,9 @@ Do not document these as supported until implemented by a later milestone.
 ## Behavior/grid validation wrappers
 
 `./eng/behavior-smoke.sh`, `./eng/grid-spatial-smoke.sh`, and `./eng/m012-smoke.sh` validate the compiled behavior and `spatial.grid` reference slice. The grid wrapper executes both accepted and expected-rejected movement inspection paths.
+
+## M015 render projection
+
+`agentic2d render project --scenario <scenario-id> --tick final --output <directory>` produces headless, backend-neutral render evidence: `render-result.json`, `render-snapshot.json`, `render-frame.json`, `render-items.jsonl`, `render-commands.jsonl`, `asset-bindings.json`, and `render-diagnostics.json`. It does not initialize raylib or a graphics context.
+
+The separate client is invoked with `dotnet run --project src/Agentic2D.DebugClient.Raylib -- scenario --scenario interaction.npc-smoke` or `snapshot --input <render-snapshot.json>`. Graphics smoke requires a native raylib 6.0-capable desktop display and reports skipped when `DISPLAY`/`WAYLAND_DISPLAY` is absent.

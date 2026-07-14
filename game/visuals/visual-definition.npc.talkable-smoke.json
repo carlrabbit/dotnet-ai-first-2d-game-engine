@@ -1,0 +1,1 @@
+{"schema":"agentic2d.visual-definition.v1","id":"visual-definition.npc.talkable-smoke","parts":[{"id":"part.npc","assetId":"asset.render-atlas-smoke","regionId":"region.npc","anchor":"bottom-center","offset":{"x":0,"y":0},"worldSize":{"width":0.8,"height":0.8},"layer":"entities","order":0,"sortMode":"y","tint":{"r":255,"g":255,"b":255,"a":255}}]}

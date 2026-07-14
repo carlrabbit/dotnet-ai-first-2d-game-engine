@@ -7,4 +7,6 @@
     { "componentType": "component.trigger-volume-2d", "value": { "halfWidth": 1.0, "halfHeight": 1.0, "triggerId": "trigger.npc.talkable-smoke", "filter": { "requiredTags": ["tag.player"], "requiredComponentTypeIds": ["component.continuous-transform-2d"] } } },
     { "componentType": "component.interactable", "value": { "interactionKind": "interaction.talk", "range": 1.0, "allowedInteractorTags": ["tag.interactor"], "requiredInteractorComponentTypeIds": ["component.continuous-transform-2d"] } }
   ]
+,
+  "visualDefinitionId": "visual-definition.npc.talkable-smoke"
 }

@@ -238,9 +238,9 @@ public sealed class ContentValidationTests
 
         await Assert.That(result.Result.Status).IsEqualTo("passed");
         await Assert.That(result.Result.ExitCode).IsEqualTo(0);
-        await Assert.That(result.ValidatedItemsDocument.Items.Single().Id).IsEqualTo("asset.tile-atlas-smoke");
-        await Assert.That(result.ValidatedItemsDocument.Items.Single().Kind).IsEqualTo("asset");
-        await Assert.That(result.ValidatedItemsDocument.Items.Single().Path).IsEqualTo(SmokeAssetPath);
+        await Assert.That(result.ValidatedItemsDocument.Items.Select(item => item.Id)).Contains("asset.tile-atlas-smoke");
+        await Assert.That(result.ValidatedItemsDocument.Items.Select(item => item.Id)).Contains("asset.render-atlas-smoke");
+        await Assert.That(result.ValidatedItemsDocument.Items.All(item => item.Kind == "asset")).IsTrue();
     }
 
     [Test]

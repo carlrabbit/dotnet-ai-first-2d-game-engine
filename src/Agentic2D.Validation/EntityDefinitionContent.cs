@@ -76,6 +76,7 @@ public sealed class EntityDefinitionSource
     [JsonPropertyName("components")] public IReadOnlyList<EntityDefinitionComponentSource> Components { get; init; } = [];
     [JsonPropertyName("behavior")] public EntityDefinitionBehaviorSource? Behavior { get; init; }
     [JsonPropertyName("visualAssetId")] public string? VisualAssetId { get; init; }
+    [JsonPropertyName("visualDefinitionId")] public string? VisualDefinitionId { get; init; }
 }
 public sealed record EntityDefinitionComponentSource([property: JsonPropertyName("componentType")] string ComponentType, [property: JsonPropertyName("value")] JsonElement Value);
 public sealed record EntityDefinitionBehaviorSource([property: JsonPropertyName("id")] string Id, [property: JsonPropertyName("behaviorId")] string BehaviorId, [property: JsonPropertyName("lifecycle")] string Lifecycle);

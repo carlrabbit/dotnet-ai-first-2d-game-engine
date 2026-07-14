@@ -8,6 +8,8 @@
     <Project Path="src/Agentic2D.Spatial.Continuous/Agentic2D.Spatial.Continuous.csproj" />
     <Project Path="src/Agentic2D.Tools/Agentic2D.Tools.csproj" />
     <Project Path="src/Agentic2D.Validation/Agentic2D.Validation.csproj" />
+    <Project Path="src/Agentic2D.Rendering/Agentic2D.Rendering.csproj" />
+    <Project Path="src/Agentic2D.DebugClient.Raylib/Agentic2D.DebugClient.Raylib.csproj" />
   </Folder>
   <Folder Name="/tests/" />
   <Folder Name="/tests/unit/">

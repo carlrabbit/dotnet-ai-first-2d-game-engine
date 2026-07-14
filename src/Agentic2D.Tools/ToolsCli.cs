@@ -2,6 +2,7 @@ using Agentic2D.Contracts;
 using Agentic2D.Engine;
 using Agentic2D.ScenarioRunner;
 using Agentic2D.Validation;
+using Agentic2D.Rendering;
 using ScenarioRunnerEngine = Agentic2D.ScenarioRunner.ScenarioRunner;
 
 namespace Agentic2D.Tools;
@@ -60,6 +61,11 @@ public static class ToolsCli
 
     private static async Task<int> RunArtifactCommandAsync(CliCommand command, TextWriter output, TextWriter error)
     {
+        if (command.Name == "render project")
+        {
+            return await RunRenderProjectCommandAsync(command, output, error);
+        }
+
         if (command.Name == "scenario run")
         {
             return await RunScenarioCommandAsync(command, output, error);
@@ -132,6 +138,22 @@ public static class ToolsCli
 
         await output.WriteLineAsync($"{command.Name}: {productResult.Status}; result: {outputPath}");
         return productResult.ExitCode;
+    }
+
+    private static async Task<int> RunRenderProjectCommandAsync(CliCommand command, TextWriter output, TextWriter error)
+    {
+        try
+        {
+            var result = new RenderProjectionService().ProjectScenario(command.ScenarioReference ?? string.Empty);
+            await RenderArtifactWriter.WriteAsync(command.OutputDirectory, result);
+            await output.WriteLineAsync($"render project: passed; result: {Path.Combine(command.OutputDirectory, "render-result.json")}");
+            return 0;
+        }
+        catch (Exception exception)
+        {
+            await error.WriteLineAsync($"render project failed: {exception.Message}");
+            return 3;
+        }
     }
 
     private static async Task<int> RunContentValidateCommandAsync(CliCommand command, TextWriter output, TextWriter error)

@@ -100,3 +100,7 @@ Artifact-producing CLI commands write structured evidence under the requested ou
 Repository docs contain project truth. External setup, engineering, or guide-system documents are not required reading for ordinary implementation agents.
 
 There are no repository-local TBPs or issue-template dependencies by default.
+
+## Rendering debug client (M015)
+
+Headless rendering evidence is available through `agentic2d render project`; the optional raylib-cs adapter is isolated in `src/Agentic2D.DebugClient.Raylib` and is not required by the CLI. The adapter pins Raylib-cs 8.0.0 (native raylib 6.0), loads `asset.render-atlas-smoke` from its checked-in PNG, uses a 320×180 logical viewport with point-filtered integer scaling, and only captures screenshots through F12 or `--capture`.
