@@ -2,33 +2,52 @@
 
 ## Authority
 
-This document is authoritative for human acceptance gates until more specific review contracts exist.
+This document defines current human-review boundaries.
 
-## Purpose
+## Review-pack principle
 
-Automation can validate structure, references, determinism, schemas, and many invariants. It cannot fully judge visual quality, gameplay feel, UX clarity, semantic appropriateness, or design intent.
+Review generated evidence rather than reconstructing behavior from implementation source alone.
 
-## Initial review classes
+## Current review areas
 
-| Review class | Requires human review |
-|---|---|
-| Visual semantics | Uncertain labels, new taxonomy labels, visually ambiguous tiles/sprites. |
-| Physical semantics | Walkability, collision, navigation cost, damage, blockers. |
-| Gameplay semantics | Interactability, harvestability, collectibility, spawn relevance, quest relevance. |
-| Visual output | Previews, overlays, animation hitboxes, shader/material previews. |
-| UX/game feel | Controls, UI flow, readability, pacing, animation feel. |
+### Asset semantics and curation
 
-## Approval record concept
+Verify proposed versus approved semantics, asset provenance, review decisions, generated workbench usefulness, and that high-impact gameplay semantics remain review-gated.
 
-A future approval record should include:
+### Maps and runtime evidence
 
-```text
-reviewId
-artifactPath
-reviewClass
-reviewer
-status: approved | rejected | changes-requested
-notes
-timestamp
-related content IDs
-```
+Verify map references, static geometry, authored/runtime separation, runtime inspection completeness, and that diagnostics explain failures.
+
+### Behavior and spatial boundaries
+
+Verify behaviors read immutable snapshots and emit intents; spatial modules do not own entity identity; grid and continuous modules remain replaceable; collision evidence explains accepted, clipped, slid, and blocked outcomes.
+
+### Entity definitions and interactions
+
+Verify definition, spawn, and runtime entity IDs remain distinct; overrides and transactional instantiation are explainable; provenance is immutable; static objects are not silently converted to entities; trigger state is inspectable; interaction requires explicit intent and deterministic target selection; current interaction stops at `interaction.started`.
+
+### Rendering
+
+Verify:
+
+- rendering cannot mutate or advance runtime;
+- raylib types do not leak outside the adapter;
+- the headless CLI works without native graphics;
+- static/entity ownership remains distinct from visual references;
+- PNG, asset, region, and render-item bindings are inspectable;
+- static cache invalidation and ordering are credible;
+- tree base/canopy occlusion is understandable;
+- pause, step, and reset use runtime APIs;
+- live and snapshot modes use one projector;
+- screenshots are explicit review evidence;
+- native resources are cleaned up;
+- future animation, input, or alternate backends can extend projection without changing runtime authority.
+
+## Evidence hierarchy
+
+1. Structured source and contracts.
+2. Deterministic JSON artifacts and diagnostics.
+3. Review-pack summaries and manifests.
+4. Explicit screenshots and graphical inspection where required.
+
+Screenshot pixels are not cross-platform semantic truth.

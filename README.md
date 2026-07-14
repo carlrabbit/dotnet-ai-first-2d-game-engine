@@ -2,48 +2,58 @@
 
 This repository contains a .NET-based, AI-first 2D game engine.
 
-The project thesis:
-
 > Humans design, review, and make creative decisions. AI agents implement, modify, validate, and iterate through structured commands, deterministic scenarios, semantic content, and generated evidence.
 
-The engine is intended to be headless-first, CLI/API-first, validation-first, and artifact-first. A graphical editor may exist later, but it is not the foundation of the repository.
+The engine is headless-first, CLI/API-first, validation-first, and artifact-first. A graphical debug client exists, but it is an adapter over read-only rendering projections rather than the foundation of the runtime.
 
 ## Current maturity
 
-- Repository maturity: implementation-ready for the base engineering substrate, minimal deterministic runtime, and first product CLI surface.
-- Target profile: artifact-first / agentic authoring + runtime/tool + game/simulation.
-- Current product role: capability provider. The repository builds the engine/runtime/tooling capability; it is not yet a full consumer game project.
+- Repository role: capability provider.
+- Maturity: implementation-ready and artifact-first.
+- Profiles: artifact-first agentic authoring, runtime/tool, and game/simulation.
+- Implemented milestone range: M000 through M015, including the guide-system M009 update.
+- Current capability surface:
+  - deterministic runtime and product CLI;
+  - authored scenarios and content validation;
+  - asset metadata, inspection, perception, review decisions, review packs, and static curation workbench;
+  - authored maps, runtime inspection, behavior modules, grid and continuous spatial modules;
+  - runtime entities and typed components;
+  - authored entity definitions, transactional instantiation, provenance, spatial queries, triggers, and explicit interactions;
+  - backend-neutral read-only rendering projection;
+  - isolated raylib-cs debug client with live and snapshot modes.
 
-## Current repository shape
-
-The current solution contains:
+## Current solution shape
 
 ```text
 dotnet-ai-first-2d-game-engine.slnx
 src/Agentic2D.Contracts
 src/Agentic2D.Engine
+src/Agentic2D.Entities
+src/Agentic2D.Behaviors
+src/Agentic2D.Spatial.Grid
+src/Agentic2D.Spatial.Continuous
 src/Agentic2D.ScenarioRunner
 src/Agentic2D.Validation
+src/Agentic2D.Rendering
 src/Agentic2D.Tools
+src/Agentic2D.DebugClient.Raylib
 tests/unit/Agentic2D.Tests.Unit
 ```
 
-`Agentic2D.Tools` hosts the first development product CLI surface.
+The exact project list is authoritative in the solution and `docs/engineering/future-dotnet-solution.md`.
 
 ## Start here
 
 For implementation work, read:
 
-1. `AGENTS.md`
-2. the relevant milestone under `docs/milestones/`
-3. the authority documents listed by that milestone
-4. `docs/ENGINEERING.md` and `docs/engineering/command-contract.md` for validation commands
+1. `AGENTS.md`;
+2. the relevant milestone under `docs/milestones/`;
+3. only the authority documents listed by that milestone;
+4. `docs/ENGINEERING.md` and `docs/engineering/command-contract.md`.
 
-Do not treat `docs/research/` as operational authority. Research copies are retained only for traceability.
+Do not treat `docs/research/` as operational authority. Do not require ordinary implementation agents to read `.guide-profile.json`, `.guide-sync/`, external guide internals, or prompt templates.
 
-## Engineering commands
-
-Use repository engineering commands instead of inventing local validation flows:
+## Canonical engineering commands
 
 ```bash
 ./eng/restore.sh
@@ -53,54 +63,49 @@ Use repository engineering commands instead of inventing local validation flows:
 ./eng/check.sh
 ```
 
-Product CLI validation wrappers also exist for the current CLI surface:
-
-```bash
-./eng/cli-smoke.sh
-./eng/product-validate.sh
-./eng/scenario-smoke.sh
-./eng/content-validate.sh maps
-./eng/asset-review-smoke.sh
-./eng/asset-perception-smoke.sh
-./eng/map-smoke.sh
-./eng/runtime-inspect-smoke.sh
-./eng/m011-smoke.sh
-```
+Current capability wrappers are indexed in `docs/ENGINEERING.md`.
 
 ## Product CLI
 
-During development, invoke the product CLI through:
+During development:
 
 ```bash
 dotnet run --project src/Agentic2D.Tools -- <args>
 ```
 
-Current supported product CLI commands are documented in `docs/engineering/product-cli.md` and `docs/specs/product-cli-contract.md`.
+Important current command families include:
 
-Examples:
-
-```bash
-dotnet run --project src/Agentic2D.Tools -- --help
-dotnet run --project src/Agentic2D.Tools -- runtime smoke --output artifacts/cli/runtime-smoke
-dotnet run --project src/Agentic2D.Tools -- validate --output artifacts/cli/validate
-dotnet run --project src/Agentic2D.Tools -- scenario run game/scenarios/smoke/runtime-smoke.json --output artifacts/scenarios/runtime-smoke
-dotnet run --project src/Agentic2D.Tools -- content validate assets --output artifacts/content/assets
-dotnet run --project src/Agentic2D.Tools -- asset inspect asset.tile-atlas-smoke --output artifacts/assets/tile-atlas-smoke
-dotnet run --project src/Agentic2D.Tools -- asset perceive asset.tile-atlas-smoke --output artifacts/assets/perception/tile-atlas-smoke
-dotnet run --project src/Agentic2D.Tools -- asset review apply --decisions game/assets/reviews/tile-atlas-smoke.review.json --dry-run --output artifacts/asset-review/dry-run
-dotnet run --project src/Agentic2D.Tools -- content validate maps --output artifacts/content/maps
-dotnet run --project src/Agentic2D.Tools -- map inspect map.smoke --output artifacts/maps/map-smoke
-dotnet run --project src/Agentic2D.Tools -- runtime inspect --scenario runtime.smoke --map map.smoke --output artifacts/runtime/inspect
+```text
+runtime smoke
+validate
+scenario run
+content validate
+asset inspect
+asset review apply
+asset perceive
+review pack
+curation build
+map inspect
+runtime inspect
+render project
 ```
 
-Artifact-producing CLI commands write structured evidence under the requested output directory.
+The product CLI is authoritative through `docs/specs/product-cli-contract.md` and `docs/engineering/product-cli.md`. `eng/` scripts are repository validation wrappers, not the product API.
+
+## Rendering
+
+Headless rendering projection is available through:
+
+```bash
+dotnet run --project src/Agentic2D.Tools --   render project   --scenario interaction.npc-smoke   --tick final   --output artifacts/render/interaction-npc-smoke
+```
+
+The optional graphical adapter is isolated in `src/Agentic2D.DebugClient.Raylib`. It pins Raylib-cs 8.0.0, uses native raylib 6.0, loads the checked-in smoke PNG atlas, and supports live scenario and recorded-snapshot modes.
+
+Screenshots are created only through explicit `F12` or `--capture`. Structural JSON render artifacts are semantic evidence; PNG output is human-review evidence.
 
 ## Documentation model
 
-Repository docs contain project truth. External setup, engineering, or guide-system documents are not required reading for ordinary implementation agents.
+Repository docs contain project truth. External guides are inputs only for planning, migration, documentation synchronization, and release readiness.
 
 There are no repository-local TBPs or issue-template dependencies by default.
-
-## Rendering debug client (M015)
-
-Headless rendering evidence is available through `agentic2d render project`; the optional raylib-cs adapter is isolated in `src/Agentic2D.DebugClient.Raylib` and is not required by the CLI. The adapter pins Raylib-cs 8.0.0 (native raylib 6.0), loads `asset.render-atlas-smoke` from its checked-in PNG, uses a 320×180 logical viewport with point-filtered integer scaling, and only captures screenshots through F12 or `--capture`.

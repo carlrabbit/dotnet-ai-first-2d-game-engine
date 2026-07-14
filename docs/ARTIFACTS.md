@@ -2,28 +2,30 @@
 
 ## Authority
 
-This document indexes generated evidence and report contracts.
+This document indexes generated evidence and artifact contracts.
 
-## Artifact principle
+## Principle
 
-A failed scenario, content validation, asset import, preview generation, product CLI command, or packaged-runtime validation must produce enough evidence for an agent or human to diagnose the failure without guessing.
+Failures must produce enough structured evidence for diagnosis. Generated artifacts are not source truth unless explicitly declared as committed baselines.
 
-## Current artifact documents
+## Current artifact contracts
 
 | Document | Authority area |
 |---|---|
-| `docs/artifacts/report-contract.md` | General minimum report concept. |
-| `docs/artifacts/generated-artifacts.md` | Generated file handling rules. |
-| `docs/artifacts/runtime-result-contract.md` | `result.json` artifacts produced by Milestone 002 runtime smoke execution. |
-| `docs/artifacts/product-cli-result-contract.md` | `result.json` artifacts produced by Milestone 003 product CLI commands. |
-| `docs/artifacts/scenario-runner-artifact-contract.md` | `result.json`, `events.jsonl`, and `diagnostics.json` artifacts produced by Milestone 005 scenario runner commands. |
-| `docs/artifacts/content-validation-artifact-contract.md` | `result.json`, `diagnostics.json`, and `validated-items.json` artifacts produced by Milestone 006 content validation commands. |
-| `docs/artifacts/asset-inspection-artifact-contract.md` | `result.json`, `diagnostics.json`, `asset-summary.json`, and `tiles.json` artifacts produced by Milestone 007 asset inspection commands. |
-| `docs/artifacts/review-pack-artifact-contract.md` | `review-summary.md`, `review-manifest.json`, and `diagnostics.json` artifacts produced by Milestone 010 review pack commands. |
-| `docs/artifacts/asset-curation-workbench-artifact-contract.md` | `index.html`, `review-data.json`, and `diagnostics.json` artifacts produced by Milestone 010 asset curation workbench commands. |
-| `docs/artifacts/asset-authoring-artifact-contract.md` | Asset review apply and asset perception artifacts introduced by Milestone 011. |
-| `docs/artifacts/map-inspection-artifact-contract.md` | Map inspection artifacts introduced by Milestone 011. |
-| `docs/artifacts/runtime-inspection-artifact-contract.md` | Runtime inspection artifacts introduced by Milestone 011. |
+| `docs/artifacts/runtime-result-contract.md` | Minimal runtime result. |
+| `docs/artifacts/product-cli-result-contract.md` | Product CLI result. |
+| `docs/artifacts/scenario-runner-artifact-contract.md` | Scenario result, events, diagnostics. |
+| `docs/artifacts/content-validation-artifact-contract.md` | Content validation evidence. |
+| `docs/artifacts/asset-inspection-artifact-contract.md` | Asset inspection. |
+| `docs/artifacts/review-pack-artifact-contract.md` | Review-pack aggregation. |
+| `docs/artifacts/asset-curation-workbench-artifact-contract.md` | Static curation workbench. |
+| `docs/artifacts/asset-authoring-artifact-contract.md` | Review apply and perception. |
+| `docs/artifacts/map-inspection-artifact-contract.md` | Map inspection. |
+| `docs/artifacts/runtime-inspection-artifact-contract.md` | Runtime inspection. |
+| `docs/artifacts/behavior-spatial-execution-artifact-contract.md` | Behavior intents and spatial resolutions. |
+| `docs/artifacts/entity-component-continuous-spatial-artifact-contract.md` | Entity/component and continuous movement evidence. |
+| `docs/artifacts/entity-instantiation-query-trigger-interaction-artifact-contract.md` | Instantiation, queries, triggers, and interactions. |
+| `docs/artifacts/render-projection-artifact-contract.md` | Render projection and explicit capture evidence. |
 
 ## Artifact roots
 
@@ -33,122 +35,27 @@ game/artifacts/
 game/assets/generated/
 ```
 
-## Typical artifacts
+## Current rendering evidence
+
+Headless render projection produces:
 
 ```text
-result.json
-diagnostics.json
-events.jsonl
-scene-dump.json
-map-dump.json
-ui-dump.json
-screenshot.png
-preview.png
-collision-overlay.png
-navigation-overlay.png
-semantic-overlay.png
-metrics.json
-review-summary.md
+render-result.json
+render-snapshot.json
+render-frame.json
+render-items.jsonl
+render-commands.jsonl
+asset-bindings.json
+render-diagnostics.json
 ```
 
-## Current product CLI artifacts
-
-Current artifact-producing product CLI commands write:
+Explicit screenshot capture additionally produces:
 
 ```text
-<output>/result.json
+frame.png
+frame-metadata.json
 ```
 
-Current contracts:
+Structural JSON artifacts are deterministic semantic evidence. PNGs are explicit human-review evidence and are not required to match pixel-for-pixel across platforms.
 
-```text
-docs/artifacts/runtime-result-contract.md
-docs/artifacts/product-cli-result-contract.md
-```
-
-Current scenario runner commands write:
-
-```text
-<output>/result.json
-<output>/events.jsonl
-<output>/diagnostics.json
-```
-
-Current scenario artifact contract:
-
-```text
-docs/artifacts/scenario-runner-artifact-contract.md
-```
-
-Current content validation commands write:
-
-```text
-<output>/result.json
-<output>/diagnostics.json
-<output>/validated-items.json
-```
-
-Current content validation artifact contract:
-
-```text
-docs/artifacts/content-validation-artifact-contract.md
-```
-
-Current asset inspection commands write:
-
-```text
-<output>/result.json
-<output>/diagnostics.json
-<output>/asset-summary.json
-<output>/tiles.json
-```
-
-Current asset inspection artifact contract:
-
-```text
-docs/artifacts/asset-inspection-artifact-contract.md
-```
-
-Current review pack commands write:
-
-```text
-<output>/review-summary.md
-<output>/review-manifest.json
-<output>/diagnostics.json
-```
-
-Current review pack artifact contract:
-
-```text
-docs/artifacts/review-pack-artifact-contract.md
-```
-
-Current asset curation workbench commands write:
-
-```text
-<output>/index.html
-<output>/review-data.json
-<output>/diagnostics.json
-```
-
-Current asset curation workbench artifact contract:
-
-```text
-docs/artifacts/asset-curation-workbench-artifact-contract.md
-```
-
-Current Milestone 011 artifact-producing commands additionally write:
-
-```text
-asset review apply -> result.json, diagnostics.json, mutation-plan.json, validation-result.json, proposed-metadata.json (dry-run only)
-asset perceive -> result.json, diagnostics.json, tile-features.json, semantic-proposals.json
-map inspect -> result.json, diagnostics.json, map-summary.json, layers.json, resolved-references.json
-runtime inspect -> result.json, diagnostics.json, runtime-summary.json, entities.json, commands.jsonl, events.jsonl, final-state.json, assertions.json, content-references.json
-```
-
-## Generated/source rule
-
-Generated artifacts are not source truth unless a specific document declares them committed baselines.
-## Behavior and spatial execution artifacts
-
-Milestone 012 runtime inspection additionally emits `behaviors.json`, `intents.jsonl`, and `spatial-resolutions.jsonl` for behavior scenarios.
+Review-pack manifests must make current artifact families discoverable.

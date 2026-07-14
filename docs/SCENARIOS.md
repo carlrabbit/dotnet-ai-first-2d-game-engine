@@ -2,88 +2,35 @@
 
 ## Authority
 
-This document indexes deterministic scenario validation concepts and scenario documents.
+This document indexes deterministic scenario validation.
 
 ## Purpose
 
-Scenarios validate runtime, content, asset import, UI, save/load, packaged-mode equivalence, and other behavior that ordinary unit tests cannot prove alone.
+Scenarios validate behavior that unit tests alone cannot prove, including runtime state transitions, content linkage, spatial outcomes, interactions, and render projection.
 
-The repository currently has a built-in minimal runtime smoke path and an authored `runtime.smoke` scenario executed by the scenario runner foundation.
+## Current implemented smoke families
 
-## Current scenario documents
-
-| Document | Authority area |
+| Milestone | Representative scenarios |
 |---|---|
-| `docs/scenarios/scenario-contract.md` | Placeholder contract for future scenario definitions. |
-| `docs/scenarios/minimal-runtime-scenarios.md` | `runtime.smoke` scenario semantics introduced by Milestone 002. |
-| `docs/scenarios/scenario-runner-foundation.md` | Authored scenario runner foundation and `runtime.smoke` scenario source semantics introduced by Milestone 005. |
+| M002–M006 | `runtime.smoke` and authored scenario-runner validation. |
+| M011 | Bounded asset/map/runtime inspection journey. |
+| M012 | `behavior.grid-movement-smoke`, `behavior.grid-movement-rejected-smoke`. |
+| M013 | Entity/component runtime and continuous kinematic movement/tree collision scenarios. |
+| M014 | `entity.definition-instantiation-smoke`, `trigger.enter-exit-smoke`, `interaction.npc-smoke`. |
+| M015 | Headless rendering of `interaction.npc-smoke` and snapshot reconstruction. |
 
-## Initial scenario categories
-
-```text
-smoke
-gameplay
-UI
-asset-import
-map-validation
-animation-validation
-shader-material-preview
-save-load
-performance
-soak
-regression
-```
-
-## Required scenario fields
-
-```text
-id
-category
-purpose
-initial state
-inputs
-random seed policy
-expected events
-expected assertions
-expected artifacts
-human review requirements
-debug-mode applicability
-packaged-mode applicability
-```
-
-## Current validation surface
-
-Milestone 002 validates the minimal runtime smoke path through the product CLI development invocation:
+## Current commands
 
 ```bash
-dotnet run --project src/Agentic2D.Tools -- runtime smoke --ticks 3 --output artifacts/runtime-smoke
+dotnet run --project src/Agentic2D.Tools -- scenario run <scenario-id-or-path> --output <directory>
+dotnet run --project src/Agentic2D.Tools -- runtime inspect --scenario <id> --map <id> --output <directory>
+dotnet run --project src/Agentic2D.Tools -- render project --scenario <id> --tick final --output <directory>
 ```
 
-Milestone 003 also exposes product CLI engineering wrappers:
+Graphical live and snapshot presentation is provided by `src/Agentic2D.DebugClient.Raylib`; it does not define scenario semantics.
 
-```bash
-./eng/cli-smoke.sh
-./eng/product-validate.sh
-```
+## Required scenario qualities
 
-Milestone 005 exposes authored scenario execution:
+Scenarios use stable IDs, deterministic inputs and tick behavior, explicit assertions, expected events/artifacts, structured diagnostics, and declared human-review requirements.
 
-```bash
-dotnet run --project src/Agentic2D.Tools -- scenario run game/scenarios/smoke/runtime-smoke.json --output artifacts/scenarios/runtime-smoke
-dotnet run --project src/Agentic2D.Tools -- scenario run runtime.smoke --output artifacts/scenarios/runtime-smoke
-./eng/scenario-smoke.sh
-```
-
-## Future scenario command shape
-
-Future scenario runner milestones may introduce broader scenario wrappers such as:
-
-```text
-./eng/scenario.sh <scenario-id>
-./eng/scenario-packaged.sh <scenario-id>
-```
-
-Do not document these future commands as supported until implemented by a later milestone.
-## Milestone 012 smoke scenarios
-
-`behavior.grid-movement-smoke` proves accepted east movement. `behavior.grid-movement-rejected-smoke` proves explicitly blocked movement is a passing domain outcome with unchanged grid state and a rejection event.
+Do not document future UI, save/load, animation, audio, performance, packaged-mode, or replay scenarios as implemented until a milestone establishes them.

@@ -8,16 +8,28 @@ This document is authoritative for project vocabulary.
 
 | Term | Meaning |
 |---|---|
-| Agentic engine | A game engine designed so AI agents can implement, modify, validate, and iterate using structured interfaces and evidence. |
-| Headless-first | The engine can be operated through CLI/API commands without a graphical editor. |
-| Artifact-first | Commands produce machine-readable and reviewable evidence such as reports, diagnostics, traces, previews, and overlays. |
-| Stable ID | A durable identifier used instead of filenames, display text, hierarchy position, or visual coordinates. |
-| Scenario | Deterministic product/runtime validation with structured inputs, assertions, and artifacts. |
-| Content | Authored non-code game/project data such as entities, maps, assets, taxonomies, rules, UI, and scenarios. |
-| Generated artifact | A file derived from source content or code. It must be reproducible or explicitly marked as non-source. |
-| Human review gate | An explicit validation step for outputs automation cannot fully judge. |
-| Visual label | Semantic visual interpretation, such as `grass`, `flower`, `wall`, or `water`. |
-| Physical behavior | Gameplay-relevant behavior, such as walkability, collision, navigation cost, or damage. |
-| Behavior module | C# or optional F# code that reads queries and emits commands instead of mutating the world directly. |
-| Debug runtime | Development representation optimized for inspection, diagnostics, JSON, source locations, and agent use. |
-| Packaged runtime | Release representation optimized for performance, compact resources, generated dispatch, and minimized diagnostics. |
+| Agentic engine | A game engine designed so AI agents can implement, validate, inspect, and iterate through structured interfaces and evidence. |
+| Headless-first | Core engine capability operates through CLI/API workflows without requiring a graphical client. |
+| Artifact-first | Commands produce machine-readable and reviewable evidence. |
+| Stable ID | Durable identity independent of filename, display name, hierarchy position, or visual coordinates. |
+| Scenario | Deterministic runtime validation with authored inputs, assertions, and artifacts. |
+| Content | Authored non-code project data, including scenarios, assets, maps, entity definitions, visual definitions, and review decisions. |
+| Generated artifact | Reproducible output derived from source content or code. |
+| Entity definition | Authored reusable defaults for runtime entity composition. It is not a runtime entity. |
+| Spawn | Authored request that combines a definition ID, spawn ID, runtime entity ID, source context, and bounded overrides. |
+| Runtime entity | Stable mutable runtime identity plus typed components. |
+| Static map object | Authored map content projected into static world or rendering data without runtime entity lifecycle. |
+| Component | Typed runtime state owned and mutated by the runtime. |
+| Behavior module | Code that reads immutable snapshots and emits intents rather than mutating stores directly. |
+| Spatial module | Capability that interprets spatial components and static world data without owning entity identity. |
+| Spatial query | Read-only deterministic query over compatible spatial entity state. |
+| Trigger | Non-solid entity-owned spatial volume that emits entered/exited transitions. |
+| Interaction intent | Explicit request by an interactor to select and begin an eligible interaction. |
+| Visual definition | Authored presentation-only definition containing asset regions, anchors, sizes, layers, ordering, and tint. |
+| Render projection | Deterministic read-only conversion from authored content and immutable runtime state into backend-neutral render items and commands. |
+| Debug client | Optional graphical adapter for inspection. It is not runtime authority. |
+| Structural render evidence | Backend-neutral JSON render frame, item, command, binding, and diagnostic artifacts. |
+| Screenshot evidence | Explicitly captured PNG review evidence; not cross-platform semantic truth. |
+| Human review gate | Explicit validation for outputs automation cannot fully judge. |
+| Debug runtime | Development representation optimized for inspection and diagnostics. |
+| Packaged runtime | Future release representation optimized for compactness and performance; not yet implemented. |

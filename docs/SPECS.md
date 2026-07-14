@@ -2,38 +2,49 @@
 
 ## Authority
 
-This document indexes internal behavioral authority for the engine.
-
-Specs define what must be true. Milestones sequence work but do not define permanent behavior.
+This document indexes permanent behavioral authority. Milestones sequence work; specs define current truth.
 
 ## Current spec documents
 
 | Document | Authority area |
 |---|---|
-| `docs/specs/project-thesis.md` | Core project thesis and engine purpose. |
-| `docs/specs/runtime-principles.md` | Initial runtime principles for deterministic command/event/query behavior. |
-| `docs/specs/agentic-workflow.md` | Intended human-agent workflow. |
-| `docs/specs/minimal-deterministic-runtime.md` | Minimal runtime semantics introduced by Milestone 002. |
-| `docs/specs/product-cli-contract.md` | Initial `agentic2d` product CLI behavior introduced by Milestone 003. |
-| `docs/specs/scenario-runner-contract.md` | Authored scenario runner behavior introduced by Milestone 005. |
-| `docs/specs/content-validation-contract.md` | Content validation behavior introduced by Milestone 006 and extended by Milestone 007. |
-| `docs/specs/asset-metadata-contract.md` | Authored asset metadata behavior introduced by Milestone 007. |
-| `docs/specs/asset-pipeline.md` | Initial asset pipeline principles. |
-| `docs/specs/review-pack-contract.md` | Review pack evidence aggregation introduced by Milestone 010. |
-| `docs/specs/asset-curation-workbench-contract.md` | Generated static asset curation workbench behavior introduced by Milestone 010. |
-| `docs/specs/asset-review-decision-contract.md` | Authored asset review decisions and safe metadata mutation introduced by Milestone 011. |
-| `docs/specs/asset-perception-contract.md` | Deterministic local asset perception and proposal evidence introduced by Milestone 011. |
-| `docs/specs/map-content-contract.md` | First authored map domain and inspection behavior introduced by Milestone 011. |
-| `docs/specs/runtime-inspection-contract.md` | Deterministic structured runtime inspection introduced by Milestone 011. |
-| `docs/specs/behavior-modules.md` | Initial behavior module principles. |
+| `docs/specs/project-thesis.md` | Engine purpose and project thesis. |
+| `docs/specs/runtime-principles.md` | Deterministic commands, events, queries, and state. |
+| `docs/specs/agentic-workflow.md` | Human-agent workflow. |
+| `docs/specs/minimal-deterministic-runtime.md` | Minimal runtime semantics. |
+| `docs/specs/product-cli-contract.md` | `agentic2d` product CLI. |
+| `docs/specs/scenario-runner-contract.md` | Scenario execution. |
+| `docs/specs/content-validation-contract.md` | Structured content validation. |
+| `docs/specs/asset-metadata-contract.md` | Asset metadata and PNG-backed atlas source. |
+| `docs/specs/asset-pipeline.md` | Asset pipeline principles. |
+| `docs/specs/review-pack-contract.md` | Review-pack aggregation. |
+| `docs/specs/asset-curation-workbench-contract.md` | Static curation workbench. |
+| `docs/specs/asset-review-decision-contract.md` | Review decisions and safe asset metadata changes. |
+| `docs/specs/asset-perception-contract.md` | Deterministic local perception evidence. |
+| `docs/specs/map-content-contract.md` | Authored map content. |
+| `docs/specs/runtime-inspection-contract.md` | Structured runtime inspection. |
+| `docs/specs/behavior-modules.md` | Behavior-module principles. |
+| `docs/specs/deterministic-behavior-runtime-contract.md` | Behavior phases, snapshots, intents, and deterministic resolution. |
+| `docs/specs/pluggable-spatial-runtime-contract.md` | Spatial module boundary. |
+| `docs/specs/grid-spatial-module-contract.md` | `spatial.grid`. |
+| `docs/specs/entity-component-runtime-contract.md` | Runtime entities, components, snapshots, and mutations. |
+| `docs/specs/mixed-world-projection-contract.md` | Separation of map static content and runtime entity state. |
+| `docs/specs/continuous-kinematic-spatial-module-contract.md` | Continuous AABB movement and collision. |
+| `docs/specs/entity-definition-and-instantiation-contract.md` | Entity definitions, spawns, overrides, transactional instantiation, and provenance. |
+| `docs/specs/spatial-query-and-trigger-contract.md` | Spatial lookup, overlap/radius queries, filters, and trigger transitions. |
+| `docs/specs/interaction-runtime-contract.md` | Explicit interaction intent and deterministic target selection. |
+| `docs/specs/visual-definition-contract.md` | Presentation-only visual definitions. |
+| `docs/specs/render-projection-contract.md` | Read-only backend-neutral render projection. |
+| `docs/specs/raylib-debug-client-contract.md` | Isolated raylib-cs graphical client. |
 
-## Initial invariants
+## Current invariants
 
-- The engine is headless-first and CLI/API-first.
-- Important project objects require stable IDs.
-- Source-of-truth project data must be structured, diff-friendly, merge-friendly, schema-validatable, and reviewable.
-- Runtime state must be observable through structured inspection.
-- Scenario validation is a first-class engine concept.
-- Failures must produce diagnostics and artifacts sufficient for agent or human diagnosis.
-- Debug and packaged runtimes must preserve the same semantic behavior where both modes apply.
-- `agentic2d` is the product/runtime CLI; `eng/` scripts are repository engineering wrappers.
+- Runtime and headless product CLI remain usable without graphical dependencies.
+- Stable IDs identify important project objects.
+- Authored source is structured, validatable, diff-friendly, and reviewable.
+- Runtime mutation occurs through validated runtime boundaries.
+- Behavior, spatial, interaction, and rendering code do not directly mutate stores outside their authority.
+- Static map content and runtime entities remain distinct.
+- Rendering is read-only and backend-neutral before adapter translation.
+- Structural artifacts are semantic evidence; screenshots are review evidence.
+- Failures produce stable diagnostics and useful artifacts.

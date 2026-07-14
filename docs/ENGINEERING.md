@@ -2,79 +2,32 @@
 
 ## Authority
 
-This document indexes build, validation, command contracts, and engineering policy for this repository.
+This document indexes build, validation, commands, and project-layout policy.
 
 ## Current status
 
-The repository has the base engineering substrate established by Milestone 001:
-
-- shared .NET/editor configuration at the repository root;
-- executable canonical `eng/` scripts;
-- a `.slnx` solution with contracts, engine, tools, and unit test projects.
-
-Milestones 002 and 003 added:
-
-- a minimal deterministic runtime;
-- a development product CLI host under `src/Agentic2D.Tools`;
-- product CLI validation wrappers for the current command surface.
-
-Milestone 005 added:
-
-- a scenario runner foundation under `src/Agentic2D.ScenarioRunner`;
-- an authored `runtime.smoke` scenario;
-- a scenario smoke validation wrapper.
-
-Milestone 006 added:
-
-- a content validation foundation under `src/Agentic2D.Validation`;
-- scenario JSON content validation as the first supported domain;
-- a content validation product CLI command and engineering wrapper.
-
-Milestone 007 added:
-
-- authored asset metadata validation for the first tile atlas slice;
-- a product CLI asset inspection command;
-- an asset inspection smoke validation wrapper.
-
-Milestone 010 added:
-
-- a product CLI review pack command for aggregating generated scenario, content validation, and asset inspection evidence;
-- a generated static asset curation workbench command for the smoke tile atlas asset;
-- review pack and asset curation smoke validation wrappers.
-
-Milestone 011 added:
-
-- asset review apply and deterministic asset perception commands;
-- authored map validation and map inspection;
-- deterministic runtime inspection with structured state evidence;
-- asset review, asset perception, map, runtime inspection, and end-to-end smoke wrappers.
+The repository includes deterministic runtime, product CLI, scenarios, content validation, asset workflows, maps, runtime inspection, behavior/spatial systems, entity/component runtime, definitions and interactions, backend-neutral rendering, and an isolated raylib-cs debug client.
 
 ## Indexed documents
 
 | Document | Purpose |
 |---|---|
-| `docs/engineering/command-contract.md` | Canonical repository engineering command behavior and validation tier mapping. |
-| `docs/engineering/validation-tiers.md` | Validation tier names and expected usage. |
-| `docs/engineering/future-dotnet-solution.md` | Current and candidate .NET solution/project layout. |
-| `docs/engineering/product-cli.md` | Repository-local product CLI invocation and validation contract. |
+| `docs/engineering/command-contract.md` | Canonical engineering commands. |
+| `docs/engineering/validation-tiers.md` | Validation tiers and graphics-capable distinction. |
+| `docs/engineering/future-dotnet-solution.md` | Current and candidate solution shape. |
+| `docs/engineering/product-cli.md` | Product CLI invocation. |
 
-## Canonical engineering commands
+## Canonical commands
 
-The project uses these canonical `eng/` commands:
-
-```text
+```bash
 ./eng/restore.sh
 ./eng/build.sh
 ./eng/test.sh
-./eng/format.sh
+./eng/format.sh --verify
 ./eng/check.sh
 ```
 
-Command details and validation tier mapping are defined in `docs/engineering/command-contract.md`.
-
-## Product CLI validation wrappers
-
-The current product CLI validation wrappers are:
+## Current capability wrappers
 
 ```text
 ./eng/cli-smoke.sh
@@ -83,6 +36,8 @@ The current product CLI validation wrappers are:
 ./eng/content-validate.sh scenarios
 ./eng/content-validate.sh assets
 ./eng/content-validate.sh maps
+./eng/content-validate.sh entities
+./eng/content-validate.sh visuals
 ./eng/asset-inspect-smoke.sh
 ./eng/review-pack-smoke.sh
 ./eng/asset-curation-smoke.sh
@@ -91,29 +46,29 @@ The current product CLI validation wrappers are:
 ./eng/map-smoke.sh
 ./eng/runtime-inspect-smoke.sh
 ./eng/m011-smoke.sh
+./eng/behavior-smoke.sh
+./eng/grid-spatial-smoke.sh
+./eng/m012-smoke.sh
+./eng/entity-runtime-smoke.sh
+./eng/continuous-spatial-smoke.sh
+./eng/m013-smoke.sh
+./eng/entity-definition-smoke.sh
+./eng/spatial-query-trigger-smoke.sh
+./eng/interaction-smoke.sh
+./eng/m014-smoke.sh
+./eng/visual-content-smoke.sh
+./eng/render-projection-smoke.sh
+./eng/raylib-debug-client-smoke.sh
+./eng/m015-smoke.sh
 ```
 
-These wrappers validate product CLI behavior through `src/Agentic2D.Tools`. They are repository engineering commands, not the product API.
+## Validation boundary
 
-The product/runtime API is documented separately in:
-
-```text
-docs/specs/product-cli-contract.md
-docs/engineering/product-cli.md
-```
-
-## Future artifact-first commands
-
-The following commands are planned candidates only:
-
-```text
-./eng/scenario.sh <scenario-id>
-./eng/scenario-packaged.sh <scenario-id>
-./eng/artifacts-validate.sh <artifact-path>
-```
-
-Do not document or rely on future commands as supported until a milestone implements them and updates the command contract.
+- Headless structural validation is mandatory in ordinary environments.
+- `raylib-debug-client-smoke.sh` requires a documented graphics-capable environment.
+- M015 must report graphics smoke as passed, failed, or explicitly skipped; it must not silently claim execution.
+- Screenshot capture is explicit and not part of every ordinary run.
 
 ## Command rule
 
-Commands must either validate meaningful state or fail clearly. Do not create success-only placeholder scripts.
+Commands must validate meaningful state or fail clearly. Success-only placeholders are prohibited.
