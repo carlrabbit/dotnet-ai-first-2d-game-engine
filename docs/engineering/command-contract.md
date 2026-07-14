@@ -48,6 +48,11 @@ These commands are the canonical local engineering API.
 ```
 
 ## Future artifact-first commands
+| `./eng/workspace-directory-reference-smoke.sh` | Creates, validates, runs, and inspects a directory-reference consumer workspace without mutating engine source. | Tier 2 milestone smoke gate |
+| `./eng/workspace-directory-copy-smoke.sh` | Proves deterministic copy exclusions and consumer execution. | Tier 2 milestone smoke gate |
+| `./eng/workspace-local-git-smoke.sh` | Proves exact-revision local Git acquisition without network access. | Tier 2 milestone smoke gate |
+| `./eng/workspace-minimal-game-run-smoke.sh` | Proves generated consumer wrappers, run manifest, inspection, and review. | Tier 2 milestone smoke gate |
+| `./eng/m018-smoke.sh` | Runs the bounded M018 provider/consumer smoke suite. | Tier 2 milestone smoke gate |
 
 ```text
 ./eng/scenario-packaged.sh <scenario-id>

@@ -27,6 +27,10 @@ This document is authoritative for project vocabulary.
 | Interaction intent | Explicit request by an interactor to select and begin an eligible interaction. |
 | Visual definition | Authored presentation-only definition containing asset regions, anchors, sizes, layers, ordering, and tint. |
 | Render projection | Deterministic read-only conversion from authored content and immutable runtime state into backend-neutral render items and commands. |
+| Game project manifest | `agentic2d.project.json`; portable game/product truth, independent of engine acquisition. |
+| Game workspace manifest | `agentic2d.workspace.json`; checkout composition, acquisition, area policy, and generated artifacts. |
+| Engine acquisition provider | Built-in source provider that supplies an engine to a workspace. |
+| Unified run manifest | Central `run-manifest.json` that references rather than duplicates subsystem evidence. |
 | Debug client | Optional graphical adapter for inspection. It is not runtime authority. |
 | Structural render evidence | Backend-neutral JSON render frame, item, command, binding, and diagnostic artifacts. |
 | Screenshot evidence | Explicitly captured PNG review evidence; not cross-platform semantic truth. |

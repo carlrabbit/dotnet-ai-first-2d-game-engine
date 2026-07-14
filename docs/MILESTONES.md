@@ -21,6 +21,7 @@ This document indexes planned and completed implementation milestones.
 | 010 | `docs/milestones/MILESTONE-010-asset-review-pack-and-curation-workbench-foundation.md` | Implemented | Review packs and static curation workbench. |
 | 011 | `docs/milestones/MILESTONE-011-asset-authoring-map-validation-and-runtime-evidence-expansion.md` | Implemented | Asset review/perception, maps, runtime inspection, bounded journey. |
 | 012 | `docs/milestones/MILESTONE-012-deterministic-behavior-modules-and-pluggable-grid-spatial-runtime.md` | Implemented | Behavior intents and `spatial.grid`. |
+| 018 | `docs/milestones/MILESTONE-018-game-workspace-manifest-deterministic-scaffolding-and-unified-agent-execution-workflow.md` | Implemented | Consumer workspace manifests, source acquisition, and unified run evidence. |
 | 013 | `docs/milestones/MILESTONE-013-entity-component-runtime-and-continuous-kinematic-spatial-module.md` | Implemented | Runtime entities/components and continuous kinematic spatial module. |
 | 014 | `docs/milestones/MILESTONE-014-authored-entity-definitions-runtime-instantiation-spatial-queries-triggers-and-interactions.md` | Implemented | Entity definitions, transactional instantiation, queries, triggers, and interactions. |
 | 015 | `docs/milestones/MILESTONE-015-read-only-rendering-projection-and-raylib-cs-debug-client.md` | Implemented | Read-only render projection and isolated raylib-cs debug client. |

@@ -38,6 +38,10 @@ This document indexes permanent behavioral authority. Milestones sequence work; 
 | `docs/specs/raylib-debug-client-contract.md` | Isolated raylib-cs graphical client. |
 | `docs/specs/input-action-map-contract.md` | Backend-neutral input maps and mapping. |
 | `docs/specs/tick-bound-input-frame-contract.md` | Tick input frames and accumulator. |
+| `docs/specs/game-project-manifest-contract.md` | Game/product manifest independent of acquisition. |
+| `docs/specs/game-workspace-manifest-contract.md` | Workspace composition and engine acquisition. |
+| `docs/specs/workspace-scaffolding-contract.md` | Transactional consumer workspace creation. |
+| `docs/specs/unified-agent-execution-workflow-contract.md` | Workspace/project/run consumer workflow. |
 | `docs/specs/semantic-input-recording-and-replay-contract.md` | Semantic recording and replay. |
 | `docs/specs/animation-definition-contract.md` | Authored deterministic presentation animation. |
 | `docs/specs/animation-selection-and-sampling-contract.md` | Explicit base/overlay sampling and composition. |
@@ -54,4 +58,5 @@ This document indexes permanent behavioral authority. Milestones sequence work; 
 - Static map content and runtime entities remain distinct.
 - Rendering is read-only and backend-neutral before adapter translation.
 - Structural artifacts are semantic evidence; screenshots are review evidence.
+- Game/product truth remains independent of engine acquisition and checkout composition.
 - Failures produce stable diagnostics and useful artifacts.

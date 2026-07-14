@@ -16,6 +16,8 @@ Failures must produce enough structured evidence for diagnosis. Generated artifa
 | `docs/artifacts/product-cli-result-contract.md` | Product CLI result. |
 | `docs/artifacts/scenario-runner-artifact-contract.md` | Scenario result, events, diagnostics. |
 | `docs/artifacts/content-validation-artifact-contract.md` | Content validation evidence. |
+| `docs/artifacts/workspace-creation-artifact-contract.md` | Workspace acquisition and creation evidence. |
+| `docs/artifacts/unified-run-artifact-contract.md` | Central unified run manifest and linked evidence. |
 | `docs/artifacts/asset-inspection-artifact-contract.md` | Asset inspection. |
 | `docs/artifacts/review-pack-artifact-contract.md` | Review-pack aggregation. |
 | `docs/artifacts/asset-curation-workbench-artifact-contract.md` | Static curation workbench. |

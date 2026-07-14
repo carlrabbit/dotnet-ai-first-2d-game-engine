@@ -19,6 +19,8 @@ The engine is headless-first, CLI/API-first, validation-first, and artifact-firs
   - authored maps, runtime inspection, behavior modules, grid and continuous spatial modules;
   - runtime entities and typed components;
   - authored entity definitions, transactional instantiation, provenance, spatial queries, triggers, and explicit interactions;
+  - consumer workspace manifests, deterministic source acquisition, and a unified workspace/project/run workflow.
+  - source-only workspace creation supports directory reference, deterministic directory copy, and exact-revision Git acquisition.
   - backend-neutral read-only rendering projection;
   - deterministic backend-neutral semantic input mapping, tick frames, synthetic sources, and hardware-free replay;
   - isolated raylib-cs debug client with live and snapshot modes.
@@ -74,6 +76,17 @@ During development:
 ```bash
 dotnet run --project src/Agentic2D.Tools -- <args>
 ```
+## Consumer workspace workflow
+
+Use the product CLI to create and operate a game workspace without repository engineering wrappers:
+
+```bash
+dotnet run --project src/Agentic2D.Tools -- workspace create /tmp/minimal-game --template minimal-game --engine-directory "$PWD" --engine-placement reference --output artifacts/workspaces/create
+dotnet run --project src/Agentic2D.Tools -- project run /tmp/minimal-game --scenario scenario.minimal.smoke --output /tmp/minimal-game/artifacts/runs/smoke
+```
+
+`agentic2d.project.json` contains game truth; `agentic2d.workspace.json` contains engine acquisition, workspace composition, mutation policy, wrappers, and artifact location. The engine-provider area is read-only by default. The source-only providers are `directory-reference`, `directory-copy`, and `git-clone`; workspace updates/migrations and portable SDK acquisition are unsupported.
+
 
 Important current command families include:
 
