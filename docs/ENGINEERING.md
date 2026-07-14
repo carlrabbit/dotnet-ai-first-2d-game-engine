@@ -65,6 +65,12 @@ The repository includes deterministic runtime, product CLI, scenarios, content v
 ./eng/input-runtime-smoke.sh
 ./eng/input-replay-smoke.sh
 ./eng/m016-smoke.sh
+./eng/animation-content-smoke.sh
+./eng/animation-sampling-smoke.sh
+./eng/animation-marker-smoke.sh
+./eng/animated-render-smoke.sh
+./eng/animation-replay-smoke.sh
+./eng/m017-smoke.sh
 ```
 
 ## Validation boundary

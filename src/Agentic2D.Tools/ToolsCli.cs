@@ -3,6 +3,7 @@ using Agentic2D.Engine;
 using Agentic2D.ScenarioRunner;
 using Agentic2D.Validation;
 using Agentic2D.Rendering;
+using Agentic2D.Animation;
 using ScenarioRunnerEngine = Agentic2D.ScenarioRunner.ScenarioRunner;
 
 namespace Agentic2D.Tools;
@@ -13,6 +14,8 @@ public static class ToolsCli
     {
         var m016 = await M016InputCommands.RunAsync(args, output, error);
         if (m016 >= 0) return m016;
+        var m017 = await M017AnimationCommands.RunAsync(args, output, error);
+        if (m017 >= 0) return m017;
         if (args is ["--help"] or ["-h"])
         {
             await output.WriteLineAsync(
@@ -29,6 +32,8 @@ public static class ToolsCli
                   agentic2d content validate <scope-or-path> --output <directory>
                   agentic2d input inspect <sequence-id> --input-map <map-id> --output <directory>
                   agentic2d input replay --scenario <scenario-id> --recording <recording> --output <directory>
+                  agentic2d animation inspect <animation-id-or-path> --output <directory>
+                  agentic2d animation project --scenario <scenario-id> --output <directory>
                   agentic2d asset inspect <asset-id-or-path> --output <directory>
                   agentic2d asset perceive <asset-id-or-path> --output <directory>
                   agentic2d asset review apply --decisions <review-file> [--dry-run] --output <directory>

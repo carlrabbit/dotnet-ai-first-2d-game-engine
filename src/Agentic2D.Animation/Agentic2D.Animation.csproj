@@ -1,0 +1,5 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <ItemGroup>
+    <ProjectReference Include="../Agentic2D.Validation/Agentic2D.Validation.csproj" />
+  </ItemGroup>
+</Project>

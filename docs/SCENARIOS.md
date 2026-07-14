@@ -19,6 +19,7 @@ Scenarios validate behavior that unit tests alone cannot prove, including runtim
 | M014 | `entity.definition-instantiation-smoke`, `trigger.enter-exit-smoke`, `interaction.npc-smoke`. |
 | M015 | Headless rendering of `interaction.npc-smoke` and snapshot reconstruction. |
 | M016 | `input.mapping-mixed-device-smoke`, `input.runtime-approach-and-interact-smoke`, and `input.semantic-replay-smoke`. |
+| M017 | `animation-player-locomotion-smoke`, `animation-overlay-marker-smoke`, and `animation-semantic-replay-smoke`. |
 
 ## Current commands
 

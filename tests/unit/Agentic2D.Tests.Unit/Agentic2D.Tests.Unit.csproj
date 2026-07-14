@@ -14,5 +14,6 @@
     <ProjectReference Include="../../../src/Agentic2D.Tools/Agentic2D.Tools.csproj" />
     <ProjectReference Include="../../../src/Agentic2D.Validation/Agentic2D.Validation.csproj" />
     <ProjectReference Include="../../../src/Agentic2D.Input/Agentic2D.Input.csproj" />
+    <ProjectReference Include="../../../src/Agentic2D.Animation/Agentic2D.Animation.csproj" />
   </ItemGroup>
 </Project>

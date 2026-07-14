@@ -39,6 +39,10 @@ This document indexes permanent behavioral authority. Milestones sequence work; 
 | `docs/specs/input-action-map-contract.md` | Backend-neutral input maps and mapping. |
 | `docs/specs/tick-bound-input-frame-contract.md` | Tick input frames and accumulator. |
 | `docs/specs/semantic-input-recording-and-replay-contract.md` | Semantic recording and replay. |
+| `docs/specs/animation-definition-contract.md` | Authored deterministic presentation animation. |
+| `docs/specs/animation-selection-and-sampling-contract.md` | Explicit base/overlay sampling and composition. |
+| `docs/specs/animation-marker-contract.md` | Presentation-only marker occurrences. |
+| `docs/specs/animated-render-projection-contract.md` | Animated values before semantic rendering. |
 
 ## Current invariants
 

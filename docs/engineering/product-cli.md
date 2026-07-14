@@ -52,6 +52,8 @@ agentic2d review pack --input <artifact-root> --output <directory>
 agentic2d asset curate --asset <asset-id-or-path> --review-pack <review-pack-path> --output <directory>
 agentic2d input inspect <input-sequence-id> --input-map <input-map-id> --output <directory>
 agentic2d input replay --scenario <scenario-id> --recording <recording> --output <directory>
+agentic2d animation inspect <animation-id-or-path> --output <directory>
+agentic2d animation project --scenario <scenario-id> --output <directory>
 ```
 
 Development equivalents:

@@ -20,6 +20,7 @@ game/entities/
 game/visuals/
 game/input/maps/
 game/input/sequences/
+game/animations/
 ```
 
 ## Current validation domains
@@ -32,6 +33,7 @@ entities
 visuals
 input-maps
 input-sequences
+animations
 ```
 
 Examples:

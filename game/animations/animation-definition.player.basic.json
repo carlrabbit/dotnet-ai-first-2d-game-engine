@@ -1,0 +1,20 @@
+{
+  "schema": "agentic2d.animation-definition.v1",
+  "id": "animation-definition.player.basic",
+  "visualDefinitionId": "visual-definition.player.basic",
+  "clips": [
+    { "id": "clip.idle.east", "durationTicks": 2, "loop": "repeat", "tracks": [
+      { "id": "track.idle-east.offset", "partId": "part.player", "property": "visual.offset.y", "valueType": "scalar", "interpolation": "step", "keyframes": [{ "id": "key.idle-east.0", "tick": 0, "scalar": 0 }] }
+    ], "markers": [{ "id": "marker.idle-debug", "tick": 0, "kind": "presentation.debug", "payload": { "state": "idle-east" } }] },
+    { "id": "clip.idle.west", "durationTicks": 2, "loop": "repeat", "tracks": [
+      { "id": "track.idle-west.offset", "partId": "part.player", "property": "visual.offset.y", "valueType": "scalar", "interpolation": "step", "keyframes": [{ "id": "key.idle-west.0", "tick": 0, "scalar": 0 }] }
+    ], "markers": [] },
+    { "id": "clip.walk.east", "durationTicks": 4, "loop": "repeat", "tracks": [], "spriteSequences": [
+      { "id": "track.walk-east.sequence", "kind": "sprite-sequence", "partId": "part.player", "regions": ["region.player", "region.npc"], "ticksPerFrame": 2, "loop": "repeat" }
+    ], "markers": [{ "id": "marker.walk-east.footstep", "tick": 1, "kind": "presentation.footstep", "payload": { "side": "east" } }, { "id": "marker.walk-east.footstep-late", "tick": 3, "kind": "presentation.footstep", "payload": { "side": "east" } }] },
+    { "id": "clip.walk.west", "durationTicks": 4, "loop": "repeat", "tracks": [], "spriteSequences": [
+      { "id": "track.walk-west.sequence", "kind": "sprite-sequence", "partId": "part.player", "regions": ["region.npc", "region.player"], "ticksPerFrame": 2, "loop": "repeat" }
+    ], "markers": [{ "id": "marker.walk-west.footstep", "tick": 1, "kind": "presentation.footstep", "payload": { "side": "west" } }] }
+  ],
+  "provenance": { "sourceKind": "repository-fixture", "createdBy": "milestone-017" }
+}
