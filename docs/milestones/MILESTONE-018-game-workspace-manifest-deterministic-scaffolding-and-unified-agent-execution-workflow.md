@@ -66,7 +66,7 @@ Implement the workspace/project contracts and deterministic scaffolding first, t
 - implemented engine acquisition providers are `directory` and `git`;
 - directory acquisition supports `reference` and `copy` placement;
 - Git acquisition always materializes engine source under the workspace;
-- a future `portable-sdk` provider may implement the same internal interface, but is contract-only and not implemented;
+- `portable-sdk` is reserved in the manifest vocabulary but unsupported and has no implementation;
 - provider extensibility means an internal interface and built-in registration, not dynamic third-party plugins;
 - `workspace create` is supported;
 - `workspace validate` is supported;
@@ -422,17 +422,9 @@ Generated wrappers:
 ./eng/review.sh <run-directory>
 ```
 
-Wrappers resolve the engine using `agentic2d.workspace.json`.
+`agentic2d.workspace.json` remains authoritative. Generation also writes `eng/engine-bootstrap.env`, a non-executable, shell-safe projection containing the provider, engine path relative to `eng/`, tools project, placement, resolved identity, and fingerprint. `eng/agentic2d.sh` is the only engine launcher; it sources that projection and executes `dotnet run --project <resolved-engine>/src/Agentic2D.Tools/Agentic2D.Tools.csproj -- <args>`. The four user wrappers delegate to it and never parse JSON.
 
-Directory-reference wrappers must not embed the creator machine’s absolute path if a relative path is possible.
-
-For M018 development, wrappers may invoke:
-
-```bash
-dotnet run --project <resolved-engine>/src/Agentic2D.Tools -- <args>
-```
-
-A future portable SDK may replace this without changing workspace/project commands.
+Workspace validation compares the bootstrap projection with the manifest and fails stable diagnostics for missing, malformed, executable, or drifting bootstrap data. Directory-reference wrappers use a relative engine path whenever possible; absolute paths are diagnostic-only and do not participate in semantic fingerprints. Portable SDK construction remains unsupported.
 
 ### 12. Workspace validation
 
@@ -732,7 +724,14 @@ eng/workspace-directory-reference-smoke.sh
 eng/workspace-directory-copy-smoke.sh
 eng/workspace-local-git-smoke.sh
 eng/workspace-minimal-game-run-smoke.sh
-eng/m018-smoke.sh
+./eng/m018-smoke.sh
+./eng/m018-directory-reference-smoke.sh
+./eng/m018-directory-copy-smoke.sh
+./eng/m018-local-git-smoke.sh
+./eng/m018-consumer-workflow-smoke.sh
+./eng/m018-consumer-bootstrap-smoke.sh <temporary-root>
+./eng/m018-consumer-run-smoke.sh <workspace>
+./eng/m018-consumer-review-smoke.sh <workspace>
 ```
 
 Do not add a consumer game as a large permanent product inside engine source. Keep fixtures bounded.
@@ -774,6 +773,13 @@ Cover:
 ./eng/m016-smoke.sh
 ./eng/m017-smoke.sh
 ./eng/m018-smoke.sh
+./eng/m018-directory-reference-smoke.sh
+./eng/m018-directory-copy-smoke.sh
+./eng/m018-local-git-smoke.sh
+./eng/m018-consumer-workflow-smoke.sh
+./eng/m018-consumer-bootstrap-smoke.sh <temporary-root>
+./eng/m018-consumer-run-smoke.sh <workspace>
+./eng/m018-consumer-review-smoke.sh <workspace>
 ```
 
 M018 acceptance is headless and network-independent.
@@ -953,7 +959,6 @@ Verify:
 10. recommended next actions are actionable rather than generic prose;
 11. no update/migration semantics have leaked into creation;
 12. no NuGet assumptions remain;
-13. future portable SDK acquisition can fit the provider boundary without changing workspace/project truth.
 
 ## Out-of-scope guide migration work
 

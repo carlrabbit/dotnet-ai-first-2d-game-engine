@@ -98,6 +98,11 @@ public sealed class AnimationCompiler
         visuals = VisualDefinitionCatalog.LoadAll(out _);
         assetRegions = LoadAssetRegions();
     }
+    public AnimationCompiler(VisualDefinitionCatalog externalVisuals, IReadOnlyDictionary<string, HashSet<string>> externalAssetRegions)
+    {
+        visuals = externalVisuals;
+        assetRegions = externalAssetRegions;
+    }
     public AnimationValidationRun LoadAndCompileAll()
     {
         var root = Path.Combine(ContentTargetResolver.FindRepositoryRoot(), "game", "animations");
@@ -167,8 +172,13 @@ public sealed class AnimationCompiler
     public static string Fingerprint(object value) => "sha256:" + Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(JsonSerializer.Serialize(value, JsonOptions)))).ToLowerInvariant();
     private static IReadOnlyDictionary<string, HashSet<string>> LoadAssetRegions()
     {
-        var root = Path.Combine(ContentTargetResolver.FindRepositoryRoot(), "game/assets/metadata"); var result = new Dictionary<string, HashSet<string>>(StringComparer.Ordinal);
-        foreach (var path in Directory.EnumerateFiles(root, "*.asset.json").Order(StringComparer.Ordinal)) { var asset = JsonSerializer.Deserialize<AssetMetadataSource>(File.ReadAllText(path), JsonOptions); if (asset?.Id is not null) result[asset.Id] = asset.Tiles.Where(x => x.Id is not null).Select(x => x.Id!).ToHashSet(StringComparer.Ordinal); }
+        var root = Path.Combine(ContentTargetResolver.FindRepositoryRoot(), "game/assets/metadata");
+        return LoadAssetRegions(Directory.Exists(root) ? Directory.EnumerateFiles(root, "*.asset.json", SearchOption.AllDirectories) : []);
+    }
+    public static IReadOnlyDictionary<string, HashSet<string>> LoadAssetRegions(IEnumerable<string> paths)
+    {
+        var result = new Dictionary<string, HashSet<string>>(StringComparer.Ordinal);
+        foreach (var path in paths.OrderBy(x => x, StringComparer.Ordinal)) { var asset = JsonSerializer.Deserialize<AssetMetadataSource>(File.ReadAllText(path), JsonOptions); if (asset?.Id is not null) result[asset.Id] = asset.Tiles.Where(x => x.Id is not null).Select(x => x.Id!).ToHashSet(StringComparer.Ordinal); }
         return result;
     }
 }

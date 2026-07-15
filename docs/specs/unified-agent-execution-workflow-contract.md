@@ -39,3 +39,7 @@ Failures emit structured recommended commands tied to known diagnostic/object ID
 ## Consumer boundary
 
 Consumer agents should operate through workspace/project/run commands and generated wrappers without reading provider repository engineering scripts.
+
+## Project-aware headless render projection
+
+A successful renderable `project run` resolves maps, definitions, visuals, animations, assets, and the final runtime snapshot from the declared external game project. It performs headless structural projection without raylib or a graphics environment. The render family records `present`, `failed`, or `absent`; supported absence reasons are `render-disabled-by-explicit-option`, `scenario-has-no-renderable-snapshot`, `project-has-no-visual-content`, and `execution-failed-before-snapshot`. Render failure is not a successful absence. The manifest declares `same-execution` or `deterministic-replay`; the minimal-game template requires `same-execution` render evidence.

@@ -35,6 +35,13 @@ public sealed class RenderProjectionService
     {
         var map = MapInspector.ResolveTarget(snapshot.MapId); var item = new MapContentValidator().ValidateFile(map.MapPath); if (item.Map is null) throw new InvalidOperationException("Snapshot map unavailable."); var visuals = VisualDefinitionCatalog.LoadAll(out var ds); var staticItems = Static(item.Map, visuals); var dynamicItems = Dynamic(snapshot, visuals); var items = staticItems.Concat(dynamicItems).OrderBy(x => Layer(x.Layer)).ThenBy(x => x.Order).ThenBy(x => x.SortMode == "y" ? x.YSort : 0d).ThenBy(x => x.Id, StringComparer.Ordinal).ToArray(); var commands = Compile(items); var fp = Fingerprint(items, commands); return new(new("agentic2d.render-frame.v1", sourceMode, snapshot.ScenarioId, snapshot.MapId, snapshot.Tick, snapshot.SnapshotFingerprint, fp, items, commands), snapshot, items.Select(x => x.AssetId).Distinct().Order().Select(id => Binding(id)).Cast<object>().ToArray(), ds);
     }
+    /// <summary>Projects an already-executed external game snapshot using externally resolved map and visual content.</summary>
+    public RenderProjectionResult ProjectExternal(RenderSnapshot snapshot, MapContentSource map, VisualDefinitionCatalog visuals, string sourceMode = "same-execution")
+    {
+        if (!StringComparer.Ordinal.Equals(snapshot.MapId, map.Id)) throw new InvalidOperationException("External render snapshot map does not match resolved map content.");
+        var staticItems = Static(map, visuals); var dynamicItems = Dynamic(snapshot, visuals); var items = staticItems.Concat(dynamicItems).OrderBy(x => Layer(x.Layer)).ThenBy(x => x.Order).ThenBy(x => x.SortMode == "y" ? x.YSort : 0d).ThenBy(x => x.Id, StringComparer.Ordinal).ToArray(); var commands = Compile(items); var fp = Fingerprint(items, commands);
+        return new(new("agentic2d.render-frame.v1", sourceMode, snapshot.ScenarioId, snapshot.MapId, snapshot.Tick, snapshot.SnapshotFingerprint, fp, items, commands), snapshot, items.Select(x => x.AssetId).Distinct(StringComparer.Ordinal).Order().Select(id => Binding(id)).Cast<object>().ToArray(), []);
+    }
     /// <summary>Recompiles a read-only frame after presentation has derived animated render items.</summary>
     public RenderProjectionResult WithAnimatedItems(RenderProjectionResult source, IReadOnlyList<RenderItem> animatedItems)
     {

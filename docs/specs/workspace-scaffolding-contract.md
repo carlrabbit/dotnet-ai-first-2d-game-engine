@@ -55,3 +55,7 @@ Exclude `.git`, `bin`, `obj`, artifacts, editor state, and temporary files. Pref
 ## Generated content
 
 The `minimal-game` template must build, validate, and run a real deterministic scenario. Success-only placeholders are forbidden.
+
+## Generated launcher
+
+The template emits `eng/agentic2d.sh` and `eng/engine-bootstrap.env` in addition to the four workflow wrappers. The launcher needs Bash and the .NET SDK only; wrappers do not parse JSON and do not require Python, jq, Node.js, Bun, Ruby, Perl, PowerShell, or another JSON runtime. Directory-reference bootstrap paths are relative to `eng/` when possible. Copy and Git paths resolve to the workspace-local `engine-src/` directory.

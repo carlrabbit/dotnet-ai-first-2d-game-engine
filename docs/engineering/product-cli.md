@@ -256,7 +256,7 @@ The separate client is invoked with `dotnet run --project src/Agentic2D.DebugCli
 
 ## M018 consumer workflow
 
-`workspace create` transactionally scaffolds a `minimal-game` workspace from a source directory reference/copy or exact Git revision. It rejects non-empty targets and writes structured creation evidence. `workspace validate`, `project validate`, `project run`, `run inspect`, and `run review` are the consumer-facing workflow. Generated `eng/` wrappers resolve the engine location from `agentic2d.workspace.json`.
+`workspace create` transactionally scaffolds a `minimal-game` workspace from a source directory reference/copy or exact Git revision. It rejects non-empty targets and writes structured creation evidence. `workspace validate`, `project validate`, `project run`, `run inspect`, and `run review` are the consumer-facing workflow. Generated `eng/` wrappers delegate to one Bash launcher, which resolves the generated bootstrap projection and workspace validation verifies against authoritative `agentic2d.workspace.json`.
 
 ```bash
 dotnet run --project src/Agentic2D.Tools -- workspace validate <workspace> --output <directory>
