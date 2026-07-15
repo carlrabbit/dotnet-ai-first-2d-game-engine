@@ -28,6 +28,7 @@ Agentic2D.ScenarioRunner -> Agentic2D.Validation
 Agentic2D.Tools -> Agentic2D.Contracts
 Agentic2D.Tools -> Agentic2D.Engine
 Agentic2D.Tools -> Agentic2D.ScenarioRunner
+src/Agentic2D.Workspaces
 Agentic2D.Tools -> Agentic2D.Validation
 Agentic2D.Tests.Unit -> Agentic2D.Contracts
 Agentic2D.Tests.Unit -> Agentic2D.Engine

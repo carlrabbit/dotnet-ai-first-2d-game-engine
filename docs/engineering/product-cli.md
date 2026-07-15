@@ -253,3 +253,15 @@ Do not document these as supported until implemented by a later milestone.
 `agentic2d render project --scenario <scenario-id> --tick final --output <directory>` produces headless, backend-neutral render evidence: `render-result.json`, `render-snapshot.json`, `render-frame.json`, `render-items.jsonl`, `render-commands.jsonl`, `asset-bindings.json`, and `render-diagnostics.json`. It does not initialize raylib or a graphics context.
 
 The separate client is invoked with `dotnet run --project src/Agentic2D.DebugClient.Raylib -- scenario --scenario interaction.npc-smoke` or `snapshot --input <render-snapshot.json>`. Graphics smoke requires a native raylib 6.0-capable desktop display and reports skipped when `DISPLAY`/`WAYLAND_DISPLAY` is absent.
+
+## M018 consumer workflow
+
+`workspace create` transactionally scaffolds a `minimal-game` workspace from a source directory reference/copy or exact Git revision. It rejects non-empty targets and writes structured creation evidence. `workspace validate`, `project validate`, `project run`, `run inspect`, and `run review` are the consumer-facing workflow. Generated `eng/` wrappers delegate to one Bash launcher, which resolves the generated bootstrap projection and workspace validation verifies against authoritative `agentic2d.workspace.json`.
+
+```bash
+dotnet run --project src/Agentic2D.Tools -- workspace validate <workspace> --output <directory>
+dotnet run --project src/Agentic2D.Tools -- project validate <project-or-workspace> --output <directory>
+dotnet run --project src/Agentic2D.Tools -- project run <project-or-workspace> --scenario <scenario-id> --output <run-directory>
+dotnet run --project src/Agentic2D.Tools -- run inspect <run-directory> --output <directory>
+dotnet run --project src/Agentic2D.Tools -- run review <run-directory> --output <directory>
+```

@@ -5,6 +5,7 @@ using Agentic2D.Validation;
 using Agentic2D.Rendering;
 using Agentic2D.Animation;
 using ScenarioRunnerEngine = Agentic2D.ScenarioRunner.ScenarioRunner;
+using Agentic2D.Workspaces;
 
 namespace Agentic2D.Tools;
 
@@ -12,6 +13,8 @@ public static class ToolsCli
 {
     public static async Task<int> RunAsync(string[] args, TextWriter output, TextWriter error)
     {
+        var m018 = await WorkspaceCommands.RunAsync(args, output, error);
+        if (m018 >= 0) return m018;
         var m016 = await M016InputCommands.RunAsync(args, output, error);
         if (m016 >= 0) return m016;
         var m017 = await M017AnimationCommands.RunAsync(args, output, error);
@@ -40,6 +43,12 @@ public static class ToolsCli
                   agentic2d map inspect <map-id-or-path> --output <directory>
                   agentic2d review pack --input <artifact-root> --output <directory>
                   agentic2d asset curate --asset <asset-id-or-path> --review-pack <review-pack-path> --output <directory>
+                  agentic2d workspace create <target> --template minimal-game (--engine-directory <path> --engine-placement reference|copy | --engine-git <url-or-path> --engine-revision <revision>) --output <directory>
+                  agentic2d workspace validate <workspace> --output <directory>
+                  agentic2d project validate <project-or-workspace> --output <directory>
+                  agentic2d project run <project-or-workspace> --scenario <scenario-id> --output <run-directory>
+                  agentic2d run inspect <run-directory> --output <directory>
+                  agentic2d run review <run-directory> --output <directory>
 
                 Exit codes:
                   0  Command completed and validation passed.

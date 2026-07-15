@@ -53,6 +53,18 @@ The repository includes deterministic runtime, product CLI, scenarios, content v
 ./eng/continuous-spatial-smoke.sh
 ./eng/m013-smoke.sh
 ./eng/entity-definition-smoke.sh
+./eng/workspace-directory-reference-smoke.sh
+./eng/workspace-directory-copy-smoke.sh
+./eng/workspace-local-git-smoke.sh
+./eng/workspace-minimal-game-run-smoke.sh
+./eng/m018-smoke.sh
+./eng/m018-directory-reference-smoke.sh
+./eng/m018-directory-copy-smoke.sh
+./eng/m018-local-git-smoke.sh
+./eng/m018-consumer-workflow-smoke.sh
+./eng/m018-consumer-bootstrap-smoke.sh <temporary-root>
+./eng/m018-consumer-run-smoke.sh <workspace>
+./eng/m018-consumer-review-smoke.sh <workspace>
 ./eng/spatial-query-trigger-smoke.sh
 ./eng/interaction-smoke.sh
 ./eng/m014-smoke.sh

@@ -41,6 +41,7 @@ Examples:
 ```bash
 dotnet run --project src/Agentic2D.Tools -- content validate scenarios --output artifacts/content/scenarios
 dotnet run --project src/Agentic2D.Tools -- content validate assets --output artifacts/content/assets
+- Consumer workspaces declare their authored content roots in `agentic2d.project.json`; project validation resolves these roots without engine acquisition data.
 dotnet run --project src/Agentic2D.Tools -- content validate maps --output artifacts/content/maps
 dotnet run --project src/Agentic2D.Tools -- content validate entities --output artifacts/content/entities
 dotnet run --project src/Agentic2D.Tools -- content validate visuals --output artifacts/content/visuals

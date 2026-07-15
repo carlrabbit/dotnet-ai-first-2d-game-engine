@@ -43,6 +43,10 @@ Verify:
 - native resources are cleaned up;
 - future animation, input, or alternate backends can extend projection without changing runtime authority.
 
+### Consumer workspace evidence
+
+Verify that workspace acquisition remains separate from game truth, the engine-provider area remains read-only by default, generated wrappers use workspace resolution instead of brittle machine paths, and `run-manifest.json` links the available structural evidence before optional screenshots.
+
 ## Evidence hierarchy
 
 1. Structured source and contracts.

@@ -16,6 +16,7 @@ Scenarios validate behavior that unit tests alone cannot prove, including runtim
 | M011 | Bounded asset/map/runtime inspection journey. |
 | M012 | `behavior.grid-movement-smoke`, `behavior.grid-movement-rejected-smoke`. |
 | M013 | Entity/component runtime and continuous kinematic movement/tree collision scenarios. |
+| M018 | Consumer `scenario.minimal.smoke` through `agentic2d project run`. |
 | M014 | `entity.definition-instantiation-smoke`, `trigger.enter-exit-smoke`, `interaction.npc-smoke`. |
 | M015 | Headless rendering of `interaction.npc-smoke` and snapshot reconstruction. |
 | M016 | `input.mapping-mixed-device-smoke`, `input.runtime-approach-and-interact-smoke`, and `input.semantic-replay-smoke`. |
@@ -30,6 +31,8 @@ dotnet run --project src/Agentic2D.Tools -- render project --scenario <id> --tic
 ```
 
 Graphical live and snapshot presentation is provided by `src/Agentic2D.DebugClient.Raylib`; it does not define scenario semantics.
+dotnet run --project src/Agentic2D.Tools -- project run <project-or-workspace> --scenario <id> --output <run-directory>
+dotnet run --project src/Agentic2D.Tools -- run inspect <run-directory> --output <directory>
 
 ## Required scenario qualities
 

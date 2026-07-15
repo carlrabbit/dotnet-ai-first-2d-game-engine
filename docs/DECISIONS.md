@@ -25,6 +25,7 @@ This document indexes durable project decisions.
 | `docs/decisions/ADR-0015-behaviors-emit-intents-and-spatial-modules-resolve-them.md` | Accepted | Behaviors emit intents; spatial modules resolve. |
 | `docs/decisions/ADR-0016-runtime-owns-entities-components-and-spatial-modules-own-spatial-semantics.md` | Accepted | Runtime/entity/spatial ownership boundary. |
 | `docs/decisions/ADR-0017-authored-definitions-instantiate-runtime-entities-and-interactions-use-explicit-intents.md` | Accepted | Definitions, spawns, and explicit interactions. |
+| `docs/decisions/ADR-0021-workspaces-separate-game-truth-from-engine-acquisition.md` | Accepted | Separate game truth from workspace acquisition. |
 | `docs/decisions/ADR-0018-rendering-is-read-only-and-raylib-is-an-isolated-adapter.md` | Accepted | Read-only rendering and isolated raylib adapter. |
 
 ## Decision policy

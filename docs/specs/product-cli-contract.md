@@ -27,6 +27,12 @@ dotnet run --project src/Agentic2D.Tools -- <args>
 ```
 
 ## Supported commands
+agentic2d workspace create <target> --template minimal-game ... --output <directory>
+agentic2d workspace validate <workspace> --output <directory>
+agentic2d project validate <project-or-workspace> --output <directory>
+agentic2d project run <project-or-workspace> --scenario <id> --output <run-directory>
+agentic2d run inspect <run-directory> --output <directory>
+agentic2d run review <run-directory> --output <directory>
 
 The current command set is:
 

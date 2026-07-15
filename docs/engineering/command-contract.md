@@ -48,6 +48,13 @@ These commands are the canonical local engineering API.
 ```
 
 ## Future artifact-first commands
+| `./eng/workspace-directory-reference-smoke.sh` | Creates, validates, runs, and inspects a directory-reference consumer workspace without mutating engine source. | Tier 2 milestone smoke gate |
+| `./eng/workspace-directory-copy-smoke.sh` | Proves deterministic copy exclusions and consumer execution. | Tier 2 milestone smoke gate |
+| `./eng/workspace-local-git-smoke.sh` | Proves exact-revision local Git acquisition without network access. | Tier 2 milestone smoke gate |
+| `./eng/workspace-minimal-game-run-smoke.sh` | Proves generated consumer wrappers, run manifest, inspection, and review. | Tier 2 milestone smoke gate |
+| `./eng/m018-smoke.sh` | Runs the bounded M018 provider/consumer smoke suite. | Tier 2 milestone smoke gate |
+| `./eng/m018-directory-reference-smoke.sh`, `./eng/m018-directory-copy-smoke.sh`, `./eng/m018-local-git-smoke.sh`, `./eng/m018-consumer-workflow-smoke.sh` | Bounded M018 shards for constrained runners; each delegates to one black-box provider or consumer journey. | Tier 2 milestone smoke gate |
+| `./eng/m018-consumer-bootstrap-smoke.sh <temporary-root>`, `./eng/m018-consumer-run-smoke.sh <workspace>`, `./eng/m018-consumer-review-smoke.sh <workspace>` | Stages the generated consumer journey for constrained runners: bootstrap, run evidence, then inspection/review. | Tier 2 milestone smoke gate |
 
 ```text
 ./eng/scenario-packaged.sh <scenario-id>
