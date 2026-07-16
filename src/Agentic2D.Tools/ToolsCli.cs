@@ -13,6 +13,8 @@ public static class ToolsCli
 {
     public static async Task<int> RunAsync(string[] args, TextWriter output, TextWriter error)
     {
+        var m021 = await M021PresentationCommands.RunAsync(args, output, error);
+        if (m021 >= 0) return m021;
         var m020 = await M020Commands.RunAsync(args, output, error);
         if (m020 >= 0) return m020;
         var m019Sound = await M019SoundCommands.RunAsync(args, output, error);
@@ -47,6 +49,10 @@ public static class ToolsCli
                   agentic2d input replay --scenario <scenario-id> --recording <recording> --output <directory>
                   agentic2d animation inspect <animation-id-or-path> --output <directory>
                   agentic2d animation project --scenario <scenario-id> --output <directory>
+                  agentic2d presentation inspect --project <project-or-workspace> --scenario <scenario-id> --output <directory>
+                  agentic2d effect inspect <effect-id-or-path> --output <directory>
+                  agentic2d camera inspect --project <project-or-workspace> --scenario <scenario-id> --output <directory>
+                  agentic2d ui inspect <ui-id-or-path> --project <project-or-workspace> [--scenario <scenario-id>] --output <directory>
                   agentic2d sound inspect <sound-id-or-path> --output <directory>
                   agentic2d sound project --project <project-or-workspace> --scenario <scenario-id> --output <directory>
                   agentic2d gameplay inspect --project <project-or-workspace> --scenario <scenario-id> --output <directory>

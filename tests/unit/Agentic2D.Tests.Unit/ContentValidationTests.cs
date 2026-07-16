@@ -17,7 +17,7 @@ public sealed class ContentValidationTests
 
         await Assert.That(result.Result.Status).IsEqualTo("passed");
         await Assert.That(result.Result.ExitCode).IsEqualTo(0);
-        await Assert.That(result.Result.Summary.ItemsValidated).IsEqualTo(27);
+        await Assert.That(result.Result.Summary.ItemsValidated).IsEqualTo(34);
         await Assert.That(result.Result.Summary.Errors).IsEqualTo(0);
         await Assert.That(result.ValidatedItemsDocument.Items.Select(static item => item.Id)).Contains("runtime.smoke");
         await Assert.That(result.ValidatedItemsDocument.Items.Select(static item => item.Id)).Contains("behavior.grid-movement-smoke");

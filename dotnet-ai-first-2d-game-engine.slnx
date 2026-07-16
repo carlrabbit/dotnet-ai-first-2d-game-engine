@@ -10,6 +10,8 @@
     <Project Path="src/Agentic2D.Sound/Agentic2D.Sound.csproj" />
     <Project Path="src/Agentic2D.Gameplay/Agentic2D.Gameplay.csproj" />
     <Project Path="src/Agentic2D.Persistence/Agentic2D.Persistence.csproj" />
+    <Project Path="src/Agentic2D.Presentation/Agentic2D.Presentation.csproj" />
+    <Project Path="src/Agentic2D.UI/Agentic2D.UI.csproj" />
     <Project Path="src/Agentic2D.Workspaces/Agentic2D.Workspaces.csproj" />
     <Project Path="src/Agentic2D.Tools/Agentic2D.Tools.csproj" />
     <Project Path="src/Agentic2D.Validation/Agentic2D.Validation.csproj" />
