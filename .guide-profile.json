@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "guideSystemVersion": "0.3.0",
+  "guideSystemVersion": "0.5.0",
   "guideRepository": "carlrabbit/agentic-project-guides",
   "targetRepository": "carlrabbit/dotnet-ai-first-2d-game-engine",
   "repositoryRole": "capability-provider",
@@ -20,6 +20,16 @@
     "documentation-synchronization",
     "release-readiness"
   ],
+  "adoption": {
+    "migratedFromGuideSystemVersion": "0.3.0",
+    "includesGuideSystemVersions": [
+      "0.4.0",
+      "0.5.0"
+    ],
+    "humanReviewModel": "repository-local-when-applicable",
+    "validationExecutionModel": "direct-or-resumable-sharded",
+    "engineeringCommandModel": "thin-launchers-over-tested-dotnet-host"
+  },
   "ordinaryImplementationAgents": {
     "mustRead": false,
     "ignorePaths": [
@@ -34,8 +44,9 @@
   },
   "notes": [
     "This file is guide-selection and traceability metadata only.",
-    "Project truth remains in README.md, AGENTS.md, docs/, eng/, source, tests, and authored project data.",
+    "Project truth remains in README.md, AGENTS.md, docs/, eng/, source, tests, authored project data, and activated review records.",
     "Do not copy guide documents or prompt templates into this repository.",
-    "Planning packages for disconnected implementation agents should include a filled execution prompt in chat."
+    "Planning packages for disconnected implementation agents include a filled execution prompt in chat.",
+    "Aggregate validation success is established only by direct bounded completion or by fast verification of current fingerprinted shard receipts."
   ]
 }

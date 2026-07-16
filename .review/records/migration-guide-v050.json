@@ -1,0 +1,24 @@
+{
+  "schema": "agentic2d.engineering.review.v1",
+  "id": "migration-guide-v050",
+  "subject": "Milestone 022 constrained validation and human review migration",
+  "class": "migration",
+  "level": "required",
+  "source": "MILESTONE-022",
+  "reviewerRole": "repository maintainer",
+  "status": "approved",
+  "evidence": [
+    ".review/evidence/migration-guide-v050.md"
+  ],
+  "decision": "Approved: shard boundaries, receipt trustworthiness, review usability, Linux/Bash platform baseline, guide isolation, and ordinary-agent routing reviewed.",
+  "reviewedFingerprint": "e08d7aabf559ad3219d31f19fd0c2dc5c218ef424b712fadd78d7634ae8f4b3c",
+  "reReviewTriggers": [
+    "suite boundaries",
+    "receipt fingerprints",
+    "review workflow",
+    "platform declaration",
+    "guide leakage",
+    "agent isolation"
+  ],
+  "path": ".review/records/migration-guide-v050.json"
+}
