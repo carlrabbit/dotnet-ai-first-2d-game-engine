@@ -55,3 +55,9 @@ Verify that workspace acquisition remains separate from game truth, the engine-p
 4. Explicit screenshots and graphical inspection where required.
 
 Screenshot pixels are not cross-platform semantic truth.
+
+## Repository-local review gate
+
+Required and blocking reviews use `.review/pending/`, `.review/records/`, and `.review/evidence/`. Generated or large evidence remains in `artifacts/review/`.
+
+Use the canonical review commands. `./eng/review-check.sh` fails required/blocking reviews that are unresolved, malformed, stale, superseded, or missing evidence. M022 requires an approved, current migration review covering shard boundaries, receipt/fingerprint trustworthiness, review usability, platform support, guide leakage, and ordinary-agent isolation.

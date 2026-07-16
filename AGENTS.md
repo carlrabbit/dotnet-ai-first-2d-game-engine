@@ -93,3 +93,13 @@ Project-specific operational rules must exist in active repository docs before i
 - Do not add public docs, release structures, package publishing, or workflows unless explicitly activated.
 - Do not treat `eng/` scripts as product APIs.
 - Do not introduce implementation placeholders that produce success without validating meaningful state.
+
+## Constrained validation
+
+For resumable suites, run `--plan-json`, then each required `--shard <id>` in a separate invocation, then `--verify`. Only the verifier establishes aggregate success. Do not use backgrounding, detached processes, timeout inflation, or partial logs as proof.
+
+Use `.review/` only through the canonical review commands. Required and blocking review must pass `./eng/review-check.sh`.
+
+The canonical launcher platform is Bash on Linux. Native Windows and PowerShell are unsupported until implemented and tested.
+
+`src/Agentic2D.Engineering` is repository engineering infrastructure, not a product runtime API.

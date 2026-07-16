@@ -14,3 +14,9 @@ This document is authoritative for validation tier names.
 | 5 | Artifact/human review | Validate generated evidence and review-gated outputs. |
 
 Milestones and implementation tasks should name the expected validation tier.
+
+## Execution modes
+
+Tier names are independent of execution mode: `direct`, `resumable-sharded`, `CI-only`, or `human-review`. A resumable Tier 2 suite has current passing receipts only when its fast `--verify` passes. Tier 5 required/blocking review is established by `./eng/review-check.sh`.
+
+Linux/Bash is the tested platform baseline for engineering commands. Native Windows/PowerShell is unsupported until implemented and validated.

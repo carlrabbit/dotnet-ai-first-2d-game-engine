@@ -3,6 +3,8 @@ bin/
 obj/
 artifacts/**
 !artifacts/.gitkeep
+!artifacts/review/
+!artifacts/review/.gitkeep
 
 # Generated game assets and local previews
 game/assets/generated/**

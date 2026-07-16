@@ -104,3 +104,13 @@ The repository includes deterministic runtime, product CLI, scenarios, content v
 ## Command rule
 
 Commands must validate meaningful state or fail clearly. Success-only placeholders are prohibited.
+
+## Constrained validation and review
+
+`src/Agentic2D.Engineering` is the tested .NET host for validation plans, fingerprints, atomic receipts, fast verification, and repository-local review state. `eng/*.sh` remains the stable engineering API and only forwards arguments and exit codes.
+
+The resumable suites are `./eng/m019-smoke.sh`, `./eng/m020-smoke.sh`, `./eng/m021-smoke.sh`, and `./eng/guide-migration-v050.sh`. Each supports `--list`, `--plan-json`, `--shard <id>`, and `--verify`; a no-argument run is for unconstrained local/CI use.
+
+Repository-local review state is `.review/pending/`, `.review/records/`, and `.review/evidence/`; generated or large evidence belongs under `artifacts/review/`. Use `review-list.sh`, `review-request.sh`, `review-record.sh`, and `review-check.sh`.
+
+The tested engineering baseline is Linux with Bash, Git, .NET SDK 10.0.109, and same-filesystem atomic file replacement. Native Windows and PowerShell are not supported or claimed. Graphics smoke remains conditional on its documented graphics-capable environment.

@@ -69,3 +69,13 @@ Do not create success-only placeholder scripts.
 | `./eng/behavior-smoke.sh` | Validates behavior registration, activation, lifecycle scheduling, and intent emission. | Tier 2 milestone smoke gate |
 | `./eng/grid-spatial-smoke.sh` | Verifies accepted and expected-rejected `spatial.grid` movement evidence. | Tier 2 milestone smoke gate |
 | `./eng/m012-smoke.sh` | Executes the bounded behavior/grid scenario-to-review-pack journey. | Tier 2 milestone smoke gate |
+
+## Resumable validation commands
+
+`m019-smoke.sh`, `m020-smoke.sh`, `m021-smoke.sh`, and `guide-migration-v050.sh` are resumable-sharded suites. They expose `--list`, `--plan-json`, `--shard <id>`, `--verify`, and no-argument local/CI aggregate mode. `--verify` is the only aggregate-success authority.
+
+Receipts are generated at `artifacts/validation/<suite>/<shard>.json`. The host deletes a previous receipt before execution and only atomically replaces it after command success and evidence validation.
+
+Canonical review commands are `./eng/review-list.sh`, `./eng/review-request.sh`, `./eng/review-record.sh`, and `./eng/review-check.sh`.
+
+The Bash launchers delegate structured semantics to `src/Agentic2D.Engineering`; they are not product commands.

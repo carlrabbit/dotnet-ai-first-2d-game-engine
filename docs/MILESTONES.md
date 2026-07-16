@@ -35,3 +35,4 @@ This document indexes planned and completed implementation milestones.
 ## Next direction
 
 Select the next milestone explicitly from current project truth. Likely candidates include deterministic input frames, animation projection, audio projection, save/load and replay, or packaging. None is current capability until specified and implemented.
+| 022 | `docs/milestones/MILESTONE-022-adopt-guide-system-v0.5.0-constrained-validation-and-human-review.md` | Implemented | Guide-system v0.5.0 constrained validation and repository-local review. |
