@@ -10,10 +10,13 @@ git clone --no-local "$repo_root" "$fixture" >/dev/null
 git -C "$fixture" config user.email smoke@example.invalid
 git -C "$fixture" config user.name smoke
 cp -a "$repo_root/src/Agentic2D.Workspaces" "$fixture/src/"
+cp -a "$repo_root/src/Agentic2D.Persistence" "$fixture/src/"
 cp "$repo_root/src/Agentic2D.Tools/Agentic2D.Tools.csproj" "$fixture/src/Agentic2D.Tools/"
 cp "$repo_root/src/Agentic2D.Tools/ToolsCli.cs" "$fixture/src/Agentic2D.Tools/"
 cp "$repo_root/src/Agentic2D.Tools/"M019*.cs "$fixture/src/Agentic2D.Tools/"
 cp -a "$repo_root/src/Agentic2D.Sound" "$fixture/src/"
+cp "$repo_root/src/Agentic2D.Tools/M020Commands.cs" "$fixture/src/Agentic2D.Tools/"
+cp "$repo_root/src/Agentic2D.Tools/M020RuntimeState.cs" "$fixture/src/Agentic2D.Tools/"
 cp -a "$repo_root/src/Agentic2D.Gameplay" "$fixture/src/"
 cp "$repo_root/src/Agentic2D.Engine/Agentic2D.Engine.csproj" "$fixture/src/Agentic2D.Engine/"
 cp "$repo_root/src/Agentic2D.Engine/M019GameplayRuntime.cs" "$fixture/src/Agentic2D.Engine/"

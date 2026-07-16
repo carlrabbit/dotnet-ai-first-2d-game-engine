@@ -13,6 +13,8 @@ public static class ToolsCli
 {
     public static async Task<int> RunAsync(string[] args, TextWriter output, TextWriter error)
     {
+        var m020 = await M020Commands.RunAsync(args, output, error);
+        if (m020 >= 0) return m020;
         var m019Sound = await M019SoundCommands.RunAsync(args, output, error);
         if (m019Sound >= 0) return m019Sound;
         var m019Items = await M019ItemCommands.RunAsync(args, output, error);
@@ -55,6 +57,11 @@ public static class ToolsCli
                   agentic2d review pack --input <artifact-root> --output <directory>
                   agentic2d asset curate --asset <asset-id-or-path> --review-pack <review-pack-path> --output <directory>
                   agentic2d workspace create <target> --template minimal-game (--engine-directory <path> --engine-placement reference|copy | --engine-git <url-or-path> --engine-revision <revision>) --output <directory>
+                  agentic2d save create --project <project-or-workspace> --run <run-directory> --tick <tick-or-final> --save-id <stable-id> --output <directory>
+                  agentic2d save inspect <save-path> --output <directory>
+                  agentic2d save validate <save-path> --project <project-or-workspace> --output <directory>
+                  agentic2d project resume <project-or-workspace> --save <save-path> [--recording <semantic-input-recording>] --output <run-directory>
+                  agentic2d content validate flags --output <directory>
                   agentic2d workspace validate <workspace> --output <directory>
                   agentic2d project validate <project-or-workspace> --output <directory>
                   agentic2d project run <project-or-workspace> --scenario <scenario-id> --output <run-directory>
