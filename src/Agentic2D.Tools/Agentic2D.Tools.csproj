@@ -11,6 +11,11 @@
     <ProjectReference Include="../Agentic2D.Rendering/Agentic2D.Rendering.csproj" />
     <ProjectReference Include="../Agentic2D.Input/Agentic2D.Input.csproj" />
     <ProjectReference Include="../Agentic2D.Animation/Agentic2D.Animation.csproj" />
+    <ProjectReference Include="../Agentic2D.Sound/Agentic2D.Sound.csproj" />
+    <ProjectReference Include="../Agentic2D.Gameplay/Agentic2D.Gameplay.csproj" />
+    <ProjectReference Include="../Agentic2D.Persistence/Agentic2D.Persistence.csproj" />
+    <ProjectReference Include="../Agentic2D.Presentation/Agentic2D.Presentation.csproj" />
+    <ProjectReference Include="../Agentic2D.UI/Agentic2D.UI.csproj" />
     <ProjectReference Include="../Agentic2D.Workspaces/Agentic2D.Workspaces.csproj" />
   </ItemGroup>
 </Project>

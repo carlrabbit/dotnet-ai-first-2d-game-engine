@@ -1,0 +1,6 @@
+{
+  "schema": "agentic2d.flag-definition.v1",
+  "id": "flag.door.vault-access",
+  "type": "boolean",
+  "defaultValue": false
+}

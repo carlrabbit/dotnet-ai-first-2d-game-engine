@@ -1,0 +1,1 @@
+{"schema":"agentic2d.item-definition.v1","id":"item.collectible-crystal","stackable":true,"maximumStack":10,"tags":["collectible","crystal"],"visualDefinitionId":"visual-definition.player.basic","defaultCollectionCue":"cue.item.collection","provenance":{"source":"m019"}}

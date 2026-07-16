@@ -47,6 +47,11 @@ This document indexes permanent behavioral authority. Milestones sequence work; 
 | `docs/specs/animation-selection-and-sampling-contract.md` | Explicit base/overlay sampling and composition. |
 | `docs/specs/animation-marker-contract.md` | Presentation-only marker occurrences. |
 | `docs/specs/animated-render-projection-contract.md` | Animated values before semantic rendering. |
+| `docs/specs/sound-definition-and-command-contract.md` | Deterministic sound definitions and backend-neutral commands. |
+| `docs/specs/sound-cue-projection-contract.md` | Presentation-only cue projection. |
+| `docs/specs/resource-damage-and-lifecycle-contract.md` | Health, damage, defeat, and lifecycle. |
+| `docs/specs/item-inventory-and-collection-contract.md` | Items, inventory, and atomic collection. |
+| `docs/specs/gameplay-presentation-event-contract.md` | Post-commit gameplay presentation events. |
 
 ## Current invariants
 

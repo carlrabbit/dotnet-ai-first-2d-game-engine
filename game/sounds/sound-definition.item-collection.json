@@ -1,0 +1,1 @@
+{"schema":"agentic2d.sound-definition.v1","id":"sound-definition.item-collection","cueId":"cue.item.collection","groupId":"sound-group.effects","variants":[{"id":"variant.collection.a","asset":"game/assets/raw/samples/collection-a.wav","values":{"volume":0.8,"pitch":1.1,"pan":0}}],"defaults":{"volume":1,"pitch":1,"pan":0},"tags":["collection"],"provenance":{"source":"m019"}}

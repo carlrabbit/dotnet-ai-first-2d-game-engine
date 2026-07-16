@@ -1,0 +1,1 @@
+{"schema":"agentic2d.presentation-effect.v1","id":"effect.damage-feedback","durationTicks":3,"domain":"world","cameraShake":{"maximumX":3,"maximumY":2,"frequencyPolicy":"tick-hash-v1"},"soundCueId":"cue.entity.damage","tags":["damage"],"provenance":"m021"}

@@ -1,0 +1,1 @@
+{"schema":"agentic2d.sound-definition.v1","id":"sound-definition.entity-defeat","cueId":"cue.entity.defeat","groupId":"sound-group.effects","variants":[{"id":"variant.defeat.a","asset":"game/assets/raw/samples/defeat-a.wav","values":{"volume":1,"pitch":1,"pan":0}}],"defaults":{"volume":1,"pitch":1,"pan":0},"tags":["defeat"],"provenance":{"source":"m019"}}

@@ -1,0 +1,7 @@
+{
+  "schema": "agentic2d.flag-definition.v1",
+  "id": "flag.test.vault-mode",
+  "type": "enum",
+  "values": ["idle", "armed"],
+  "defaultValue": "idle"
+}

@@ -1,0 +1,1 @@
+{"schema":"agentic2d.presentation-effect.v1","id":"effect.door-open","durationTicks":4,"domain":"world","notificationTextId":"text.notification.door-opened","tags":["door"],"provenance":"m021"}
