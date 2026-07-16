@@ -18,6 +18,8 @@ Failures must produce enough structured evidence for diagnosis. Generated artifa
 | `docs/artifacts/content-validation-artifact-contract.md` | Content validation evidence. |
 | `docs/artifacts/workspace-creation-artifact-contract.md` | Workspace acquisition and creation evidence. |
 | `docs/artifacts/unified-run-artifact-contract.md` | Central unified run manifest and linked evidence. |
+| `docs/artifacts/sound-execution-artifact-contract.md` | Deterministic sound command evidence. |
+| `docs/artifacts/gameplay-state-artifact-contract.md` | Gameplay resource, lifecycle, and collection evidence. |
 | `docs/artifacts/asset-inspection-artifact-contract.md` | Asset inspection. |
 | `docs/artifacts/review-pack-artifact-contract.md` | Review-pack aggregation. |
 | `docs/artifacts/asset-curation-workbench-artifact-contract.md` | Static curation workbench. |
@@ -30,6 +32,8 @@ Failures must produce enough structured evidence for diagnosis. Generated artifa
 | `docs/artifacts/render-projection-artifact-contract.md` | Render projection and explicit capture evidence. |
 | `docs/artifacts/input-execution-and-replay-artifact-contract.md` | Input map, frame, recording, and replay evidence. |
 | `docs/artifacts/animation-execution-artifact-contract.md` | Animation compilation, samples, markers, and animated rendering. |
+| `docs/artifacts/sound-execution-artifact-contract.md` | Sound projection evidence. |
+| `docs/artifacts/gameplay-state-artifact-contract.md` | Gameplay state and transaction evidence. |
 
 ## Artifact roots
 

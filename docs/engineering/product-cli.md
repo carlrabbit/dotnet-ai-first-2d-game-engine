@@ -54,6 +54,9 @@ agentic2d input inspect <input-sequence-id> --input-map <input-map-id> --output 
 agentic2d input replay --scenario <scenario-id> --recording <recording> --output <directory>
 agentic2d animation inspect <animation-id-or-path> --output <directory>
 agentic2d animation project --scenario <scenario-id> --output <directory>
+agentic2d sound inspect <sound-id-or-path> --output <directory>
+agentic2d sound project --project <project-or-workspace> --scenario <scenario-id> --output <directory>
+agentic2d gameplay inspect --project <project-or-workspace> --scenario <scenario-id> --output <directory>
 ```
 
 Development equivalents:

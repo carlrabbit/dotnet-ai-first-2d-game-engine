@@ -1,0 +1,1 @@
+{"schema":"agentic2d.sound-definition.v1","id":"sound-definition.entity-damage","cueId":"cue.entity.damage","groupId":"sound-group.effects","variants":[{"id":"variant.damage.a","asset":"game/assets/raw/samples/damage-a.wav","values":{"volume":0.9,"pitch":1,"pan":0}}],"defaults":{"volume":1,"pitch":1,"pan":0},"tags":["damage"],"provenance":{"source":"m019"}}

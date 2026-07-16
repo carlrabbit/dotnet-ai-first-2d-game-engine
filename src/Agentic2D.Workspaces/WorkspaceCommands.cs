@@ -125,7 +125,13 @@ public static class WorkspaceCommands
         var runDirectory = Path.GetFullPath(outputPath); EnsureNotEngineMutation(workspace, runDirectory); Directory.CreateDirectory(runDirectory);
         var families = new Dictionary<string, object>
         {
-            ["content"] = new { present = false, status = "absent" }, ["input"] = new { present = false, status = "absent" }, ["runtime"] = new { present = false, status = "absent" }, ["animation"] = new { present = false, status = "absent" }, ["render"] = new { present = false, status = "absent", reason = "execution-failed-before-snapshot" }, ["review"] = new { present = false, status = "absent" }, ["diagnostics"] = new { present = false, status = "absent" },
+            ["content"] = new { present = false, status = "absent" },
+            ["input"] = new { present = false, status = "absent" },
+            ["runtime"] = new { present = false, status = "absent" },
+            ["animation"] = new { present = false, status = "absent" },
+            ["render"] = new { present = false, status = "absent", reason = "execution-failed-before-snapshot" },
+            ["review"] = new { present = false, status = "absent" },
+            ["diagnostics"] = new { present = false, status = "absent" },
         };
         var diagnostics = new List<object>(); var snapshotAvailable = false; int exitCode = workspaceValidation.Passed && projectValidation.Passed ? 0 : 1;
         if (exitCode == 0)
@@ -217,9 +223,9 @@ public static class WorkspaceCommands
 
     private static void RenderMinimalGame(string stage, Acquisition acquisition, string engineSource)
     {
-        foreach (var path in new[] { "game-src/MinimalGame", "game-src/MinimalGame.Behaviors", "game-src/MinimalGame.Tests", "game-content/maps", "game-content/entities", "game-content/visuals", "game-content/animations", "game-content/input", "game-content/scenarios", "game-content/assets", "eng", "artifacts" }) Directory.CreateDirectory(Path.Combine(stage, path));
+        foreach (var path in new[] { "game-src/MinimalGame", "game-src/MinimalGame.Behaviors", "game-src/MinimalGame.Tests", "game-content/maps", "game-content/entities", "game-content/visuals", "game-content/animations", "game-content/input", "game-content/scenarios", "game-content/assets", "game-content/sounds", "game-content/items", "eng", "artifacts" }) Directory.CreateDirectory(Path.Combine(stage, path));
         var workspaceId = "workspace.minimal-game." + ShortHash(acquisition.Provider + acquisition.Source + acquisition.Resolved);
-        var project = new { schema = "agentic2d.game-project.v1", id = "project.minimal-game", gameSourceRoots = new[] { "game-src" }, authoredContentRoots = new[] { "game-content" }, defaultScenarioId = "scenario.minimal.smoke", runtime = new { seed = "none", ticks = 3 }, presentation = new { mode = "headless" }, assemblies = new[] { "MinimalGame", "MinimalGame.Behaviors" }, supportedContentDomains = new[] { "scenarios", "assets", "maps", "entities", "visuals", "animations", "input" }, fingerprintInputs = new { structuralVersion = 1 } };
+        var project = new { schema = "agentic2d.game-project.v1", id = "project.minimal-game", gameSourceRoots = new[] { "game-src" }, authoredContentRoots = new[] { "game-content" }, defaultScenarioId = "scenario.minimal.smoke", runtime = new { seed = "none", ticks = 3 }, presentation = new { mode = "headless" }, assemblies = new[] { "MinimalGame", "MinimalGame.Behaviors" }, supportedContentDomains = new[] { "scenarios", "assets", "maps", "entities", "visuals", "animations", "input", "sounds", "items" }, fingerprintInputs = new { structuralVersion = 1 } };
         var workspace = new { schema = "agentic2d.game-workspace.v1", id = workspaceId, projectManifest = ProjectFile, engine = new { provider = acquisition.Provider, placement = acquisition.Placement, source = acquisition.Source, path = acquisition.Path, requestedRevision = acquisition.RequestedRevision, resolved = acquisition.Resolved, fingerprint = acquisition.Fingerprint, sourceFingerprint = acquisition.SourceFingerprint, resolvedFingerprint = acquisition.Fingerprint, copyPolicy = acquisition.CopyPolicy }, areas = new[] { new { root = acquisition.Path ?? acquisition.Source, role = "engine-provider", mutationPolicy = "read-only-unless-authorized" }, new { root = "game-src", role = "game-code", mutationPolicy = "writable" }, new { root = "game-content", role = "authored-content", mutationPolicy = "writable" }, new { root = "artifacts", role = "generated-artifacts", mutationPolicy = "replaceable-generated" }, new { root = "eng", role = "tooling", mutationPolicy = "writable" } }, artifactRoot = "artifacts", wrapperRoot = "eng", fingerprintInputs = new { structuralVersion = 1 } };
         WriteJsonSync(Path.Combine(stage, ProjectFile), project); WriteJsonSync(Path.Combine(stage, WorkspaceFile), workspace);
         File.WriteAllText(Path.Combine(stage, "Directory.Build.props"), "<Project><PropertyGroup><TargetFramework>net10.0</TargetFramework><Nullable>enable</Nullable></PropertyGroup></Project>\n");
@@ -246,11 +252,18 @@ public static class WorkspaceCommands
         var files = new[]
         {
             ("game/scenarios/smoke/runtime-smoke.json", "game-content/scenarios/minimal-smoke.json"),
+            ("game/scenarios/smoke/gameplay-sound-damage-collection-lifecycle-smoke.json", "game-content/scenarios/gameplay-sound-damage-collection-lifecycle-smoke.json"),
             ("game/maps/smoke/map-smoke.map.json", "game-content/maps/minimal.map.json"),
             ("game/entities/entity-definition.player.basic.json", "game-content/entities/entity-definition.player.minimal.json"),
             ("game/visuals/visual-definition.player.basic.json", "game-content/visuals/visual-definition.player.minimal.json"),
             ("game/animations/animation-definition.player.basic.json", "game-content/animations/animation-definition.player.minimal.json"),
             ("game/input/maps/input-map.player.default.json", "game-content/input/input-map.player.minimal.json"),
+            ("game/sounds/sound-definition.player-footstep.json", "game-content/sounds/sound-definition.player-footstep.json"),
+            ("game/sounds/sound-definition.entity-damage.json", "game-content/sounds/sound-definition.entity-damage.json"),
+            ("game/sounds/sound-definition.entity-defeat.json", "game-content/sounds/sound-definition.entity-defeat.json"),
+            ("game/sounds/sound-definition.item-collection.json", "game-content/sounds/sound-definition.item-collection.json"),
+            ("game/sounds/sound-definition.ambient-loop-smoke.json", "game-content/sounds/sound-definition.ambient-loop-smoke.json"),
+            ("game/items/item.collectible-crystal.json", "game-content/items/item.collectible-crystal.json"),
             ("game/assets/metadata/tile-atlas-smoke.asset.json", "game-content/assets/tile-atlas-smoke.asset.json"),
             ("game/assets/metadata/render-atlas-smoke.asset.json", "game-content/assets/render-atlas-smoke.asset.json"),
         };
@@ -373,7 +386,7 @@ public static class WorkspaceCommands
     private static string? ContentDomain(string relative)
     {
         var normalized = relative.Replace("\\", "/", StringComparison.Ordinal);
-        foreach (var domain in new[] { "scenarios", "assets", "maps", "entities", "visuals", "animations", "input" }) if (normalized.Contains("game-content/" + domain + "/", StringComparison.Ordinal)) return domain;
+        foreach (var domain in new[] { "scenarios", "assets", "maps", "entities", "visuals", "animations", "input", "sounds", "items" }) if (normalized.Contains("game-content/" + domain + "/", StringComparison.Ordinal)) return domain;
         return null;
     }
 
@@ -385,7 +398,7 @@ public static class WorkspaceCommands
             var root = document.RootElement;
             if (!root.TryGetProperty("schema", out var schema) || schema.ValueKind != JsonValueKind.String || !root.TryGetProperty("id", out var id) || string.IsNullOrWhiteSpace(id.GetString())) { reason = "Content file must declare string schema and stable id."; return false; }
             if (domain == "scenarios") { var run = new ContentValidator().Validate(path); reason = run.Result.ExitCode == 0 ? string.Empty : "Scenario contract validation failed."; return run.Result.ExitCode == 0; }
-            var expected = domain switch { "assets" => "agentic2d.asset-metadata.v1", "maps" => "agentic2d.map.v1", "entities" => "agentic2d.entity-definition.v1", "visuals" => "agentic2d.visual-definition.v1", "animations" => "agentic2d.animation-definition.v1", "input" => "agentic2d.input-map.v1", _ => string.Empty };
+            var expected = domain switch { "assets" => "agentic2d.asset-metadata.v1", "maps" => "agentic2d.map.v1", "entities" => "agentic2d.entity-definition.v1", "visuals" => "agentic2d.visual-definition.v1", "animations" => "agentic2d.animation-definition.v1", "input" => "agentic2d.input-map.v1", "sounds" => "agentic2d.sound-definition.v1", "items" => "agentic2d.item-definition.v1", _ => string.Empty };
             if (!StringComparer.Ordinal.Equals(schema.GetString(), expected)) { reason = $"Unexpected schema for {domain}."; return false; }
             reason = string.Empty; return true;
         }
@@ -447,8 +460,11 @@ public static class WorkspaceCommands
         var bootstrapPath = values.TryGetValue("ENGINE_PATH", out var p) ? Path.GetFullPath(Path.Combine(root, "eng", p)) : string.Empty;
         var expected = new Dictionary<string, string>(StringComparer.Ordinal)
         {
-            ["ENGINE_PROVIDER"] = provider, ["ENGINE_PLACEMENT"] = placement, ["ENGINE_TOOLS_PROJECT"] = "src/Agentic2D.Tools/Agentic2D.Tools.csproj",
-            ["ENGINE_RESOLVED"] = engine.GetProperty("resolved").GetString() ?? string.Empty, ["ENGINE_FINGERPRINT"] = engine.GetProperty("fingerprint").GetString() ?? string.Empty,
+            ["ENGINE_PROVIDER"] = provider,
+            ["ENGINE_PLACEMENT"] = placement,
+            ["ENGINE_TOOLS_PROJECT"] = "src/Agentic2D.Tools/Agentic2D.Tools.csproj",
+            ["ENGINE_RESOLVED"] = engine.GetProperty("resolved").GetString() ?? string.Empty,
+            ["ENGINE_FINGERPRINT"] = engine.GetProperty("fingerprint").GetString() ?? string.Empty,
         };
         if (values.Keys.Any(key => key != "ENGINE_PATH" && !expected.ContainsKey(key)) || !StringComparer.Ordinal.Equals(expectedPath, bootstrapPath) || expected.Any(x => !values.TryGetValue(x.Key, out var actual) || !StringComparer.Ordinal.Equals(actual, x.Value))) diagnostics.Add(new { id = "WORKSPACE0018", severity = "error", message = "Workspace bootstrap/manifest mismatch." });
     }
@@ -456,7 +472,8 @@ public static class WorkspaceCommands
     private static bool TryReadBootstrapValue(string encoded, out string value)
     {
         value = string.Empty; if (encoded.Length < 2 || encoded[0] != (char)34 || encoded[^1] != (char)34) return false;
-        var text = new StringBuilder(); for (var i = 1; i < encoded.Length - 1; i++) { var c = encoded[i]; if (c == (char)92) { if (++i >= encoded.Length - 1 || encoded[i] is not ((char)92 or (char)34 or (char)36 or (char)96)) return false; text.Append(encoded[i]); } else if (c == (char)34) return false; else text.Append(c); } value = text.ToString(); return true;
+        var text = new StringBuilder(); for (var i = 1; i < encoded.Length - 1; i++) { var c = encoded[i]; if (c == (char)92) { if (++i >= encoded.Length - 1 || encoded[i] is not ((char)92 or (char)34 or (char)36 or (char)96)) return false; text.Append(encoded[i]); } else if (c == (char)34) return false; else text.Append(c); }
+        value = text.ToString(); return true;
     }
 
     private static void EnsureNotEngineMutation(string workspace, string output)

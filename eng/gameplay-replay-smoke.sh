@@ -1,0 +1,16 @@
+#!/usr/bin/env bash
+set -euo pipefail
+source "$(dirname "$0")/common.sh"
+first="$repo_root/artifacts/smoke/m019-replay-first"
+second="$repo_root/artifacts/smoke/m019-replay-second"
+dotnet_cmd run --no-build --project src/Agentic2D.Tools -- project run . --scenario gameplay.sound-damage-collection-lifecycle-smoke --output "$first"
+dotnet_cmd run --no-build --project src/Agentic2D.Tools -- project run . --scenario gameplay.sound-damage-collection-lifecycle-smoke --output "$second"
+diff -u "$first/sound/sound-command-frames.jsonl" "$second/sound/sound-command-frames.jsonl"
+diff -u "$first/gameplay/damage-resolutions.jsonl" "$second/gameplay/damage-resolutions.jsonl"
+diff -u "$first/gameplay/collection-resolutions.jsonl" "$second/gameplay/collection-resolutions.jsonl"
+diff -u "$first/gameplay/resource-transitions.jsonl" "$second/gameplay/resource-transitions.jsonl"
+diff -u "$first/gameplay/lifecycle-transitions.jsonl" "$second/gameplay/lifecycle-transitions.jsonl"
+diff -u "$first/gameplay/inventory-transitions.jsonl" "$second/gameplay/inventory-transitions.jsonl"
+diff -u "$first/gameplay/world-item-transitions.jsonl" "$second/gameplay/world-item-transitions.jsonl"
+diff -u "$first/runtime/result.json" "$second/runtime/result.json"
+diff -u "$first/render/render-result.json" "$second/render/render-result.json"

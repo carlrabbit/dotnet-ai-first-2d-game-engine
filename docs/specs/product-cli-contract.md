@@ -50,6 +50,9 @@ agentic2d asset review apply --decisions <review-file> [--dry-run] --output <dir
 agentic2d map inspect <map-id-or-path> --output <directory>
 agentic2d review pack --input <artifact-root> --output <directory>
 agentic2d asset curate --asset <asset-id-or-path> --review-pack <review-pack-path> --output <directory>
+agentic2d sound inspect <sound-id-or-path> --output <directory>
+agentic2d sound project --project <project-or-workspace> --scenario <scenario-id> --output <directory>
+agentic2d gameplay inspect --project <project-or-workspace> --scenario <scenario-id> --output <directory>
 ```
 
 ## Command semantics

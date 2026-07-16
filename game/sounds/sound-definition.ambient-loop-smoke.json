@@ -1,0 +1,1 @@
+{"schema":"agentic2d.sound-definition.v1","id":"sound-definition.ambient-loop-smoke","cueId":"cue.ambient.loop-smoke","groupId":"sound-group.ambience","variants":[{"id":"variant.ambient.a","asset":"game/assets/raw/samples/ambient-a.wav","values":{"volume":0.3,"pitch":1,"pan":0}}],"defaults":{"volume":1,"pitch":1,"pan":0},"tags":["ambient","loop"],"provenance":{"source":"m019"}}

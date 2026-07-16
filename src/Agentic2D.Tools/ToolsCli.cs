@@ -13,6 +13,14 @@ public static class ToolsCli
 {
     public static async Task<int> RunAsync(string[] args, TextWriter output, TextWriter error)
     {
+        var m019Sound = await M019SoundCommands.RunAsync(args, output, error);
+        if (m019Sound >= 0) return m019Sound;
+        var m019Items = await M019ItemCommands.RunAsync(args, output, error);
+        if (m019Items >= 0) return m019Items;
+        var m019Gameplay = await M019GameplayCommands.RunAsync(args, output, error);
+        if (m019Gameplay >= 0) return m019Gameplay;
+        var m019Unified = await M019UnifiedCommands.RunAsync(args, output, error);
+        if (m019Unified >= 0) return m019Unified;
         var m018 = await WorkspaceCommands.RunAsync(args, output, error);
         if (m018 >= 0) return m018;
         var m016 = await M016InputCommands.RunAsync(args, output, error);
@@ -37,6 +45,9 @@ public static class ToolsCli
                   agentic2d input replay --scenario <scenario-id> --recording <recording> --output <directory>
                   agentic2d animation inspect <animation-id-or-path> --output <directory>
                   agentic2d animation project --scenario <scenario-id> --output <directory>
+                  agentic2d sound inspect <sound-id-or-path> --output <directory>
+                  agentic2d sound project --project <project-or-workspace> --scenario <scenario-id> --output <directory>
+                  agentic2d gameplay inspect --project <project-or-workspace> --scenario <scenario-id> --output <directory>
                   agentic2d asset inspect <asset-id-or-path> --output <directory>
                   agentic2d asset perceive <asset-id-or-path> --output <directory>
                   agentic2d asset review apply --decisions <review-file> [--dry-run] --output <directory>

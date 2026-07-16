@@ -83,6 +83,15 @@ The repository includes deterministic runtime, product CLI, scenarios, content v
 ./eng/animated-render-smoke.sh
 ./eng/animation-replay-smoke.sh
 ./eng/m017-smoke.sh
+./eng/sound-content-smoke.sh
+./eng/sound-marker-cue-smoke.sh
+./eng/sound-loop-ownership-smoke.sh
+./eng/gameplay-damage-resource-smoke.sh
+./eng/gameplay-defeat-lifecycle-smoke.sh
+./eng/gameplay-collection-atomicity-smoke.sh
+./eng/gameplay-integrated-smoke.sh
+./eng/gameplay-replay-smoke.sh
+./eng/m019-smoke.sh
 ```
 
 ## Validation boundary
