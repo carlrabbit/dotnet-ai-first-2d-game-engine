@@ -22,6 +22,7 @@ public static class EngineeringCli
             {
                 "suite" => await RunSuiteAsync(host, args[1..], stdout, stderr),
                 "review" => await RunReviewAsync(host, args[1..], stdout, stderr),
+                "performance" => await PerformanceCli.RunAsync(args[1..], root, stdout, stderr),
                 _ => Usage(stderr)
             };
         }
@@ -94,7 +95,7 @@ public static class EngineeringCli
 
     private static int Usage(TextWriter stderr)
     {
-        stderr.WriteLine("usage: engineering suite <id> [--list|--plan-json|--shard <id>|--verify] | engineering review <list|check|request|record>");
+        stderr.WriteLine("usage: engineering suite <id> [--list|--plan-json|--shard <id>|--verify] | engineering review <list|check|request|record> | engineering performance <smoke|capture|compare|report>");
         return 2;
     }
 }
@@ -354,6 +355,11 @@ public sealed class EngineeringHost
 
     private async Task<int> RunInternalShardAsync(ValidationSuite suite, ValidationShard shard, TextWriter diagnostics)
     {
+        if (suite.Id == "m023-smoke" && shard.Id == "guide-v051")
+        {
+            return CheckGuideV051(diagnostics);
+        }
+
         if (suite.Id != "guide-migration-v050")
         {
             throw new EngineeringException($"unsupported internal shard: {suite.Id}/{shard.Id}");
@@ -383,6 +389,30 @@ public sealed class EngineeringHost
             return 1;
         }
 
+        return 0;
+    }
+
+    private int CheckGuideV051(TextWriter diagnostics)
+    {
+        var required = new[] { ".guide-profile.json", "docs/milestones/MILESTONE-023-lightweight-runtime-metrics-comparative-performance-checks-and-milestone-performance-reporting.md" };
+        if (required.Any(path => !File.Exists(Absolute(path))))
+        {
+            diagnostics.WriteLine("error: M023 guide v0.5.1 corrective-assessment authority is missing");
+            return 1;
+        }
+        using var profile = JsonDocument.Parse(File.ReadAllText(Absolute(".guide-profile.json")));
+        var root = profile.RootElement;
+        if (root.GetProperty("guideSystemVersion").GetString() != "0.5.1" || root.GetProperty("repositoryRole").GetString() != "capability-provider")
+        {
+            diagnostics.WriteLine("error: guide profile does not preserve the v0.5.1 capability-provider profile");
+            return 1;
+        }
+        var adoption = root.GetProperty("adoption");
+        if (adoption.GetProperty("validationExecutionModel").GetString() != "direct-or-resumable-sharded" || adoption.GetProperty("engineeringCommandModel").GetString() != "thin-launchers-over-tested-dotnet-host")
+        {
+            diagnostics.WriteLine("error: guide profile does not preserve validation/engineering command model");
+            return 1;
+        }
         return 0;
     }
 
@@ -552,6 +582,27 @@ public sealed class EngineeringHost
             Shard("m021-suite", "Current M021 receipt verification.", "./eng/m021-smoke.sh --verify", ["artifacts/validation/m021-smoke/review.json"]),
             Shard("review-workflow", "Required migration review is current.", "./eng/review-check.sh", [".review/records/migration-guide-v050.json"]),
             Shard("platform-and-leakage", "Declared Linux/Bash support and authority isolation.", "internal:platform-and-leakage", ["AGENTS.md", "docs/ENGINEERING.md"], isInternal: true)
+        ]),
+        new("m023-smoke", "resumable-sharded",
+        [
+            Shard("metrics-contracts", "Finite metric vocabulary and bounded collector tests.", "./eng/test-filter.sh Metrics", ["src/Agentic2D.Metrics/RuntimeMetrics.cs", "tests/unit/Agentic2D.Tests.Unit/MetricsTests.cs"]),
+            Shard("runtime-instrumentation", "Runtime metrics leave semantic output unchanged.", "./eng/test-filter.sh Metrics", ["src/Agentic2D.Engine/MinimalRuntime.cs", "tests/unit/Agentic2D.Tests.Unit/MetricsTests.cs"]),
+            Shard("metrics-artifacts", "Summary and bounded per-tick artifacts.", "./eng/metrics-artifacts-smoke.sh", ["artifacts/smoke/m023-metrics/metrics-summary.json", "artifacts/smoke/m023-metrics/metrics-ticks.jsonl"]),
+            Shard("comparative-workloads", "Reference workload capture.", "./eng/perf-smoke.sh", ["artifacts/performance/smoke/performance-capture.json"]),
+            Shard("performance-report", "Advisory comparison and report generation.", "./eng/perf-report-smoke.sh", ["artifacts/performance/m023/performance-report.json", "artifacts/performance/m023/performance-report.md"]),
+            Shard("integrated", "Direct build, test, and product integration checks.", "./eng/build.sh && ./eng/test.sh && ./eng/cli-smoke.sh && ./eng/product-validate.sh", ["artifacts/cli/runtime-smoke/result.json", "artifacts/cli/validate/result.json"]),
+            Shard("guide-v051", "v0.5.1 corrective assessment profile check.", "internal:guide-v051", [".guide-profile.json", "docs/milestones/MILESTONE-023-lightweight-runtime-metrics-comparative-performance-checks-and-milestone-performance-reporting.md"], isInternal: true)
+        ]),
+        new("m024-smoke", "resumable-sharded",
+        [
+            Shard("export-contracts", "Export manifest, inventory, and validation contracts.", "./eng/export-linux-smoke.sh", ["artifacts/smoke/m024-export/validate/export-validation.json"]),
+            Shard("game-host", "Dedicated standalone host builds and exposes bounded options.", "./eng/test-filter.sh GameHost", ["src/Agentic2D.GameHost/Program.cs"]),
+            Shard("export-build", "Self-contained Linux export assembly.", "./eng/export-linux-smoke.sh", ["artifacts/smoke/m024-export/game/agentic2d.export.json", "artifacts/smoke/m024-export/game/export-files.json"]),
+            Shard("isolated-headless-launch", "Direct executable launch outside source tree.", "./eng/export-isolated-launch-smoke.sh", ["artifacts/smoke/m024-isolated-launch/isolated-launch-result.json"]),
+            Shard("semantic-equivalence", "Development/export semantic comparison.", "./eng/export-equivalence-smoke.sh", ["artifacts/smoke/m024-equivalence/development-export-equivalence.json"]),
+            Shard("performance-report", "Same-machine export performance report.", "./eng/export-performance-smoke.sh", ["artifacts/performance/M024/performance-report.json", "artifacts/performance/M024/performance-report.md"]),
+            Shard("graphical-review", "Optional graphical-session review or explicit skip.", "./eng/export-graphical-smoke.sh", ["artifacts/smoke/m024-graphical/graphical-review.json"]),
+            Shard("integrated", "Build and direct export integration.", "./eng/build.sh && ./eng/export-isolated-launch-smoke.sh", ["artifacts/smoke/m024-isolated-launch/isolated-launch-run-manifest.json"])
         ])
     ];
 

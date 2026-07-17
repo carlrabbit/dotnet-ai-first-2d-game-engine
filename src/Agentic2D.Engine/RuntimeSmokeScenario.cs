@@ -1,4 +1,5 @@
 using Agentic2D.Contracts;
+using Agentic2D.Metrics;
 
 namespace Agentic2D.Engine;
 
@@ -6,9 +7,9 @@ public static class RuntimeSmokeScenario
 {
     public const string CommandName = "runtime smoke";
 
-    public static RuntimeResult Run(int ticksRequested)
+    public static RuntimeResult Run(int ticksRequested, MetricsCollectionMode metricsMode = MetricsCollectionMode.Off)
     {
-        var runtime = new MinimalRuntime();
+        var runtime = new MinimalRuntime(metricsMode);
         var playerId = EntityId.Player;
 
         runtime.CreateEntity(playerId, position: 0);
@@ -29,6 +30,17 @@ public static class RuntimeSmokeScenario
             : RuntimeStatus.Failed;
 
         return CreateResult(ticksRequested, runtime, status, assertions);
+    }
+
+    public static RuntimeMetricsSnapshot RunWithMetrics(int ticksRequested, MetricsCollectionMode metricsMode)
+    {
+        var runtime = new MinimalRuntime(metricsMode);
+        var playerId = EntityId.Player;
+        runtime.CreateEntity(playerId, 0);
+        var command = new MoveCommand(playerId, 1);
+        _ = runtime.Submit(command);
+        runtime.Run(ticksRequested, command);
+        return runtime.Metrics?.Snapshot() ?? RuntimeMetricsSnapshot.Off;
     }
 
     private static RuntimeResult CreateResult(

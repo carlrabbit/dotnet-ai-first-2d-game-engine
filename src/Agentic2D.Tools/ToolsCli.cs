@@ -6,6 +6,8 @@ using Agentic2D.Rendering;
 using Agentic2D.Animation;
 using ScenarioRunnerEngine = Agentic2D.ScenarioRunner.ScenarioRunner;
 using Agentic2D.Workspaces;
+using Agentic2D.Metrics;
+using System.Text.Json;
 
 namespace Agentic2D.Tools;
 
@@ -13,6 +15,8 @@ public static class ToolsCli
 {
     public static async Task<int> RunAsync(string[] args, TextWriter output, TextWriter error)
     {
+        var export = await ExportCommands.RunAsync(args, output, error);
+        if (export >= 0) return export;
         var m021 = await M021PresentationCommands.RunAsync(args, output, error);
         if (m021 >= 0) return m021;
         var m020 = await M020Commands.RunAsync(args, output, error);
@@ -41,6 +45,7 @@ public static class ToolsCli
                   agentic2d --help
                   agentic2d --version
                   agentic2d runtime smoke --output <directory>
+                  agentic2d runtime smoke [--ticks <count>] [--metrics off|summary|per-tick] --output <directory>
                   agentic2d runtime inspect --scenario <scenario-id-or-path> [--map <map-id-or-path>] --output <directory>
                   agentic2d validate --output <directory>
                   agentic2d scenario run <scenario-id-or-path> --output <directory>
@@ -71,6 +76,9 @@ public static class ToolsCli
                   agentic2d workspace validate <workspace> --output <directory>
                   agentic2d project validate <project-or-workspace> --output <directory>
                   agentic2d project run <project-or-workspace> --scenario <scenario-id> --output <run-directory>
+                  agentic2d project export <project-or-workspace> [--target linux-x64] --output <directory>
+                  agentic2d export inspect <export-directory> --output <directory>
+                  agentic2d export validate <export-directory> --output <directory>
                   agentic2d run inspect <run-directory> --output <directory>
                   agentic2d run review <run-directory> --output <directory>
 
@@ -158,7 +166,7 @@ public static class ToolsCli
 
         try
         {
-            result = RuntimeSmokeScenario.Run(command.Ticks);
+            result = RuntimeSmokeScenario.Run(command.Ticks, command.MetricsMode);
         }
         catch (Exception exception) when (exception is ArgumentException or InvalidOperationException or OverflowException)
         {
@@ -171,6 +179,7 @@ public static class ToolsCli
         {
             Directory.CreateDirectory(command.OutputDirectory);
             await ProductCliResultJson.WriteAsync(outputPath, productResult);
+            await WriteMetricsArtifactsAsync(command, command.OutputDirectory);
         }
         catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
         {
@@ -181,6 +190,38 @@ public static class ToolsCli
         await output.WriteLineAsync($"{command.Name}: {productResult.Status}; result: {outputPath}");
         return productResult.ExitCode;
     }
+
+    internal static async Task WriteMetricsArtifactsAsync(CliCommand command, string outputDirectory)
+    {
+        if (command.MetricsMode == MetricsCollectionMode.Off) return;
+        var snapshot = RuntimeSmokeScenario.RunWithMetrics(command.Ticks, command.MetricsMode);
+        var options = new JsonSerializerOptions { WriteIndented = true, PropertyNamingPolicy = JsonNamingPolicy.CamelCase };
+        var summary = new
+        {
+            schema = "agentic2d.runtime-metrics-summary.v1",
+            mode = MetricsModeId(snapshot.Mode),
+            tickCount = snapshot.TickCount,
+            recentTickCapacity = snapshot.RecentCapacity,
+            effectiveTicksPerSecond = snapshot.EffectiveTicksPerSecond,
+            recentP95TickDurationMilliseconds = snapshot.RecentP95TickDurationMilliseconds,
+            metrics = snapshot.Summary,
+            limitations = new[] { "Timing is observational and is not a deterministic artifact fingerprint.", "The recent tick window is bounded; per-tick output contains at most its fixed capacity." },
+        };
+        await File.WriteAllTextAsync(Path.Combine(outputDirectory, "metrics-summary.json"), JsonSerializer.Serialize(summary, options));
+        if (command.MetricsMode == MetricsCollectionMode.PerTick)
+        {
+            var lines = snapshot.RecentTicks.Select(tick => JsonSerializer.Serialize(new { schema = "agentic2d.runtime-metrics-tick.v1", tick = tick.Tick, values = tick.Values }));
+            await File.WriteAllTextAsync(Path.Combine(outputDirectory, "metrics-ticks.jsonl"), string.Join(Environment.NewLine, lines) + (snapshot.RecentTicks.Count == 0 ? string.Empty : Environment.NewLine));
+        }
+    }
+
+    private static string MetricsModeId(MetricsCollectionMode mode) => mode switch
+    {
+        MetricsCollectionMode.Off => "off",
+        MetricsCollectionMode.Summary => "summary",
+        MetricsCollectionMode.PerTick => "per-tick",
+        _ => throw new ArgumentOutOfRangeException(nameof(mode)),
+    };
 
     private static async Task<int> RunRenderProjectCommandAsync(CliCommand command, TextWriter output, TextWriter error)
     {

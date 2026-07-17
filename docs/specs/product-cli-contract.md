@@ -30,7 +30,7 @@ dotnet run --project src/Agentic2D.Tools -- <args>
 agentic2d workspace create <target> --template minimal-game ... --output <directory>
 agentic2d workspace validate <workspace> --output <directory>
 agentic2d project validate <project-or-workspace> --output <directory>
-agentic2d project run <project-or-workspace> --scenario <id> --output <run-directory>
+agentic2d project run <project-or-workspace> --scenario <id> [--metrics off|summary|per-tick] --output <run-directory>
 agentic2d run inspect <run-directory> --output <directory>
 agentic2d run review <run-directory> --output <directory>
 
@@ -39,7 +39,7 @@ The current command set is:
 ```text
 agentic2d --help
 agentic2d --version
-agentic2d runtime smoke --output <directory>
+agentic2d runtime smoke [--ticks <count>] [--metrics off|summary|per-tick] --output <directory>
 agentic2d runtime inspect --scenario <scenario-id-or-path> [--map <map-id-or-path>] --output <directory>
 agentic2d validate --output <directory>
 agentic2d scenario run <scenario-id-or-path> --output <directory>
@@ -248,6 +248,10 @@ Artifact-producing commands must support:
 ```
 
 The implementation may add aliases only if the canonical option remains supported.
+
+## Runtime metrics options
+
+`--metrics off|summary|per-tick` is optional for runtime smoke and project run. `off` produces no metrics artifacts. `summary` produces `metrics-summary.json` without retaining each tick. `per-tick` also produces `metrics-ticks.jsonl` from a fixed-capacity recent window. Metrics are bounded observational evidence; timing values are neither deterministic runtime state nor cross-machine comparison authority.
 
 ## Output behavior
 

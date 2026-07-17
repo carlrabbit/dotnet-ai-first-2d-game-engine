@@ -1,4 +1,5 @@
 using System.Globalization;
+using Agentic2D.Metrics;
 
 namespace Agentic2D.Tools;
 
@@ -147,6 +148,7 @@ public static class ToolsCliParser
     {
         var ticks = 3;
         string? output = null;
+        var metrics = MetricsCollectionMode.Off;
 
         for (var index = 2; index < args.Count; index++)
         {
@@ -181,6 +183,14 @@ public static class ToolsCliParser
 
                     break;
 
+                case "--metrics":
+                    if (++index >= args.Count || !TryParseMetricsMode(args[index], out metrics))
+                    {
+                        return CliParseResult.Failure("--metrics must be off, summary, or per-tick");
+                    }
+
+                    break;
+
                 default:
                     return CliParseResult.Failure($"unknown argument: {current}");
             }
@@ -188,7 +198,13 @@ public static class ToolsCliParser
 
         return output is null
             ? CliParseResult.Failure("missing required --output <directory>")
-            : CliParseResult.Success(new CliCommand("runtime smoke", output, ticks));
+            : CliParseResult.Success(new CliCommand("runtime smoke", output, ticks, MetricsMode: metrics));
+    }
+
+    private static bool TryParseMetricsMode(string value, out MetricsCollectionMode mode)
+    {
+        mode = value switch { "off" => MetricsCollectionMode.Off, "summary" => MetricsCollectionMode.Summary, "per-tick" => MetricsCollectionMode.PerTick, _ => MetricsCollectionMode.Off };
+        return value is "off" or "summary" or "per-tick";
     }
 
     private static CliParseResult TryParseValidate(IReadOnlyList<string> args)

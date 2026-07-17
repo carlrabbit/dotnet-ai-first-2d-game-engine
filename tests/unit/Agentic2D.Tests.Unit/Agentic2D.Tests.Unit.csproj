@@ -11,6 +11,7 @@
     <ProjectReference Include="../../../src/Agentic2D.Contracts/Agentic2D.Contracts.csproj" />
     <ProjectReference Include="../../../src/Agentic2D.Engineering/Agentic2D.Engineering.csproj" />
     <ProjectReference Include="../../../src/Agentic2D.Engine/Agentic2D.Engine.csproj" />
+    <ProjectReference Include="../../../src/Agentic2D.Metrics/Agentic2D.Metrics.csproj" />
     <ProjectReference Include="../../../src/Agentic2D.ScenarioRunner/Agentic2D.ScenarioRunner.csproj" />
     <ProjectReference Include="../../../src/Agentic2D.Tools/Agentic2D.Tools.csproj" />
     <ProjectReference Include="../../../src/Agentic2D.Validation/Agentic2D.Validation.csproj" />

@@ -92,6 +92,11 @@ The repository includes deterministic runtime, product CLI, scenarios, content v
 ./eng/gameplay-integrated-smoke.sh
 ./eng/gameplay-replay-smoke.sh
 ./eng/m019-smoke.sh
+./eng/perf-smoke.sh
+./eng/perf-capture.sh --label <label> --output <directory>
+./eng/perf-compare.sh <before-directory> <after-directory> --output <directory>
+./eng/perf-report.sh --milestone <id> --before <before-directory> --after <after-directory> --output <directory>
+./eng/m023-smoke.sh
 ```
 
 ## Validation boundary
@@ -109,7 +114,7 @@ Commands must validate meaningful state or fail clearly. Success-only placeholde
 
 `src/Agentic2D.Engineering` is the tested .NET host for validation plans, fingerprints, atomic receipts, fast verification, and repository-local review state. `eng/*.sh` remains the stable engineering API and only forwards arguments and exit codes.
 
-The resumable suites are `./eng/m019-smoke.sh`, `./eng/m020-smoke.sh`, `./eng/m021-smoke.sh`, and `./eng/guide-migration-v050.sh`. Each supports `--list`, `--plan-json`, `--shard <id>`, and `--verify`; a no-argument run is for unconstrained local/CI use.
+The resumable suites are `./eng/m019-smoke.sh`, `./eng/m020-smoke.sh`, `./eng/m021-smoke.sh`, `./eng/m023-smoke.sh`, and `./eng/guide-migration-v050.sh`. Each supports `--list`, `--plan-json`, `--shard <id>`, and `--verify`; a no-argument run is for unconstrained local/CI use. Performance comparisons are advisory same-machine evidence, never deterministic validation authority.
 
 Repository-local review state is `.review/pending/`, `.review/records/`, and `.review/evidence/`; generated or large evidence belongs under `artifacts/review/`. Use `review-list.sh`, `review-request.sh`, `review-record.sh`, and `review-check.sh`.
 

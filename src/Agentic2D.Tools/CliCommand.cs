@@ -1,5 +1,7 @@
 namespace Agentic2D.Tools;
 
+using Agentic2D.Metrics;
+
 public sealed record CliCommand(
     string Name,
     string OutputDirectory,
@@ -11,4 +13,5 @@ public sealed record CliCommand(
     string? ReviewPackPath = null,
     string? DecisionPath = null,
     bool DryRun = false,
-    string? MapTarget = null);
+    string? MapTarget = null,
+    MetricsCollectionMode MetricsMode = MetricsCollectionMode.Off);

@@ -39,7 +39,7 @@ The currently supported product CLI commands are:
 ```text
 agentic2d --help
 agentic2d --version
-agentic2d runtime smoke --output <directory>
+agentic2d runtime smoke [--ticks <count>] [--metrics off|summary|per-tick] --output <directory>
 agentic2d runtime inspect --scenario <scenario-id-or-path> [--map <map-id-or-path>] --output <directory>
 agentic2d validate --output <directory>
 agentic2d scenario run <scenario-id-or-path> --output <directory>
@@ -64,7 +64,7 @@ Development equivalents:
 ```bash
 dotnet run --project src/Agentic2D.Tools -- --help
 dotnet run --project src/Agentic2D.Tools -- --version
-dotnet run --project src/Agentic2D.Tools -- runtime smoke --output artifacts/cli/runtime-smoke
+dotnet run --project src/Agentic2D.Tools -- runtime smoke --metrics summary --output artifacts/cli/runtime-smoke
 dotnet run --project src/Agentic2D.Tools -- runtime inspect --scenario runtime.smoke --map map.smoke --output artifacts/runtime/inspect
 dotnet run --project src/Agentic2D.Tools -- validate --output artifacts/cli/validate
 dotnet run --project src/Agentic2D.Tools -- scenario run game/scenarios/smoke/runtime-smoke.json --output artifacts/scenarios/runtime-smoke
@@ -90,7 +90,7 @@ dotnet run --project src/Agentic2D.Tools -- asset curate --asset asset.tile-atla
 |---|---|---|---:|
 | `agentic2d --help` | Show available product CLI commands. | None required. | Tier 1 |
 | `agentic2d --version` | Show CLI/runtime version. | None required. | Tier 1 |
-| `agentic2d runtime smoke --output <directory>` | Run minimal deterministic runtime smoke execution. | `<directory>/result.json` | Tier 1 |
+| `agentic2d runtime smoke [--metrics off|summary|per-tick] --output <directory>` | Run minimal deterministic runtime smoke execution with optional bounded observations. | `<directory>/result.json`, optional metrics artifacts | Tier 1 |
 | `agentic2d runtime inspect --scenario <scenario-id-or-path> [--map <map-id-or-path>] --output <directory>` | Execute deterministic runtime inspection and structured state projection. | `result.json`, `diagnostics.json`, `runtime-summary.json`, `entities.json`, `commands.jsonl`, `events.jsonl`, `final-state.json`, `assertions.json`, `content-references.json` | Tier 2 when called by `eng/runtime-inspect-smoke.sh` |
 | `agentic2d validate --output <directory>` | Run current product validation for the minimal runtime maturity. | `<directory>/result.json` | Tier 2 when called by `eng/product-validate.sh` |
 | `agentic2d scenario run <scenario-id-or-path> --output <directory>` | Run an authored scenario through the scenario runner. | `<directory>/result.json`, `<directory>/events.jsonl`, `<directory>/diagnostics.json` | Tier 2 when called by `eng/scenario-smoke.sh` |
@@ -264,7 +264,7 @@ The separate client is invoked with `dotnet run --project src/Agentic2D.DebugCli
 ```bash
 dotnet run --project src/Agentic2D.Tools -- workspace validate <workspace> --output <directory>
 dotnet run --project src/Agentic2D.Tools -- project validate <project-or-workspace> --output <directory>
-dotnet run --project src/Agentic2D.Tools -- project run <project-or-workspace> --scenario <scenario-id> --output <run-directory>
+dotnet run --project src/Agentic2D.Tools -- project run <project-or-workspace> --scenario <scenario-id> --metrics summary --output <run-directory>
 dotnet run --project src/Agentic2D.Tools -- run inspect <run-directory> --output <directory>
 dotnet run --project src/Agentic2D.Tools -- run review <run-directory> --output <directory>
 ```

@@ -72,7 +72,9 @@ Do not create success-only placeholder scripts.
 
 ## Resumable validation commands
 
-`m019-smoke.sh`, `m020-smoke.sh`, `m021-smoke.sh`, and `guide-migration-v050.sh` are resumable-sharded suites. They expose `--list`, `--plan-json`, `--shard <id>`, `--verify`, and no-argument local/CI aggregate mode. `--verify` is the only aggregate-success authority.
+`m019-smoke.sh`, `m020-smoke.sh`, `m021-smoke.sh`, `m023-smoke.sh`, and `guide-migration-v050.sh` are resumable-sharded suites. They expose `--list`, `--plan-json`, `--shard <id>`, `--verify`, and no-argument local/CI aggregate mode. `--verify` is the only aggregate-success authority.
+
+`./eng/perf-smoke.sh` captures bounded reference-workload evidence. `perf-capture`, `perf-compare`, and `perf-report` are thin launchers over the engineering host and produce advisory same-machine performance evidence; elapsed timing is never a deterministic receipt fingerprint or cross-machine claim.
 
 Receipts are generated at `artifacts/validation/<suite>/<shard>.json`. The host deletes a previous receipt before execution and only atomically replaces it after command success and evidence validation.
 

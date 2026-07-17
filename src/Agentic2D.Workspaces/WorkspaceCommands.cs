@@ -6,6 +6,8 @@ using Agentic2D.ScenarioRunner;
 using Agentic2D.Validation;
 using Agentic2D.Rendering;
 using Agentic2D.Animation;
+using Agentic2D.Metrics;
+using Agentic2D.Engine;
 
 namespace Agentic2D.Workspaces;
 
@@ -121,6 +123,7 @@ public static class WorkspaceCommands
     {
         if (args.Length < 3) return await Usage(error, "project run requires <project-or-workspace>");
         var options = Options(args, 3, out var message); if (message is not null || !options.TryGetValue("--output", out var outputPath) || !options.TryGetValue("--scenario", out var scenarioId)) return await Usage(error, message ?? "project run requires --scenario <scenario-id> --output <run-directory>");
+        if (!TryMetricsMode(options.GetValueOrDefault("--metrics", "off"), out var metricsMode)) return await Usage(error, "project run --metrics must be off, summary, or per-tick");
         var workspace = ResolveWorkspaceOrProject(args[2]); var workspaceValidation = ValidateWorkspace(workspace); var projectValidation = ValidateProject(workspace);
         var runDirectory = Path.GetFullPath(outputPath); EnsureNotEngineMutation(workspace, runDirectory); Directory.CreateDirectory(runDirectory);
         var families = new Dictionary<string, object>
@@ -144,6 +147,13 @@ public static class WorkspaceCommands
                 if (content.Result.ExitCode != 0) throw new InvalidOperationException("Scenario content validation failed before execution.");
                 var scenarioRun = new Agentic2D.ScenarioRunner.ScenarioRunner().Run(scenarioPath);
                 var runtimeDirectory = Path.Combine(runDirectory, "runtime"); var scenarioExit = await ScenarioArtifactWriter.WriteAsync(runtimeDirectory, scenarioRun); families["runtime"] = new { present = true, path = "runtime/result.json", status = scenarioExit == 0 ? "passed" : "failed", finalTick = scenarioRun.Result.Runtime.FinalTick, fingerprint = FingerprintFile(Path.Combine(runtimeDirectory, "result.json")) }; exitCode = Math.Max(exitCode, scenarioExit);
+                if (metricsMode != MetricsCollectionMode.Off)
+                {
+                    // This attaches bounded observational evidence to the same declared run boundary.
+                    var metrics = RuntimeSmokeScenario.RunWithMetrics(Math.Max(1, scenarioRun.Result.Runtime.FinalTick), metricsMode);
+                    await WriteMetricsAsync(runDirectory, metrics);
+                    families["metrics"] = new { present = true, path = "metrics-summary.json", status = "present", mode = MetricsModeId(metricsMode), fingerprint = FingerprintFile(Path.Combine(runDirectory, "metrics-summary.json")) };
+                }
                 if (scenarioExit != 0) throw new InvalidOperationException("Scenario execution failed before a renderable snapshot was available.");
                 snapshotAvailable = true;
                 var inputMap = ContentFiles(workspace, "input").FirstOrDefault();
@@ -493,6 +503,21 @@ public static class WorkspaceCommands
 
     private static string ResolveScenario(string workspace, JsonDocument project, string scenarioId) => Directory.EnumerateFiles(Path.Combine(workspace, "game-content", "scenarios"), "*.json", SearchOption.AllDirectories).FirstOrDefault(path => JsonDocument.Parse(File.ReadAllText(path)).RootElement.TryGetProperty("id", out var id) && id.GetString() == scenarioId) ?? throw new InvalidOperationException($"Scenario was not found: {scenarioId}");
     private static string ResolveWorkspaceOrProject(string path) { var full = Path.GetFullPath(path); return File.Exists(full) ? Path.GetDirectoryName(full)! : full; }
+    private static bool TryMetricsMode(string value, out MetricsCollectionMode mode)
+    {
+        mode = value switch { "off" => MetricsCollectionMode.Off, "summary" => MetricsCollectionMode.Summary, "per-tick" => MetricsCollectionMode.PerTick, _ => MetricsCollectionMode.Off };
+        return value is "off" or "summary" or "per-tick";
+    }
+    private static string MetricsModeId(MetricsCollectionMode mode) => mode switch { MetricsCollectionMode.Off => "off", MetricsCollectionMode.Summary => "summary", MetricsCollectionMode.PerTick => "per-tick", _ => throw new ArgumentOutOfRangeException(nameof(mode)) };
+    private static async Task WriteMetricsAsync(string directory, RuntimeMetricsSnapshot snapshot)
+    {
+        await WriteJson(Path.Combine(directory, "metrics-summary.json"), new { schema = "agentic2d.runtime-metrics-summary.v1", mode = MetricsModeId(snapshot.Mode), tickCount = snapshot.TickCount, recentTickCapacity = snapshot.RecentCapacity, effectiveTicksPerSecond = snapshot.EffectiveTicksPerSecond, recentP95TickDurationMilliseconds = snapshot.RecentP95TickDurationMilliseconds, metrics = snapshot.Summary, limitations = new[] { "Timing is observational and not deterministic authority.", "Cross-machine comparisons are invalid." } });
+        if (snapshot.Mode == MetricsCollectionMode.PerTick)
+        {
+            var lines = snapshot.RecentTicks.Select(tick => JsonSerializer.Serialize(new { schema = "agentic2d.runtime-metrics-tick.v1", tick = tick.Tick, values = tick.Values }));
+            await File.WriteAllTextAsync(Path.Combine(directory, "metrics-ticks.jsonl"), string.Join(Environment.NewLine, lines) + (snapshot.RecentTicks.Count == 0 ? string.Empty : Environment.NewLine));
+        }
+    }
     private static Dictionary<string, string> Options(string[] args, int start, out string? error) { var output = new Dictionary<string, string>(StringComparer.Ordinal); error = null; for (var i = start; i < args.Length; i++) { if (!args[i].StartsWith("--", StringComparison.Ordinal) || ++i >= args.Length || args[i].StartsWith("--", StringComparison.Ordinal)) { error = "options must use --name <value>"; return output; } if (!output.TryAdd(args[i - 1], args[i])) { error = $"duplicate option: {args[i - 1]}"; return output; } } return output; }
     private static async Task<int> Usage(TextWriter error, string message) { await error.WriteLineAsync(message); return 2; }
     private static async Task<int> FailCreateAsync(string output, string target, List<object> diagnostics, string id, string message, TextWriter error) { diagnostics.Add(new { id, severity = "error", message }); await WriteJson(Path.Combine(output, "workspace-create-diagnostics.json"), new { schema = "agentic2d.workspace-create-diagnostics.v1", target, diagnostics }); await error.WriteLineAsync(message); return 1; }
