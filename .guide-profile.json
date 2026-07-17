@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "guideSystemVersion": "0.5.0",
+  "guideSystemVersion": "0.5.1",
   "guideRepository": "carlrabbit/agentic-project-guides",
   "targetRepository": "carlrabbit/dotnet-ai-first-2d-game-engine",
   "repositoryRole": "capability-provider",
@@ -24,7 +24,8 @@
     "migratedFromGuideSystemVersion": "0.3.0",
     "includesGuideSystemVersions": [
       "0.4.0",
-      "0.5.0"
+      "0.5.0",
+      "0.5.1"
     ],
     "humanReviewModel": "repository-local-when-applicable",
     "validationExecutionModel": "direct-or-resumable-sharded",

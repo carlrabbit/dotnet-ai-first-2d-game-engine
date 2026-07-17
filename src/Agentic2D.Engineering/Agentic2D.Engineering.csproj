@@ -2,4 +2,8 @@
   <PropertyGroup>
     <OutputType>Exe</OutputType>
   </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="../Agentic2D.Engine/Agentic2D.Engine.csproj" />
+    <ProjectReference Include="../Agentic2D.Metrics/Agentic2D.Metrics.csproj" />
+  </ItemGroup>
 </Project>

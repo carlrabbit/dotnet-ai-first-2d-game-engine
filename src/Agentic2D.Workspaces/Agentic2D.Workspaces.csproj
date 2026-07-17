@@ -1,8 +1,10 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <ItemGroup>
+    <ProjectReference Include="../Agentic2D.Engine/Agentic2D.Engine.csproj" />
     <ProjectReference Include="../Agentic2D.ScenarioRunner/Agentic2D.ScenarioRunner.csproj" />
     <ProjectReference Include="../Agentic2D.Validation/Agentic2D.Validation.csproj" />
     <ProjectReference Include="../Agentic2D.Rendering/Agentic2D.Rendering.csproj" />
     <ProjectReference Include="../Agentic2D.Animation/Agentic2D.Animation.csproj" />
+    <ProjectReference Include="../Agentic2D.Metrics/Agentic2D.Metrics.csproj" />
   </ItemGroup>
 </Project>
