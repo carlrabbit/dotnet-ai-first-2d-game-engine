@@ -8,6 +8,6 @@ if [ -z "${DISPLAY:-}${WAYLAND_DISPLAY:-}" ]; then
   exit 0
 fi
 ./eng/export-linux-smoke.sh
-"$repo_root/artifacts/smoke/m024-export/game/agentic2d-game" --scenario runtime.smoke --output "$out/run"
+"$repo_root/artifacts/smoke/m024-export/game/agentic2d-game" --scenario runtime.smoke --auto-close-after 120 --output "$out/run"
 require_file "$out/run/startup-diagnostics.json"
 printf '{"schema":"agentic2d.export-graphical-review.v1","status":"passed","adapter":"raylib-isolated-adapter","scenario":"runtime.smoke","validated":"render startup, clean shutdown, writable diagnostics"}\n' > "$out/graphical-review.json"

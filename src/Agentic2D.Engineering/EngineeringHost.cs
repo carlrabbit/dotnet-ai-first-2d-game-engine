@@ -603,6 +603,19 @@ public sealed class EngineeringHost
             Shard("performance-report", "Same-machine export performance report.", "./eng/export-performance-smoke.sh", ["artifacts/performance/M024/performance-report.json", "artifacts/performance/M024/performance-report.md"]),
             Shard("graphical-review", "Optional graphical-session review or explicit skip.", "./eng/export-graphical-smoke.sh", ["artifacts/smoke/m024-graphical/graphical-review.json"]),
             Shard("integrated", "Build and direct export integration.", "./eng/build.sh && ./eng/export-isolated-launch-smoke.sh", ["artifacts/smoke/m024-isolated-launch/isolated-launch-run-manifest.json"])
+        ]),
+        new("m025-smoke", "resumable-sharded",
+        [
+            Shard("workspace-isolation", "Relocated consumer workspace validates, builds, and runs.", "./eng/signal-passage-isolation.sh", ["artifacts/signal-passage/isolation/workspace-validation.json", "artifacts/signal-passage/isolation/run-manifest.json"]),
+            Shard("geometric-presentation", "Consumer geometric visuals project into structural render evidence.", "./eng/signal-passage-smoke.sh", ["consumers/signal-passage/artifacts/runs/geometry/render/render-commands.jsonl"]),
+            Shard("sound-synthesis", "Offline cue definitions validate and regenerate PCM WAV assets.", "./eng/signal-passage-validate.sh", ["consumers/signal-passage/artifacts/sound-validation/sound-synthesis-result.json", "consumers/signal-passage/game-content/generated/sounds/objective-completed.wav"]),
+            Shard("consumer-gameplay", "Consumer-owned objective journey completes.", "./eng/signal-passage-smoke.sh", ["consumers/signal-passage/artifacts/journey/complete-journey.json"]),
+            Shard("save-resume", "Save/resume state contains no replayed transient feedback.", "./eng/signal-passage-smoke.sh", ["consumers/signal-passage/artifacts/journey/save.json"]),
+            Shard("linux-export", "Consumer workspace exports and runs through the standalone Linux host.", "./eng/signal-passage-export.sh", ["artifacts/signal-passage/export/game/agentic2d.export.json", "artifacts/signal-passage/export/run/run-manifest.json"]),
+            Shard("performance-report", "M025 advisory performance report is present.", "./eng/signal-passage-performance.sh", ["artifacts/performance/M025/performance-report.json", "artifacts/performance/M025/performance-report.md"]),
+            Shard("extension-discovery", "Consumer extension classifications are complete.", "test -f consumers/signal-passage/consumer-extension-report.json && test -f consumers/signal-passage/consumer-extension-report.md", ["consumers/signal-passage/consumer-extension-report.json", "consumers/signal-passage/consumer-extension-report.md"]),
+            Shard("human-review", "Blocking human review is current and approved.", "./eng/review-check.sh", [".review/records/review.m025.signal-passage-playable-vertical-slice.json"]),
+            Shard("integrated", "Provider build and consumer journey integration.", "./eng/build.sh && ./eng/signal-passage-smoke.sh", ["consumers/signal-passage/artifacts/journey/complete-journey.json"])
         ])
     ];
 

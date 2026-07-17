@@ -15,6 +15,8 @@ public static class ToolsCli
 {
     public static async Task<int> RunAsync(string[] args, TextWriter output, TextWriter error)
     {
+        var m025SoundSynthesis = await M025SoundSynthesisCommands.RunAsync(args, output, error);
+        if (m025SoundSynthesis >= 0) return m025SoundSynthesis;
         var export = await ExportCommands.RunAsync(args, output, error);
         if (export >= 0) return export;
         var m021 = await M021PresentationCommands.RunAsync(args, output, error);
@@ -59,6 +61,8 @@ public static class ToolsCli
                   agentic2d camera inspect --project <project-or-workspace> --scenario <scenario-id> --output <directory>
                   agentic2d ui inspect <ui-id-or-path> --project <project-or-workspace> [--scenario <scenario-id>] --output <directory>
                   agentic2d sound inspect <sound-id-or-path> --output <directory>
+                  agentic2d sound synthesize <definition-or-directory> --output <directory>
+                  agentic2d sound synthesis validate|inspect <definition-or-directory> --output <directory>
                   agentic2d sound project --project <project-or-workspace> --scenario <scenario-id> --output <directory>
                   agentic2d gameplay inspect --project <project-or-workspace> --scenario <scenario-id> --output <directory>
                   agentic2d asset inspect <asset-id-or-path> --output <directory>

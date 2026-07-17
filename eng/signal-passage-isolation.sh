@@ -1,0 +1,16 @@
+#!/usr/bin/env bash
+set -euo pipefail
+source "$(dirname "$0")/common.sh"
+root="$(mktemp -d /tmp/signal-passage-isolation.XXXXXX)"
+workspace="$root/signal-passage"
+cp -a "$repo_root/consumers/signal-passage" "$workspace"
+cp -a "$repo_root" "$root/engine-src"
+sed -i 's#"source": "../.."#"path": "../engine-src", "source": "../engine-src"#; s#"root": "../.."#"root": "../engine-src"#' "$workspace/agentic2d.workspace.json"
+sed -i 's#ENGINE_PATH="../../.."#ENGINE_PATH="../../engine-src"#' "$workspace/eng/engine-bootstrap.env"
+sed -i 's#../../../../src/#../../../engine-src/src/#' "$workspace/game-src/SignalPassage.Game/SignalPassage.Game.csproj"
+dotnet_cmd build "$workspace/game-src/SignalPassage.Game/SignalPassage.Game.csproj"
+"$workspace/eng/agentic2d.sh" workspace validate "$workspace" --output "$workspace/artifacts/isolation-validation"
+"$workspace/eng/agentic2d.sh" project run "$workspace" --scenario signal-passage.external-workspace-smoke --output "$workspace/artifacts/isolation-run"
+mkdir -p "$repo_root/artifacts/signal-passage/isolation"
+cp "$workspace/artifacts/isolation-validation/workspace-validation.json" "$repo_root/artifacts/signal-passage/isolation/workspace-validation.json"
+cp "$workspace/artifacts/isolation-run/run-manifest.json" "$repo_root/artifacts/signal-passage/isolation/run-manifest.json"

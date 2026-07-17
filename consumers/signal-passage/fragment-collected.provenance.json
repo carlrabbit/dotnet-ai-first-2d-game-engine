@@ -1,0 +1,15 @@
+{
+  "Schema": "agentic2d.sound-synthesis-artifact.v1",
+  "Id": "sound-synthesis.signal-passage.fragment-collected",
+  "OutputAssetId": "asset.signal-passage.fragment-collected",
+  "OutputPath": "game-content/generated/sounds/fragment-collected.wav",
+  "DefinitionFingerprint": "sha256:e651a2a27f122b23935f0de4bb2524e1ad80814d29a360d53f179cbe7f9e533c",
+  "ImplementationVersion": "m025-offline-pcm-v1",
+  "SampleCount": 3969,
+  "SampleRate": 22050,
+  "DurationSeconds": 0.18,
+  "Peak": 0.3190710165715506,
+  "Rms": 0.14763738725248793,
+  "OutputSha256": "0a4b64a8fd4956b1e2c4155ccc4199d959685c0980d980f84327070d96eb151e",
+  "Diagnostics": []
+}

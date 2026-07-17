@@ -396,7 +396,7 @@ public static class WorkspaceCommands
     private static string? ContentDomain(string relative)
     {
         var normalized = relative.Replace("\\", "/", StringComparison.Ordinal);
-        foreach (var domain in new[] { "scenarios", "assets", "maps", "entities", "visuals", "animations", "input", "sounds", "items" }) if (normalized.Contains("game-content/" + domain + "/", StringComparison.Ordinal)) return domain;
+        foreach (var domain in new[] { "scenarios", "assets", "maps", "entities", "visuals", "animations", "input", "sounds", "items", "sound-synthesis", "colors" }) if (normalized.Contains("game-content/" + domain + "/", StringComparison.Ordinal)) return domain;
         return null;
     }
 
@@ -408,7 +408,7 @@ public static class WorkspaceCommands
             var root = document.RootElement;
             if (!root.TryGetProperty("schema", out var schema) || schema.ValueKind != JsonValueKind.String || !root.TryGetProperty("id", out var id) || string.IsNullOrWhiteSpace(id.GetString())) { reason = "Content file must declare string schema and stable id."; return false; }
             if (domain == "scenarios") { var run = new ContentValidator().Validate(path); reason = run.Result.ExitCode == 0 ? string.Empty : "Scenario contract validation failed."; return run.Result.ExitCode == 0; }
-            var expected = domain switch { "assets" => "agentic2d.asset-metadata.v1", "maps" => "agentic2d.map.v1", "entities" => "agentic2d.entity-definition.v1", "visuals" => "agentic2d.visual-definition.v1", "animations" => "agentic2d.animation-definition.v1", "input" => "agentic2d.input-map.v1", "sounds" => "agentic2d.sound-definition.v1", "items" => "agentic2d.item-definition.v1", _ => string.Empty };
+            var expected = domain switch { "assets" => "agentic2d.asset-metadata.v1", "maps" => "agentic2d.map.v1", "entities" => "agentic2d.entity-definition.v1", "visuals" => "agentic2d.visual-definition.v1", "animations" => "agentic2d.animation-definition.v1", "input" => "agentic2d.input-map.v1", "sounds" => "agentic2d.sound-definition.v1", "items" => "agentic2d.item-definition.v1", "sound-synthesis" => "agentic2d.sound-synthesis.v1", "colors" => "agentic2d.signal-passage-colors.v1", _ => string.Empty };
             if (!StringComparer.Ordinal.Equals(schema.GetString(), expected)) { reason = $"Unexpected schema for {domain}."; return false; }
             reason = string.Empty; return true;
         }
@@ -424,7 +424,7 @@ public static class WorkspaceCommands
         var map = new MapContentValidator().ValidateFile(mapPath); if (map.Map is null || map.Status != ContentValidationStatus.Passed) throw new InvalidOperationException("RUN0012: Project map content is invalid for render projection.");
         var visuals = VisualDefinitionCatalog.LoadFiles(ContentFiles(workspace, "visuals"), out var visualDiagnostics); if (visualDiagnostics.Any(x => x.Severity == ContentDiagnosticSeverity.Error)) throw new InvalidOperationException("RUN0013: Project visual content is invalid for render projection.");
         var entityDefinition = ContentFiles(workspace, "entities").Select(path => new EntityDefinitionValidator().ValidateFile(path)).FirstOrDefault(x => x.Definition?.VisualDefinitionId is not null)?.Definition;
-        var definitionId = entityDefinition?.Id ?? "";
+        var definitionId = entityDefinition?.Id ?? visuals.Definitions.Keys.OrderBy(x => x, StringComparer.Ordinal).FirstOrDefault() ?? "";
         var entities = execution.Result.Entities.Select(x => new RenderSnapshotEntity(x.Id, definitionId, x.Position, 0d)).ToArray();
         var snapshot = new RenderSnapshot("agentic2d.render-snapshot.v1", scenarioId, map.Map.Id, execution.Result.Runtime.FinalTick, "sha256:" + FingerprintObject(new { scenarioId, entities, execution.Result.Runtime.FinalTick }), entities);
         return new RenderProjectionService().ProjectExternal(snapshot, map.Map, visuals, "same-execution");
@@ -489,6 +489,8 @@ public static class WorkspaceCommands
     private static void EnsureNotEngineMutation(string workspace, string output)
     {
         using var manifest = ReadDocument(Path.Combine(workspace, WorkspaceFile));
+        var artifactRoot = manifest.RootElement.TryGetProperty("artifactRoot", out var artifact) ? artifact.GetString() : null;
+        if (!string.IsNullOrWhiteSpace(artifactRoot) && IsWithin(Path.Combine(workspace, artifactRoot), output)) return;
         var engine = manifest.RootElement.GetProperty("engine");
         var reference = engine.TryGetProperty("path", out var path) && path.ValueKind == JsonValueKind.String ? path.GetString() : engine.GetProperty("source").GetString();
         var engineRoot = Path.GetFullPath(Path.Combine(workspace, reference!));

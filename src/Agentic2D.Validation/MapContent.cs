@@ -45,7 +45,7 @@ public sealed class MapContentValidator
                 return MapValidationItem.Failed(relativePath, Path.GetFileNameWithoutExtension(path), [diagnostic]);
             }
 
-            var diagnostics = ValidateMap(map, relativePath);
+            var diagnostics = ValidateMap(map, relativePath, Path.Combine(Path.GetDirectoryName(path)!, "..", "assets"));
             var status = diagnostics.Any(static diagnostic => diagnostic.Severity == ContentDiagnosticSeverity.Error)
                 ? ContentValidationStatus.Failed
                 : ContentValidationStatus.Passed;
@@ -54,7 +54,7 @@ public sealed class MapContentValidator
         }
     }
 
-    public IReadOnlyList<ContentValidationDiagnostic> ValidateMap(MapContentSource map, string target)
+    public IReadOnlyList<ContentValidationDiagnostic> ValidateMap(MapContentSource map, string target, string? localAssetRoot = null)
     {
         var diagnostics = new List<ContentValidationDiagnostic>();
 
@@ -99,8 +99,8 @@ public sealed class MapContentValidator
             }
         }
 
-        var resolvedAssets = ResolveAssetRefs(map.AssetRefs, target, diagnostics);
-        ValidateLayers(map, target, resolvedAssets, diagnostics);
+        var resolvedAssets = ResolveAssetRefs(map.AssetRefs, target, diagnostics, localAssetRoot, map.GeometryOnly);
+        ValidateLayers(map, target, resolvedAssets, diagnostics, map.GeometryOnly);
         ValidateMarkers(map, target, diagnostics);
         ValidateObjects(map, target, diagnostics);
         ValidateEntitySpawns(map, target, diagnostics);
@@ -115,9 +115,9 @@ public sealed class MapContentValidator
     private static Dictionary<string, AssetMetadataSource> ResolveAssetRefs(
         IReadOnlyList<MapAssetRefSource> assetRefs,
         string target,
-        List<ContentValidationDiagnostic> diagnostics)
+        List<ContentValidationDiagnostic> diagnostics, string? localAssetRoot, bool geometryOnly)
     {
-        if (assetRefs.Count == 0)
+        if (assetRefs.Count == 0 && !geometryOnly)
         {
             diagnostics.Add(MapDiagnostic.InvalidField(target, "assetRefs", "assetRefs must contain at least one asset reference."));
             return new Dictionary<string, AssetMetadataSource>(StringComparer.Ordinal);
@@ -140,14 +140,15 @@ public sealed class MapContentValidator
                 continue;
             }
 
-            var assetResolution = AssetMetadataLocator.ResolveById(assetRef.AssetId);
-            if (!assetResolution.IsSuccess)
+            var local = localAssetRoot is null || !Directory.Exists(localAssetRoot) ? null : Directory.EnumerateFiles(localAssetRoot, "*.json", SearchOption.AllDirectories).FirstOrDefault(path => JsonDocument.Parse(File.ReadAllText(path)).RootElement.TryGetProperty("id", out var id) && id.GetString() == assetRef.AssetId);
+            var assetResolution = local is null ? AssetMetadataLocator.ResolveById(assetRef.AssetId) : null;
+            if (local is null && !assetResolution!.IsSuccess)
             {
                 diagnostics.AddRange(assetResolution.Diagnostics.Select(diagnostic => MapDiagnostic.MissingAsset(target, assetRef.AssetId, diagnostic.Message)));
                 continue;
             }
 
-            var assetValidation = new AssetMetadataValidator().ValidateFile(assetResolution.MetadataPath);
+            var assetValidation = new AssetMetadataValidator().ValidateFile(local ?? assetResolution!.MetadataPath);
             diagnostics.AddRange(assetValidation.Diagnostics.Select(diagnostic => diagnostic.Id == "ASSET0005"
                 ? MapDiagnostic.ReviewGateUnsatisfied(target, assetRef.AssetId, diagnostic.Message)
                 : diagnostic));
@@ -165,9 +166,9 @@ public sealed class MapContentValidator
         MapContentSource map,
         string target,
         IReadOnlyDictionary<string, AssetMetadataSource> resolvedAssets,
-        List<ContentValidationDiagnostic> diagnostics)
+        List<ContentValidationDiagnostic> diagnostics, bool geometryOnly)
     {
-        if (map.Layers.Count == 0)
+        if (map.Layers.Count == 0 && !geometryOnly)
         {
             diagnostics.Add(MapDiagnostic.InvalidField(target, "layers", "layers must contain at least one layer."));
             return;
@@ -585,6 +586,9 @@ public sealed class MapContentSource
 
     [JsonPropertyName("assetRefs")]
     public IReadOnlyList<MapAssetRefSource> AssetRefs { get; init; } = [];
+
+    [JsonPropertyName("geometryOnly")]
+    public bool GeometryOnly { get; init; }
 
     [JsonPropertyName("layers")]
     public IReadOnlyList<MapLayerSource> Layers { get; init; } = [];

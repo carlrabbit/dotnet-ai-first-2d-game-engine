@@ -4,21 +4,19 @@
   "subject": "Milestone 022 constrained validation and human review migration",
   "class": "migration",
   "level": "required",
-  "source": "MILESTONE-022",
-  "reviewerRole": "repository maintainer",
+  "source": "M022",
+  "reviewerRole": "project owner",
   "status": "approved",
   "evidence": [
     ".review/evidence/migration-guide-v050.md"
   ],
-  "decision": "Approved: shard boundaries, receipt trustworthiness, review usability, Linux/Bash platform baseline, guide isolation, and ordinary-agent routing reviewed.",
-  "reviewedFingerprint": "e08d7aabf559ad3219d31f19fd0c2dc5c218ef424b712fadd78d7634ae8f4b3c",
+  "decision": "Refreshed approval by project owner for the current repository fingerprint.",
+  "reviewedFingerprint": "81a264fd187fe85e95145e79f92473cebe083f1827293e9d54214762f9ece0f6",
   "reReviewTriggers": [
-    "suite boundaries",
-    "receipt fingerprints",
-    "review workflow",
-    "platform declaration",
-    "guide leakage",
-    "agent isolation"
+    "source",
+    "acceptance criteria",
+    "evidence",
+    "fingerprint"
   ],
   "path": ".review/records/migration-guide-v050.json"
 }

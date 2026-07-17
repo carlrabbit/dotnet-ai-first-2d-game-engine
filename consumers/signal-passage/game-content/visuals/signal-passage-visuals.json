@@ -1,0 +1,1 @@
+{"schema":"agentic2d.visual-definition.v1","id":"visual-definition.player.signal-passage","parts":[{"id":"player","anchor":"center","offset":{"x":0,"y":0},"worldSize":{"width":0.8,"height":0.8},"layer":"entities","order":1,"sortMode":"y","tint":{"r":54,"g":217,"b":232,"a":255},"geometry":{"kind":"circle","fill":{"r":54,"g":217,"b":232,"a":255},"opacity":1}}]}

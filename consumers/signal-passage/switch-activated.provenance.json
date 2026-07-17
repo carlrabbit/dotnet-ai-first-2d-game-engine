@@ -1,0 +1,15 @@
+{
+  "Schema": "agentic2d.sound-synthesis-artifact.v1",
+  "Id": "sound-synthesis.signal-passage.switch-activated",
+  "OutputAssetId": "asset.signal-passage.switch-activated",
+  "OutputPath": "game-content/generated/sounds/switch-activated.wav",
+  "DefinitionFingerprint": "sha256:73127c65e7f81dc71a53833bc7821df2a92d9b87e1a268be7a8db584131b5a52",
+  "ImplementationVersion": "m025-offline-pcm-v1",
+  "SampleCount": 5292,
+  "SampleRate": 22050,
+  "DurationSeconds": 0.24,
+  "Peak": 0.2974944303720206,
+  "Rms": 0.13250197424120566,
+  "OutputSha256": "c4a2ab8c37b3be226e189d8b65af073cf7d7c1867e65a581a4b5497aaf6abf38",
+  "Diagnostics": []
+}
