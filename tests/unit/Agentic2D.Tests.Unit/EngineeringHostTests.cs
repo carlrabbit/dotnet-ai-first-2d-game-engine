@@ -15,6 +15,19 @@ public sealed class EngineeringHostTests
     }
 
     [Test]
+    public async Task M022AndM023PlansDoNotDependOnGuideMetadata()
+    {
+        var host = new EngineeringHost(Directory.GetCurrentDirectory());
+        using var m022 = JsonDocument.Parse(host.SerializePlan(host.GetSuite("m022-smoke")));
+        using var m023 = JsonDocument.Parse(host.SerializePlan(host.GetSuite("m023-smoke")));
+
+        await Assert.That(m022.RootElement.GetProperty("requiredShards").EnumerateArray().Any(shard => shard.GetProperty("id").GetString() == "platform-and-leakage")).IsTrue();
+        await Assert.That(m023.RootElement.GetProperty("requiredShards").EnumerateArray().Any(shard => shard.GetProperty("id").GetString() == "guide-v051")).IsFalse();
+        await Assert.That(m022.RootElement.ToString().Contains(".guide-profile.json", StringComparison.Ordinal)).IsFalse();
+        await Assert.That(m023.RootElement.ToString().Contains(".guide-profile.json", StringComparison.Ordinal)).IsFalse();
+    }
+
+    [Test]
     public async Task AtomicReceiptWriteLeavesOnlyFinalReceipt()
     {
         var directory = Path.Combine(Path.GetTempPath(), "agentic2d-engineering-tests", Guid.NewGuid().ToString("N"));

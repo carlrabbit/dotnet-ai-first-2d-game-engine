@@ -355,65 +355,16 @@ public sealed class EngineeringHost
 
     private async Task<int> RunInternalShardAsync(ValidationSuite suite, ValidationShard shard, TextWriter diagnostics)
     {
-        if (suite.Id == "m023-smoke" && shard.Id == "guide-v051")
-        {
-            return CheckGuideV051(diagnostics);
-        }
-
-        if (suite.Id != "guide-migration-v050")
+        if (suite.Id != "m022-smoke")
         {
             throw new EngineeringException($"unsupported internal shard: {suite.Id}/{shard.Id}");
         }
 
         return shard.Id switch
         {
-            "profile-and-docs" => CheckFiles([".guide-profile.json", "docs/engineering/constrained-validation-execution.md", "docs/engineering/human-review-workflow.md"], diagnostics),
             "platform-and-leakage" => CheckPlatformAndLeakage(diagnostics),
             _ => throw new EngineeringException($"unsupported internal shard: {shard.Id}")
         };
-    }
-
-    private int CheckFiles(IEnumerable<string> files, TextWriter diagnostics)
-    {
-        var missing = files.Where(file => !File.Exists(Absolute(file))).ToArray();
-        if (missing.Length > 0)
-        {
-            diagnostics.WriteLine($"error: missing required migration inputs: {string.Join(", ", missing)}");
-            return 1;
-        }
-
-        using var profile = JsonDocument.Parse(File.ReadAllText(Absolute(".guide-profile.json")));
-        if (profile.RootElement.GetProperty("guideSystemVersion").GetString() != "0.5.0")
-        {
-            diagnostics.WriteLine("error: guide profile does not declare version 0.5.0");
-            return 1;
-        }
-
-        return 0;
-    }
-
-    private int CheckGuideV051(TextWriter diagnostics)
-    {
-        var required = new[] { ".guide-profile.json", "docs/milestones/MILESTONE-023-lightweight-runtime-metrics-comparative-performance-checks-and-milestone-performance-reporting.md" };
-        if (required.Any(path => !File.Exists(Absolute(path))))
-        {
-            diagnostics.WriteLine("error: M023 guide v0.5.1 corrective-assessment authority is missing");
-            return 1;
-        }
-        using var profile = JsonDocument.Parse(File.ReadAllText(Absolute(".guide-profile.json")));
-        var root = profile.RootElement;
-        if (root.GetProperty("guideSystemVersion").GetString() != "0.5.1" || root.GetProperty("repositoryRole").GetString() != "capability-provider")
-        {
-            diagnostics.WriteLine("error: guide profile does not preserve the v0.5.1 capability-provider profile");
-            return 1;
-        }
-        var adoption = root.GetProperty("adoption");
-        if (adoption.GetProperty("validationExecutionModel").GetString() != "direct-or-resumable-sharded" || adoption.GetProperty("engineeringCommandModel").GetString() != "thin-launchers-over-tested-dotnet-host")
-        {
-            diagnostics.WriteLine("error: guide profile does not preserve validation/engineering command model");
-            return 1;
-        }
-        return 0;
     }
 
     private int CheckPlatformAndLeakage(TextWriter diagnostics)
@@ -573,10 +524,9 @@ public sealed class EngineeringHost
             Shard("post-load", "Post-load transient reconstruction policy.", "./eng/presentation-post-load-smoke.sh", ["artifacts/smoke/m021-resumed/presentation/player-facing-presentation-result.json"], ["integrated"]),
             Shard("review", "Presentation review pack.", "./eng/presentation-review-smoke.sh", ["artifacts/smoke/m021-integrated/review/review-summary.md"], ["integrated"])
         ]),
-        new("guide-migration-v050", "resumable-sharded",
+        new("m022-smoke", "resumable-sharded",
         [
-            Shard("profile-and-docs", "Profile and localized migration authority.", "internal:profile-and-docs", [".guide-profile.json", "docs/engineering/constrained-validation-execution.md"], isInternal: true),
-            Shard("engineering-host-tests", "Engineering host unit tests.", "./eng/test.sh", ["src/Agentic2D.Engineering/EngineeringHost.cs"]),
+            Shard("engineering-host-tests", "Engineering host plan and receipt tests.", "./eng/test-filter.sh EngineeringHost", ["src/Agentic2D.Engineering/EngineeringHost.cs", "tests/unit/Agentic2D.Tests.Unit/EngineeringHostTests.cs"]),
             Shard("m019-suite", "Current M019 receipt verification.", "./eng/m019-smoke.sh --verify", ["artifacts/validation/m019-smoke/replay.json"]),
             Shard("m020-suite", "Current M020 receipt verification.", "./eng/m020-smoke.sh --verify", ["artifacts/validation/m020-smoke/review.json"]),
             Shard("m021-suite", "Current M021 receipt verification.", "./eng/m021-smoke.sh --verify", ["artifacts/validation/m021-smoke/review.json"]),
@@ -590,8 +540,7 @@ public sealed class EngineeringHost
             Shard("metrics-artifacts", "Summary and bounded per-tick artifacts.", "./eng/metrics-artifacts-smoke.sh", ["artifacts/smoke/m023-metrics/metrics-summary.json", "artifacts/smoke/m023-metrics/metrics-ticks.jsonl"]),
             Shard("comparative-workloads", "Reference workload capture.", "./eng/perf-smoke.sh", ["artifacts/performance/smoke/performance-capture.json"]),
             Shard("performance-report", "Advisory comparison and report generation.", "./eng/perf-report-smoke.sh", ["artifacts/performance/m023/performance-report.json", "artifacts/performance/m023/performance-report.md"]),
-            Shard("integrated", "Direct build, test, and product integration checks.", "./eng/build.sh && ./eng/test.sh && ./eng/cli-smoke.sh && ./eng/product-validate.sh", ["artifacts/cli/runtime-smoke/result.json", "artifacts/cli/validate/result.json"]),
-            Shard("guide-v051", "v0.5.1 corrective assessment profile check.", "internal:guide-v051", [".guide-profile.json", "docs/milestones/MILESTONE-023-lightweight-runtime-metrics-comparative-performance-checks-and-milestone-performance-reporting.md"], isInternal: true)
+            Shard("integrated", "Direct build, test, and product integration checks.", "./eng/build.sh && ./eng/test.sh && ./eng/cli-smoke.sh && ./eng/product-validate.sh", ["artifacts/cli/runtime-smoke/result.json", "artifacts/cli/validate/result.json"])
         ]),
         new("m024-smoke", "resumable-sharded",
         [
