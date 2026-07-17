@@ -1,0 +1,13 @@
+{
+  "schema": "agentic2d.exported-game-run.v1",
+  "status": "passed",
+  "scenarioId": "signal-passage.linux-export-smoke",
+  "projectFingerprint": "fb51e59655ca150214a72fa6e8b5179151f2a0758d9cfbd838f5068ac6519c59",
+  "contentFingerprint": "fb51e59655ca150214a72fa6e8b5179151f2a0758d9cfbd838f5068ac6519c59",
+  "headless": true,
+  "recording": null,
+  "semanticInputConsumed": false,
+  "ticks": null,
+  "writableSaveRoot": "/home/dev/.local/share/game.signal-passage/saves",
+  "artifactRoot": "/home/dev/src/dotnet-ai-first-2d-game-engine/artifacts/signal-passage/export/run"
+}

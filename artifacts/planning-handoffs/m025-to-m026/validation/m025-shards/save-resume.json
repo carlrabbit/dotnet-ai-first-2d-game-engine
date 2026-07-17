@@ -1,0 +1,27 @@
+{
+  "schema": "agentic2d.engineering.validation-receipt.v1",
+  "suiteId": "m025-smoke",
+  "shardId": "save-resume",
+  "status": "passed",
+  "suiteFingerprint": "9c93bd0e8d60d834cc5b63d44b3a5f9a15280fcf523b85dd29422dae041de022",
+  "repositoryFingerprint": "81a264fd187fe85e95145e79f92473cebe083f1827293e9d54214762f9ece0f6",
+  "commandFingerprint": "075bc05906a0568ff266c5ddfd046be4583fe0f840ee01911dfde7e0aa9edf8e",
+  "inputFingerprint": "108b5fb1539f6d63bae75e242d9c9c0f3bc6820e446bf38705d5e1093cb70ebb",
+  "resultFingerprint": "108b5fb1539f6d63bae75e242d9c9c0f3bc6820e446bf38705d5e1093cb70ebb",
+  "command": "./eng/signal-passage-smoke.sh",
+  "evidencePaths": [
+    "consumers/signal-passage/artifacts/journey/save.json"
+  ],
+  "artifacts": [
+    {
+      "path": "consumers/signal-passage/artifacts/journey/save.json",
+      "fingerprint": "91240728bfe3aade62815f440d031f2ad0facf99e30362a84f6b039ae6e7edae"
+    }
+  ],
+  "completion": {
+    "startedAtUtc": "2026-07-17T18:21:36.0481164+00:00",
+    "completedAtUtc": "2026-07-17T18:21:46.550512+00:00",
+    "platform": "linux-bash"
+  },
+  "diagnostics": []
+}

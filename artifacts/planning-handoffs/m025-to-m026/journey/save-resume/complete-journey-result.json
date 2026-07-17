@@ -1,0 +1,73 @@
+{
+  "schema": "signal-passage.complete-journey.v1",
+  "status": "passed",
+  "objective": {
+    "FragmentsCollected": 3,
+    "MechanismActive": true,
+    "ExitOpen": true,
+    "Completed": true
+  },
+  "health": 2,
+  "events": [
+    {
+      "step": 1,
+      "state": "objective-explained"
+    },
+    {
+      "step": 2,
+      "state": "container-opened",
+      "container": "container.alpha"
+    },
+    {
+      "step": 3,
+      "state": "fragment-collected",
+      "count": 1
+    },
+    {
+      "step": 4,
+      "state": "hazard-damaged",
+      "health": 2
+    },
+    {
+      "step": 5,
+      "state": "mechanism-rejected",
+      "reason": "three-fragments-required"
+    },
+    {
+      "step": 6,
+      "state": "fragments-complete",
+      "count": 3
+    },
+    {
+      "step": 7,
+      "state": "mechanism-activated",
+      "exitOpen": true
+    },
+    {
+      "step": 8,
+      "state": "saved-and-resumed",
+      "restored": {
+        "schema": "signal-passage.save.v1",
+        "health": 2,
+        "fragments": 3,
+        "mechanism": true,
+        "exit": true,
+        "transientFeedback": []
+      },
+      "transientFeedbackReplayed": false
+    },
+    {
+      "step": 9,
+      "state": "objective-completed",
+      "completed": true
+    }
+  ],
+  "cues": [
+    "fragment-collected",
+    "container-opened",
+    "player-damaged",
+    "switch-activated",
+    "exit-opened",
+    "objective-completed"
+  ]
+}

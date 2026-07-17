@@ -1,0 +1,1 @@
+{"schema":"agentic2d.visual-definition.v1","id":"visual-definition.signal-passage.hazard","parts":[{"id":"hazard","anchor":"center","offset":{"x":0,"y":0},"worldSize":{"width":0.9,"height":0.9},"layer":"entities","order":1,"sortMode":"y","tint":{"r":233,"g":80,"b":80,"a":255},"geometry":{"kind":"triangle","fill":{"r":233,"g":80,"b":80,"a":255},"opacity":1,"rotation":0}}]}

@@ -1,0 +1,131 @@
+{
+  "schema": "agentic2d.engineering.validation-plan.v1",
+  "suiteId": "m025-smoke",
+  "executionMode": "resumable-sharded",
+  "suiteFingerprint": "9c93bd0e8d60d834cc5b63d44b3a5f9a15280fcf523b85dd29422dae041de022",
+  "repositoryFingerprint": "c1a5a337a58dda6c67617883278b743b7883e6f199d0d6da831141c4cb2eab38",
+  "requiredShards": [
+    {
+      "id": "workspace-isolation",
+      "description": "Relocated consumer workspace validates, builds, and runs.",
+      "command": "./eng/signal-passage-isolation.sh",
+      "receiptPath": "artifacts/validation/m025-smoke/workspace-isolation.json",
+      "dependsOn": [],
+      "evidence": [
+        "artifacts/signal-passage/isolation/workspace-validation.json",
+        "artifacts/signal-passage/isolation/run-manifest.json"
+      ]
+    },
+    {
+      "id": "geometric-presentation",
+      "description": "Consumer geometric visuals project into structural render evidence.",
+      "command": "./eng/signal-passage-smoke.sh",
+      "receiptPath": "artifacts/validation/m025-smoke/geometric-presentation.json",
+      "dependsOn": [],
+      "evidence": [
+        "consumers/signal-passage/artifacts/runs/geometry/render/render-commands.jsonl"
+      ]
+    },
+    {
+      "id": "sound-synthesis",
+      "description": "Offline cue definitions validate and regenerate PCM WAV assets.",
+      "command": "./eng/signal-passage-validate.sh",
+      "receiptPath": "artifacts/validation/m025-smoke/sound-synthesis.json",
+      "dependsOn": [],
+      "evidence": [
+        "consumers/signal-passage/artifacts/sound-validation/sound-synthesis-result.json",
+        "consumers/signal-passage/game-content/generated/sounds/objective-completed.wav"
+      ]
+    },
+    {
+      "id": "consumer-gameplay",
+      "description": "Consumer-owned objective journey completes.",
+      "command": "./eng/signal-passage-smoke.sh",
+      "receiptPath": "artifacts/validation/m025-smoke/consumer-gameplay.json",
+      "dependsOn": [],
+      "evidence": [
+        "consumers/signal-passage/artifacts/journey/complete-journey.json"
+      ]
+    },
+    {
+      "id": "save-resume",
+      "description": "Save/resume state contains no replayed transient feedback.",
+      "command": "./eng/signal-passage-smoke.sh",
+      "receiptPath": "artifacts/validation/m025-smoke/save-resume.json",
+      "dependsOn": [],
+      "evidence": [
+        "consumers/signal-passage/artifacts/journey/save.json"
+      ]
+    },
+    {
+      "id": "linux-export",
+      "description": "Consumer workspace exports and runs through the standalone Linux host.",
+      "command": "./eng/signal-passage-export.sh",
+      "receiptPath": "artifacts/validation/m025-smoke/linux-export.json",
+      "dependsOn": [],
+      "evidence": [
+        "artifacts/signal-passage/export/game/agentic2d.export.json",
+        "artifacts/signal-passage/export/run/run-manifest.json"
+      ]
+    },
+    {
+      "id": "performance-report",
+      "description": "M025 advisory performance report is present.",
+      "command": "./eng/signal-passage-performance.sh",
+      "receiptPath": "artifacts/validation/m025-smoke/performance-report.json",
+      "dependsOn": [],
+      "evidence": [
+        "artifacts/performance/M025/performance-report.json",
+        "artifacts/performance/M025/performance-report.md"
+      ]
+    },
+    {
+      "id": "extension-discovery",
+      "description": "Consumer extension classifications are complete.",
+      "command": "test -f consumers/signal-passage/consumer-extension-report.json \u0026\u0026 test -f consumers/signal-passage/consumer-extension-report.md",
+      "receiptPath": "artifacts/validation/m025-smoke/extension-discovery.json",
+      "dependsOn": [],
+      "evidence": [
+        "consumers/signal-passage/consumer-extension-report.json",
+        "consumers/signal-passage/consumer-extension-report.md"
+      ]
+    },
+    {
+      "id": "human-review",
+      "description": "Blocking human review is current and approved.",
+      "command": "./eng/review-check.sh",
+      "receiptPath": "artifacts/validation/m025-smoke/human-review.json",
+      "dependsOn": [],
+      "evidence": [
+        ".review/records/review.m025.signal-passage-playable-vertical-slice.json"
+      ]
+    },
+    {
+      "id": "integrated",
+      "description": "Provider build and consumer journey integration.",
+      "command": "./eng/build.sh \u0026\u0026 ./eng/signal-passage-smoke.sh",
+      "receiptPath": "artifacts/validation/m025-smoke/integrated.json",
+      "dependsOn": [],
+      "evidence": [
+        "consumers/signal-passage/artifacts/journey/complete-journey.json"
+      ]
+    }
+  ],
+  "verifierCommand": "./eng/m025-smoke.sh --verify",
+  "artifactPaths": [
+    "artifacts/signal-passage/isolation/workspace-validation.json",
+    "artifacts/signal-passage/isolation/run-manifest.json",
+    "consumers/signal-passage/artifacts/runs/geometry/render/render-commands.jsonl",
+    "consumers/signal-passage/artifacts/sound-validation/sound-synthesis-result.json",
+    "consumers/signal-passage/game-content/generated/sounds/objective-completed.wav",
+    "consumers/signal-passage/artifacts/journey/complete-journey.json",
+    "consumers/signal-passage/artifacts/journey/save.json",
+    "artifacts/signal-passage/export/game/agentic2d.export.json",
+    "artifacts/signal-passage/export/run/run-manifest.json",
+    "artifacts/performance/M025/performance-report.json",
+    "artifacts/performance/M025/performance-report.md",
+    "consumers/signal-passage/consumer-extension-report.json",
+    "consumers/signal-passage/consumer-extension-report.md",
+    ".review/records/review.m025.signal-passage-playable-vertical-slice.json"
+  ]
+}

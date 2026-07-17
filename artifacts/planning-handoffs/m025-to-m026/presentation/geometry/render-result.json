@@ -1,0 +1,9 @@
+{
+  "schema": "agentic2d.render-projection.result.v1",
+  "status": "passed",
+  "sourceMode": "same-execution",
+  "scenarioId": "signal-passage.geometry-presentation-smoke",
+  "mapId": "map.signal-passage",
+  "tick": 3,
+  "projectionFingerprint": "sha256:283666d70bea904ffca108a7766e27bdc1229bfc53bd583f461318a1a2ccf4ce"
+}

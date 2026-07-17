@@ -1,0 +1,14 @@
+Historical final verifier output at reviewed fingerprint 81a264fd187fe85e95145e79f92473cebe083f1827293e9d54214762f9ece0f6:
+m025-smoke: verification passed (10 current receipts)
+
+Current collection-worktree verifier output (expected stale after repository drift):
+error: m025-smoke/workspace-isolation: invalid receipt (repository fingerprint)
+error: m025-smoke/geometric-presentation: invalid receipt (repository fingerprint)
+error: m025-smoke/sound-synthesis: invalid receipt (repository fingerprint)
+error: m025-smoke/consumer-gameplay: invalid receipt (repository fingerprint)
+error: m025-smoke/save-resume: invalid receipt (repository fingerprint)
+error: m025-smoke/linux-export: invalid receipt (repository fingerprint)
+error: m025-smoke/performance-report: invalid receipt (repository fingerprint)
+error: m025-smoke/extension-discovery: invalid receipt (repository fingerprint)
+error: m025-smoke/human-review: invalid receipt (repository fingerprint)
+error: m025-smoke/integrated: invalid receipt (repository fingerprint)

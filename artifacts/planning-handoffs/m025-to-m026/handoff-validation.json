@@ -1,0 +1,50 @@
+{
+  "schema": "agentic2d.m025-m026-handoff-validation.v1",
+  "status": "incomplete",
+  "m025HistoricalVerifier": "passed",
+  "m025Review": "approved",
+  "currentCollectionVerifier": "stale",
+  "extensionClassificationsComplete": true,
+  "archiveIntegrity": true,
+  "archiveSizeBytes": 243299,
+  "archiveSha256": "05360b026a45f3c3c2f772d2c84533f13a565f0b963eb83ff764d41adf0147e8",
+  "pathSafety": true,
+  "prohibitedSecretsDetected": false,
+  "committedUnpackedFilesPresent": true,
+  "memberHashValidation": "passed for the archive member inventory generated before archive finalization",
+  "incompleteReasons": [
+    "Missing accepted state screenshots for five required states.",
+    "Current M019-M024 receipts are not current for the collection worktree.",
+    "Current M025 verifier is stale although its historical final result passed."
+  ],
+  "omissions": [
+    {
+      "class": "complete self-contained export directory",
+      "reason": "Excluded by request; selected inventory and hashes retain proof."
+    },
+    {
+      "class": "complete copied engine workspace",
+      "reason": "Excluded by request; only consumer source truth and M025 patch are included."
+    },
+    {
+      "class": "bin, obj, NuGet caches, temporary build directories",
+      "reason": "Derivable machine build outputs."
+    },
+    {
+      "class": "repeated successful logs and repeated scenario runs",
+      "reason": "One canonical run is sufficient."
+    },
+    {
+      "class": "unbounded per-tick metrics streams",
+      "reason": "Not material to an M025 finding."
+    },
+    {
+      "class": "five requested state screenshots",
+      "reason": "No accepted captures exist in the completed M025 evidence; only the approved launch screenshot is retained. Fabricating captures is prohibited."
+    },
+    {
+      "class": "archive self-hash as a ZIP member",
+      "reason": "A ZIP cannot contain its own final hash. The final hash is recorded in the unpacked summary and manifest; member inventory excludes the ZIP itself."
+    }
+  ]
+}

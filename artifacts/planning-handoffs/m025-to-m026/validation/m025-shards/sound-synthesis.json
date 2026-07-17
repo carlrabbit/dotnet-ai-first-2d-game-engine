@@ -1,0 +1,32 @@
+{
+  "schema": "agentic2d.engineering.validation-receipt.v1",
+  "suiteId": "m025-smoke",
+  "shardId": "sound-synthesis",
+  "status": "passed",
+  "suiteFingerprint": "9c93bd0e8d60d834cc5b63d44b3a5f9a15280fcf523b85dd29422dae041de022",
+  "repositoryFingerprint": "81a264fd187fe85e95145e79f92473cebe083f1827293e9d54214762f9ece0f6",
+  "commandFingerprint": "e404da502aef47e2bd30497915276a6253333975643ad41fcd137dc6292ce5da",
+  "inputFingerprint": "c594a707274a4ef2009241882fc80626b0448b0b671f90d4921ee6b8fcde2ead",
+  "resultFingerprint": "c594a707274a4ef2009241882fc80626b0448b0b671f90d4921ee6b8fcde2ead",
+  "command": "./eng/signal-passage-validate.sh",
+  "evidencePaths": [
+    "consumers/signal-passage/artifacts/sound-validation/sound-synthesis-result.json",
+    "consumers/signal-passage/game-content/generated/sounds/objective-completed.wav"
+  ],
+  "artifacts": [
+    {
+      "path": "consumers/signal-passage/artifacts/sound-validation/sound-synthesis-result.json",
+      "fingerprint": "8d5c53032cd640e94ef24155e00341d263fc28ca9c2bd0d0362671544f924cab"
+    },
+    {
+      "path": "consumers/signal-passage/game-content/generated/sounds/objective-completed.wav",
+      "fingerprint": "d95adc00f028193188645e9778576461e546068e3067d0abf04f051685de044b"
+    }
+  ],
+  "completion": {
+    "startedAtUtc": "2026-07-17T18:21:07.7360513+00:00",
+    "completedAtUtc": "2026-07-17T18:21:14.8016826+00:00",
+    "platform": "linux-bash"
+  },
+  "diagnostics": []
+}

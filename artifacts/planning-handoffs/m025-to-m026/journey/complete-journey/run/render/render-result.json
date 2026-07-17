@@ -1,0 +1,9 @@
+{
+  "schema": "agentic2d.render-projection.result.v1",
+  "status": "passed",
+  "sourceMode": "same-execution",
+  "scenarioId": "signal-passage.complete-journey",
+  "mapId": "map.signal-passage",
+  "tick": 12,
+  "projectionFingerprint": "sha256:d51f01d6ec8d573e735df3c3ddc35d3744576de649dd01cb3be82d02cc80c3ff"
+}

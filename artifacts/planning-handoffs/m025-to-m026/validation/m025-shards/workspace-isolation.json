@@ -1,0 +1,32 @@
+{
+  "schema": "agentic2d.engineering.validation-receipt.v1",
+  "suiteId": "m025-smoke",
+  "shardId": "workspace-isolation",
+  "status": "passed",
+  "suiteFingerprint": "9c93bd0e8d60d834cc5b63d44b3a5f9a15280fcf523b85dd29422dae041de022",
+  "repositoryFingerprint": "81a264fd187fe85e95145e79f92473cebe083f1827293e9d54214762f9ece0f6",
+  "commandFingerprint": "cdfb86c4c4c97f2897ff0ae75d789f08b44a34e4de6b174679ca0fa31a2e1b00",
+  "inputFingerprint": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "resultFingerprint": "3aaa2eadb0f199b18aecf8911d26b304066ff68313ae1597078cc1b0d111bac2",
+  "command": "./eng/signal-passage-isolation.sh",
+  "evidencePaths": [
+    "artifacts/signal-passage/isolation/workspace-validation.json",
+    "artifacts/signal-passage/isolation/run-manifest.json"
+  ],
+  "artifacts": [
+    {
+      "path": "artifacts/signal-passage/isolation/workspace-validation.json",
+      "fingerprint": "659d022b324db975ffd5ad0b1320490fda9158ea4f3487238b7dc18c7c3f2587"
+    },
+    {
+      "path": "artifacts/signal-passage/isolation/run-manifest.json",
+      "fingerprint": "6fdc3b38e363e5dd0b6ca01dc26342dfadf2ebeaa420b678e4c78fdfeacb46b5"
+    }
+  ],
+  "completion": {
+    "startedAtUtc": "2026-07-17T18:20:42.7813502+00:00",
+    "completedAtUtc": "2026-07-17T18:20:48.9818582+00:00",
+    "platform": "linux-bash"
+  },
+  "diagnostics": []
+}

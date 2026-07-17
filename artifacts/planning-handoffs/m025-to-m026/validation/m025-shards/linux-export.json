@@ -1,0 +1,32 @@
+{
+  "schema": "agentic2d.engineering.validation-receipt.v1",
+  "suiteId": "m025-smoke",
+  "shardId": "linux-export",
+  "status": "passed",
+  "suiteFingerprint": "9c93bd0e8d60d834cc5b63d44b3a5f9a15280fcf523b85dd29422dae041de022",
+  "repositoryFingerprint": "81a264fd187fe85e95145e79f92473cebe083f1827293e9d54214762f9ece0f6",
+  "commandFingerprint": "9fb1dc92006cfbd438e5de77c81a81a73aa41955721e870fb27b9e8f01bb145b",
+  "inputFingerprint": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "resultFingerprint": "2b5fe45846a3a95e457334966e2c771b84ac8b46e05519a7e32f5e8a63c3de07",
+  "command": "./eng/signal-passage-export.sh",
+  "evidencePaths": [
+    "artifacts/signal-passage/export/game/agentic2d.export.json",
+    "artifacts/signal-passage/export/run/run-manifest.json"
+  ],
+  "artifacts": [
+    {
+      "path": "artifacts/signal-passage/export/game/agentic2d.export.json",
+      "fingerprint": "d33ba1b2e438370bfe82fb44e22cde927fd6da8da2e8902c164ec4f88c013fc1"
+    },
+    {
+      "path": "artifacts/signal-passage/export/run/run-manifest.json",
+      "fingerprint": "89f5170ae52c015ae235f7edc052a2b98d9f3c34f0ee6f61118b7ec87a5767ff"
+    }
+  ],
+  "completion": {
+    "startedAtUtc": "2026-07-17T18:21:52.0430829+00:00",
+    "completedAtUtc": "2026-07-17T18:22:14.0324923+00:00",
+    "platform": "linux-bash"
+  },
+  "diagnostics": []
+}

@@ -1,0 +1,6 @@
+{
+  "schema": "agentic2d.exported-game-diagnostics.v1",
+  "status": "passed",
+  "mode": "headless",
+  "graphicalAdapter": "not-requested"
+}

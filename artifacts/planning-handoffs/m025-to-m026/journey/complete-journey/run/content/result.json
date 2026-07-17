@@ -1,0 +1,27 @@
+{
+  "schema": "agentic2d.content-validation.result.v1",
+  "command": "content validate",
+  "scope": "/home/dev/src/dotnet-ai-first-2d-game-engine/consumers/signal-passage/game-content/scenarios/signal-passage.complete-journey.json",
+  "status": "passed",
+  "exitCode": 0,
+  "summary": {
+    "itemsValidated": 1,
+    "errors": 0,
+    "warnings": 0,
+    "infos": 0,
+    "scenariosValidated": 1,
+    "assetsValidated": 0,
+    "mapsValidated": 0
+  },
+  "diagnostics": [],
+  "artifacts": [
+    {
+      "path": "diagnostics.json",
+      "kind": "diagnostics"
+    },
+    {
+      "path": "validated-items.json",
+      "kind": "validated-items"
+    }
+  ]
+}

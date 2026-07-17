@@ -1,0 +1,32 @@
+{
+  "schema": "agentic2d.engineering.validation-receipt.v1",
+  "suiteId": "m025-smoke",
+  "shardId": "extension-discovery",
+  "status": "passed",
+  "suiteFingerprint": "9c93bd0e8d60d834cc5b63d44b3a5f9a15280fcf523b85dd29422dae041de022",
+  "repositoryFingerprint": "81a264fd187fe85e95145e79f92473cebe083f1827293e9d54214762f9ece0f6",
+  "commandFingerprint": "2eea3d2f1c618a5eeaabf0ef885dfb7fc9717a8f7e8821b528124cc0a274653f",
+  "inputFingerprint": "537c97c5710f8a4b0718825045af205c426b60a4cc2410034d6b0ba37eb5be19",
+  "resultFingerprint": "537c97c5710f8a4b0718825045af205c426b60a4cc2410034d6b0ba37eb5be19",
+  "command": "test -f consumers/signal-passage/consumer-extension-report.json \u0026\u0026 test -f consumers/signal-passage/consumer-extension-report.md",
+  "evidencePaths": [
+    "consumers/signal-passage/consumer-extension-report.json",
+    "consumers/signal-passage/consumer-extension-report.md"
+  ],
+  "artifacts": [
+    {
+      "path": "consumers/signal-passage/consumer-extension-report.json",
+      "fingerprint": "925d2c32be83af024c363e43c41b37bc918d9659ce3de4c1738c3707589dd042"
+    },
+    {
+      "path": "consumers/signal-passage/consumer-extension-report.md",
+      "fingerprint": "94323a109661f5779f57477de425bddc4a6fa41bc07f7b42e2d3f610e2057d37"
+    }
+  ],
+  "completion": {
+    "startedAtUtc": "2026-07-17T18:22:37.1234991+00:00",
+    "completedAtUtc": "2026-07-17T18:22:37.2302373+00:00",
+    "platform": "linux-bash"
+  },
+  "diagnostics": []
+}

@@ -1,0 +1,119 @@
+{
+  "schema": "agentic2d.performance-report.v1",
+  "milestone": "M025",
+  "status": "possible-regression",
+  "comparison": {
+    "schema": "agentic2d.performance-comparison.v1",
+    "beforeLabel": "m025-before",
+    "afterLabel": "m025-after",
+    "status": "possible-regression",
+    "workloads": [
+      {
+        "id": "performance.runtime-reference",
+        "elapsedChangePercent": 42.198581560283685,
+        "allocationChangePercent": 0,
+        "status": "possible-regression",
+        "beforeWorkCounters": {
+          "runtime.commands.submitted": 1,
+          "runtime.commands.accepted": 1,
+          "runtime.commands.rejected": 0,
+          "runtime.events.emitted": 4,
+          "spatial.queries": 0,
+          "spatial.collision-checks": 0,
+          "presentation.text-commands": 0,
+          "presentation.sound-commands": 0
+        },
+        "afterWorkCounters": {
+          "runtime.commands.submitted": 1,
+          "runtime.commands.accepted": 1,
+          "runtime.commands.rejected": 0,
+          "runtime.events.emitted": 4,
+          "spatial.queries": 0,
+          "spatial.collision-checks": 0,
+          "presentation.text-commands": 0,
+          "presentation.sound-commands": 0
+        }
+      },
+      {
+        "id": "performance.entities-reference",
+        "elapsedChangePercent": 65.80152671755725,
+        "allocationChangePercent": 0,
+        "status": "possible-regression",
+        "beforeWorkCounters": {
+          "runtime.commands.submitted": 1,
+          "runtime.commands.accepted": 1,
+          "runtime.commands.rejected": 0,
+          "runtime.events.emitted": 4,
+          "spatial.queries": 0,
+          "spatial.collision-checks": 0,
+          "presentation.text-commands": 0,
+          "presentation.sound-commands": 0
+        },
+        "afterWorkCounters": {
+          "runtime.commands.submitted": 1,
+          "runtime.commands.accepted": 1,
+          "runtime.commands.rejected": 0,
+          "runtime.events.emitted": 4,
+          "spatial.queries": 0,
+          "spatial.collision-checks": 0,
+          "presentation.text-commands": 0,
+          "presentation.sound-commands": 0
+        }
+      },
+      {
+        "id": "performance.persistent-world-reference",
+        "elapsedChangePercent": 46.41148325358852,
+        "allocationChangePercent": 0,
+        "status": "possible-regression",
+        "beforeWorkCounters": {
+          "runtime.commands.submitted": 1,
+          "runtime.commands.accepted": 1,
+          "runtime.commands.rejected": 0,
+          "runtime.events.emitted": 4,
+          "spatial.queries": 0,
+          "spatial.collision-checks": 0,
+          "presentation.text-commands": 0,
+          "presentation.sound-commands": 0
+        },
+        "afterWorkCounters": {
+          "runtime.commands.submitted": 1,
+          "runtime.commands.accepted": 1,
+          "runtime.commands.rejected": 0,
+          "runtime.events.emitted": 4,
+          "spatial.queries": 0,
+          "spatial.collision-checks": 0,
+          "presentation.text-commands": 0,
+          "presentation.sound-commands": 0
+        }
+      },
+      {
+        "id": "performance.presentation-reference",
+        "elapsedChangePercent": 49.13043478260868,
+        "allocationChangePercent": 0,
+        "status": "possible-regression",
+        "beforeWorkCounters": {
+          "runtime.commands.submitted": 1,
+          "runtime.commands.accepted": 1,
+          "runtime.commands.rejected": 0,
+          "runtime.events.emitted": 4,
+          "spatial.queries": 0,
+          "spatial.collision-checks": 0,
+          "presentation.text-commands": 0,
+          "presentation.sound-commands": 0
+        },
+        "afterWorkCounters": {
+          "runtime.commands.submitted": 1,
+          "runtime.commands.accepted": 1,
+          "runtime.commands.rejected": 0,
+          "runtime.events.emitted": 4,
+          "spatial.queries": 0,
+          "spatial.collision-checks": 0,
+          "presentation.text-commands": 0,
+          "presentation.sound-commands": 0
+        }
+      }
+    ],
+    "comparisonScope": "same-machine-close-in-time-only"
+  },
+  "limitations": "Advisory same-machine, same-configuration, fixed-seed, close-in-time comparison only; elapsed timing is not deterministic authority."
+}

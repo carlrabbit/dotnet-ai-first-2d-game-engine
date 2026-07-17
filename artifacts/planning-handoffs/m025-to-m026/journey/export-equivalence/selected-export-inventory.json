@@ -1,0 +1,298 @@
+{
+  "selectedFiles": [
+    {
+      "path": "agentic2d-game",
+      "category": "host",
+      "bytes": 78256,
+      "sha256": "654c9da6701ede2b2bf3aa8ee71734975b196957be755db0db8b6f973440adb5",
+      "executable": true
+    },
+    {
+      "path": "agentic2d-game.dll",
+      "category": "managed-runtime",
+      "bytes": 144896,
+      "sha256": "f229d291ed4671e8675f7b6f66efafaa9c99c841cd1ffc8adbd867336025d92e",
+      "executable": false
+    },
+    {
+      "path": "game/colors/signal-passage-colors.json",
+      "category": "game-content",
+      "bytes": 238,
+      "sha256": "eca267de43be0aba9a4439b4da6e5deb188240c2d8119af0f9065f1677afea88",
+      "executable": false
+    },
+    {
+      "path": "game/entities/entity-definition.player.signal-passage.json",
+      "category": "game-content",
+      "bytes": 410,
+      "sha256": "a7e82143d72b8f34214f96f0cf9eb1c003b093ceddb32e496d7753e5c16bcd63",
+      "executable": false
+    },
+    {
+      "path": "game/generated/sounds/container-opened.wav",
+      "category": "game-content",
+      "bytes": 12834,
+      "sha256": "291676e9e40360ab77f319705fce718d08a2739ddefaccb1c6d207b7b86b8d02",
+      "executable": false
+    },
+    {
+      "path": "game/generated/sounds/exit-opened.wav",
+      "category": "game-content",
+      "bytes": 15920,
+      "sha256": "82fe116f46135e119f720e6065010b75d27e2b08e6aa75d3bb48e08cbd2fc6ad",
+      "executable": false
+    },
+    {
+      "path": "game/generated/sounds/fragment-collected.wav",
+      "category": "game-content",
+      "bytes": 7982,
+      "sha256": "0a4b64a8fd4956b1e2c4155ccc4199d959685c0980d980f84327070d96eb151e",
+      "executable": false
+    },
+    {
+      "path": "game/generated/sounds/objective-completed.wav",
+      "category": "game-content",
+      "bytes": 19448,
+      "sha256": "d95adc00f028193188645e9778576461e546068e3067d0abf04f051685de044b",
+      "executable": false
+    },
+    {
+      "path": "game/generated/sounds/player-damaged.wav",
+      "category": "game-content",
+      "bytes": 11510,
+      "sha256": "39676051954dc7cc6d73d11a8734958935453b5abc3063fbc8d5bb9c560b5437",
+      "executable": false
+    },
+    {
+      "path": "game/generated/sounds/switch-activated.wav",
+      "category": "game-content",
+      "bytes": 10628,
+      "sha256": "c4a2ab8c37b3be226e189d8b65af073cf7d7c1867e65a581a4b5497aaf6abf38",
+      "executable": false
+    },
+    {
+      "path": "game/maps/signal-passage.map.json",
+      "category": "game-content",
+      "bytes": 246,
+      "sha256": "67cb1bb501dffa240e210572ed9e624393e301fe49764104a30bab3540b408dc",
+      "executable": false
+    },
+    {
+      "path": "game/scenarios/signal-passage.complete-journey.json",
+      "category": "game-content",
+      "bytes": 1359,
+      "sha256": "8f93ad2eaf0c3414756d8aa07965fac3ee42e747d6f4dacfa4239b2379c059c4",
+      "executable": false
+    },
+    {
+      "path": "game/scenarios/signal-passage.external-workspace-smoke.json",
+      "category": "game-content",
+      "bytes": 784,
+      "sha256": "20d6f575af7efc0ff77985be0dbb6cedbee3917860bb54be137e4e51539638b4",
+      "executable": false
+    },
+    {
+      "path": "game/scenarios/signal-passage.geometry-presentation-smoke.json",
+      "category": "game-content",
+      "bytes": 776,
+      "sha256": "557edab50171921b315d8e2fb787d2718d08d25f0f2c5ea699a314a04ed54aad",
+      "executable": false
+    },
+    {
+      "path": "game/scenarios/signal-passage.linux-export-smoke.json",
+      "category": "game-content",
+      "bytes": 764,
+      "sha256": "aa7f05acf09e452f39624630f59c109c749d55fcaf19789a72227d0ab4024c0c",
+      "executable": false
+    },
+    {
+      "path": "game/scenarios/signal-passage.objective-smoke.json",
+      "category": "game-content",
+      "bytes": 789,
+      "sha256": "cf018c121bc1c58fffb6914f0998a94da90db60ff7587e9124418ef446c0008a",
+      "executable": false
+    },
+    {
+      "path": "game/scenarios/signal-passage.save-resume-smoke.json",
+      "category": "game-content",
+      "bytes": 781,
+      "sha256": "8c38aeed387e1567486a6e68f5fbcb767efad6bafa215c2e7beae08f0f0870a6",
+      "executable": false
+    },
+    {
+      "path": "game/scenarios/signal-passage.sound-synthesis-smoke.json",
+      "category": "game-content",
+      "bytes": 769,
+      "sha256": "e5bc47357f9ad15a06f23294d505bc5a5cb5039815411ac77b17efd9b8da4cda",
+      "executable": false
+    },
+    {
+      "path": "game/scenarios/signal-passage.workspace-smoke.json",
+      "category": "game-content",
+      "bytes": 764,
+      "sha256": "5693dd3a4072f88f7013b684168a17fd78a4be97b651681d4c409bf05915dc62",
+      "executable": false
+    },
+    {
+      "path": "game/sound-synthesis/completion.json",
+      "category": "game-content",
+      "bytes": 850,
+      "sha256": "2b2b3e6e83899c85dc9f6baf0ec7b76459743f0e14c1452f613e7ae254122831",
+      "executable": false
+    },
+    {
+      "path": "game/sound-synthesis/container.json",
+      "category": "game-content",
+      "bytes": 707,
+      "sha256": "5255694dc4da6ae29245c65840b66c67d5064f6d2c7907c03519f743ff315a84",
+      "executable": false
+    },
+    {
+      "path": "game/sound-synthesis/damage.json",
+      "category": "game-content",
+      "bytes": 696,
+      "sha256": "2d2d252531cd4919407fc2299e5830be6ec4ecd4c5440a5f86a5ec59bfe32caa",
+      "executable": false
+    },
+    {
+      "path": "game/sound-synthesis/exit.json",
+      "category": "game-content",
+      "bytes": 682,
+      "sha256": "2e16089c8b417c24639f6df148be7917e1294772186697605d40c3d61d0aa842",
+      "executable": false
+    },
+    {
+      "path": "game/sound-synthesis/fragment.json",
+      "category": "game-content",
+      "bytes": 508,
+      "sha256": "f2e43d14a88be43d3bb2247fe069cdb0d9b9ddc35af2e6042329379c8d25a409",
+      "executable": false
+    },
+    {
+      "path": "game/sound-synthesis/switch.json",
+      "category": "game-content",
+      "bytes": 501,
+      "sha256": "93e00a70a340146b00a7c73290e62e75e8f58f52b191ffbaaccb0d681dd556ad",
+      "executable": false
+    },
+    {
+      "path": "game/sounds/signal-passage-completion.json",
+      "category": "game-content",
+      "bytes": 469,
+      "sha256": "bdb70df641fc6cf04b1d0106979b712fa5abd3231cc9c76583ec2483b9e8b0ec",
+      "executable": false
+    },
+    {
+      "path": "game/sounds/signal-passage-container.json",
+      "category": "game-content",
+      "bytes": 457,
+      "sha256": "7443e0e134237cfeaa46efd31e08ed629e551bca60f82510113f0540fce91807",
+      "executable": false
+    },
+    {
+      "path": "game/sounds/signal-passage-damage.json",
+      "category": "game-content",
+      "bytes": 450,
+      "sha256": "015a9658928dd2c07433eadd6f915e212ed13da47036c3730a9fada4275b78e5",
+      "executable": false
+    },
+    {
+      "path": "game/sounds/signal-passage-exit.json",
+      "category": "game-content",
+      "bytes": 438,
+      "sha256": "3499fbae0be8df8bb62f57fa2eea4ca4465bf087b5c1d0909181745e17bf09a2",
+      "executable": false
+    },
+    {
+      "path": "game/sounds/signal-passage-sounds.json",
+      "category": "game-content",
+      "bytes": 465,
+      "sha256": "019e778b91891f194b48172fa8a03874f5bf86768db3d84dd1f9a420733f273e",
+      "executable": false
+    },
+    {
+      "path": "game/sounds/signal-passage-switch.json",
+      "category": "game-content",
+      "bytes": 458,
+      "sha256": "5c7f0f221ba170e9b7e260a62bc9f48cca3c4a8633e35d7c913e90fc15ffeb8f",
+      "executable": false
+    },
+    {
+      "path": "game/visuals/container.json",
+      "category": "game-content",
+      "bytes": 429,
+      "sha256": "9f89b79ce057b7c00856161dee65a5cd15fd84cddbfde46884da318b7825335f",
+      "executable": false
+    },
+    {
+      "path": "game/visuals/fragment.json",
+      "category": "game-content",
+      "bytes": 408,
+      "sha256": "cf4fd51ce760b79a89435a9d12340bb8ad2487a971d571db40872a075335c33a",
+      "executable": false
+    },
+    {
+      "path": "game/visuals/gate.json",
+      "category": "game-content",
+      "bytes": 370,
+      "sha256": "8cef3497492b63036501d87b1c8f0680328f654aa8c52cbd836dffb4128ee065",
+      "executable": false
+    },
+    {
+      "path": "game/visuals/hazard.json",
+      "category": "game-content",
+      "bytes": 375,
+      "sha256": "ef2b7d1e0347864d54a9a4ca1d25e3074e5e013143c9882fc9f8db77aa61aa7a",
+      "executable": false
+    },
+    {
+      "path": "game/visuals/mechanism.json",
+      "category": "game-content",
+      "bytes": 437,
+      "sha256": "f13d79e59fc3ca0211bd4f16534d709070f0cb3f77029d978319b4488047ef00",
+      "executable": false
+    },
+    {
+      "path": "game/visuals/objective-zone.json",
+      "category": "game-content",
+      "bytes": 417,
+      "sha256": "9932f1b7037eaf0196776c2c506851a60c94054f2be6f7ec0c926e9d691d2572",
+      "executable": false
+    },
+    {
+      "path": "game/visuals/signal-passage-visuals.json",
+      "category": "game-content",
+      "bytes": 362,
+      "sha256": "697cc5611f368c2704017b81d92ced9cd98b2ce4998a052858144a47e541e377",
+      "executable": false
+    },
+    {
+      "path": "game/visuals/wall.json",
+      "category": "game-content",
+      "bytes": 404,
+      "sha256": "a380f55b23c0a4808128efcca71d95908e75843f4ef09f4333e027409d99e310",
+      "executable": false
+    },
+    {
+      "path": "libraylib.so",
+      "category": "native-runtime",
+      "bytes": 2546928,
+      "sha256": "a9232cc0430f64017096e0c73edeb462eb339300225cb8cb7ab318b823685b60",
+      "executable": true
+    },
+    {
+      "path": "native/libraylib.so",
+      "category": "native-runtime",
+      "bytes": 2546928,
+      "sha256": "a9232cc0430f64017096e0c73edeb462eb339300225cb8cb7ab318b823685b60",
+      "executable": true
+    }
+  ],
+  "totalBytes": 89796276,
+  "fileCount": 267,
+  "allowedDifferences": [
+    "absolute artifact roots",
+    "runtime-generated diagnostics",
+    "machine graphics environment"
+  ]
+}

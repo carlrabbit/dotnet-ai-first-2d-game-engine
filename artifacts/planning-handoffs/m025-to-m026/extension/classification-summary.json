@@ -1,0 +1,66 @@
+{
+  "schema": "agentic2d.m025-m026-classification-summary.v1",
+  "status": "passed",
+  "acceptedFeatureCount": 4,
+  "unclassifiedFeatureIds": [],
+  "countsByClassification": {
+    "boundary-violation": 0,
+    "consumer-only": 1,
+    "engine-capability-reused": 0,
+    "new-general-engine-capability": 3,
+    "supported-consumer-extension": 0,
+    "temporary-engine-workaround": 0
+  },
+  "featuresChangingEngineSource": [
+    "sp-geometry",
+    "sp-synthesis",
+    "sp-workspace-artifacts"
+  ],
+  "featuresAccessingInternalEngineApis": [],
+  "repeatedRegistrationOrSerializationPlumbing": [
+    "sound definition mirrors synthesis output"
+  ],
+  "missingDiagnostics": [
+    {
+      "featureId": "sp-geometry",
+      "detail": "No graphical geometry screenshot projection yet."
+    },
+    {
+      "featureId": "sp-synthesis",
+      "detail": "No consumer cue mapping auto-check."
+    },
+    {
+      "featureId": "sp-objective",
+      "detail": "No reusable objective-state contributor registration surface."
+    },
+    {
+      "featureId": "sp-workspace-artifacts",
+      "detail": "Workspace overlap messaging could state the declared-artifact exception."
+    }
+  ],
+  "missingValidation": [],
+  "temporaryWorkarounds": [],
+  "boundaryViolations": [],
+  "recommendedM026Actions": [
+    {
+      "priority": "high",
+      "featureId": "sp-geometry",
+      "action": "Prioritize consumer geometry preview diagnostics."
+    },
+    {
+      "priority": "high",
+      "featureId": "sp-synthesis",
+      "action": "Consider generated-sound/reference linkage diagnostics."
+    },
+    {
+      "priority": "medium",
+      "featureId": "sp-objective",
+      "action": "Observe a second game before designing an objective extension API."
+    },
+    {
+      "priority": "medium",
+      "featureId": "sp-workspace-artifacts",
+      "action": "Retain as workspace-provider behavior, not an extension API."
+    }
+  ]
+}

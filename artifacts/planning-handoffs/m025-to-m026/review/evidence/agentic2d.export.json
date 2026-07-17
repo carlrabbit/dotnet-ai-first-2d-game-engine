@@ -1,0 +1,19 @@
+{
+  "schema": "agentic2d.standalone-linux-export.v1",
+  "exportId": "export.fb51e59655ca",
+  "gameId": "game.signal-passage",
+  "displayName": "Signal Passage",
+  "targetRid": "linux-x64",
+  "executable": "agentic2d-game",
+  "contentRoot": "game",
+  "startupScenario": "signal-passage.complete-journey",
+  "defaultMetrics": "off",
+  "defaultMode": "graphical",
+  "saveRootPolicy": "user-data/\u003Cgame-id\u003E/saves",
+  "artifactRootPolicy": "user-data/\u003Cgame-id\u003E/logs-or-artifacts; --output overrides",
+  "engineFingerprint": "d65dd53245f65732f35bdfaaf06a6bd4190255107ee0c3a64827397fc2dfb3bd",
+  "projectFingerprint": "fb51e59655ca150214a72fa6e8b5179151f2a0758d9cfbd838f5068ac6519c59",
+  "contentFingerprint": "fb51e59655ca150214a72fa6e8b5179151f2a0758d9cfbd838f5068ac6519c59",
+  "fileManifest": "export-files.json",
+  "exportFingerprint": "96cb996cc6d1167ac7619276201a19cf855e7afd04609732c6b6b9a41944d027"
+}

@@ -1,0 +1,5 @@
+{"sequence":1,"tick":0,"type":"runtime.started","message":"runtime started"}
+{"sequence":2,"tick":0,"type":"entity.created","message":"entity.player created at 0"}
+{"sequence":3,"tick":0,"type":"command.accepted","message":"command.move accepted for entity.player"}
+{"sequence":4,"tick":1,"type":"entity.moved","message":"entity.player moved from 0 to 1"}
+{"sequence":5,"tick":12,"type":"runtime.completed","message":"runtime completed"}

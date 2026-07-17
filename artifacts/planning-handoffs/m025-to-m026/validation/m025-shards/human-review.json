@@ -1,0 +1,27 @@
+{
+  "schema": "agentic2d.engineering.validation-receipt.v1",
+  "suiteId": "m025-smoke",
+  "shardId": "human-review",
+  "status": "passed",
+  "suiteFingerprint": "9c93bd0e8d60d834cc5b63d44b3a5f9a15280fcf523b85dd29422dae041de022",
+  "repositoryFingerprint": "81a264fd187fe85e95145e79f92473cebe083f1827293e9d54214762f9ece0f6",
+  "commandFingerprint": "993da91fa144e068e536d3d856d66cb91b4e43a139851669f7624ef66b9dcd34",
+  "inputFingerprint": "1e88548a4b0a038604e4c8489b060b07e1497d07370e041a4434dfe43da6d87d",
+  "resultFingerprint": "1e88548a4b0a038604e4c8489b060b07e1497d07370e041a4434dfe43da6d87d",
+  "command": "./eng/review-check.sh",
+  "evidencePaths": [
+    ".review/records/review.m025.signal-passage-playable-vertical-slice.json"
+  ],
+  "artifacts": [
+    {
+      "path": ".review/records/review.m025.signal-passage-playable-vertical-slice.json",
+      "fingerprint": "b759b65f1d3110e19056f04decfb13600f04a46d14ea9097d9ae6259f15fc7ea"
+    }
+  ],
+  "completion": {
+    "startedAtUtc": "2026-07-17T18:22:41.7147885+00:00",
+    "completedAtUtc": "2026-07-17T18:22:42.9399089+00:00",
+    "platform": "linux-bash"
+  },
+  "diagnostics": []
+}

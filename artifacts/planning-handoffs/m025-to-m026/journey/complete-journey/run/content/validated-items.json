@@ -1,0 +1,11 @@
+{
+  "schema": "agentic2d.content-validation.items.v1",
+  "items": [
+    {
+      "kind": "scenario",
+      "id": "signal-passage.complete-journey",
+      "path": "consumers/signal-passage/game-content/scenarios/signal-passage.complete-journey.json",
+      "status": "passed"
+    }
+  ]
+}

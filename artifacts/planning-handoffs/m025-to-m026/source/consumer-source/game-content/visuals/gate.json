@@ -1,0 +1,1 @@
+{"schema":"agentic2d.visual-definition.v1","id":"visual-definition.signal-passage.gate","parts":[{"id":"gate","anchor":"center","offset":{"x":0,"y":0},"worldSize":{"width":1.2,"height":1.6},"layer":"foreground","order":1,"sortMode":"fixed","tint":{"r":85,"g":194,"b":113,"a":255},"geometry":{"kind":"rectangle","fill":{"r":85,"g":194,"b":113,"a":255},"opacity":0.82}}]}

@@ -1,0 +1,15 @@
+{
+  "Schema": "agentic2d.sound-synthesis-artifact.v1",
+  "Id": "sound-synthesis.signal-passage.exit-opened",
+  "OutputAssetId": "asset.signal-passage.exit-opened",
+  "OutputPath": "game-content/generated/sounds/exit-opened.wav",
+  "DefinitionFingerprint": "sha256:5084aa615a7790cef761c37aa091ef8394f27a7cd50a87a4800005118ca9d556",
+  "ImplementationVersion": "m025-offline-pcm-v1",
+  "SampleCount": 7938,
+  "SampleRate": 22050,
+  "DurationSeconds": 0.36,
+  "Peak": 0.27533799249244667,
+  "Rms": 0.0840260717701626,
+  "OutputSha256": "82fe116f46135e119f720e6065010b75d27e2b08e6aa75d3bb48e08cbd2fc6ad",
+  "Diagnostics": []
+}

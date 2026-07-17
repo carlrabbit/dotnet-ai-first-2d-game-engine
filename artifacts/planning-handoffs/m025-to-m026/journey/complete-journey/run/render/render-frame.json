@@ -1,0 +1,11 @@
+{
+  "Schema": "agentic2d.render-frame.v1",
+  "SourceMode": "same-execution",
+  "ScenarioId": "signal-passage.complete-journey",
+  "MapId": "map.signal-passage",
+  "Tick": 12,
+  "SnapshotFingerprint": "sha256:b9942f7dbb163c08a8941fec07e33c1565a255aca57c2cfce428aa0b20cb0e5e",
+  "ProjectionFingerprint": "sha256:d51f01d6ec8d573e735df3c3ddc35d3744576de649dd01cb3be82d02cc80c3ff",
+  "Items": [],
+  "Commands": []
+}

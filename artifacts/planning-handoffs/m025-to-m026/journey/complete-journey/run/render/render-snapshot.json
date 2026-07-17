@@ -1,0 +1,15 @@
+{
+  "Schema": "agentic2d.render-snapshot.v1",
+  "ScenarioId": "signal-passage.complete-journey",
+  "MapId": "map.signal-passage",
+  "Tick": 12,
+  "SnapshotFingerprint": "sha256:b9942f7dbb163c08a8941fec07e33c1565a255aca57c2cfce428aa0b20cb0e5e",
+  "Entities": [
+    {
+      "Id": "entity.player",
+      "DefinitionId": "entity-definition.player.signal-passage",
+      "X": 1,
+      "Y": 0
+    }
+  ]
+}

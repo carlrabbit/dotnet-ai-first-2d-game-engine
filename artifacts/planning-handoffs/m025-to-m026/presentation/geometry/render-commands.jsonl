@@ -1,0 +1,6 @@
+{"Id":"command.clear","Kind":"clear","ItemId":null,"Item":null,"Text":null}
+{"Id":"command.world.begin","Kind":"begin-world-camera","ItemId":null,"Item":null,"Text":null}
+{"Id":"command.draw.render.runtime-entity.entity.player.player","Kind":"draw-geometry","ItemId":"render.runtime-entity.entity.player.player","Item":{"Id":"render.runtime-entity.entity.player.player","SourceKind":"runtime-entity","SourceId":"entity.player","VisualDefinitionId":"visual-definition.player.signal-passage","PartId":"player","AssetId":null,"RegionId":null,"Destination":{"Position":{"X":1,"Y":0},"Size":{"Width":0.8,"Height":0.8}},"Anchor":"center","Layer":"entities","Order":1,"SortMode":"y","YSort":0,"MapId":"map.signal-passage","SnapshotFingerprint":"sha256:e00536c83c9e094ef6c4e8a325b6f4a740fdd7e15b1046e906fb97c581626708","Tint":{"R":54,"G":217,"B":232,"A":255},"Geometry":{"Kind":"circle","Fill":{"R":54,"G":217,"B":232,"A":255},"Outline":null,"OutlineWidth":0,"Opacity":1,"Rotation":0,"PolygonSides":0,"RingInnerRatio":0,"LineEnd":null}},"Text":null}
+{"Id":"command.world.end","Kind":"end-world-camera","ItemId":null,"Item":null,"Text":null}
+{"Id":"command.screen.begin","Kind":"begin-screen-space","ItemId":null,"Item":null,"Text":null}
+{"Id":"command.screen.end","Kind":"end-screen-space","ItemId":null,"Item":null,"Text":null}

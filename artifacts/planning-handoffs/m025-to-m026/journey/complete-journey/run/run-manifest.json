@@ -1,0 +1,98 @@
+{
+  "schema": "agentic2d.unified-run-manifest.v1",
+  "status": "passed",
+  "runId": "run.375aabb10b46",
+  "workspace": {
+    "id": "workspace.signal-passage",
+    "fingerprint": "5195a473fc69916687a8598a02360baf4fcd89da722ab1d2a3ac4fc81d9b95df"
+  },
+  "project": {
+    "id": "game.signal-passage",
+    "fingerprint": "da5f2482d43d0421c956b1c3165c273019f6c707d08636492231f1522d20cbe6"
+  },
+  "engine": {
+    "provider": "directory-reference",
+    "resolved": "directory",
+    "fingerprint": "signal-passage-development"
+  },
+  "scenario": {
+    "id": "signal-passage.complete-journey",
+    "fingerprint": "8f93ad2eaf0c3414756d8aa07965fac3ee42e747d6f4dacfa4239b2379c059c4"
+  },
+  "runtime": {
+    "seed": "signal-passage-v1",
+    "ticks": 180
+  },
+  "artifactFamilies": {
+    "content": {
+      "present": true,
+      "path": "content/result.json",
+      "status": "passed",
+      "fingerprint": "80f072acd861dec8710b9c9132fb5671e9400705ec788b47a8c2aeb841f3e069"
+    },
+    "input": {
+      "present": false,
+      "status": "absent",
+      "reason": "scenario-has-no-semantic-input"
+    },
+    "runtime": {
+      "present": true,
+      "path": "runtime/result.json",
+      "status": "passed",
+      "finalTick": 12,
+      "fingerprint": "b31c00112c7b7ef6635328e186d9be810cc9487b80d892e05269ccef7cc05dba"
+    },
+    "animation": {
+      "present": false,
+      "status": "absent",
+      "reason": "project-has-no-animation-content"
+    },
+    "render": {
+      "present": true,
+      "status": "present",
+      "path": "render/render-result.json",
+      "finalTick": 12,
+      "fingerprint": "sha256:d51f01d6ec8d573e735df3c3ddc35d3744576de649dd01cb3be82d02cc80c3ff",
+      "executionSource": "same-execution",
+      "diagnosticsPath": "render/render-diagnostics.json",
+      "screenshots": []
+    },
+    "review": {
+      "present": false,
+      "status": "absent"
+    },
+    "diagnostics": {
+      "present": true,
+      "path": "diagnostics/workflow-diagnostics.json",
+      "status": "passed"
+    }
+  },
+  "screenshots": [],
+  "diagnostics": {
+    "path": "diagnostics/workflow-diagnostics.json",
+    "items": []
+  },
+  "recommendedNextActions": [
+    {
+      "command": "agentic2d workspace validate /home/dev/src/dotnet-ai-first-2d-game-engine/consumers/signal-passage --output artifacts/workspace-validation",
+      "kind": "workspace-validate"
+    },
+    {
+      "command": "agentic2d project validate /home/dev/src/dotnet-ai-first-2d-game-engine/consumers/signal-passage --output artifacts/project-validation",
+      "kind": "project-validate"
+    },
+    {
+      "command": "agentic2d run inspect \u003Crun-directory\u003E --output \u003Cdirectory\u003E",
+      "kind": "run-inspect"
+    },
+    {
+      "command": "agentic2d animation inspect \u003Canimation-id\u003E --output \u003Cdirectory\u003E",
+      "kind": "animation-inspect"
+    },
+    {
+      "command": "agentic2d input inspect \u003Csequence-id\u003E --input-map \u003Cmap-id\u003E --output \u003Cdirectory\u003E",
+      "kind": "input-inspect"
+    }
+  ],
+  "exitCode": 0
+}

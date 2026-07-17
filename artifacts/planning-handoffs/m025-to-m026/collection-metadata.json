@@ -1,0 +1,14 @@
+{
+  "repository": "carlrabbit/dotnet-ai-first-2d-game-engine",
+  "branch": "handoff/m025-to-m026",
+  "headCommit": "88f905120cd0799a77249be348303641c4e41eb6",
+  "m024Base": "50ac5bf5a660e777538dabc7fa58493760459c31",
+  "m025ImplementationRange": "50ac5bf5a660e777538dabc7fa58493760459c31..88f905120cd0799a77249be348303641c4e41eb6",
+  "collectionTimeUtc": "2026-07-17T20:16:07Z",
+  "workingTreeStatus": [
+    " D milestone-024-standalone-linux-game-export-development-export-equivalence-package.zip",
+    " D milestone-025-signal-passage-consumer-vertical-slice-package.zip"
+  ],
+  "operatingSystem": "Linux-6.17.0-35-generic-x86_64-with-glibc2.39",
+  "dotnetSdk": "10.0.109"
+}

@@ -1,0 +1,15 @@
+{
+  "Schema": "agentic2d.render-snapshot.v1",
+  "ScenarioId": "signal-passage.geometry-presentation-smoke",
+  "MapId": "map.signal-passage",
+  "Tick": 3,
+  "SnapshotFingerprint": "sha256:e00536c83c9e094ef6c4e8a325b6f4a740fdd7e15b1046e906fb97c581626708",
+  "Entities": [
+    {
+      "Id": "entity.player",
+      "DefinitionId": "entity-definition.player.signal-passage",
+      "X": 1,
+      "Y": 0
+    }
+  ]
+}

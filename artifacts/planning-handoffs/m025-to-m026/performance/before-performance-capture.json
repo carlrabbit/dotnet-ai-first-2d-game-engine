@@ -1,0 +1,130 @@
+{
+  "schema": "agentic2d.performance-capture.v1",
+  "label": "m025-before",
+  "configuration": "Release",
+  "execution": "headless",
+  "warmupIterations": 1,
+  "measuredIterations": 5,
+  "primaryStatistic": "median",
+  "comparisonScope": "same-machine-close-in-time-only",
+  "workloads": [
+    {
+      "definition": {
+        "id": "performance.runtime-reference",
+        "sourceScenario": "runtime.smoke",
+        "measuredTickCount": 30,
+        "relevantMetrics": [
+          "runtime.tick.duration",
+          "runtime.commands.accepted",
+          "runtime.events.emitted"
+        ],
+        "fixedSeed": "seed.performance-reference",
+        "warmupIterations": 1,
+        "measuredIterations": 5,
+        "metricsMode": "summary",
+        "artifactWritingBoundary": "after-measurement"
+      },
+      "elapsedMedianMilliseconds": 0.0564,
+      "allocatedBytesMedian": 11320,
+      "workCounters": {
+        "runtime.commands.submitted": 1,
+        "runtime.commands.accepted": 1,
+        "runtime.commands.rejected": 0,
+        "runtime.events.emitted": 4,
+        "spatial.queries": 0,
+        "spatial.collision-checks": 0,
+        "presentation.text-commands": 0,
+        "presentation.sound-commands": 0
+      }
+    },
+    {
+      "definition": {
+        "id": "performance.entities-reference",
+        "sourceScenario": "entity.component-runtime-smoke",
+        "measuredTickCount": 40,
+        "relevantMetrics": [
+          "runtime.entities.active",
+          "runtime.events.emitted"
+        ],
+        "fixedSeed": "seed.performance-reference",
+        "warmupIterations": 1,
+        "measuredIterations": 5,
+        "metricsMode": "summary",
+        "artifactWritingBoundary": "after-measurement"
+      },
+      "elapsedMedianMilliseconds": 0.0655,
+      "allocatedBytesMedian": 11320,
+      "workCounters": {
+        "runtime.commands.submitted": 1,
+        "runtime.commands.accepted": 1,
+        "runtime.commands.rejected": 0,
+        "runtime.events.emitted": 4,
+        "spatial.queries": 0,
+        "spatial.collision-checks": 0,
+        "presentation.text-commands": 0,
+        "presentation.sound-commands": 0
+      }
+    },
+    {
+      "definition": {
+        "id": "performance.persistent-world-reference",
+        "sourceScenario": "persistent-world-smoke",
+        "measuredTickCount": 50,
+        "relevantMetrics": [
+          "runtime.tick.duration",
+          "runtime.events.emitted"
+        ],
+        "fixedSeed": "seed.performance-reference",
+        "warmupIterations": 1,
+        "measuredIterations": 5,
+        "metricsMode": "summary",
+        "artifactWritingBoundary": "after-measurement"
+      },
+      "elapsedMedianMilliseconds": 0.0836,
+      "allocatedBytesMedian": 11320,
+      "workCounters": {
+        "runtime.commands.submitted": 1,
+        "runtime.commands.accepted": 1,
+        "runtime.commands.rejected": 0,
+        "runtime.events.emitted": 4,
+        "spatial.queries": 0,
+        "spatial.collision-checks": 0,
+        "presentation.text-commands": 0,
+        "presentation.sound-commands": 0
+      }
+    },
+    {
+      "definition": {
+        "id": "performance.presentation-reference",
+        "sourceScenario": "presentation.persistent-world-player-facing-smoke",
+        "measuredTickCount": 60,
+        "relevantMetrics": [
+          "presentation.render-items",
+          "presentation.effects.active",
+          "runtime.tick.duration"
+        ],
+        "fixedSeed": "seed.performance-reference",
+        "warmupIterations": 1,
+        "measuredIterations": 5,
+        "metricsMode": "summary",
+        "artifactWritingBoundary": "after-measurement"
+      },
+      "elapsedMedianMilliseconds": 0.092,
+      "allocatedBytesMedian": 11320,
+      "workCounters": {
+        "runtime.commands.submitted": 1,
+        "runtime.commands.accepted": 1,
+        "runtime.commands.rejected": 0,
+        "runtime.events.emitted": 4,
+        "spatial.queries": 0,
+        "spatial.collision-checks": 0,
+        "presentation.text-commands": 0,
+        "presentation.sound-commands": 0
+      }
+    }
+  ],
+  "limitations": [
+    "Timing is observational, not a deterministic fingerprint.",
+    "Comparisons are advisory and are invalid across machines, configurations, seeds, or workload definitions."
+  ]
+}

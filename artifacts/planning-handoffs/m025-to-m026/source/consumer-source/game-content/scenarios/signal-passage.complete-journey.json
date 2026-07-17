@@ -1,0 +1,6 @@
+{
+  "schema": "agentic2d.scenario.v1", "id": "signal-passage.complete-journey", "category": "smoke", "title": "Signal Passage complete journey", "purpose": "Open containers, collect fragments, endure hazards, activate mechanism, save and resume, then reach exit.", "seedPolicy": "scenario",
+  "runtime": { "ticks": 12, "mapId": "map.signal-passage", "randomSeed": 25 }, "initialState": { "entities": [{ "id": "entity.player", "position": 0 }] }, "steps": [{ "id": "step.move", "command": { "type": "move", "entityId": "entity.player", "amount": 1 } }],
+  "expectedEvents": ["runtime.started", "entity.created", "command.accepted", "entity.moved", "runtime.completed"], "assertions": [{ "id": "player", "type": "entityPositionEquals", "entityId": "entity.player", "position": 1 }], "artifacts": { "result": "result.json", "events": "events.jsonl", "diagnostics": "diagnostics.json" }, "humanReview": { "required": true },
+  "playable": { "width": 16, "height": 8, "containers": [{ "id": "container.alpha", "x": 4, "y": 2 }, { "id": "container.beta", "x": 12, "y": 6 }], "fragments": [{ "id": "fragment.one", "x": 3, "y": 5 }, { "id": "fragment.two", "x": 8, "y": 6 }, { "id": "fragment.three", "x": 12, "y": 3 }], "hazards": [{ "x": 6, "y": 3 }, { "x": 10, "y": 5 }], "switch": { "x": 13, "y": 2 }, "gate": { "x": 14, "y": 5 }, "zone": { "x": 14, "y": 7 } }
+}

@@ -1,0 +1,27 @@
+{
+  "schema": "agentic2d.engineering.validation-receipt.v1",
+  "suiteId": "m025-smoke",
+  "shardId": "geometric-presentation",
+  "status": "passed",
+  "suiteFingerprint": "9c93bd0e8d60d834cc5b63d44b3a5f9a15280fcf523b85dd29422dae041de022",
+  "repositoryFingerprint": "81a264fd187fe85e95145e79f92473cebe083f1827293e9d54214762f9ece0f6",
+  "commandFingerprint": "e797cac9e017275e9c4852a27bb0abadb75af324ab175f2486e505dd1aad8cd4",
+  "inputFingerprint": "3dc47460527896cb4b30d2f0bb402fb9ef72a789d9bbcc69cfd77b7880d4adcf",
+  "resultFingerprint": "3dc47460527896cb4b30d2f0bb402fb9ef72a789d9bbcc69cfd77b7880d4adcf",
+  "command": "./eng/signal-passage-smoke.sh",
+  "evidencePaths": [
+    "consumers/signal-passage/artifacts/runs/geometry/render/render-commands.jsonl"
+  ],
+  "artifacts": [
+    {
+      "path": "consumers/signal-passage/artifacts/runs/geometry/render/render-commands.jsonl",
+      "fingerprint": "144a87c49e064d25a77cf46f64088932d7ff46d2c9c09bec5c600506d1171584"
+    }
+  ],
+  "completion": {
+    "startedAtUtc": "2026-07-17T18:20:52.7429753+00:00",
+    "completedAtUtc": "2026-07-17T18:21:03.3960181+00:00",
+    "platform": "linux-bash"
+  },
+  "diagnostics": []
+}

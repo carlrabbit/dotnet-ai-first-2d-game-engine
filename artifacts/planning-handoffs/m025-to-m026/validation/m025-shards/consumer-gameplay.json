@@ -1,0 +1,27 @@
+{
+  "schema": "agentic2d.engineering.validation-receipt.v1",
+  "suiteId": "m025-smoke",
+  "shardId": "consumer-gameplay",
+  "status": "passed",
+  "suiteFingerprint": "9c93bd0e8d60d834cc5b63d44b3a5f9a15280fcf523b85dd29422dae041de022",
+  "repositoryFingerprint": "81a264fd187fe85e95145e79f92473cebe083f1827293e9d54214762f9ece0f6",
+  "commandFingerprint": "1297bd84a33a0252e161987485a0340396a7c6644b128f9e165e3e703a1c3339",
+  "inputFingerprint": "2edabc628597e9d351b7939838029db059708d8112d98cfb631c42e649424b6e",
+  "resultFingerprint": "2edabc628597e9d351b7939838029db059708d8112d98cfb631c42e649424b6e",
+  "command": "./eng/signal-passage-smoke.sh",
+  "evidencePaths": [
+    "consumers/signal-passage/artifacts/journey/complete-journey.json"
+  ],
+  "artifacts": [
+    {
+      "path": "consumers/signal-passage/artifacts/journey/complete-journey.json",
+      "fingerprint": "00dd027ea65b6816175e8c5052a43219f0558df1074a2f4ef9695b6d0ec1e098"
+    }
+  ],
+  "completion": {
+    "startedAtUtc": "2026-07-17T18:21:18.8211794+00:00",
+    "completedAtUtc": "2026-07-17T18:21:29.2589076+00:00",
+    "platform": "linux-bash"
+  },
+  "diagnostics": []
+}

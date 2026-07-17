@@ -1,0 +1,46 @@
+{
+  "schema": "agentic2d.scenario.result.v1",
+  "scenario": {
+    "id": "signal-passage.complete-journey",
+    "category": "smoke",
+    "source": "consumers/signal-passage/game-content/scenarios/signal-passage.complete-journey.json"
+  },
+  "command": "scenario run",
+  "status": "passed",
+  "exitCode": 0,
+  "runtime": {
+    "ticksRequested": 12,
+    "finalTick": 12
+  },
+  "summary": {
+    "eventsEmitted": 5,
+    "assertionsPassed": 1,
+    "assertionsFailed": 0,
+    "diagnostics": 0
+  },
+  "entities": [
+    {
+      "id": "entity.player",
+      "position": 1
+    }
+  ],
+  "assertions": [
+    {
+      "id": "player",
+      "passed": true,
+      "message": "entity.player position equals 1",
+      "expected": "1",
+      "actual": "1"
+    }
+  ],
+  "artifacts": [
+    {
+      "path": "events.jsonl",
+      "kind": "event-log"
+    },
+    {
+      "path": "diagnostics.json",
+      "kind": "diagnostics"
+    }
+  ]
+}

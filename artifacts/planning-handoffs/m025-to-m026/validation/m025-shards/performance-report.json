@@ -1,0 +1,32 @@
+{
+  "schema": "agentic2d.engineering.validation-receipt.v1",
+  "suiteId": "m025-smoke",
+  "shardId": "performance-report",
+  "status": "passed",
+  "suiteFingerprint": "9c93bd0e8d60d834cc5b63d44b3a5f9a15280fcf523b85dd29422dae041de022",
+  "repositoryFingerprint": "81a264fd187fe85e95145e79f92473cebe083f1827293e9d54214762f9ece0f6",
+  "commandFingerprint": "1d09ed2a570815ba88e27443a572c651d0a5e7f39a2e02e526ca8a583c86d2d0",
+  "inputFingerprint": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "resultFingerprint": "e80ffad109f24cf5e2f0a138a0006c2b4817cfa2161122b69e0ef9a75af3f4a1",
+  "command": "./eng/signal-passage-performance.sh",
+  "evidencePaths": [
+    "artifacts/performance/M025/performance-report.json",
+    "artifacts/performance/M025/performance-report.md"
+  ],
+  "artifacts": [
+    {
+      "path": "artifacts/performance/M025/performance-report.json",
+      "fingerprint": "0ab1cd9cce2c5dc029e4494a0881a23fbb5a9a476af5166f990c038c07466a4d"
+    },
+    {
+      "path": "artifacts/performance/M025/performance-report.md",
+      "fingerprint": "a8b303c242685e6151a864a74e945f46999345dc974ea38e96d753636ed1d85a"
+    }
+  ],
+  "completion": {
+    "startedAtUtc": "2026-07-17T18:22:18.9116367+00:00",
+    "completedAtUtc": "2026-07-17T18:22:33.5262312+00:00",
+    "platform": "linux-bash"
+  },
+  "diagnostics": []
+}

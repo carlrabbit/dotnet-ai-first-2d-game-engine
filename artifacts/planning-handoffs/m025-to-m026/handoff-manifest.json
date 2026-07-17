@@ -1,0 +1,1484 @@
+{
+  "schema": "agentic2d.m025-m026-planning-handoff.v1",
+  "status": "incomplete",
+  "repository": "carlrabbit/dotnet-ai-first-2d-game-engine",
+  "headRevision": "88f905120cd0799a77249be348303641c4e41eb6",
+  "m024BaseRevision": "50ac5bf5a660e777538dabc7fa58493760459c31",
+  "m024BaseIdentification": "Commit 50ac5bf is explicitly titled 'Implement milestone 24' and is the direct M025 implementation parent.",
+  "m025ImplementationCommitRange": "50ac5bf5a660e777538dabc7fa58493760459c31..88f905120cd0799a77249be348303641c4e41eb6",
+  "collectionTimestampUtc": "2026-07-17T20:16:07Z",
+  "collector": {
+    "command": "python3 artifacts/planning-handoffs/m025-to-m026/collector.py",
+    "version": "1"
+  },
+  "includedFiles": [
+    {
+      "relativeSourcePath": "collection-metadata.json",
+      "bundleDestinationPath": "collection-metadata.json",
+      "byteLength": 677,
+      "sha256": "67a196f43072a4edabfa866f61b331dc81d2b5e24a95bbb368ca61f71b5a1090",
+      "mediaType": "application/json",
+      "evidenceCategory": "handoff",
+      "alsoCommittedUnpacked": false,
+      "machineDependent": false
+    },
+    {
+      "relativeSourcePath": "collector.py",
+      "bundleDestinationPath": "collector.py",
+      "byteLength": 24642,
+      "sha256": "ad27b5440537d30193dbbb3ce1f6486d045ab8e7ba83f01578aadbb4b62bd6dd",
+      "mediaType": "text/x-python",
+      "evidenceCategory": "handoff",
+      "alsoCommittedUnpacked": false,
+      "machineDependent": false
+    },
+    {
+      "relativeSourcePath": "extension/classification-summary.json",
+      "bundleDestinationPath": "extension/classification-summary.json",
+      "byteLength": 1901,
+      "sha256": "d3f2b7a764eb80935bcd41d5c84e0758027e3531ed47d20af17c77549634a4c8",
+      "mediaType": "application/json",
+      "evidenceCategory": "extension",
+      "alsoCommittedUnpacked": true,
+      "machineDependent": false
+    },
+    {
+      "relativeSourcePath": "extension/consumer-extension-report.json",
+      "bundleDestinationPath": "extension/consumer-extension-report.json",
+      "byteLength": 3699,
+      "sha256": "925d2c32be83af024c363e43c41b37bc918d9659ce3de4c1738c3707589dd042",
+      "mediaType": "application/json",
+      "evidenceCategory": "extension",
+      "alsoCommittedUnpacked": true,
+      "machineDependent": false
+    },
+    {
+      "relativeSourcePath": "extension/consumer-extension-report.md",
+      "bundleDestinationPath": "extension/consumer-extension-report.md",
+      "byteLength": 462,
+      "sha256": "94323a109661f5779f57477de425bddc4a6fa41bc07f7b42e2d3f610e2057d37",
+      "mediaType": "text/plain",
+      "evidenceCategory": "extension",
+      "alsoCommittedUnpacked": true,
+      "machineDependent": false
+    },
+    {
+      "relativeSourcePath": "journey/complete-journey/complete-journey.json",
+      "bundleDestinationPath": "journey/complete-journey/complete-journey.json",
+      "byteLength": 1406,
+      "sha256": "00dd027ea65b6816175e8c5052a43219f0558df1074a2f4ef9695b6d0ec1e098",
+      "mediaType": "application/json",
+      "evidenceCategory": "journey",
+      "alsoCommittedUnpacked": false,
+      "machineDependent": false
+    },
+    {
+      "relativeSourcePath": "journey/complete-journey/run/content/diagnostics.json",
+      "bundleDestinationPath": "journey/complete-journey/run/content/diagnostics.json",
+      "byteLength": 82,
+      "sha256": "179a9ba20c515c044457d84d6f5ee00a0df9ac5c1a2aa02a74a58fc169d63d9b",
+      "mediaType": "application/json",
+      "evidenceCategory": "journey",
+      "alsoCommittedUnpacked": false,
+      "machineDependent": false
+    },
+    {
+      "relativeSourcePath": "journey/complete-journey/run/content/result.json",
+      "bundleDestinationPath": "journey/complete-journey/run/content/result.json",
+      "byteLength": 647,
+      "sha256": "80f072acd861dec8710b9c9132fb5671e9400705ec788b47a8c2aeb841f3e069",
+      "mediaType": "application/json",
+      "evidenceCategory": "journey",
+      "alsoCommittedUnpacked": false,
+      "machineDependent": false
+    },
+    {
+      "relativeSourcePath": "journey/complete-journey/run/content/validated-items.json",
+      "bundleDestinationPath": "journey/complete-journey/run/content/validated-items.json",
+      "byteLength": 285,
+      "sha256": "9e31b9c4ff1a3a8c46cbd171a8128b9c4ae901ed3f2524c5d81d2cd5cb50ac9b",
+      "mediaType": "application/json",
+      "evidenceCategory": "journey",
+      "alsoCommittedUnpacked": false,
+      "machineDependent": false
+    },
+    {
+      "relativeSourcePath": "journey/complete-journey/run/diagnostics/workflow-diagnostics.json",
+      "bundleDestinationPath": "journey/complete-journey/run/diagnostics/workflow-diagnostics.json",
+      "byteLength": 23,
+      "sha256": "7cbf767a86c06f275a3667004073f82fdeb4d258615690442e0ca34065fb2e80",
+      "mediaType": "application/json",
+      "evidenceCategory": "journey",
+      "alsoCommittedUnpacked": false,
+      "machineDependent": false
+    },
+    {
+      "relativeSourcePath": "journey/complete-journey/run/render/asset-bindings.json",
+      "bundleDestinationPath": "journey/complete-journey/run/render/asset-bindings.json",
+      "byteLength": 2,
+      "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+      "mediaType": "application/json",
+      "evidenceCategory": "journey",
+      "alsoCommittedUnpacked": false,
+      "machineDependent": false
+    },
+    {
+      "relativeSourcePath": "journey/complete-journey/run/render/render-commands.jsonl",
+      "bundleDestinationPath": "journey/complete-journey/run/render/render-commands.jsonl",
+      "byteLength": 1321,
+      "sha256": "c6b4a443cddde37f2f329dcb23589ed31eb82a6392d767ce32b0d54c5c77372c",
+      "mediaType": "application/octet-stream",
+      "evidenceCategory": "journey",
+      "alsoCommittedUnpacked": false,
+      "machineDependent": false
+    },
+    {
+      "relativeSourcePath": "journey/complete-journey/run/render/render-diagnostics.json",
+      "bundleDestinationPath": "journey/complete-journey/run/render/render-diagnostics.json",
+      "byteLength": 70,
+      "sha256": "57149e9319f01221021d9785dcc5f492d90b9b0032636ecf6da5d8602fbc57eb",
+      "mediaType": "application/json",
+      "evidenceCategory": "journey",
+      "alsoCommittedUnpacked": false,
+      "machineDependent": false
+    },
+    {
+      "relativeSourcePath": "journey/complete-journey/run/render/render-frame.json",
+      "bundleDestinationPath": "journey/complete-journey/run/render/render-frame.json",
+      "byteLength": 410,
+      "sha256": "0ebad788548a2e8b34f17b698d936bca3d55324879d1b42d177905dd6bdac633",
+      "mediaType": "application/json",
+      "evidenceCategory": "journey",
+      "alsoCommittedUnpacked": false,
+      "machineDependent": false
+    },
+    {
+      "relativeSourcePath": "journey/complete-journey/run/render/render-items.jsonl",
+      "bundleDestinationPath": "journey/complete-journey/run/render/render-items.jsonl",
+      "byteLength": 710,
+      "sha256": "d8c599732bc3252717a6f633a4e443c72b7d555a2d9aa3373f0773583b4bbd6e",
+      "mediaType": "application/octet-stream",
+      "evidenceCategory": "journey",
+      "alsoCommittedUnpacked": false,
+      "machineDependent": false
+    },
+    {
+      "relativeSourcePath": "journey/complete-journey/run/render/render-result.json",
+      "bundleDestinationPath": "journey/complete-journey/run/render/render-result.json",
+      "byteLength": 311,
+      "sha256": "f2b4f1ce67fa62391f2f3a5d1574d0aae9059c00067ac4cfb7e1371a7aa9f28d",
+      "mediaType": "application/json",
+      "evidenceCategory": "journey",
+      "alsoCommittedUnpacked": false,
+      "machineDependent": false
+    },
+    {
+      "relativeSourcePath": "journey/complete-journey/run/render/render-snapshot.json",
+      "bundleDestinationPath": "journey/complete-journey/run/render/render-snapshot.json",
+      "byteLength": 398,
+      "sha256": "30568fb93da3ef5cd54bc49591586e6dbea733f52649132364eabec8ecfcd304",
+      "mediaType": "application/json",
+      "evidenceCategory": "journey",
+      "alsoCommittedUnpacked": false,
+      "machineDependent": false
+    },
+    {
+      "relativeSourcePath": "journey/complete-journey/run/run-manifest.json",
+      "bundleDestinationPath": "journey/complete-journey/run/run-manifest.json",
+      "byteLength": 3042,
+      "sha256": "43b6a371b93bc60a1d7d0e8c4f60db3ef0cf9a58e788552eeb6568a182a8d86d",
+      "mediaType": "application/json",
+      "evidenceCategory": "journey",
+      "alsoCommittedUnpacked": false,
+      "machineDependent": false
+    },
+    {
+      "relativeSourcePath": "journey/complete-journey/run/runtime/diagnostics.json",
+      "bundleDestinationPath": "journey/complete-journey/run/runtime/diagnostics.json",
+      "byteLength": 63,
+      "sha256": "48f83dbfc0756b0e48018db5843cde139328b31b6dd4ffb0ff976339347ea32d",
+      "mediaType": "application/json",
+      "evidenceCategory": "journey",
+      "alsoCommittedUnpacked": false,
+      "machineDependent": false
+    },
+    {
+      "relativeSourcePath": "journey/complete-journey/run/runtime/events.jsonl",
+      "bundleDestinationPath": "journey/complete-journey/run/runtime/events.jsonl",
+      "byteLength": 438,
+      "sha256": "16574ab048e5984bd3404f5eb9156f8a62a127385846de96fcb2dba6a9b22e3d",
+      "mediaType": "application/octet-stream",
+      "evidenceCategory": "journey",
+      "alsoCommittedUnpacked": false,
+      "machineDependent": false
+    },
+    {
+      "relativeSourcePath": "journey/complete-journey/run/runtime/result.json",
+      "bundleDestinationPath": "journey/complete-journey/run/runtime/result.json",
+      "byteLength": 912,
+      "sha256": "b31c00112c7b7ef6635328e186d9be810cc9487b80d892e05269ccef7cc05dba",
+      "mediaType": "application/json",
+      "evidenceCategory": "journey",
+      "alsoCommittedUnpacked": false,
+      "machineDependent": false
+    },
+    {
+      "relativeSourcePath": "journey/export-equivalence/agentic2d.export.json",
+      "bundleDestinationPath": "journey/export-equivalence/agentic2d.export.json",
+      "byteLength": 920,
+      "sha256": "d33ba1b2e438370bfe82fb44e22cde927fd6da8da2e8902c164ec4f88c013fc1",
+      "mediaType": "application/json",
+      "evidenceCategory": "journey",
+      "alsoCommittedUnpacked": false,
+      "machineDependent": true
+    },
+    {
+      "relativeSourcePath": "journey/export-equivalence/export-diagnostics.json",
+      "bundleDestinationPath": "journey/export-equivalence/export-diagnostics.json",
+      "byteLength": 87,
+      "sha256": "5881f0acef858dabf36bf509c0615fe7c7db4c9d75de45462d1eb4f126b41173",
+      "mediaType": "application/json",
+      "evidenceCategory": "journey",
+      "alsoCommittedUnpacked": false,
+      "machineDependent": true
+    },
+    {
+      "relativeSourcePath": "journey/export-equivalence/export-files.json",
+      "bundleDestinationPath": "journey/export-equivalence/export-files.json",
+      "byteLength": 60887,
+      "sha256": "4d815e63a2697bf012d9a477525e5444994f9dbbff24b4255eff7f2104a01582",
+      "mediaType": "application/json",
+      "evidenceCategory": "journey",
+      "alsoCommittedUnpacked": false,
+      "machineDependent": true
+    },
+    {
+      "relativeSourcePath": "journey/export-equivalence/export-validation.json",
+      "bundleDestinationPath": "journey/export-equivalence/export-validation.json",
+      "byteLength": 87,
+      "sha256": "5881f0acef858dabf36bf509c0615fe7c7db4c9d75de45462d1eb4f126b41173",
+      "mediaType": "application/json",
+      "evidenceCategory": "journey",
+      "alsoCommittedUnpacked": false,
+      "machineDependent": true
+    },
+    {
+      "relativeSourcePath": "journey/export-equivalence/run-manifest.json",
+      "bundleDestinationPath": "journey/export-equivalence/run-manifest.json",
+      "byteLength": 575,
+      "sha256": "89f5170ae52c015ae235f7edc052a2b98d9f3c34f0ee6f61118b7ec87a5767ff",
+      "mediaType": "application/json",
+      "evidenceCategory": "journey",
+      "alsoCommittedUnpacked": false,
+      "machineDependent": true
+    },
+    {
+      "relativeSourcePath": "journey/export-equivalence/selected-export-inventory.json",
+      "bundleDestinationPath": "journey/export-equivalence/selected-export-inventory.json",
+      "byteLength": 9751,
+      "sha256": "a226b86d4e6ca0f650c0ffded41275f417aa63d086e008fef12a414388aff5a2",
+      "mediaType": "application/json",
+      "evidenceCategory": "journey",
+      "alsoCommittedUnpacked": false,
+      "machineDependent": true
+    },
+    {
+      "relativeSourcePath": "journey/export-equivalence/startup-diagnostics.json",
+      "bundleDestinationPath": "journey/export-equivalence/startup-diagnostics.json",
+      "byteLength": 139,
+      "sha256": "4f16252a73638122c4b752a593fa9b6ee49ac2a3443bc6c0df4473c9899fa861",
+      "mediaType": "application/json",
+      "evidenceCategory": "journey",
+      "alsoCommittedUnpacked": false,
+      "machineDependent": true
+    },
+    {
+      "relativeSourcePath": "journey/save-resume/complete-journey-result.json",
+      "bundleDestinationPath": "journey/save-resume/complete-journey-result.json",
+      "byteLength": 1406,
+      "sha256": "00dd027ea65b6816175e8c5052a43219f0558df1074a2f4ef9695b6d0ec1e098",
+      "mediaType": "application/json",
+      "evidenceCategory": "journey",
+      "alsoCommittedUnpacked": false,
+      "machineDependent": false
+    },
+    {
+      "relativeSourcePath": "journey/save-resume/evidence-summary.md",
+      "bundleDestinationPath": "journey/save-resume/evidence-summary.md",
+      "byteLength": 297,
+      "sha256": "aac68414c1d36f09ea30f4b99cf2b5ac75194527cebf44ce18468e5e7dd725da",
+      "mediaType": "text/plain",
+      "evidenceCategory": "journey",
+      "alsoCommittedUnpacked": false,
+      "machineDependent": false
+    },
+    {
+      "relativeSourcePath": "journey/save-resume/save.json",
+      "bundleDestinationPath": "journey/save-resume/save.json",
+      "byteLength": 137,
+      "sha256": "91240728bfe3aade62815f440d031f2ad0facf99e30362a84f6b039ae6e7edae",
+      "mediaType": "application/json",
+      "evidenceCategory": "journey",
+      "alsoCommittedUnpacked": false,
+      "machineDependent": false
+    },
+    {
+      "relativeSourcePath": "journey/workspace-isolation/evidence-summary.md",
+      "bundleDestinationPath": "journey/workspace-isolation/evidence-summary.md",
+      "byteLength": 335,
+      "sha256": "679cd40cfd26f4fda0edb42714f6d80e19f91581292177884f5f03b3ee5d60a0",
+      "mediaType": "text/plain",
+      "evidenceCategory": "journey",
+      "alsoCommittedUnpacked": false,
+      "machineDependent": true
+    },
+    {
+      "relativeSourcePath": "journey/workspace-isolation/run-manifest.json",
+      "bundleDestinationPath": "journey/workspace-isolation/run-manifest.json",
+      "byteLength": 3012,
+      "sha256": "6fdc3b38e363e5dd0b6ca01dc26342dfadf2ebeaa420b678e4c78fdfeacb46b5",
+      "mediaType": "application/json",
+      "evidenceCategory": "journey",
+      "alsoCommittedUnpacked": false,
+      "machineDependent": true
+    },
+    {
+      "relativeSourcePath": "journey/workspace-isolation/workspace-validation.json",
+      "bundleDestinationPath": "journey/workspace-isolation/workspace-validation.json",
+      "byteLength": 227,
+      "sha256": "659d022b324db975ffd5ad0b1320490fda9158ea4f3487238b7dc18c7c3f2587",
+      "mediaType": "application/json",
+      "evidenceCategory": "journey",
+      "alsoCommittedUnpacked": false,
+      "machineDependent": true
+    },
+    {
+      "relativeSourcePath": "performance/after-performance-capture.json",
+      "bundleDestinationPath": "performance/after-performance-capture.json",
+      "byteLength": 4264,
+      "sha256": "9071a046b4f7eb1ab944f758ccaba65b6e6c2d09479d9e94f1c534a00c7c9aa0",
+      "mediaType": "application/json",
+      "evidenceCategory": "performance",
+      "alsoCommittedUnpacked": false,
+      "machineDependent": false
+    },
+    {
+      "relativeSourcePath": "performance/before-performance-capture.json",
+      "bundleDestinationPath": "performance/before-performance-capture.json",
+      "byteLength": 4264,
+      "sha256": "d166802a08f4514fae09f8b52781ea29eb2c6a231e3fa9a9dff773f7c70a7c44",
+      "mediaType": "application/json",
+      "evidenceCategory": "performance",
+      "alsoCommittedUnpacked": false,
+      "machineDependent": false
+    },
+    {
+      "relativeSourcePath": "performance/performance-report.json",
+      "bundleDestinationPath": "performance/performance-report.json",
+      "byteLength": 4249,
+      "sha256": "0ab1cd9cce2c5dc029e4494a0881a23fbb5a9a476af5166f990c038c07466a4d",
+      "mediaType": "application/json",
+      "evidenceCategory": "performance",
+      "alsoCommittedUnpacked": true,
+      "machineDependent": false
+    },
+    {
+      "relativeSourcePath": "performance/performance-report.md",
+      "bundleDestinationPath": "performance/performance-report.md",
+      "byteLength": 796,
+      "sha256": "a8b303c242685e6151a864a74e945f46999345dc974ea38e96d753636ed1d85a",
+      "mediaType": "text/plain",
+      "evidenceCategory": "performance",
+      "alsoCommittedUnpacked": true,
+      "machineDependent": false
+    },
+    {
+      "relativeSourcePath": "presentation/geometry/diagnostics.json",
+      "bundleDestinationPath": "presentation/geometry/diagnostics.json",
+      "byteLength": 82,
+      "sha256": "179a9ba20c515c044457d84d6f5ee00a0df9ac5c1a2aa02a74a58fc169d63d9b",
+      "mediaType": "application/json",
+      "evidenceCategory": "presentation",
+      "alsoCommittedUnpacked": false,
+      "machineDependent": false
+    },
+    {
+      "relativeSourcePath": "presentation/geometry/render-commands.jsonl",
+      "bundleDestinationPath": "presentation/geometry/render-commands.jsonl",
+      "byteLength": 1321,
+      "sha256": "144a87c49e064d25a77cf46f64088932d7ff46d2c9c09bec5c600506d1171584",
+      "mediaType": "application/octet-stream",
+      "evidenceCategory": "presentation",
+      "alsoCommittedUnpacked": false,
+      "machineDependent": false
+    },
+    {
+      "relativeSourcePath": "presentation/geometry/render-diagnostics.json",
+      "bundleDestinationPath": "presentation/geometry/render-diagnostics.json",
+      "byteLength": 70,
+      "sha256": "57149e9319f01221021d9785dcc5f492d90b9b0032636ecf6da5d8602fbc57eb",
+      "mediaType": "application/json",
+      "evidenceCategory": "presentation",
+      "alsoCommittedUnpacked": false,
+      "machineDependent": false
+    },
+    {
+      "relativeSourcePath": "presentation/geometry/render-result.json",
+      "bundleDestinationPath": "presentation/geometry/render-result.json",
+      "byteLength": 321,
+      "sha256": "4f3442d10d26720720172e0f1a812ad8b6ddf26a3c0df9bf98280abb43d550b5",
+      "mediaType": "application/json",
+      "evidenceCategory": "presentation",
+      "alsoCommittedUnpacked": false,
+      "machineDependent": false
+    },
+    {
+      "relativeSourcePath": "presentation/geometry/render-snapshot.json",
+      "bundleDestinationPath": "presentation/geometry/render-snapshot.json",
+      "byteLength": 408,
+      "sha256": "736376abaf65822e15e334b6b47cfce5f77e97986c44a7400207739e3a3f2223",
+      "mediaType": "application/json",
+      "evidenceCategory": "presentation",
+      "alsoCommittedUnpacked": false,
+      "machineDependent": false
+    },
+    {
+      "relativeSourcePath": "presentation/geometry/result.json",
+      "bundleDestinationPath": "presentation/geometry/result.json",
+      "byteLength": 658,
+      "sha256": "34f2720eb83e2c84cbda791b93c02a11b734d0ca38ac41e2f87deb0f448f3b91",
+      "mediaType": "application/json",
+      "evidenceCategory": "presentation",
+      "alsoCommittedUnpacked": false,
+      "machineDependent": false
+    },
+    {
+      "relativeSourcePath": "presentation/geometry/visual-definitions/container.json",
+      "bundleDestinationPath": "presentation/geometry/visual-definitions/container.json",
+      "byteLength": 429,
+      "sha256": "9f89b79ce057b7c00856161dee65a5cd15fd84cddbfde46884da318b7825335f",
+      "mediaType": "application/json",
+      "evidenceCategory": "presentation",
+      "alsoCommittedUnpacked": false,
+      "machineDependent": false
+    },
+    {
+      "relativeSourcePath": "presentation/geometry/visual-definitions/fragment.json",
+      "bundleDestinationPath": "presentation/geometry/visual-definitions/fragment.json",
+      "byteLength": 408,
+      "sha256": "cf4fd51ce760b79a89435a9d12340bb8ad2487a971d571db40872a075335c33a",
+      "mediaType": "application/json",
+      "evidenceCategory": "presentation",
+      "alsoCommittedUnpacked": false,
+      "machineDependent": false
+    },
+    {
+      "relativeSourcePath": "presentation/geometry/visual-definitions/gate.json",
+      "bundleDestinationPath": "presentation/geometry/visual-definitions/gate.json",
+      "byteLength": 370,
+      "sha256": "8cef3497492b63036501d87b1c8f0680328f654aa8c52cbd836dffb4128ee065",
+      "mediaType": "application/json",
+      "evidenceCategory": "presentation",
+      "alsoCommittedUnpacked": false,
+      "machineDependent": false
+    },
+    {
+      "relativeSourcePath": "presentation/geometry/visual-definitions/hazard.json",
+      "bundleDestinationPath": "presentation/geometry/visual-definitions/hazard.json",
+      "byteLength": 375,
+      "sha256": "ef2b7d1e0347864d54a9a4ca1d25e3074e5e013143c9882fc9f8db77aa61aa7a",
+      "mediaType": "application/json",
+      "evidenceCategory": "presentation",
+      "alsoCommittedUnpacked": false,
+      "machineDependent": false
+    },
+    {
+      "relativeSourcePath": "presentation/geometry/visual-definitions/mechanism.json",
+      "bundleDestinationPath": "presentation/geometry/visual-definitions/mechanism.json",
+      "byteLength": 437,
+      "sha256": "f13d79e59fc3ca0211bd4f16534d709070f0cb3f77029d978319b4488047ef00",
+      "mediaType": "application/json",
+      "evidenceCategory": "presentation",
+      "alsoCommittedUnpacked": false,
+      "machineDependent": false
+    },
+    {
+      "relativeSourcePath": "presentation/geometry/visual-definitions/objective-zone.json",
+      "bundleDestinationPath": "presentation/geometry/visual-definitions/objective-zone.json",
+      "byteLength": 417,
+      "sha256": "9932f1b7037eaf0196776c2c506851a60c94054f2be6f7ec0c926e9d691d2572",
+      "mediaType": "application/json",
+      "evidenceCategory": "presentation",
+      "alsoCommittedUnpacked": false,
+      "machineDependent": false
+    },
+    {
+      "relativeSourcePath": "presentation/geometry/visual-definitions/signal-passage-visuals.json",
+      "bundleDestinationPath": "presentation/geometry/visual-definitions/signal-passage-visuals.json",
+      "byteLength": 362,
+      "sha256": "697cc5611f368c2704017b81d92ced9cd98b2ce4998a052858144a47e541e377",
+      "mediaType": "application/json",
+      "evidenceCategory": "presentation",
+      "alsoCommittedUnpacked": false,
+      "machineDependent": false
+    },
+    {
+      "relativeSourcePath": "presentation/geometry/visual-definitions/wall.json",
+      "bundleDestinationPath": "presentation/geometry/visual-definitions/wall.json",
+      "byteLength": 404,
+      "sha256": "a380f55b23c0a4808128efcca71d95908e75843f4ef09f4333e027409d99e310",
+      "mediaType": "application/json",
+      "evidenceCategory": "presentation",
+      "alsoCommittedUnpacked": false,
+      "machineDependent": false
+    },
+    {
+      "relativeSourcePath": "presentation/geometry/visual-inventory.md",
+      "bundleDestinationPath": "presentation/geometry/visual-inventory.md",
+      "byteLength": 340,
+      "sha256": "54f5f4fd20770663695795826aa8659fe39bd33cf4f6619579da86af9c5031f2",
+      "mediaType": "text/plain",
+      "evidenceCategory": "presentation",
+      "alsoCommittedUnpacked": false,
+      "machineDependent": false
+    },
+    {
+      "relativeSourcePath": "presentation/screenshots/01-initial-world-and-object-classes.png",
+      "bundleDestinationPath": "presentation/screenshots/01-initial-world-and-object-classes.png",
+      "byteLength": 24777,
+      "sha256": "f478de2f5882ce1cb54dc15fe8808130c095d1a8e940dcee2c56df38822e53d5",
+      "mediaType": "image/png",
+      "evidenceCategory": "presentation",
+      "alsoCommittedUnpacked": false,
+      "machineDependent": false
+    },
+    {
+      "relativeSourcePath": "presentation/screenshots/coverage.md",
+      "bundleDestinationPath": "presentation/screenshots/coverage.md",
+      "byteLength": 372,
+      "sha256": "ed21378d7b68295767fa1b26f5a1e3678272bd0e6ac54fd455b6cab0b37122b0",
+      "mediaType": "text/plain",
+      "evidenceCategory": "presentation",
+      "alsoCommittedUnpacked": false,
+      "machineDependent": false
+    },
+    {
+      "relativeSourcePath": "presentation/sound/definitions/completion.json",
+      "bundleDestinationPath": "presentation/sound/definitions/completion.json",
+      "byteLength": 850,
+      "sha256": "2b2b3e6e83899c85dc9f6baf0ec7b76459743f0e14c1452f613e7ae254122831",
+      "mediaType": "application/json",
+      "evidenceCategory": "presentation",
+      "alsoCommittedUnpacked": false,
+      "machineDependent": false
+    },
+    {
+      "relativeSourcePath": "presentation/sound/definitions/container.json",
+      "bundleDestinationPath": "presentation/sound/definitions/container.json",
+      "byteLength": 707,
+      "sha256": "5255694dc4da6ae29245c65840b66c67d5064f6d2c7907c03519f743ff315a84",
+      "mediaType": "application/json",
+      "evidenceCategory": "presentation",
+      "alsoCommittedUnpacked": false,
+      "machineDependent": false
+    },
+    {
+      "relativeSourcePath": "presentation/sound/definitions/damage.json",
+      "bundleDestinationPath": "presentation/sound/definitions/damage.json",
+      "byteLength": 696,
+      "sha256": "2d2d252531cd4919407fc2299e5830be6ec4ecd4c5440a5f86a5ec59bfe32caa",
+      "mediaType": "application/json",
+      "evidenceCategory": "presentation",
+      "alsoCommittedUnpacked": false,
+      "machineDependent": false
+    },
+    {
+      "relativeSourcePath": "presentation/sound/definitions/exit.json",
+      "bundleDestinationPath": "presentation/sound/definitions/exit.json",
+      "byteLength": 682,
+      "sha256": "2e16089c8b417c24639f6df148be7917e1294772186697605d40c3d61d0aa842",
+      "mediaType": "application/json",
+      "evidenceCategory": "presentation",
+      "alsoCommittedUnpacked": false,
+      "machineDependent": false
+    },
+    {
+      "relativeSourcePath": "presentation/sound/definitions/fragment.json",
+      "bundleDestinationPath": "presentation/sound/definitions/fragment.json",
+      "byteLength": 508,
+      "sha256": "f2e43d14a88be43d3bb2247fe069cdb0d9b9ddc35af2e6042329379c8d25a409",
+      "mediaType": "application/json",
+      "evidenceCategory": "presentation",
+      "alsoCommittedUnpacked": false,
+      "machineDependent": false
+    },
+    {
+      "relativeSourcePath": "presentation/sound/definitions/switch.json",
+      "bundleDestinationPath": "presentation/sound/definitions/switch.json",
+      "byteLength": 501,
+      "sha256": "93e00a70a340146b00a7c73290e62e75e8f58f52b191ffbaaccb0d681dd556ad",
+      "mediaType": "application/json",
+      "evidenceCategory": "presentation",
+      "alsoCommittedUnpacked": false,
+      "machineDependent": false
+    },
+    {
+      "relativeSourcePath": "presentation/sound/provenance/container-opened.provenance.json",
+      "bundleDestinationPath": "presentation/sound/provenance/container-opened.provenance.json",
+      "byteLength": 651,
+      "sha256": "54908c573de62ecaeb18e9fb9623b0a06c36632a5b0927d752cf6036124d9629",
+      "mediaType": "application/json",
+      "evidenceCategory": "presentation",
+      "alsoCommittedUnpacked": false,
+      "machineDependent": false
+    },
+    {
+      "relativeSourcePath": "presentation/sound/provenance/exit-opened.provenance.json",
+      "bundleDestinationPath": "presentation/sound/provenance/exit-opened.provenance.json",
+      "byteLength": 621,
+      "sha256": "de8b5f469d3104e2ebbb2aed9e995f1d1c16f6a2aabbd22b5f02382b78df4a65",
+      "mediaType": "application/json",
+      "evidenceCategory": "presentation",
+      "alsoCommittedUnpacked": false,
+      "machineDependent": false
+    },
+    {
+      "relativeSourcePath": "presentation/sound/provenance/fragment-collected.provenance.json",
+      "bundleDestinationPath": "presentation/sound/provenance/fragment-collected.provenance.json",
+      "byteLength": 642,
+      "sha256": "341e8f6633b6b7cb78e965816bfcd26bf279d73538b107de0fb16f84b6365966",
+      "mediaType": "application/json",
+      "evidenceCategory": "presentation",
+      "alsoCommittedUnpacked": false,
+      "machineDependent": false
+    },
+    {
+      "relativeSourcePath": "presentation/sound/provenance/objective-completed.provenance.json",
+      "bundleDestinationPath": "presentation/sound/provenance/objective-completed.provenance.json",
+      "byteLength": 645,
+      "sha256": "8977a6552c50646b4769d64bd8867240878fb0ba378e55606038a898698ce242",
+      "mediaType": "application/json",
+      "evidenceCategory": "presentation",
+      "alsoCommittedUnpacked": false,
+      "machineDependent": false
+    },
+    {
+      "relativeSourcePath": "presentation/sound/provenance/player-damaged.provenance.json",
+      "bundleDestinationPath": "presentation/sound/provenance/player-damaged.provenance.json",
+      "byteLength": 631,
+      "sha256": "0037a5042a268e9f2a50f772736fda624cb11c8e08d6a3c398da1739c32720f5",
+      "mediaType": "application/json",
+      "evidenceCategory": "presentation",
+      "alsoCommittedUnpacked": false,
+      "machineDependent": false
+    },
+    {
+      "relativeSourcePath": "presentation/sound/provenance/switch-activated.provenance.json",
+      "bundleDestinationPath": "presentation/sound/provenance/switch-activated.provenance.json",
+      "byteLength": 636,
+      "sha256": "a6c5dec9fed2b8de5a19b88bab4db728d6009907ba22f41af5df2e1b8993e5dd",
+      "mediaType": "application/json",
+      "evidenceCategory": "presentation",
+      "alsoCommittedUnpacked": false,
+      "machineDependent": false
+    },
+    {
+      "relativeSourcePath": "presentation/sound/review-notes.md",
+      "bundleDestinationPath": "presentation/sound/review-notes.md",
+      "byteLength": 673,
+      "sha256": "a98bc5e65ec6749baeacf2bc2b3c30467455b8af0577b3675e09376a2355d180",
+      "mediaType": "text/plain",
+      "evidenceCategory": "presentation",
+      "alsoCommittedUnpacked": false,
+      "machineDependent": false
+    },
+    {
+      "relativeSourcePath": "presentation/sound/sound-synthesis-inventory.json",
+      "bundleDestinationPath": "presentation/sound/sound-synthesis-inventory.json",
+      "byteLength": 3422,
+      "sha256": "ac891c288a9d2959d7737201715129b9f1e35798a70ca9d543a4b13068ef0980",
+      "mediaType": "application/json",
+      "evidenceCategory": "presentation",
+      "alsoCommittedUnpacked": false,
+      "machineDependent": false
+    },
+    {
+      "relativeSourcePath": "presentation/sound/sound-synthesis-result.json",
+      "bundleDestinationPath": "presentation/sound/sound-synthesis-result.json",
+      "byteLength": 3696,
+      "sha256": "8d5c53032cd640e94ef24155e00341d263fc28ca9c2bd0d0362671544f924cab",
+      "mediaType": "application/json",
+      "evidenceCategory": "presentation",
+      "alsoCommittedUnpacked": false,
+      "machineDependent": false
+    },
+    {
+      "relativeSourcePath": "presentation/sound/wav/container-opened.wav",
+      "bundleDestinationPath": "presentation/sound/wav/container-opened.wav",
+      "byteLength": 12834,
+      "sha256": "291676e9e40360ab77f319705fce718d08a2739ddefaccb1c6d207b7b86b8d02",
+      "mediaType": "audio/wav",
+      "evidenceCategory": "presentation",
+      "alsoCommittedUnpacked": false,
+      "machineDependent": false
+    },
+    {
+      "relativeSourcePath": "presentation/sound/wav/exit-opened.wav",
+      "bundleDestinationPath": "presentation/sound/wav/exit-opened.wav",
+      "byteLength": 15920,
+      "sha256": "82fe116f46135e119f720e6065010b75d27e2b08e6aa75d3bb48e08cbd2fc6ad",
+      "mediaType": "audio/wav",
+      "evidenceCategory": "presentation",
+      "alsoCommittedUnpacked": false,
+      "machineDependent": false
+    },
+    {
+      "relativeSourcePath": "presentation/sound/wav/fragment-collected.wav",
+      "bundleDestinationPath": "presentation/sound/wav/fragment-collected.wav",
+      "byteLength": 7982,
+      "sha256": "0a4b64a8fd4956b1e2c4155ccc4199d959685c0980d980f84327070d96eb151e",
+      "mediaType": "audio/wav",
+      "evidenceCategory": "presentation",
+      "alsoCommittedUnpacked": false,
+      "machineDependent": false
+    },
+    {
+      "relativeSourcePath": "presentation/sound/wav/objective-completed.wav",
+      "bundleDestinationPath": "presentation/sound/wav/objective-completed.wav",
+      "byteLength": 19448,
+      "sha256": "d95adc00f028193188645e9778576461e546068e3067d0abf04f051685de044b",
+      "mediaType": "audio/wav",
+      "evidenceCategory": "presentation",
+      "alsoCommittedUnpacked": false,
+      "machineDependent": false
+    },
+    {
+      "relativeSourcePath": "presentation/sound/wav/player-damaged.wav",
+      "bundleDestinationPath": "presentation/sound/wav/player-damaged.wav",
+      "byteLength": 11510,
+      "sha256": "39676051954dc7cc6d73d11a8734958935453b5abc3063fbc8d5bb9c560b5437",
+      "mediaType": "audio/wav",
+      "evidenceCategory": "presentation",
+      "alsoCommittedUnpacked": false,
+      "machineDependent": false
+    },
+    {
+      "relativeSourcePath": "presentation/sound/wav/switch-activated.wav",
+      "bundleDestinationPath": "presentation/sound/wav/switch-activated.wav",
+      "byteLength": 10628,
+      "sha256": "c4a2ab8c37b3be226e189d8b65af073cf7d7c1867e65a581a4b5497aaf6abf38",
+      "mediaType": "audio/wav",
+      "evidenceCategory": "presentation",
+      "alsoCommittedUnpacked": false,
+      "machineDependent": false
+    },
+    {
+      "relativeSourcePath": "review/evidence/agentic2d.export.json",
+      "bundleDestinationPath": "review/evidence/agentic2d.export.json",
+      "byteLength": 920,
+      "sha256": "d33ba1b2e438370bfe82fb44e22cde927fd6da8da2e8902c164ec4f88c013fc1",
+      "mediaType": "application/json",
+      "evidenceCategory": "review",
+      "alsoCommittedUnpacked": false,
+      "machineDependent": false
+    },
+    {
+      "relativeSourcePath": "review/evidence/complete-journey.json",
+      "bundleDestinationPath": "review/evidence/complete-journey.json",
+      "byteLength": 1406,
+      "sha256": "00dd027ea65b6816175e8c5052a43219f0558df1074a2f4ef9695b6d0ec1e098",
+      "mediaType": "application/json",
+      "evidenceCategory": "review",
+      "alsoCommittedUnpacked": false,
+      "machineDependent": false
+    },
+    {
+      "relativeSourcePath": "review/evidence/consumer-extension-report.json",
+      "bundleDestinationPath": "review/evidence/consumer-extension-report.json",
+      "byteLength": 3699,
+      "sha256": "925d2c32be83af024c363e43c41b37bc918d9659ce3de4c1738c3707589dd042",
+      "mediaType": "application/json",
+      "evidenceCategory": "review",
+      "alsoCommittedUnpacked": false,
+      "machineDependent": false
+    },
+    {
+      "relativeSourcePath": "review/evidence/performance-report.json",
+      "bundleDestinationPath": "review/evidence/performance-report.json",
+      "byteLength": 4249,
+      "sha256": "0ab1cd9cce2c5dc029e4494a0881a23fbb5a9a476af5166f990c038c07466a4d",
+      "mediaType": "application/json",
+      "evidenceCategory": "review",
+      "alsoCommittedUnpacked": false,
+      "machineDependent": false
+    },
+    {
+      "relativeSourcePath": "review/evidence/render-commands.jsonl",
+      "bundleDestinationPath": "review/evidence/render-commands.jsonl",
+      "byteLength": 1321,
+      "sha256": "144a87c49e064d25a77cf46f64088932d7ff46d2c9c09bec5c600506d1171584",
+      "mediaType": "application/octet-stream",
+      "evidenceCategory": "review",
+      "alsoCommittedUnpacked": false,
+      "machineDependent": false
+    },
+    {
+      "relativeSourcePath": "review/evidence/review-notes.md",
+      "bundleDestinationPath": "review/evidence/review-notes.md",
+      "byteLength": 673,
+      "sha256": "a98bc5e65ec6749baeacf2bc2b3c30467455b8af0577b3675e09376a2355d180",
+      "mediaType": "text/plain",
+      "evidenceCategory": "review",
+      "alsoCommittedUnpacked": false,
+      "machineDependent": false
+    },
+    {
+      "relativeSourcePath": "review/evidence/save.json",
+      "bundleDestinationPath": "review/evidence/save.json",
+      "byteLength": 137,
+      "sha256": "91240728bfe3aade62815f440d031f2ad0facf99e30362a84f6b039ae6e7edae",
+      "mediaType": "application/json",
+      "evidenceCategory": "review",
+      "alsoCommittedUnpacked": false,
+      "machineDependent": false
+    },
+    {
+      "relativeSourcePath": "review/evidence/signal-passage-launch.png",
+      "bundleDestinationPath": "review/evidence/signal-passage-launch.png",
+      "byteLength": 24777,
+      "sha256": "f478de2f5882ce1cb54dc15fe8808130c095d1a8e940dcee2c56df38822e53d5",
+      "mediaType": "image/png",
+      "evidenceCategory": "review",
+      "alsoCommittedUnpacked": false,
+      "machineDependent": false
+    },
+    {
+      "relativeSourcePath": "review/evidence/sound-synthesis-inventory.json",
+      "bundleDestinationPath": "review/evidence/sound-synthesis-inventory.json",
+      "byteLength": 3422,
+      "sha256": "ac891c288a9d2959d7737201715129b9f1e35798a70ca9d543a4b13068ef0980",
+      "mediaType": "application/json",
+      "evidenceCategory": "review",
+      "alsoCommittedUnpacked": false,
+      "machineDependent": false
+    },
+    {
+      "relativeSourcePath": "review/evidence-index.md",
+      "bundleDestinationPath": "review/evidence-index.md",
+      "byteLength": 1563,
+      "sha256": "bd9c84bf57923aae59f323953b76f1e652a23ed5001707941dba20d01fbfc970",
+      "mediaType": "text/plain",
+      "evidenceCategory": "review",
+      "alsoCommittedUnpacked": true,
+      "machineDependent": false
+    },
+    {
+      "relativeSourcePath": "review/record.json",
+      "bundleDestinationPath": "review/record.json",
+      "byteLength": 1380,
+      "sha256": "b759b65f1d3110e19056f04decfb13600f04a46d14ea9097d9ae6259f15fc7ea",
+      "mediaType": "application/json",
+      "evidenceCategory": "review",
+      "alsoCommittedUnpacked": false,
+      "machineDependent": false
+    },
+    {
+      "relativeSourcePath": "review/record.md",
+      "bundleDestinationPath": "review/record.md",
+      "byteLength": 1415,
+      "sha256": "1165761a2d0055f4b1dc0f37d550e19f74de9bb304a8cf786f29b9ffca7a134f",
+      "mediaType": "text/plain",
+      "evidenceCategory": "review",
+      "alsoCommittedUnpacked": true,
+      "machineDependent": false
+    },
+    {
+      "relativeSourcePath": "review/request.md",
+      "bundleDestinationPath": "review/request.md",
+      "byteLength": 2249,
+      "sha256": "4b0c9f55d0495b1be04936971022773e912a9a69a1f5d016f6d10869508a4cf7",
+      "mediaType": "text/plain",
+      "evidenceCategory": "review",
+      "alsoCommittedUnpacked": true,
+      "machineDependent": false
+    },
+    {
+      "relativeSourcePath": "source/changed-files.txt",
+      "bundleDestinationPath": "source/changed-files.txt",
+      "byteLength": 5222,
+      "sha256": "d717ea750fa2dcf825bc5fdecf38e44a939dd5d5b63cbdb20067f5d9b4f4db5a",
+      "mediaType": "text/plain",
+      "evidenceCategory": "source",
+      "alsoCommittedUnpacked": true,
+      "machineDependent": false
+    },
+    {
+      "relativeSourcePath": "source/consumer-files-changed.txt",
+      "bundleDestinationPath": "source/consumer-files-changed.txt",
+      "byteLength": 3437,
+      "sha256": "257e752866ea477ec37199154d1ce29aa3948b0ec9bb38f47943a8cdcfeee1b0",
+      "mediaType": "text/plain",
+      "evidenceCategory": "source",
+      "alsoCommittedUnpacked": true,
+      "machineDependent": false
+    },
+    {
+      "relativeSourcePath": "source/consumer-source/agentic2d.project.json",
+      "bundleDestinationPath": "source/consumer-source/agentic2d.project.json",
+      "byteLength": 509,
+      "sha256": "dfe4fbc6bcdb70a4b0c5447d3bc78fea36e47fa9d8269e0a6d48820c0602a03a",
+      "mediaType": "application/json",
+      "evidenceCategory": "source",
+      "alsoCommittedUnpacked": false,
+      "machineDependent": false
+    },
+    {
+      "relativeSourcePath": "source/consumer-source/agentic2d.workspace.json",
+      "bundleDestinationPath": "source/consumer-source/agentic2d.workspace.json",
+      "byteLength": 859,
+      "sha256": "4b509fe219c3dee07fa6a0ccc952751564d336ea57ffe3e2951150e4a7619ee1",
+      "mediaType": "application/json",
+      "evidenceCategory": "source",
+      "alsoCommittedUnpacked": false,
+      "machineDependent": false
+    },
+    {
+      "relativeSourcePath": "source/consumer-source/game-content/colors/signal-passage-colors.json",
+      "bundleDestinationPath": "source/consumer-source/game-content/colors/signal-passage-colors.json",
+      "byteLength": 238,
+      "sha256": "eca267de43be0aba9a4439b4da6e5deb188240c2d8119af0f9065f1677afea88",
+      "mediaType": "application/json",
+      "evidenceCategory": "source",
+      "alsoCommittedUnpacked": false,
+      "machineDependent": false
+    },
+    {
+      "relativeSourcePath": "source/consumer-source/game-content/entities/entity-definition.player.signal-passage.json",
+      "bundleDestinationPath": "source/consumer-source/game-content/entities/entity-definition.player.signal-passage.json",
+      "byteLength": 410,
+      "sha256": "a7e82143d72b8f34214f96f0cf9eb1c003b093ceddb32e496d7753e5c16bcd63",
+      "mediaType": "application/json",
+      "evidenceCategory": "source",
+      "alsoCommittedUnpacked": false,
+      "machineDependent": false
+    },
+    {
+      "relativeSourcePath": "source/consumer-source/game-content/maps/signal-passage.map.json",
+      "bundleDestinationPath": "source/consumer-source/game-content/maps/signal-passage.map.json",
+      "byteLength": 246,
+      "sha256": "67cb1bb501dffa240e210572ed9e624393e301fe49764104a30bab3540b408dc",
+      "mediaType": "application/json",
+      "evidenceCategory": "source",
+      "alsoCommittedUnpacked": false,
+      "machineDependent": false
+    },
+    {
+      "relativeSourcePath": "source/consumer-source/game-content/scenarios/signal-passage.complete-journey.json",
+      "bundleDestinationPath": "source/consumer-source/game-content/scenarios/signal-passage.complete-journey.json",
+      "byteLength": 1359,
+      "sha256": "8f93ad2eaf0c3414756d8aa07965fac3ee42e747d6f4dacfa4239b2379c059c4",
+      "mediaType": "application/json",
+      "evidenceCategory": "source",
+      "alsoCommittedUnpacked": false,
+      "machineDependent": false
+    },
+    {
+      "relativeSourcePath": "source/consumer-source/game-content/scenarios/signal-passage.external-workspace-smoke.json",
+      "bundleDestinationPath": "source/consumer-source/game-content/scenarios/signal-passage.external-workspace-smoke.json",
+      "byteLength": 784,
+      "sha256": "20d6f575af7efc0ff77985be0dbb6cedbee3917860bb54be137e4e51539638b4",
+      "mediaType": "application/json",
+      "evidenceCategory": "source",
+      "alsoCommittedUnpacked": false,
+      "machineDependent": false
+    },
+    {
+      "relativeSourcePath": "source/consumer-source/game-content/scenarios/signal-passage.geometry-presentation-smoke.json",
+      "bundleDestinationPath": "source/consumer-source/game-content/scenarios/signal-passage.geometry-presentation-smoke.json",
+      "byteLength": 776,
+      "sha256": "557edab50171921b315d8e2fb787d2718d08d25f0f2c5ea699a314a04ed54aad",
+      "mediaType": "application/json",
+      "evidenceCategory": "source",
+      "alsoCommittedUnpacked": false,
+      "machineDependent": false
+    },
+    {
+      "relativeSourcePath": "source/consumer-source/game-content/scenarios/signal-passage.linux-export-smoke.json",
+      "bundleDestinationPath": "source/consumer-source/game-content/scenarios/signal-passage.linux-export-smoke.json",
+      "byteLength": 764,
+      "sha256": "aa7f05acf09e452f39624630f59c109c749d55fcaf19789a72227d0ab4024c0c",
+      "mediaType": "application/json",
+      "evidenceCategory": "source",
+      "alsoCommittedUnpacked": false,
+      "machineDependent": false
+    },
+    {
+      "relativeSourcePath": "source/consumer-source/game-content/scenarios/signal-passage.objective-smoke.json",
+      "bundleDestinationPath": "source/consumer-source/game-content/scenarios/signal-passage.objective-smoke.json",
+      "byteLength": 789,
+      "sha256": "cf018c121bc1c58fffb6914f0998a94da90db60ff7587e9124418ef446c0008a",
+      "mediaType": "application/json",
+      "evidenceCategory": "source",
+      "alsoCommittedUnpacked": false,
+      "machineDependent": false
+    },
+    {
+      "relativeSourcePath": "source/consumer-source/game-content/scenarios/signal-passage.save-resume-smoke.json",
+      "bundleDestinationPath": "source/consumer-source/game-content/scenarios/signal-passage.save-resume-smoke.json",
+      "byteLength": 781,
+      "sha256": "8c38aeed387e1567486a6e68f5fbcb767efad6bafa215c2e7beae08f0f0870a6",
+      "mediaType": "application/json",
+      "evidenceCategory": "source",
+      "alsoCommittedUnpacked": false,
+      "machineDependent": false
+    },
+    {
+      "relativeSourcePath": "source/consumer-source/game-content/scenarios/signal-passage.sound-synthesis-smoke.json",
+      "bundleDestinationPath": "source/consumer-source/game-content/scenarios/signal-passage.sound-synthesis-smoke.json",
+      "byteLength": 769,
+      "sha256": "e5bc47357f9ad15a06f23294d505bc5a5cb5039815411ac77b17efd9b8da4cda",
+      "mediaType": "application/json",
+      "evidenceCategory": "source",
+      "alsoCommittedUnpacked": false,
+      "machineDependent": false
+    },
+    {
+      "relativeSourcePath": "source/consumer-source/game-content/scenarios/signal-passage.workspace-smoke.json",
+      "bundleDestinationPath": "source/consumer-source/game-content/scenarios/signal-passage.workspace-smoke.json",
+      "byteLength": 764,
+      "sha256": "5693dd3a4072f88f7013b684168a17fd78a4be97b651681d4c409bf05915dc62",
+      "mediaType": "application/json",
+      "evidenceCategory": "source",
+      "alsoCommittedUnpacked": false,
+      "machineDependent": false
+    },
+    {
+      "relativeSourcePath": "source/consumer-source/game-content/sound-synthesis/completion.json",
+      "bundleDestinationPath": "source/consumer-source/game-content/sound-synthesis/completion.json",
+      "byteLength": 850,
+      "sha256": "2b2b3e6e83899c85dc9f6baf0ec7b76459743f0e14c1452f613e7ae254122831",
+      "mediaType": "application/json",
+      "evidenceCategory": "source",
+      "alsoCommittedUnpacked": false,
+      "machineDependent": false
+    },
+    {
+      "relativeSourcePath": "source/consumer-source/game-content/sound-synthesis/container.json",
+      "bundleDestinationPath": "source/consumer-source/game-content/sound-synthesis/container.json",
+      "byteLength": 707,
+      "sha256": "5255694dc4da6ae29245c65840b66c67d5064f6d2c7907c03519f743ff315a84",
+      "mediaType": "application/json",
+      "evidenceCategory": "source",
+      "alsoCommittedUnpacked": false,
+      "machineDependent": false
+    },
+    {
+      "relativeSourcePath": "source/consumer-source/game-content/sound-synthesis/damage.json",
+      "bundleDestinationPath": "source/consumer-source/game-content/sound-synthesis/damage.json",
+      "byteLength": 696,
+      "sha256": "2d2d252531cd4919407fc2299e5830be6ec4ecd4c5440a5f86a5ec59bfe32caa",
+      "mediaType": "application/json",
+      "evidenceCategory": "source",
+      "alsoCommittedUnpacked": false,
+      "machineDependent": false
+    },
+    {
+      "relativeSourcePath": "source/consumer-source/game-content/sound-synthesis/exit.json",
+      "bundleDestinationPath": "source/consumer-source/game-content/sound-synthesis/exit.json",
+      "byteLength": 682,
+      "sha256": "2e16089c8b417c24639f6df148be7917e1294772186697605d40c3d61d0aa842",
+      "mediaType": "application/json",
+      "evidenceCategory": "source",
+      "alsoCommittedUnpacked": false,
+      "machineDependent": false
+    },
+    {
+      "relativeSourcePath": "source/consumer-source/game-content/sound-synthesis/fragment.json",
+      "bundleDestinationPath": "source/consumer-source/game-content/sound-synthesis/fragment.json",
+      "byteLength": 508,
+      "sha256": "f2e43d14a88be43d3bb2247fe069cdb0d9b9ddc35af2e6042329379c8d25a409",
+      "mediaType": "application/json",
+      "evidenceCategory": "source",
+      "alsoCommittedUnpacked": false,
+      "machineDependent": false
+    },
+    {
+      "relativeSourcePath": "source/consumer-source/game-content/sound-synthesis/switch.json",
+      "bundleDestinationPath": "source/consumer-source/game-content/sound-synthesis/switch.json",
+      "byteLength": 501,
+      "sha256": "93e00a70a340146b00a7c73290e62e75e8f58f52b191ffbaaccb0d681dd556ad",
+      "mediaType": "application/json",
+      "evidenceCategory": "source",
+      "alsoCommittedUnpacked": false,
+      "machineDependent": false
+    },
+    {
+      "relativeSourcePath": "source/consumer-source/game-content/sounds/signal-passage-completion.json",
+      "bundleDestinationPath": "source/consumer-source/game-content/sounds/signal-passage-completion.json",
+      "byteLength": 469,
+      "sha256": "bdb70df641fc6cf04b1d0106979b712fa5abd3231cc9c76583ec2483b9e8b0ec",
+      "mediaType": "application/json",
+      "evidenceCategory": "source",
+      "alsoCommittedUnpacked": false,
+      "machineDependent": false
+    },
+    {
+      "relativeSourcePath": "source/consumer-source/game-content/sounds/signal-passage-container.json",
+      "bundleDestinationPath": "source/consumer-source/game-content/sounds/signal-passage-container.json",
+      "byteLength": 457,
+      "sha256": "7443e0e134237cfeaa46efd31e08ed629e551bca60f82510113f0540fce91807",
+      "mediaType": "application/json",
+      "evidenceCategory": "source",
+      "alsoCommittedUnpacked": false,
+      "machineDependent": false
+    },
+    {
+      "relativeSourcePath": "source/consumer-source/game-content/sounds/signal-passage-damage.json",
+      "bundleDestinationPath": "source/consumer-source/game-content/sounds/signal-passage-damage.json",
+      "byteLength": 450,
+      "sha256": "015a9658928dd2c07433eadd6f915e212ed13da47036c3730a9fada4275b78e5",
+      "mediaType": "application/json",
+      "evidenceCategory": "source",
+      "alsoCommittedUnpacked": false,
+      "machineDependent": false
+    },
+    {
+      "relativeSourcePath": "source/consumer-source/game-content/sounds/signal-passage-exit.json",
+      "bundleDestinationPath": "source/consumer-source/game-content/sounds/signal-passage-exit.json",
+      "byteLength": 438,
+      "sha256": "3499fbae0be8df8bb62f57fa2eea4ca4465bf087b5c1d0909181745e17bf09a2",
+      "mediaType": "application/json",
+      "evidenceCategory": "source",
+      "alsoCommittedUnpacked": false,
+      "machineDependent": false
+    },
+    {
+      "relativeSourcePath": "source/consumer-source/game-content/sounds/signal-passage-sounds.json",
+      "bundleDestinationPath": "source/consumer-source/game-content/sounds/signal-passage-sounds.json",
+      "byteLength": 465,
+      "sha256": "019e778b91891f194b48172fa8a03874f5bf86768db3d84dd1f9a420733f273e",
+      "mediaType": "application/json",
+      "evidenceCategory": "source",
+      "alsoCommittedUnpacked": false,
+      "machineDependent": false
+    },
+    {
+      "relativeSourcePath": "source/consumer-source/game-content/sounds/signal-passage-switch.json",
+      "bundleDestinationPath": "source/consumer-source/game-content/sounds/signal-passage-switch.json",
+      "byteLength": 458,
+      "sha256": "5c7f0f221ba170e9b7e260a62bc9f48cca3c4a8633e35d7c913e90fc15ffeb8f",
+      "mediaType": "application/json",
+      "evidenceCategory": "source",
+      "alsoCommittedUnpacked": false,
+      "machineDependent": false
+    },
+    {
+      "relativeSourcePath": "source/consumer-source/game-content/visuals/container.json",
+      "bundleDestinationPath": "source/consumer-source/game-content/visuals/container.json",
+      "byteLength": 429,
+      "sha256": "9f89b79ce057b7c00856161dee65a5cd15fd84cddbfde46884da318b7825335f",
+      "mediaType": "application/json",
+      "evidenceCategory": "source",
+      "alsoCommittedUnpacked": false,
+      "machineDependent": false
+    },
+    {
+      "relativeSourcePath": "source/consumer-source/game-content/visuals/fragment.json",
+      "bundleDestinationPath": "source/consumer-source/game-content/visuals/fragment.json",
+      "byteLength": 408,
+      "sha256": "cf4fd51ce760b79a89435a9d12340bb8ad2487a971d571db40872a075335c33a",
+      "mediaType": "application/json",
+      "evidenceCategory": "source",
+      "alsoCommittedUnpacked": false,
+      "machineDependent": false
+    },
+    {
+      "relativeSourcePath": "source/consumer-source/game-content/visuals/gate.json",
+      "bundleDestinationPath": "source/consumer-source/game-content/visuals/gate.json",
+      "byteLength": 370,
+      "sha256": "8cef3497492b63036501d87b1c8f0680328f654aa8c52cbd836dffb4128ee065",
+      "mediaType": "application/json",
+      "evidenceCategory": "source",
+      "alsoCommittedUnpacked": false,
+      "machineDependent": false
+    },
+    {
+      "relativeSourcePath": "source/consumer-source/game-content/visuals/hazard.json",
+      "bundleDestinationPath": "source/consumer-source/game-content/visuals/hazard.json",
+      "byteLength": 375,
+      "sha256": "ef2b7d1e0347864d54a9a4ca1d25e3074e5e013143c9882fc9f8db77aa61aa7a",
+      "mediaType": "application/json",
+      "evidenceCategory": "source",
+      "alsoCommittedUnpacked": false,
+      "machineDependent": false
+    },
+    {
+      "relativeSourcePath": "source/consumer-source/game-content/visuals/mechanism.json",
+      "bundleDestinationPath": "source/consumer-source/game-content/visuals/mechanism.json",
+      "byteLength": 437,
+      "sha256": "f13d79e59fc3ca0211bd4f16534d709070f0cb3f77029d978319b4488047ef00",
+      "mediaType": "application/json",
+      "evidenceCategory": "source",
+      "alsoCommittedUnpacked": false,
+      "machineDependent": false
+    },
+    {
+      "relativeSourcePath": "source/consumer-source/game-content/visuals/objective-zone.json",
+      "bundleDestinationPath": "source/consumer-source/game-content/visuals/objective-zone.json",
+      "byteLength": 417,
+      "sha256": "9932f1b7037eaf0196776c2c506851a60c94054f2be6f7ec0c926e9d691d2572",
+      "mediaType": "application/json",
+      "evidenceCategory": "source",
+      "alsoCommittedUnpacked": false,
+      "machineDependent": false
+    },
+    {
+      "relativeSourcePath": "source/consumer-source/game-content/visuals/signal-passage-visuals.json",
+      "bundleDestinationPath": "source/consumer-source/game-content/visuals/signal-passage-visuals.json",
+      "byteLength": 362,
+      "sha256": "697cc5611f368c2704017b81d92ced9cd98b2ce4998a052858144a47e541e377",
+      "mediaType": "application/json",
+      "evidenceCategory": "source",
+      "alsoCommittedUnpacked": false,
+      "machineDependent": false
+    },
+    {
+      "relativeSourcePath": "source/consumer-source/game-content/visuals/wall.json",
+      "bundleDestinationPath": "source/consumer-source/game-content/visuals/wall.json",
+      "byteLength": 404,
+      "sha256": "a380f55b23c0a4808128efcca71d95908e75843f4ef09f4333e027409d99e310",
+      "mediaType": "application/json",
+      "evidenceCategory": "source",
+      "alsoCommittedUnpacked": false,
+      "machineDependent": false
+    },
+    {
+      "relativeSourcePath": "source/consumer-source/game-src/SignalPassage.Game/Program.cs",
+      "bundleDestinationPath": "source/consumer-source/game-src/SignalPassage.Game/Program.cs",
+      "byteLength": 2398,
+      "sha256": "3407ed52e4a58f557cc35e5968951f5347e84468c295cda1b579e5b737d58596",
+      "mediaType": "application/octet-stream",
+      "evidenceCategory": "source",
+      "alsoCommittedUnpacked": false,
+      "machineDependent": false
+    },
+    {
+      "relativeSourcePath": "source/consumer-source/game-src/SignalPassage.Game/SignalPassage.Game.csproj",
+      "bundleDestinationPath": "source/consumer-source/game-src/SignalPassage.Game/SignalPassage.Game.csproj",
+      "byteLength": 334,
+      "sha256": "b51cdb3970f5008d97531f5f17c7952f869bf992c56bad9857191e1d478983fe",
+      "mediaType": "application/octet-stream",
+      "evidenceCategory": "source",
+      "alsoCommittedUnpacked": false,
+      "machineDependent": false
+    },
+    {
+      "relativeSourcePath": "source/consumer-source/game-src/SignalPassage.Game/SignalPassageObjective.cs",
+      "bundleDestinationPath": "source/consumer-source/game-src/SignalPassage.Game/SignalPassageObjective.cs",
+      "byteLength": 787,
+      "sha256": "5bd9a1037ce7dfa3d28f32118bcc65b3b76ed5541d72c097a46cd66b682df685",
+      "mediaType": "application/octet-stream",
+      "evidenceCategory": "source",
+      "alsoCommittedUnpacked": false,
+      "machineDependent": false
+    },
+    {
+      "relativeSourcePath": "source/consumer-tree.txt",
+      "bundleDestinationPath": "source/consumer-tree.txt",
+      "byteLength": 2112,
+      "sha256": "f79f982d2f679e8ed0ef26eaedf38fd8d603a577f68b12c11c4c67963f07e2fa",
+      "mediaType": "text/plain",
+      "evidenceCategory": "source",
+      "alsoCommittedUnpacked": true,
+      "machineDependent": false
+    },
+    {
+      "relativeSourcePath": "source/engine-files-changed.txt",
+      "bundleDestinationPath": "source/engine-files-changed.txt",
+      "byteLength": 823,
+      "sha256": "e9a47e5aaaf5451caca785700006b0daa8ca81687aa28c62868d3b59fbbab601",
+      "mediaType": "text/plain",
+      "evidenceCategory": "source",
+      "alsoCommittedUnpacked": true,
+      "machineDependent": false
+    },
+    {
+      "relativeSourcePath": "source/m025.patch",
+      "bundleDestinationPath": "source/m025.patch",
+      "byteLength": 205420,
+      "sha256": "26e10c404c4c0d452ff1e1cbacf4a37276edb3ef6f11b40255408c54fd211cd9",
+      "mediaType": "text/plain",
+      "evidenceCategory": "source",
+      "alsoCommittedUnpacked": true,
+      "machineDependent": false
+    },
+    {
+      "relativeSourcePath": "validation/m025-plan.json",
+      "bundleDestinationPath": "validation/m025-plan.json",
+      "byteLength": 5628,
+      "sha256": "2163dc9e61018f2268b4083ecc921afb284b1c6ca6d65a8ef44302d337d42549",
+      "mediaType": "application/json",
+      "evidenceCategory": "validation",
+      "alsoCommittedUnpacked": true,
+      "machineDependent": true
+    },
+    {
+      "relativeSourcePath": "validation/m025-shards/consumer-gameplay.json",
+      "bundleDestinationPath": "validation/m025-shards/consumer-gameplay.json",
+      "byteLength": 1138,
+      "sha256": "631e0f38ecea38b9b998d6a23c2e5b6fb9072f55a1957cef47380b51997b5d77",
+      "mediaType": "application/json",
+      "evidenceCategory": "validation",
+      "alsoCommittedUnpacked": false,
+      "machineDependent": true
+    },
+    {
+      "relativeSourcePath": "validation/m025-shards/extension-discovery.json",
+      "bundleDestinationPath": "validation/m025-shards/extension-discovery.json",
+      "byteLength": 1464,
+      "sha256": "402b9da636c727ba48d5983e626d8267004de70987ceed5ad1ae0d591cd2c8e8",
+      "mediaType": "application/json",
+      "evidenceCategory": "validation",
+      "alsoCommittedUnpacked": false,
+      "machineDependent": true
+    },
+    {
+      "relativeSourcePath": "validation/m025-shards/geometric-presentation.json",
+      "bundleDestinationPath": "validation/m025-shards/geometric-presentation.json",
+      "byteLength": 1169,
+      "sha256": "95a1aa56cc90138c47c28d54621897512bd5d8dfed83cecc7e2edf8908356c8e",
+      "mediaType": "application/json",
+      "evidenceCategory": "validation",
+      "alsoCommittedUnpacked": false,
+      "machineDependent": true
+    },
+    {
+      "relativeSourcePath": "validation/m025-shards/human-review.json",
+      "bundleDestinationPath": "validation/m025-shards/human-review.json",
+      "byteLength": 1139,
+      "sha256": "dcbf63f31e15b7e76be5ccfa665f1dc0a5c9fb8f7c0810a2ca9dfd460d256f49",
+      "mediaType": "application/json",
+      "evidenceCategory": "validation",
+      "alsoCommittedUnpacked": false,
+      "machineDependent": true
+    },
+    {
+      "relativeSourcePath": "validation/m025-shards/integrated.json",
+      "bundleDestinationPath": "validation/m025-shards/integrated.json",
+      "byteLength": 1159,
+      "sha256": "642b24d0d6098e81201d4c219aeae364a94d95f7933f3bfc4f21514193ec28a3",
+      "mediaType": "application/json",
+      "evidenceCategory": "validation",
+      "alsoCommittedUnpacked": false,
+      "machineDependent": true
+    },
+    {
+      "relativeSourcePath": "validation/m025-shards/linux-export.json",
+      "bundleDestinationPath": "validation/m025-shards/linux-export.json",
+      "byteLength": 1355,
+      "sha256": "a7b53bd7fc351bd74c4c8331334080e637c21aa67dfdc3d7bf459f29f8e218bd",
+      "mediaType": "application/json",
+      "evidenceCategory": "validation",
+      "alsoCommittedUnpacked": false,
+      "machineDependent": true
+    },
+    {
+      "relativeSourcePath": "validation/m025-shards/performance-report.json",
+      "bundleDestinationPath": "validation/m025-shards/performance-report.json",
+      "byteLength": 1340,
+      "sha256": "d6cf35cfae23ede0e4012089e4d953e89ce573cc556a71c58e64387a9f818225",
+      "mediaType": "application/json",
+      "evidenceCategory": "validation",
+      "alsoCommittedUnpacked": false,
+      "machineDependent": true
+    },
+    {
+      "relativeSourcePath": "validation/m025-shards/save-resume.json",
+      "bundleDestinationPath": "validation/m025-shards/save-resume.json",
+      "byteLength": 1107,
+      "sha256": "19be13f2394daf35b57512f8d1eac029fec1bac6212c7c96c436b218d79797ed",
+      "mediaType": "application/json",
+      "evidenceCategory": "validation",
+      "alsoCommittedUnpacked": false,
+      "machineDependent": true
+    },
+    {
+      "relativeSourcePath": "validation/m025-shards/sound-synthesis.json",
+      "bundleDestinationPath": "validation/m025-shards/sound-synthesis.json",
+      "byteLength": 1452,
+      "sha256": "648745988d10b26d15d823ff901c254dfa84f2c97a803da469afebc5ac7391d2",
+      "mediaType": "application/json",
+      "evidenceCategory": "validation",
+      "alsoCommittedUnpacked": false,
+      "machineDependent": true
+    },
+    {
+      "relativeSourcePath": "validation/m025-shards/workspace-isolation.json",
+      "bundleDestinationPath": "validation/m025-shards/workspace-isolation.json",
+      "byteLength": 1367,
+      "sha256": "9d131045cace7b5fbe055f1cc96a785c67f64ee4049ddce767a408f187d0ef66",
+      "mediaType": "application/json",
+      "evidenceCategory": "validation",
+      "alsoCommittedUnpacked": false,
+      "machineDependent": true
+    },
+    {
+      "relativeSourcePath": "validation/m025-verifier.txt",
+      "bundleDestinationPath": "validation/m025-verifier.txt",
+      "byteLength": 1028,
+      "sha256": "52756d2498e120eb156fc95e71d9e8ea55c075db51189bc3aa92ad905184b48a",
+      "mediaType": "text/plain",
+      "evidenceCategory": "validation",
+      "alsoCommittedUnpacked": true,
+      "machineDependent": true
+    },
+    {
+      "relativeSourcePath": "validation/regression-summary.md",
+      "bundleDestinationPath": "validation/regression-summary.md",
+      "byteLength": 1309,
+      "sha256": "840442a04df5f37f95b2c0f3780ffb698e515e11240689494f15412f8e69d44c",
+      "mediaType": "text/plain",
+      "evidenceCategory": "validation",
+      "alsoCommittedUnpacked": true,
+      "machineDependent": true
+    }
+  ],
+  "intentionallyOmittedArtifactClasses": [
+    {
+      "class": "complete self-contained export directory",
+      "reason": "Excluded by request; selected inventory and hashes retain proof."
+    },
+    {
+      "class": "complete copied engine workspace",
+      "reason": "Excluded by request; only consumer source truth and M025 patch are included."
+    },
+    {
+      "class": "bin, obj, NuGet caches, temporary build directories",
+      "reason": "Derivable machine build outputs."
+    },
+    {
+      "class": "repeated successful logs and repeated scenario runs",
+      "reason": "One canonical run is sufficient."
+    },
+    {
+      "class": "unbounded per-tick metrics streams",
+      "reason": "Not material to an M025 finding."
+    },
+    {
+      "class": "five requested state screenshots",
+      "reason": "No accepted captures exist in the completed M025 evidence; only the approved launch screenshot is retained. Fabricating captures is prohibited."
+    },
+    {
+      "class": "archive self-hash as a ZIP member",
+      "reason": "A ZIP cannot contain its own final hash. The final hash is recorded in the unpacked summary and manifest; member inventory excludes the ZIP itself."
+    }
+  ],
+  "archiveNote": "The archive is not listed as its own member because a final archive SHA-256 cannot be embedded recursively.",
+  "archive": {
+    "path": "m025-to-m026-full-evidence.zip",
+    "byteLength": 243299,
+    "sha256": "05360b026a45f3c3c2f772d2c84533f13a565f0b963eb83ff764d41adf0147e8",
+    "integrity": "passed",
+    "note": "Not a ZIP member; see archiveNote."
+  }
+}
