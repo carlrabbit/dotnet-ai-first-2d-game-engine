@@ -1,6 +1,12 @@
 {
   "schema": "agentic2d.m025-m026-planning-handoff.v1",
-  "status": "incomplete",
+  "statusDimensions": {
+    "historicalMilestoneEvidenceStatus": "sufficient",
+    "historicalM025VerifierStatus": "passed",
+    "historicalReviewStatus": "approved",
+    "currentBranchValidationStatus": "incomplete",
+    "m026PlanningReadiness": "ready-with-open-performance-investigation"
+  },
   "repository": "carlrabbit/dotnet-ai-first-2d-game-engine",
   "headRevision": "88f905120cd0799a77249be348303641c4e41eb6",
   "m024BaseRevision": "50ac5bf5a660e777538dabc7fa58493760459c31",
@@ -25,8 +31,8 @@
     {
       "relativeSourcePath": "collector.py",
       "bundleDestinationPath": "collector.py",
-      "byteLength": 24642,
-      "sha256": "ad27b5440537d30193dbbb3ce1f6486d045ab8e7ba83f01578aadbb4b62bd6dd",
+      "byteLength": 26445,
+      "sha256": "51ba2ec66adda9dcc23b03ecd7b447ec7523b7c9ea6228ff927d56662601c117",
       "mediaType": "text/x-python",
       "evidenceCategory": "handoff",
       "alsoCommittedUnpacked": false,
@@ -35,8 +41,8 @@
     {
       "relativeSourcePath": "extension/classification-summary.json",
       "bundleDestinationPath": "extension/classification-summary.json",
-      "byteLength": 1901,
-      "sha256": "d3f2b7a764eb80935bcd41d5c84e0758027e3531ed47d20af17c77549634a4c8",
+      "byteLength": 2572,
+      "sha256": "8f415ff77609da0d0dfebdd78c7503154db63f05886626c772994bc956cb068c",
       "mediaType": "application/json",
       "evidenceCategory": "extension",
       "alsoCommittedUnpacked": true,
@@ -45,8 +51,8 @@
     {
       "relativeSourcePath": "extension/consumer-extension-report.json",
       "bundleDestinationPath": "extension/consumer-extension-report.json",
-      "byteLength": 3699,
-      "sha256": "925d2c32be83af024c363e43c41b37bc918d9659ce3de4c1738c3707589dd042",
+      "byteLength": 21817,
+      "sha256": "2437f25edeb7c5fae343307660999bc35de887136df5eb0e22e8f5c140acf04a",
       "mediaType": "application/json",
       "evidenceCategory": "extension",
       "alsoCommittedUnpacked": true,
@@ -55,11 +61,41 @@
     {
       "relativeSourcePath": "extension/consumer-extension-report.md",
       "bundleDestinationPath": "extension/consumer-extension-report.md",
-      "byteLength": 462,
-      "sha256": "94323a109661f5779f57477de425bddc4a6fa41bc07f7b42e2d3f610e2057d37",
+      "byteLength": 1029,
+      "sha256": "e6409d7a5305b6f3ffc4e0f4c53456b1ddc50930ba33cbc91120fa5ebc6e2c8f",
       "mediaType": "text/plain",
       "evidenceCategory": "extension",
       "alsoCommittedUnpacked": true,
+      "machineDependent": false
+    },
+    {
+      "relativeSourcePath": "handoff-summary.md",
+      "bundleDestinationPath": "handoff-summary.md",
+      "byteLength": 4029,
+      "sha256": "eaca430fc282339347334d132180d3f7a7584a2839d6264d286606b804a85177",
+      "mediaType": "text/plain",
+      "evidenceCategory": "handoff",
+      "alsoCommittedUnpacked": true,
+      "machineDependent": false
+    },
+    {
+      "relativeSourcePath": "handoff-validation.json",
+      "bundleDestinationPath": "handoff-validation.json",
+      "byteLength": 2263,
+      "sha256": "840d8987591a0bd701e79a7a686b9432d4c98e0def913a628225c61edee58093",
+      "mediaType": "application/json",
+      "evidenceCategory": "handoff",
+      "alsoCommittedUnpacked": false,
+      "machineDependent": false
+    },
+    {
+      "relativeSourcePath": "handoff-validation.md",
+      "bundleDestinationPath": "handoff-validation.md",
+      "byteLength": 488,
+      "sha256": "e6e8c6af0ea94232ab1a903ce3e145c73bbbd8397614e64b286e0f1425935b28",
+      "mediaType": "text/plain",
+      "evidenceCategory": "handoff",
+      "alsoCommittedUnpacked": false,
       "machineDependent": false
     },
     {
@@ -368,6 +404,56 @@
       "byteLength": 4264,
       "sha256": "d166802a08f4514fae09f8b52781ea29eb2c6a231e3fa9a9dff773f7c70a7c44",
       "mediaType": "application/json",
+      "evidenceCategory": "performance",
+      "alsoCommittedUnpacked": false,
+      "machineDependent": false
+    },
+    {
+      "relativeSourcePath": "performance/investigation-after/performance-capture.json",
+      "bundleDestinationPath": "performance/investigation-after/performance-capture.json",
+      "byteLength": 4277,
+      "sha256": "aed690ce2f0d0d624840133bc36173908757552213302affda6f1dad60043016",
+      "mediaType": "application/json",
+      "evidenceCategory": "performance",
+      "alsoCommittedUnpacked": false,
+      "machineDependent": true
+    },
+    {
+      "relativeSourcePath": "performance/investigation-before/performance-capture.json",
+      "bundleDestinationPath": "performance/investigation-before/performance-capture.json",
+      "byteLength": 4279,
+      "sha256": "b60536d3b29f64c6bc4c54009de6e073140c4829020bddfd8d098cbea3303226",
+      "mediaType": "application/json",
+      "evidenceCategory": "performance",
+      "alsoCommittedUnpacked": false,
+      "machineDependent": true
+    },
+    {
+      "relativeSourcePath": "performance/investigation-comparison/performance-comparison.json",
+      "bundleDestinationPath": "performance/investigation-comparison/performance-comparison.json",
+      "byteLength": 3727,
+      "sha256": "23026c30b05ac124cadbf267f002e9753dee490447c7f40e5f44b24ca40a9643",
+      "mediaType": "application/json",
+      "evidenceCategory": "performance",
+      "alsoCommittedUnpacked": false,
+      "machineDependent": true
+    },
+    {
+      "relativeSourcePath": "performance/investigation.json",
+      "bundleDestinationPath": "performance/investigation.json",
+      "byteLength": 3909,
+      "sha256": "0d83a4b7bf1d538139f68bb09116bf65c14e0ed4c8fab63332a2a1d01cace22b",
+      "mediaType": "application/json",
+      "evidenceCategory": "performance",
+      "alsoCommittedUnpacked": false,
+      "machineDependent": false
+    },
+    {
+      "relativeSourcePath": "performance/investigation.md",
+      "bundleDestinationPath": "performance/investigation.md",
+      "byteLength": 2319,
+      "sha256": "b5ba5b6268edd2cc0ec14ca29a8507cacf243f2a72e0e4576dd6b1a25060a59a",
+      "mediaType": "text/plain",
       "evidenceCategory": "performance",
       "alsoCommittedUnpacked": false,
       "machineDependent": false
@@ -900,6 +986,16 @@
       "mediaType": "text/plain",
       "evidenceCategory": "review",
       "alsoCommittedUnpacked": true,
+      "machineDependent": false
+    },
+    {
+      "relativeSourcePath": "source/branch-hygiene.md",
+      "bundleDestinationPath": "source/branch-hygiene.md",
+      "byteLength": 3437,
+      "sha256": "a95bb6a29e741428f16d5ebf877174c1dc0ab28bc0fbcb20894dcae290520510",
+      "mediaType": "text/plain",
+      "evidenceCategory": "source",
+      "alsoCommittedUnpacked": false,
       "machineDependent": false
     },
     {
@@ -1476,9 +1572,10 @@
   "archiveNote": "The archive is not listed as its own member because a final archive SHA-256 cannot be embedded recursively.",
   "archive": {
     "path": "m025-to-m026-full-evidence.zip",
-    "byteLength": 243299,
-    "sha256": "05360b026a45f3c3c2f772d2c84533f13a565f0b963eb83ff764d41adf0147e8",
+    "byteLength": 255786,
+    "sha256": "7f43d5cebdc541ad09c47495326003e2e9b7d3142306c452ef9f2d40494e2c69",
     "integrity": "passed",
     "note": "Not a ZIP member; see archiveNote."
-  }
+  },
+  "memberInventoryNote": "Every archive member except this manifest itself is listed. A manifest cannot contain a final hash of itself; the archive itself is separately recorded as external metadata."
 }

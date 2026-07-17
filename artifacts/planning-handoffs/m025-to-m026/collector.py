@@ -88,6 +88,20 @@ def all_files() -> list[Path]:
     return sorted(p for p in OUT.rglob("*") if p.is_file() and p.name != "m025-to-m026-full-evidence.zip")
 
 def main() -> int:
+    if sys.argv[1:] == ["--refresh-manifest"]:
+        path = OUT / "handoff-manifest.json"
+        manifest = json.loads(path.read_text(encoding="utf-8"))
+        members = []
+        for item in all_files():
+            rel = item.relative_to(OUT).as_posix()
+            if rel == "handoff-manifest.json":
+                continue
+            members.append({"relativeSourcePath": rel, "bundleDestinationPath": rel, "byteLength": item.stat().st_size, "sha256": sha(item), "mediaType": media(item), "evidenceCategory": category(rel), "alsoCommittedUnpacked": rel in UNPACKED, "machineDependent": rel.startswith("journey/workspace-isolation") or rel.startswith("journey/export-equivalence") or rel.startswith("validation/") or rel.startswith("performance/investigation-")})
+        manifest["includedFiles"] = members
+        manifest["memberInventoryNote"] = "Every archive member except this manifest itself is listed. A manifest cannot contain a final hash of itself; the archive itself is separately recorded as external metadata."
+        path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+        print(f"refreshed {len(members)} manifest entries")
+        return 0
     if sys.argv[1:] == ["--repack"]:
         archive = OUT / "m025-to-m026-full-evidence.zip"
         with zipfile.ZipFile(archive, "w", compression=zipfile.ZIP_DEFLATED, compresslevel=9) as z:

@@ -1,0 +1,113 @@
+{
+  "schema": "agentic2d.performance-comparison.v1",
+  "beforeLabel": "m025-investigation-before",
+  "afterLabel": "m025-investigation-after",
+  "status": "improved",
+  "workloads": [
+    {
+      "id": "performance.runtime-reference",
+      "elapsedChangePercent": -18.518518518518515,
+      "allocationChangePercent": 0,
+      "status": "improved",
+      "beforeWorkCounters": {
+        "runtime.commands.submitted": 1,
+        "runtime.commands.accepted": 1,
+        "runtime.commands.rejected": 0,
+        "runtime.events.emitted": 4,
+        "spatial.queries": 0,
+        "spatial.collision-checks": 0,
+        "presentation.text-commands": 0,
+        "presentation.sound-commands": 0
+      },
+      "afterWorkCounters": {
+        "runtime.commands.submitted": 1,
+        "runtime.commands.accepted": 1,
+        "runtime.commands.rejected": 0,
+        "runtime.events.emitted": 4,
+        "spatial.queries": 0,
+        "spatial.collision-checks": 0,
+        "presentation.text-commands": 0,
+        "presentation.sound-commands": 0
+      }
+    },
+    {
+      "id": "performance.entities-reference",
+      "elapsedChangePercent": -21.900826446280988,
+      "allocationChangePercent": 0,
+      "status": "improved",
+      "beforeWorkCounters": {
+        "runtime.commands.submitted": 1,
+        "runtime.commands.accepted": 1,
+        "runtime.commands.rejected": 0,
+        "runtime.events.emitted": 4,
+        "spatial.queries": 0,
+        "spatial.collision-checks": 0,
+        "presentation.text-commands": 0,
+        "presentation.sound-commands": 0
+      },
+      "afterWorkCounters": {
+        "runtime.commands.submitted": 1,
+        "runtime.commands.accepted": 1,
+        "runtime.commands.rejected": 0,
+        "runtime.events.emitted": 4,
+        "spatial.queries": 0,
+        "spatial.collision-checks": 0,
+        "presentation.text-commands": 0,
+        "presentation.sound-commands": 0
+      }
+    },
+    {
+      "id": "performance.persistent-world-reference",
+      "elapsedChangePercent": -16.490486257928122,
+      "allocationChangePercent": 0,
+      "status": "improved",
+      "beforeWorkCounters": {
+        "runtime.commands.submitted": 1,
+        "runtime.commands.accepted": 1,
+        "runtime.commands.rejected": 0,
+        "runtime.events.emitted": 4,
+        "spatial.queries": 0,
+        "spatial.collision-checks": 0,
+        "presentation.text-commands": 0,
+        "presentation.sound-commands": 0
+      },
+      "afterWorkCounters": {
+        "runtime.commands.submitted": 1,
+        "runtime.commands.accepted": 1,
+        "runtime.commands.rejected": 0,
+        "runtime.events.emitted": 4,
+        "spatial.queries": 0,
+        "spatial.collision-checks": 0,
+        "presentation.text-commands": 0,
+        "presentation.sound-commands": 0
+      }
+    },
+    {
+      "id": "performance.presentation-reference",
+      "elapsedChangePercent": -17.116279069767444,
+      "allocationChangePercent": 0,
+      "status": "improved",
+      "beforeWorkCounters": {
+        "runtime.commands.submitted": 1,
+        "runtime.commands.accepted": 1,
+        "runtime.commands.rejected": 0,
+        "runtime.events.emitted": 4,
+        "spatial.queries": 0,
+        "spatial.collision-checks": 0,
+        "presentation.text-commands": 0,
+        "presentation.sound-commands": 0
+      },
+      "afterWorkCounters": {
+        "runtime.commands.submitted": 1,
+        "runtime.commands.accepted": 1,
+        "runtime.commands.rejected": 0,
+        "runtime.events.emitted": 4,
+        "spatial.queries": 0,
+        "spatial.collision-checks": 0,
+        "presentation.text-commands": 0,
+        "presentation.sound-commands": 0
+      }
+    }
+  ],
+  "comparisonScope": "same-machine-close-in-time-only"
+}

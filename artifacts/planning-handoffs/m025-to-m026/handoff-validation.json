@@ -1,21 +1,24 @@
 {
   "schema": "agentic2d.m025-m026-handoff-validation.v1",
-  "status": "incomplete",
-  "m025HistoricalVerifier": "passed",
-  "m025Review": "approved",
+  "statusDimensions": {
+    "historicalMilestoneEvidenceStatus": "sufficient",
+    "historicalM025VerifierStatus": "passed",
+    "historicalReviewStatus": "approved",
+    "currentBranchValidationStatus": "incomplete",
+    "m026PlanningReadiness": "ready-with-open-performance-investigation"
+  },
   "currentCollectionVerifier": "stale",
   "extensionClassificationsComplete": true,
   "archiveIntegrity": true,
-  "archiveSizeBytes": 243299,
-  "archiveSha256": "05360b026a45f3c3c2f772d2c84533f13a565f0b963eb83ff764d41adf0147e8",
+  "archiveSizeBytes": 255786,
+  "archiveSha256": "7f43d5cebdc541ad09c47495326003e2e9b7d3142306c452ef9f2d40494e2c69",
   "pathSafety": true,
   "prohibitedSecretsDetected": false,
   "committedUnpackedFilesPresent": true,
   "memberHashValidation": "passed for the archive member inventory generated before archive finalization",
   "incompleteReasons": [
-    "Missing accepted state screenshots for five required states.",
-    "Current M019-M024 receipts are not current for the collection worktree.",
-    "Current M025 verifier is stale although its historical final result passed."
+    "Current historical receipts are intentionally stale on the evidence branch; this does not invalidate historical completion.",
+    "The historical performance report requires the investigation correction note before it is used for architectural conclusions."
   ],
   "omissions": [
     {

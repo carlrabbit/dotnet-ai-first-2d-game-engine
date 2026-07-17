@@ -1,10 +1,16 @@
 # M025 → M026 planning evidence handoff
 
-## Status
+## Status dimensions
 
-Historical M025 implementation status: completed at reviewed fingerprint `81a264fd187fe85e95145e79f92473cebe083f1827293e9d54214762f9ece0f6`; the final historical verifier recorded `m025-smoke: verification passed (10 current receipts)`. The current collection worktree has drifted, so current receipt verifiers are stale. This handoff is **incomplete** only for missing required state screenshots and non-current regression receipts; it does not revise the approved M025 review decision.
+| Dimension | Status | Meaning |
+|---|---|---|
+| Historical milestone evidence | `sufficient` | M025 was completed at reviewed fingerprint `81a264fd187fe85e95145e79f92473cebe083f1827293e9d54214762f9ece0f6`. |
+| Historical M025 verifier | `passed` | The final historical verifier recorded `m025-smoke: verification passed (10 current receipts)`. |
+| Historical review | `approved` | Approved by `project owner`. |
+| Current branch validation | `incomplete` | Handoff commits change repository fingerprints, so historical receipts are stale on this branch. |
+| M026 planning readiness | `ready-with-open-performance-investigation` | The expanded inventory supports narrow planning, while fixed-work timing methodology remains open. |
 
-Review status: `approved` by `project owner`.
+Later handoff commits do not retroactively invalidate the completed and reviewed M025 revision. Missing additional state screenshots limit a fresh visual reassessment, but do not block extension planning because the approved M025 review evidence and structural artifacts remain available. The fixed-reference performance result is an open architectural/measurement question documented in `performance/investigation.md`.
 
 ## Revision basis
 
@@ -26,19 +32,20 @@ Review status: `approved` by `project owner`.
 ## Extension classification counts
 
 - `boundary-violation`: 0
-- `consumer-only`: 1
-- `engine-capability-reused`: 0
-- `new-general-engine-capability`: 3
-- `supported-consumer-extension`: 0
-- `temporary-engine-workaround`: 0
+- `consumer-only`: 8
+- `engine-capability-reused`: 7
+- `new-general-engine-capability`: 4
+- `supported-consumer-extension`: 2
+- `temporary-engine-workaround`: 3
 
-Temporary workarounds: none classified. Boundary violations: none classified.
+Temporary workarounds: generated-WAV linkage and temporary playable-host HUD/prompt rendering. Boundary violations: none classified.
 
 ## Recommended M026 priorities
 
 1. Geometry preview/projection diagnostics.
 2. Generated sound-to-sound-definition linkage diagnostics.
-3. Observe a second consumer before stabilizing objective or plugin extension APIs.
+3. Fixed-work performance methodology investigation and guardrails.
+4. Observe a second consumer before stabilizing objective, persistence, UI, scenario, or plugin APIs.
 
 ## Omitted artifact classes
 
@@ -53,7 +60,7 @@ Temporary workarounds: none classified. Boundary violations: none classified.
 ## Archive
 
 - Path: `artifacts/planning-handoffs/m025-to-m026/m025-to-m026-full-evidence.zip`
-- Size: `241559` bytes
-- SHA-256: `05360b026a45f3c3c2f772d2c84533f13a565f0b963eb83ff764d41adf0147e8`
+- Size: `255786` bytes
+- SHA-256: `7f43d5cebdc541ad09c47495326003e2e9b7d3142306c452ef9f2d40494e2c69`
 
 The final archive hash is external to its ZIP member copy to avoid recursive self-hashing.

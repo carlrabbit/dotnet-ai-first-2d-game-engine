@@ -1,66 +1,54 @@
 {
-  "schema": "agentic2d.m025-m026-classification-summary.v1",
+  "schema": "agentic2d.m025-m026-classification-summary.v2",
   "status": "passed",
-  "acceptedFeatureCount": 4,
+  "acceptedFeatureCount": 24,
   "unclassifiedFeatureIds": [],
   "countsByClassification": {
-    "boundary-violation": 0,
-    "consumer-only": 1,
-    "engine-capability-reused": 0,
-    "new-general-engine-capability": 3,
-    "supported-consumer-extension": 0,
-    "temporary-engine-workaround": 0
+    "engine-capability-reused": 7,
+    "consumer-only": 8,
+    "supported-consumer-extension": 2,
+    "new-general-engine-capability": 4,
+    "temporary-engine-workaround": 3,
+    "boundary-violation": 0
   },
   "featuresChangingEngineSource": [
-    "sp-geometry",
-    "sp-synthesis",
-    "sp-workspace-artifacts"
+    "sp-workspace-bootstrap", "sp-geometric-render-projection", "sp-generated-wav-production",
+    "sp-ui-hud-bindings", "sp-interaction-prompts", "sp-workspace-relocation", "sp-linux-export", "sp-development-export-equivalence"
   ],
   "featuresAccessingInternalEngineApis": [],
-  "repeatedRegistrationOrSerializationPlumbing": [
-    "sound definition mirrors synthesis output"
+  "registrationBoilerplate": [
+    "workspace area declarations", "ordinary sound catalog entries", "scenario IDs", "export manifest content list"
+  ],
+  "serializationOrPersistenceBoilerplate": [
+    "manual consumer save projection/read", "generated WAV provenance", "ordinary sound definition mirror"
   ],
   "missingDiagnostics": [
-    {
-      "featureId": "sp-geometry",
-      "detail": "No graphical geometry screenshot projection yet."
-    },
-    {
-      "featureId": "sp-synthesis",
-      "detail": "No consumer cue mapping auto-check."
-    },
-    {
-      "featureId": "sp-objective",
-      "detail": "No reusable objective-state contributor registration surface."
-    },
-    {
-      "featureId": "sp-workspace-artifacts",
-      "detail": "Workspace overlap messaging could state the declared-artifact exception."
-    }
+    "geometry preview and contrast diagnostics", "generated WAV-to-sound-definition linkage", "consumer persistence contributor guidance",
+    "declarative HUD/prompt inspection", "fixed-work benchmark methodology diagnostics"
   ],
-  "missingValidation": [],
-  "temporaryWorkarounds": [],
+  "missingValidation": [
+    "cross-process synthesis equivalence", "all-geometry graphical smoke", "consumer save migration", "second consumer variation",
+    "generated sound orphan/mapping validation", "interleaved/repeated fixed-work benchmark validation"
+  ],
+  "temporaryWorkarounds": ["sp-generated-sound-linkage", "sp-ui-hud-bindings", "sp-interaction-prompts"],
   "boundaryViolations": [],
-  "recommendedM026Actions": [
-    {
-      "priority": "high",
-      "featureId": "sp-geometry",
-      "action": "Prioritize consumer geometry preview diagnostics."
-    },
-    {
-      "priority": "high",
-      "featureId": "sp-synthesis",
-      "action": "Consider generated-sound/reference linkage diagnostics."
-    },
-    {
-      "priority": "medium",
-      "featureId": "sp-objective",
-      "action": "Observe a second game before designing an objective extension API."
-    },
-    {
-      "priority": "medium",
-      "featureId": "sp-workspace-artifacts",
-      "action": "Retain as workspace-provider behavior, not an extension API."
-    }
-  ]
+  "justifiedM026Candidates": [
+    {"priority":"high","action":"Geometry preview/projection and contrast diagnostics."},
+    {"priority":"high","action":"Generated WAV-to-sound-definition linkage diagnostics."},
+    {"priority":"high","action":"Fixed-work performance methodology investigation and guardrails."}
+  ],
+  "speculativeApisStillNotJustified": [
+    "stable plugin API", "general objective framework", "registration source generation", "persistence contributor contract",
+    "UI binding contract", "scenario assertion extensions"
+  ],
+  "evidenceSupports": {
+    "broadExtensionContractStabilization": false,
+    "narrowDiagnosticLinkageWork": true,
+    "secondConsumerVariationFirst": true,
+    "behaviorGuardrails": true,
+    "registrationSourceGeneration": false,
+    "persistenceContributorContracts": false,
+    "uiBindingContracts": false,
+    "scenarioAssertionExtensions": false
+  }
 }
