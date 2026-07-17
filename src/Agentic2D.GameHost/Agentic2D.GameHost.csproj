@@ -1,0 +1,26 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <AssemblyName>agentic2d-game</AssemblyName>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="../Agentic2D.ScenarioRunner/Agentic2D.ScenarioRunner.csproj" />
+    <ProjectReference Include="../Agentic2D.Validation/Agentic2D.Validation.csproj" />
+    <ProjectReference Include="../Agentic2D.Engine/Agentic2D.Engine.csproj" />
+    <ProjectReference Include="../Agentic2D.Metrics/Agentic2D.Metrics.csproj" />
+    <ProjectReference Include="../Agentic2D.Input/Agentic2D.Input.csproj" />
+    <ProjectReference Include="../Agentic2D.DebugClient.Raylib/Agentic2D.DebugClient.Raylib.csproj" />
+    <ProjectReference Include="../Agentic2D.Persistence/Agentic2D.Persistence.csproj" />
+    <ProjectReference Include="../Agentic2D.Presentation/Agentic2D.Presentation.csproj" />
+    <ProjectReference Include="../Agentic2D.UI/Agentic2D.UI.csproj" />
+    <ProjectReference Include="../Agentic2D.Rendering/Agentic2D.Rendering.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="../Agentic2D.Tools/M020RuntimeState.cs" Link="PlayerFacing/M020RuntimeState.cs" />
+    <Compile Include="../Agentic2D.Tools/M021AuthoritativeSource.cs" Link="PlayerFacing/M021AuthoritativeSource.cs" />
+    <Compile Include="../Agentic2D.Tools/M021AuthoritativeRenderWriter.cs" Link="PlayerFacing/M021AuthoritativeRenderWriter.cs" />
+    <Compile Include="../Agentic2D.Tools/M021PromptProjection.cs" Link="PlayerFacing/M021PromptProjection.cs" />
+    <Compile Include="../Agentic2D.Tools/M021PresentationCommands.cs" Link="PlayerFacing/M021PresentationCommands.cs" />
+    <Compile Include="../Agentic2D.Tools/M021ProjectValidator.cs" Link="PlayerFacing/M021ProjectValidator.cs" />
+  </ItemGroup>
+</Project>

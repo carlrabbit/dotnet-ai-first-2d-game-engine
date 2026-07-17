@@ -592,6 +592,17 @@ public sealed class EngineeringHost
             Shard("performance-report", "Advisory comparison and report generation.", "./eng/perf-report-smoke.sh", ["artifacts/performance/m023/performance-report.json", "artifacts/performance/m023/performance-report.md"]),
             Shard("integrated", "Direct build, test, and product integration checks.", "./eng/build.sh && ./eng/test.sh && ./eng/cli-smoke.sh && ./eng/product-validate.sh", ["artifacts/cli/runtime-smoke/result.json", "artifacts/cli/validate/result.json"]),
             Shard("guide-v051", "v0.5.1 corrective assessment profile check.", "internal:guide-v051", [".guide-profile.json", "docs/milestones/MILESTONE-023-lightweight-runtime-metrics-comparative-performance-checks-and-milestone-performance-reporting.md"], isInternal: true)
+        ]),
+        new("m024-smoke", "resumable-sharded",
+        [
+            Shard("export-contracts", "Export manifest, inventory, and validation contracts.", "./eng/export-linux-smoke.sh", ["artifacts/smoke/m024-export/validate/export-validation.json"]),
+            Shard("game-host", "Dedicated standalone host builds and exposes bounded options.", "./eng/test-filter.sh GameHost", ["src/Agentic2D.GameHost/Program.cs"]),
+            Shard("export-build", "Self-contained Linux export assembly.", "./eng/export-linux-smoke.sh", ["artifacts/smoke/m024-export/game/agentic2d.export.json", "artifacts/smoke/m024-export/game/export-files.json"]),
+            Shard("isolated-headless-launch", "Direct executable launch outside source tree.", "./eng/export-isolated-launch-smoke.sh", ["artifacts/smoke/m024-isolated-launch/isolated-launch-result.json"]),
+            Shard("semantic-equivalence", "Development/export semantic comparison.", "./eng/export-equivalence-smoke.sh", ["artifacts/smoke/m024-equivalence/development-export-equivalence.json"]),
+            Shard("performance-report", "Same-machine export performance report.", "./eng/export-performance-smoke.sh", ["artifacts/performance/M024/performance-report.json", "artifacts/performance/M024/performance-report.md"]),
+            Shard("graphical-review", "Optional graphical-session review or explicit skip.", "./eng/export-graphical-smoke.sh", ["artifacts/smoke/m024-graphical/graphical-review.json"]),
+            Shard("integrated", "Build and direct export integration.", "./eng/build.sh && ./eng/export-isolated-launch-smoke.sh", ["artifacts/smoke/m024-isolated-launch/isolated-launch-run-manifest.json"])
         ])
     ];
 

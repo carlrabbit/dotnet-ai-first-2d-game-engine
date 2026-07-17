@@ -19,6 +19,7 @@
     <Project Path="src/Agentic2D.Validation/Agentic2D.Validation.csproj" />
     <Project Path="src/Agentic2D.Rendering/Agentic2D.Rendering.csproj" />
     <Project Path="src/Agentic2D.DebugClient.Raylib/Agentic2D.DebugClient.Raylib.csproj" />
+    <Project Path="src/Agentic2D.GameHost/Agentic2D.GameHost.csproj" />
   </Folder>
   <Folder Name="/tests/" />
   <Folder Name="/tests/unit/">

@@ -15,6 +15,8 @@ public static class ToolsCli
 {
     public static async Task<int> RunAsync(string[] args, TextWriter output, TextWriter error)
     {
+        var export = await ExportCommands.RunAsync(args, output, error);
+        if (export >= 0) return export;
         var m021 = await M021PresentationCommands.RunAsync(args, output, error);
         if (m021 >= 0) return m021;
         var m020 = await M020Commands.RunAsync(args, output, error);
@@ -74,6 +76,9 @@ public static class ToolsCli
                   agentic2d workspace validate <workspace> --output <directory>
                   agentic2d project validate <project-or-workspace> --output <directory>
                   agentic2d project run <project-or-workspace> --scenario <scenario-id> --output <run-directory>
+                  agentic2d project export <project-or-workspace> [--target linux-x64] --output <directory>
+                  agentic2d export inspect <export-directory> --output <directory>
+                  agentic2d export validate <export-directory> --output <directory>
                   agentic2d run inspect <run-directory> --output <directory>
                   agentic2d run review <run-directory> --output <directory>
 
