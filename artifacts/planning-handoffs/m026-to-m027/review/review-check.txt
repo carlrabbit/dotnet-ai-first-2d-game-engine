@@ -1,2 +1,1 @@
-error: required review 'migration-guide-v050' is stale
-error: required review 'review.m025.signal-passage-playable-vertical-slice' is stale
+See `review-check-current.txt`; M022/M025 stale blockers are repository-wide and are separate from M026 visual review.

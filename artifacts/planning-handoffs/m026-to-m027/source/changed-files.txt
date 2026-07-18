@@ -80,7 +80,6 @@ docs/specs/scaled-performance-workload-contract.md
 eng/generated-sound-linkage-smoke.sh
 eng/geometry-diagnostics-smoke.sh
 eng/geometry-graphics-capture.sh
-eng/m022-smoke.sh
 eng/m026-performance-report.sh
 eng/m026-smoke.sh
 eng/scaled-performance-smoke.sh
@@ -106,5 +105,4 @@ src/Agentic2D.Tools/ToolsCli.cs
 src/Agentic2D.Workspaces/ExportCommands.cs
 src/Agentic2D.Workspaces/WorkspaceCommands.cs
 tests/fixtures/geometry/all-supported-shapes.json
-tests/unit/Agentic2D.Tests.Unit/EngineeringHostTests.cs
 tests/unit/Agentic2D.Tests.Unit/PerformanceTests.cs

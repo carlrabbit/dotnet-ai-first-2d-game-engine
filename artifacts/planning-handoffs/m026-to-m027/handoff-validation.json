@@ -1,13 +1,15 @@
 {
   "schema": "agentic2d.m026-to-m027.handoff-validation.v1",
-  "status": "incomplete",
+  "status": "ready-with-evidence-limitations",
   "archive": {
     "path": "artifacts/planning-handoffs/m026-to-m027/m026-to-m027-full-evidence.zip",
-    "byteLength": 1010321,
-    "sha256": "1108bca49cc923cfc34567e205a276d6be8c5a7df82a1822f3475862e1482afa",
+    "byteLength": 1060997,
+    "sha256": "a64051624fbf35364660b14493b692a2f2eee5084a4fb838d1a542df1ce5f924",
     "integrityPassed": true,
     "safePaths": true
   },
+  "acceptedM025CompletionRevisionCorrect": true,
+  "m026PatchRange": "88f905120cd0799a77249be348303641c4e41eb6..5fe5a7c09051c85368257d9d6c45914c0f09e790",
   "requiredBoundaryCandidatesPresent": true,
   "boundaryDecisionCounts": {
     "retain-existing": 4,
@@ -17,11 +19,23 @@
     "reject": 1,
     "formalize-next": 2
   },
-  "m026VerifierStatus": "historical-passed/current-stale",
-  "reviewStatus": "approved/current-review-check-blocked-by-stale-M022-M025",
+  "formalizeNextCandidates": [
+    "generated-sound-linkage",
+    "geometry-diagnostics"
+  ],
+  "historicalM026VerifierStatus": "reported-passed-evidence-unavailable",
+  "historicalVerifierEvidencePath": "validation/m026-verifier-historical.txt",
+  "currentHandoffBranchVerifierStatus": "stale",
+  "currentVerifierEvidencePath": "validation/m026-verifier-current.txt",
+  "historicalM026ReviewStatus": "approved-record-not-in-accepted-revision",
+  "repositoryWideReviewCheckStatus": "blocked-by-stale-M022-M025",
+  "graphicalEvidence": "not-preserved",
   "scaledPerformanceEvidencePresent": true,
+  "allScaledTargetsReached": true,
+  "smallWorkloadsNonTimingAuthoritative": true,
+  "busyLoopOrArtificialWait": false,
   "deterministicAiEvidencePresent": true,
   "saveDuringThinkingEvidencePresent": true,
   "soundLinkageBothConsumersPresent": true,
-  "reason": "Current branch validation receipts are stale after post-M026 launcher fixes; repository-wide review check has stale M022/M025 records."
+  "reason": "Historical aggregate verifier output unavailable; approval record not in accepted M026 revision; representative graphical captures absent."
 }

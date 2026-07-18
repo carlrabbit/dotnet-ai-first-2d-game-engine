@@ -1,0 +1,19 @@
+{
+  "schema": "agentic2d.m026-review-state-analysis.v1",
+  "acceptedM026Revision": "5fe5a7c09051c85368257d9d6c45914c0f09e790",
+  "pendingRequestPath": ".review/pending/M026-geometry-diagnostics-and-autonomous-tic-tac-toe.md",
+  "pendingMachineStatePath": ".review/pending/review.m026.geometry-diagnostics-and-autonomous-tic-tac-toe.json",
+  "canonicalRecordPath": ".review/records/review.m026.geometry-diagnostics-and-autonomous-tic-tac-toe.json",
+  "acceptedRevisionContainsPendingRequest": true,
+  "acceptedRevisionContainsPendingMachineState": true,
+  "acceptedRevisionContainsApprovedRecord": false,
+  "approvedRecordCommitted": false,
+  "reviewStatus": "approved-record-not-in-accepted-revision",
+  "reviewCheckStatus": "blocked-by-stale-M022-M025",
+  "repositoryWideBlockers": [
+    "migration-guide-v050",
+    "review.m025.signal-passage-playable-vertical-slice"
+  ],
+  "historicalInteractiveApprovalExists": true,
+  "conclusion": "Historical interactive approval exists, but the accepted M026 revision does not contain the canonical approved review record."
+}

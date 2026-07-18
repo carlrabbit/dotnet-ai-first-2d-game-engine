@@ -1,0 +1,2 @@
+error: required review 'migration-guide-v050' is stale
+error: required review 'review.m025.signal-passage-playable-vertical-slice' is stale

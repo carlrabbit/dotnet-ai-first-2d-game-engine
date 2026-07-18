@@ -2304,19 +2304,6 @@ index 0000000..73e0a28
 +dotnet_cmd run --project src/Agentic2D.DebugClient.Raylib -- geometry --input "$input" --capture "$capture"
 +require_file "$capture"
 +require_file "${capture%.png}.metadata.json"
-diff --git a/eng/guide-migration-v050.sh b/eng/m022-smoke.sh
-similarity index 80%
-rename from eng/guide-migration-v050.sh
-rename to eng/m022-smoke.sh
-index 855e8d3..4b9e4e7 100755
---- a/eng/guide-migration-v050.sh
-+++ b/eng/m022-smoke.sh
-@@ -1,4 +1,4 @@
- #!/usr/bin/env bash
- set -euo pipefail
- source "$(dirname "$0")/common.sh"
--dotnet_cmd run --no-build --project src/Agentic2D.Engineering -- suite guide-migration-v050 "$@"
-+dotnet_cmd run --no-build --project src/Agentic2D.Engineering -- suite m022-smoke "$@"
 diff --git a/eng/m026-performance-report.sh b/eng/m026-performance-report.sh
 new file mode 100755
 index 0000000..7fcdbf9
@@ -3294,102 +3281,10 @@ index dfc930e..a6c647e 100644
    </ItemGroup>
  </Project>
 diff --git a/src/Agentic2D.Engineering/EngineeringHost.cs b/src/Agentic2D.Engineering/EngineeringHost.cs
-index 4ac8a9d..9deafd7 100644
+index 10dda06..9deafd7 100644
 --- a/src/Agentic2D.Engineering/EngineeringHost.cs
 +++ b/src/Agentic2D.Engineering/EngineeringHost.cs
-@@ -355,67 +355,18 @@ public sealed class EngineeringHost
- 
-     private async Task<int> RunInternalShardAsync(ValidationSuite suite, ValidationShard shard, TextWriter diagnostics)
-     {
--        if (suite.Id == "m023-smoke" && shard.Id == "guide-v051")
--        {
--            return CheckGuideV051(diagnostics);
--        }
--
--        if (suite.Id != "guide-migration-v050")
-+        if (suite.Id != "m022-smoke")
-         {
-             throw new EngineeringException($"unsupported internal shard: {suite.Id}/{shard.Id}");
-         }
- 
-         return shard.Id switch
-         {
--            "profile-and-docs" => CheckFiles([".guide-profile.json", "docs/engineering/constrained-validation-execution.md", "docs/engineering/human-review-workflow.md"], diagnostics),
-             "platform-and-leakage" => CheckPlatformAndLeakage(diagnostics),
-             _ => throw new EngineeringException($"unsupported internal shard: {shard.Id}")
-         };
-     }
- 
--    private int CheckFiles(IEnumerable<string> files, TextWriter diagnostics)
--    {
--        var missing = files.Where(file => !File.Exists(Absolute(file))).ToArray();
--        if (missing.Length > 0)
--        {
--            diagnostics.WriteLine($"error: missing required migration inputs: {string.Join(", ", missing)}");
--            return 1;
--        }
--
--        using var profile = JsonDocument.Parse(File.ReadAllText(Absolute(".guide-profile.json")));
--        if (profile.RootElement.GetProperty("guideSystemVersion").GetString() != "0.5.0")
--        {
--            diagnostics.WriteLine("error: guide profile does not declare version 0.5.0");
--            return 1;
--        }
--
--        return 0;
--    }
--
--    private int CheckGuideV051(TextWriter diagnostics)
--    {
--        var required = new[] { ".guide-profile.json", "docs/milestones/MILESTONE-023-lightweight-runtime-metrics-comparative-performance-checks-and-milestone-performance-reporting.md" };
--        if (required.Any(path => !File.Exists(Absolute(path))))
--        {
--            diagnostics.WriteLine("error: M023 guide v0.5.1 corrective-assessment authority is missing");
--            return 1;
--        }
--        using var profile = JsonDocument.Parse(File.ReadAllText(Absolute(".guide-profile.json")));
--        var root = profile.RootElement;
--        if (root.GetProperty("guideSystemVersion").GetString() != "0.5.1" || root.GetProperty("repositoryRole").GetString() != "capability-provider")
--        {
--            diagnostics.WriteLine("error: guide profile does not preserve the v0.5.1 capability-provider profile");
--            return 1;
--        }
--        var adoption = root.GetProperty("adoption");
--        if (adoption.GetProperty("validationExecutionModel").GetString() != "direct-or-resumable-sharded" || adoption.GetProperty("engineeringCommandModel").GetString() != "thin-launchers-over-tested-dotnet-host")
--        {
--            diagnostics.WriteLine("error: guide profile does not preserve validation/engineering command model");
--            return 1;
--        }
--        return 0;
--    }
--
-     private int CheckPlatformAndLeakage(TextWriter diagnostics)
-     {
-         if (!OperatingSystem.IsLinux())
-@@ -573,10 +524,9 @@ public sealed class EngineeringHost
-             Shard("post-load", "Post-load transient reconstruction policy.", "./eng/presentation-post-load-smoke.sh", ["artifacts/smoke/m021-resumed/presentation/player-facing-presentation-result.json"], ["integrated"]),
-             Shard("review", "Presentation review pack.", "./eng/presentation-review-smoke.sh", ["artifacts/smoke/m021-integrated/review/review-summary.md"], ["integrated"])
-         ]),
--        new("guide-migration-v050", "resumable-sharded",
-+        new("m022-smoke", "resumable-sharded",
-         [
--            Shard("profile-and-docs", "Profile and localized migration authority.", "internal:profile-and-docs", [".guide-profile.json", "docs/engineering/constrained-validation-execution.md"], isInternal: true),
--            Shard("engineering-host-tests", "Engineering host unit tests.", "./eng/test.sh", ["src/Agentic2D.Engineering/EngineeringHost.cs"]),
-+            Shard("engineering-host-tests", "Engineering host plan and receipt tests.", "./eng/test-filter.sh EngineeringHost", ["src/Agentic2D.Engineering/EngineeringHost.cs", "tests/unit/Agentic2D.Tests.Unit/EngineeringHostTests.cs"]),
-             Shard("m019-suite", "Current M019 receipt verification.", "./eng/m019-smoke.sh --verify", ["artifacts/validation/m019-smoke/replay.json"]),
-             Shard("m020-suite", "Current M020 receipt verification.", "./eng/m020-smoke.sh --verify", ["artifacts/validation/m020-smoke/review.json"]),
-             Shard("m021-suite", "Current M021 receipt verification.", "./eng/m021-smoke.sh --verify", ["artifacts/validation/m021-smoke/review.json"]),
-@@ -590,8 +540,7 @@ public sealed class EngineeringHost
-             Shard("metrics-artifacts", "Summary and bounded per-tick artifacts.", "./eng/metrics-artifacts-smoke.sh", ["artifacts/smoke/m023-metrics/metrics-summary.json", "artifacts/smoke/m023-metrics/metrics-ticks.jsonl"]),
-             Shard("comparative-workloads", "Reference workload capture.", "./eng/perf-smoke.sh", ["artifacts/performance/smoke/performance-capture.json"]),
-             Shard("performance-report", "Advisory comparison and report generation.", "./eng/perf-report-smoke.sh", ["artifacts/performance/m023/performance-report.json", "artifacts/performance/m023/performance-report.md"]),
--            Shard("integrated", "Direct build, test, and product integration checks.", "./eng/build.sh && ./eng/test.sh && ./eng/cli-smoke.sh && ./eng/product-validate.sh", ["artifacts/cli/runtime-smoke/result.json", "artifacts/cli/validate/result.json"]),
--            Shard("guide-v051", "v0.5.1 corrective assessment profile check.", "internal:guide-v051", [".guide-profile.json", "docs/milestones/MILESTONE-023-lightweight-runtime-metrics-comparative-performance-checks-and-milestone-performance-reporting.md"], isInternal: true)
-+            Shard("integrated", "Direct build, test, and product integration checks.", "./eng/build.sh && ./eng/test.sh && ./eng/cli-smoke.sh && ./eng/product-validate.sh", ["artifacts/cli/runtime-smoke/result.json", "artifacts/cli/validate/result.json"])
-         ]),
-         new("m024-smoke", "resumable-sharded",
-         [
-@@ -616,6 +565,20 @@ public sealed class EngineeringHost
+@@ -565,6 +565,20 @@ public sealed class EngineeringHost
              Shard("extension-discovery", "Consumer extension classifications are complete.", "test -f consumers/signal-passage/consumer-extension-report.json && test -f consumers/signal-passage/consumer-extension-report.md", ["consumers/signal-passage/consumer-extension-report.json", "consumers/signal-passage/consumer-extension-report.md"]),
              Shard("human-review", "Blocking human review is current and approved.", "./eng/review-check.sh", [".review/records/review.m025.signal-passage-playable-vertical-slice.json"]),
              Shard("integrated", "Provider build and consumer journey integration.", "./eng/build.sh && ./eng/signal-passage-smoke.sh", ["consumers/signal-passage/artifacts/journey/complete-journey.json"])
@@ -3890,30 +3785,6 @@ index 0000000..bd22426
 +    { "id": "line", "anchor": "center", "offset": { "x": 0, "y": 0 }, "worldSize": { "width": 1, "height": 1 }, "layer": "debug", "order": 7, "sortMode": "fixed", "tint": { "r": 255, "g": 255, "b": 255, "a": 255 }, "geometry": { "kind": "line", "fill": { "r": 255, "g": 255, "b": 255, "a": 255 }, "outlineWidth": 0.03, "lineEnd": { "x": 1.5, "y": 0.5 }, "opacity": 1 } }
 +  ]
 +}
-diff --git a/tests/unit/Agentic2D.Tests.Unit/EngineeringHostTests.cs b/tests/unit/Agentic2D.Tests.Unit/EngineeringHostTests.cs
-index 93b546c..2668a35 100644
---- a/tests/unit/Agentic2D.Tests.Unit/EngineeringHostTests.cs
-+++ b/tests/unit/Agentic2D.Tests.Unit/EngineeringHostTests.cs
-@@ -14,6 +14,19 @@ public sealed class EngineeringHostTests
-         await Assert.That(plan.RootElement.GetProperty("requiredShards").GetArrayLength()).IsEqualTo(5);
-     }
- 
-+    [Test]
-+    public async Task M022AndM023PlansDoNotDependOnGuideMetadata()
-+    {
-+        var host = new EngineeringHost(Directory.GetCurrentDirectory());
-+        using var m022 = JsonDocument.Parse(host.SerializePlan(host.GetSuite("m022-smoke")));
-+        using var m023 = JsonDocument.Parse(host.SerializePlan(host.GetSuite("m023-smoke")));
-+
-+        await Assert.That(m022.RootElement.GetProperty("requiredShards").EnumerateArray().Any(shard => shard.GetProperty("id").GetString() == "platform-and-leakage")).IsTrue();
-+        await Assert.That(m023.RootElement.GetProperty("requiredShards").EnumerateArray().Any(shard => shard.GetProperty("id").GetString() == "guide-v051")).IsFalse();
-+        await Assert.That(m022.RootElement.ToString().Contains(".guide-profile.json", StringComparison.Ordinal)).IsFalse();
-+        await Assert.That(m023.RootElement.ToString().Contains(".guide-profile.json", StringComparison.Ordinal)).IsFalse();
-+    }
-+
-     [Test]
-     public async Task AtomicReceiptWriteLeavesOnlyFinalReceipt()
-     {
 diff --git a/tests/unit/Agentic2D.Tests.Unit/PerformanceTests.cs b/tests/unit/Agentic2D.Tests.Unit/PerformanceTests.cs
 index bda8f26..176f4f4 100644
 --- a/tests/unit/Agentic2D.Tests.Unit/PerformanceTests.cs

@@ -1,3 +1,3 @@
 # Handoff validation
 
-Status: **incomplete**. ZIP integrity: `True`; safe paths: `True`; size: `1010321` bytes. Boundary candidates: `11/11`. Historical M026 verifier evidence is passed, but current receipts are stale and global review-check is blocked by stale M022/M025 review records.
+Status: **ready with evidence limitations**. ZIP integrity: `True`; safe paths: `True`; size: `1060997` bytes. Boundary candidates: `11/11`; formalize-next: generated-sound-linkage and geometry-diagnostics. Correct M026 range: `88f905120cd0799a77249be348303641c4e41eb6..5fe5a7c09051c85368257d9d6c45914c0f09e790`. Historical aggregate verifier output is unavailable; current receipts are stale. Interactive M026 approval exists but its canonical record is not in the accepted revision. Representative graphical captures are absent. These limitations do not block M027 architecture planning.
