@@ -1,0 +1,1 @@
+{"schema":"autonomous-tic-tac-toe.scenario.v1","id":"tic-tac-toe.release-control","semanticActions":["participant.release-x"],"assertions":["x-controller-ai","thinking-restarts"]}

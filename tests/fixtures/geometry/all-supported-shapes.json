@@ -1,0 +1,13 @@
+{
+  "schema": "agentic2d.visual-definition.v1",
+  "id": "visual-definition.geometry-diagnostics.all-supported-shapes",
+  "parts": [
+    { "id": "circle", "anchor": "center", "offset": { "x": -2, "y": 1 }, "worldSize": { "width": 1, "height": 1 }, "layer": "ground", "order": 1, "sortMode": "fixed", "tint": { "r": 255, "g": 255, "b": 255, "a": 255 }, "geometry": { "kind": "circle", "fill": { "r": 81, "g": 194, "b": 113, "a": 255 }, "opacity": 1 } },
+    { "id": "rectangle", "anchor": "center", "offset": { "x": 0, "y": 1 }, "worldSize": { "width": 1, "height": 1 }, "layer": "ground", "order": 2, "sortMode": "fixed", "tint": { "r": 255, "g": 255, "b": 255, "a": 255 }, "geometry": { "kind": "rectangle", "fill": { "r": 85, "g": 194, "b": 113, "a": 255 }, "outline": { "r": 255, "g": 255, "b": 255, "a": 255 }, "outlineWidth": 0.03, "opacity": 1, "rotation": 10 } },
+    { "id": "triangle", "anchor": "center", "offset": { "x": 2, "y": 1 }, "worldSize": { "width": 1, "height": 1 }, "layer": "ground", "order": 3, "sortMode": "fixed", "tint": { "r": 255, "g": 255, "b": 255, "a": 255 }, "geometry": { "kind": "triangle", "fill": { "r": 244, "g": 211, "b": 94, "a": 255 }, "opacity": 1 } },
+    { "id": "diamond", "anchor": "center", "offset": { "x": -2, "y": -1 }, "worldSize": { "width": 1, "height": 1 }, "layer": "foreground", "order": 4, "sortMode": "fixed", "tint": { "r": 255, "g": 255, "b": 255, "a": 255 }, "geometry": { "kind": "diamond", "fill": { "r": 168, "g": 121, "b": 214, "a": 255 }, "opacity": 1 } },
+    { "id": "regular-polygon", "anchor": "center", "offset": { "x": 0, "y": -1 }, "worldSize": { "width": 1, "height": 1 }, "layer": "foreground", "order": 5, "sortMode": "fixed", "tint": { "r": 255, "g": 255, "b": 255, "a": 255 }, "geometry": { "kind": "regular-polygon", "fill": { "r": 54, "g": 217, "b": 232, "a": 255 }, "polygonSides": 6, "opacity": 1 } },
+    { "id": "ring", "anchor": "center", "offset": { "x": 2, "y": -1 }, "worldSize": { "width": 1, "height": 1 }, "layer": "foreground", "order": 6, "sortMode": "fixed", "tint": { "r": 255, "g": 255, "b": 255, "a": 255 }, "geometry": { "kind": "ring", "outline": { "r": 255, "g": 212, "b": 94, "a": 255 }, "outlineWidth": 0.04, "ringInnerRatio": 0.7, "opacity": 1 } },
+    { "id": "line", "anchor": "center", "offset": { "x": 0, "y": 0 }, "worldSize": { "width": 1, "height": 1 }, "layer": "debug", "order": 7, "sortMode": "fixed", "tint": { "r": 255, "g": 255, "b": 255, "a": 255 }, "geometry": { "kind": "line", "fill": { "r": 255, "g": 255, "b": 255, "a": 255 }, "outlineWidth": 0.03, "lineEnd": { "x": 1.5, "y": 0.5 }, "opacity": 1 } }
+  ]
+}

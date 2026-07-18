@@ -1,0 +1,15 @@
+{
+  "Schema": "agentic2d.sound-synthesis-artifact.v1",
+  "Id": "sound-synthesis.tic-tac-toe.round-start",
+  "OutputAssetId": "asset.tic-tac-toe.round-start",
+  "OutputPath": "game-content/generated/sounds/round-start.wav",
+  "DefinitionFingerprint": "sha256:404bb1210cfc3b2352b46a6dc2f496e9963e4c47b358c19ce2aada63e9bd66f4",
+  "ImplementationVersion": "m025-offline-pcm-v1",
+  "SampleCount": 2205,
+  "SampleRate": 22050,
+  "DurationSeconds": 0.1,
+  "Peak": 0.24701681569872128,
+  "Rms": 0.1151514664997733,
+  "OutputSha256": "97259ef4dc833743d4708efc25592b608fef15377e41922bffdb7ca6e32947a9",
+  "Diagnostics": []
+}

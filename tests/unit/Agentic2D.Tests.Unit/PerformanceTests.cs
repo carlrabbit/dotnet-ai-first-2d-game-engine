@@ -23,7 +23,8 @@ public sealed class PerformanceTests
         await Assert.That(File.Exists(Path.Combine(report, "performance-report.md"))).IsTrue();
 
         using var document = JsonDocument.Parse(await File.ReadAllTextAsync(Path.Combine(report, "performance-report.json")));
-        await Assert.That(document.RootElement.GetProperty("comparison").GetProperty("workloads").GetArrayLength()).IsEqualTo(4);
+        await Assert.That(document.RootElement.GetProperty("comparison").GetProperty("workloads").GetArrayLength()).IsEqualTo(8);
+        await Assert.That(document.RootElement.GetProperty("comparison").GetProperty("workloads").EnumerateArray().Any(workload => workload.GetProperty("id").GetString() == "performance.runtime-reference-scaled")).IsTrue();
         await Assert.That(document.RootElement.GetProperty("limitations").GetString()).Contains("same-machine");
     }
 }

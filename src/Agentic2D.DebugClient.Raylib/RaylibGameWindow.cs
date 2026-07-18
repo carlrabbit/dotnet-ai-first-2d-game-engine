@@ -64,7 +64,7 @@ public static class RaylibGameWindow
         for (var x = 0; x <= world.Width; x++) RaylibApi.DrawRectangle((int)(left + x * scale), (int)top, 3, (int)(world.Height * scale), new Color(82, 101, 122, 255));
         for (var y = 0; y <= world.Height; y++) RaylibApi.DrawRectangle((int)left, (int)(top + y * scale), (int)(world.Width * scale), 3, new Color(82, 101, 122, 255));
         foreach (var container in world.Containers) { var p = ToScreen(container.Position); Diamond(p, 20, state.OpenedContainers.Contains(container.Id) ? new Color(160, 92, 42, 255) : new Color(239, 140, 58, 255)); }
-        foreach (var fragment in world.Fragments.Where(x => !state.CollectedFragments.Contains(x.Id))) Polygon(ToScreen(fragment.Position), 16, 6, new Color(244, 211, 94, 255), 20); 
+        foreach (var fragment in world.Fragments.Where(x => !state.CollectedFragments.Contains(x.Id))) Polygon(ToScreen(fragment.Position), 16, 6, new Color(244, 211, 94, 255), 20);
         foreach (var hazard in world.Hazards) Triangle(ToScreen(hazard), 21, new Color(233, 80, 80, 255));
         var switchPoint = ToScreen(world.Switch); RaylibApi.DrawRectangle((int)switchPoint.X - 18, (int)switchPoint.Y - 18, 36, 36, new Color(168, 121, 214, 255)); if (state.MechanismActive) RaylibApi.DrawCircle((int)switchPoint.X, (int)switchPoint.Y, 8, new Color(235, 215, 255, 255));
         var zone = ToScreen(world.Zone); RaylibApi.DrawRing(zone, 24, 29, 0, 360, 32, new Color(85, 194, 113, 255));

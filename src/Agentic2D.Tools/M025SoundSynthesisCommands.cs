@@ -28,7 +28,13 @@ internal static class M025SoundSynthesisCommands
     private static List<SoundSynthesisDefinition> Load(string target)
     {
         var files = Directory.Exists(target) ? Directory.EnumerateFiles(target, "*.json", SearchOption.AllDirectories) : File.Exists(target) ? [target] : [];
-        return files.OrderBy(x => x, StringComparer.Ordinal).Select(path => JsonSerializer.Deserialize<SoundSynthesisDefinition>(File.ReadAllText(path), OfflineSoundSynthesis.Json) ?? new SoundSynthesisDefinition()).ToList();
+        return files.OrderBy(x => x, StringComparer.Ordinal).SelectMany(path =>
+        {
+            var source = File.ReadAllText(path);
+            return source.TrimStart().StartsWith("[", StringComparison.Ordinal)
+                ? JsonSerializer.Deserialize<List<SoundSynthesisDefinition>>(source, OfflineSoundSynthesis.Json) ?? []
+                : [JsonSerializer.Deserialize<SoundSynthesisDefinition>(source, OfflineSoundSynthesis.Json) ?? new SoundSynthesisDefinition()];
+        }).ToList();
     }
     private static async Task Write(string destination, IReadOnlyList<SoundSynthesisArtifact> artifacts)
     {

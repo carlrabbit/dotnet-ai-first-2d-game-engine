@@ -1,0 +1,15 @@
+{
+  "Schema": "agentic2d.sound-synthesis-artifact.v1",
+  "Id": "sound-synthesis.tic-tac-toe.win",
+  "OutputAssetId": "asset.tic-tac-toe.win",
+  "OutputPath": "game-content/generated/sounds/win.wav",
+  "DefinitionFingerprint": "sha256:46cb5e940535ea29e3d89db926d268e373fdd688425bd4e4ac7d11a03837740e",
+  "ImplementationVersion": "m025-offline-pcm-v1",
+  "SampleCount": 3528,
+  "SampleRate": 22050,
+  "DurationSeconds": 0.16,
+  "Peak": 0.2781456953642384,
+  "Rms": 0.12878742325194922,
+  "OutputSha256": "d1c3dc2d8961460e15911508fdc3395decd40020735c4cab99ee50028c4ae54b",
+  "Diagnostics": []
+}

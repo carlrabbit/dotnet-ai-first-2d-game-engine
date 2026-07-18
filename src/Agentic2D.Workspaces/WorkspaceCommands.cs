@@ -396,6 +396,7 @@ public static class WorkspaceCommands
     private static string? ContentDomain(string relative)
     {
         var normalized = relative.Replace("\\", "/", StringComparison.Ordinal);
+        if (normalized.EndsWith("generated-sound-linkage.json", StringComparison.Ordinal)) return "generated-sound-linkage";
         foreach (var domain in new[] { "scenarios", "assets", "maps", "entities", "visuals", "animations", "input", "sounds", "items", "sound-synthesis", "colors" }) if (normalized.Contains("game-content/" + domain + "/", StringComparison.Ordinal)) return domain;
         return null;
     }
@@ -406,9 +407,9 @@ public static class WorkspaceCommands
         {
             using var document = ReadDocument(path);
             var root = document.RootElement;
-            if (!root.TryGetProperty("schema", out var schema) || schema.ValueKind != JsonValueKind.String || !root.TryGetProperty("id", out var id) || string.IsNullOrWhiteSpace(id.GetString())) { reason = "Content file must declare string schema and stable id."; return false; }
+            if (!root.TryGetProperty("schema", out var schema) || schema.ValueKind != JsonValueKind.String || (domain != "generated-sound-linkage" && (!root.TryGetProperty("id", out var id) || string.IsNullOrWhiteSpace(id.GetString())))) { reason = "Content file must declare string schema and stable id."; return false; }
             if (domain == "scenarios") { var run = new ContentValidator().Validate(path); reason = run.Result.ExitCode == 0 ? string.Empty : "Scenario contract validation failed."; return run.Result.ExitCode == 0; }
-            var expected = domain switch { "assets" => "agentic2d.asset-metadata.v1", "maps" => "agentic2d.map.v1", "entities" => "agentic2d.entity-definition.v1", "visuals" => "agentic2d.visual-definition.v1", "animations" => "agentic2d.animation-definition.v1", "input" => "agentic2d.input-map.v1", "sounds" => "agentic2d.sound-definition.v1", "items" => "agentic2d.item-definition.v1", "sound-synthesis" => "agentic2d.sound-synthesis.v1", "colors" => "agentic2d.signal-passage-colors.v1", _ => string.Empty };
+            var expected = domain switch { "assets" => "agentic2d.asset-metadata.v1", "maps" => "agentic2d.map.v1", "entities" => "agentic2d.entity-definition.v1", "visuals" => "agentic2d.visual-definition.v1", "animations" => "agentic2d.animation-definition.v1", "input" => "agentic2d.input-map.v1", "sounds" => "agentic2d.sound-definition.v1", "items" => "agentic2d.item-definition.v1", "sound-synthesis" => "agentic2d.sound-synthesis.v1", "colors" => "agentic2d.signal-passage-colors.v1", "generated-sound-linkage" => "agentic2d.generated-sound-linkage.v1", _ => string.Empty };
             if (!StringComparer.Ordinal.Equals(schema.GetString(), expected)) { reason = $"Unexpected schema for {domain}."; return false; }
             reason = string.Empty; return true;
         }

@@ -2,6 +2,7 @@
   <PropertyGroup><OutputType>Exe</OutputType></PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="../Agentic2D.Rendering/Agentic2D.Rendering.csproj" />
+    <ProjectReference Include="../Agentic2D.Validation/Agentic2D.Validation.csproj" />
     <PackageReference Include="Raylib-cs" />
   </ItemGroup>
 </Project>

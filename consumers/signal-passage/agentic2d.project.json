@@ -3,5 +3,5 @@
   "gameSourceRoots": ["game-src"], "authoredContentRoots": ["game-content"],
   "defaultScenarioId": "signal-passage.complete-journey", "runtime": { "seed": "signal-passage-v1", "ticks": 180 },
   "presentation": { "mode": "headless" }, "assemblies": ["SignalPassage.Game"],
-  "supportedContentDomains": ["scenarios", "maps", "entities", "visuals", "sounds", "sound-synthesis", "colors"], "fingerprintInputs": { "structuralVersion": 1 }
+  "supportedContentDomains": ["scenarios", "maps", "entities", "visuals", "sounds", "sound-synthesis", "colors", "generated-sound-linkage"], "fingerprintInputs": { "structuralVersion": 2 }
 }
