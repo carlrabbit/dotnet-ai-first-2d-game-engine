@@ -1,0 +1,81 @@
+{
+  "schema": "agentic2d.generated-sound-linkage-report.v1",
+  "status": "passed",
+  "project": "/home/dev/src/dotnet-ai-first-2d-game-engine/consumers/autonomous-tic-tac-toe",
+  "links": [
+    {
+      "synthesisId": "sound-synthesis.tic-tac-toe.round-start",
+      "outputPath": "game-content/generated/sounds/round-start.wav",
+      "provenancePath": "round-start.provenance.json",
+      "soundDefinitionId": "sound-definition.tic-tac-toe.round-start",
+      "variantId": "default",
+      "runtimeAuthority": "ordinary-sound-definition",
+      "generationAuthority": "synthesis-definition"
+    },
+    {
+      "synthesisId": "sound-synthesis.tic-tac-toe.thinking-start",
+      "outputPath": "game-content/generated/sounds/thinking-start.wav",
+      "provenancePath": "thinking-start.provenance.json",
+      "soundDefinitionId": "sound-definition.tic-tac-toe.thinking-start",
+      "variantId": "default",
+      "runtimeAuthority": "ordinary-sound-definition",
+      "generationAuthority": "synthesis-definition"
+    },
+    {
+      "synthesisId": "sound-synthesis.tic-tac-toe.mark-x",
+      "outputPath": "game-content/generated/sounds/mark-x.wav",
+      "provenancePath": "mark-x.provenance.json",
+      "soundDefinitionId": "sound-definition.tic-tac-toe.mark-x",
+      "variantId": "default",
+      "runtimeAuthority": "ordinary-sound-definition",
+      "generationAuthority": "synthesis-definition"
+    },
+    {
+      "synthesisId": "sound-synthesis.tic-tac-toe.mark-o",
+      "outputPath": "game-content/generated/sounds/mark-o.wav",
+      "provenancePath": "mark-o.provenance.json",
+      "soundDefinitionId": "sound-definition.tic-tac-toe.mark-o",
+      "variantId": "default",
+      "runtimeAuthority": "ordinary-sound-definition",
+      "generationAuthority": "synthesis-definition"
+    },
+    {
+      "synthesisId": "sound-synthesis.tic-tac-toe.invalid-selection",
+      "outputPath": "game-content/generated/sounds/invalid-selection.wav",
+      "provenancePath": "invalid-selection.provenance.json",
+      "soundDefinitionId": "sound-definition.tic-tac-toe.invalid-selection",
+      "variantId": "default",
+      "runtimeAuthority": "ordinary-sound-definition",
+      "generationAuthority": "synthesis-definition"
+    },
+    {
+      "synthesisId": "sound-synthesis.tic-tac-toe.win",
+      "outputPath": "game-content/generated/sounds/win.wav",
+      "provenancePath": "win.provenance.json",
+      "soundDefinitionId": "sound-definition.tic-tac-toe.win",
+      "variantId": "default",
+      "runtimeAuthority": "ordinary-sound-definition",
+      "generationAuthority": "synthesis-definition"
+    },
+    {
+      "synthesisId": "sound-synthesis.tic-tac-toe.draw",
+      "outputPath": "game-content/generated/sounds/draw.wav",
+      "provenancePath": "draw.provenance.json",
+      "soundDefinitionId": "sound-definition.tic-tac-toe.draw",
+      "variantId": "default",
+      "runtimeAuthority": "ordinary-sound-definition",
+      "generationAuthority": "synthesis-definition"
+    },
+    {
+      "synthesisId": "sound-synthesis.tic-tac-toe.human-takeover",
+      "outputPath": "game-content/generated/sounds/human-takeover.wav",
+      "provenancePath": "human-takeover.provenance.json",
+      "soundDefinitionId": "sound-definition.tic-tac-toe.human-takeover",
+      "variantId": "default",
+      "runtimeAuthority": "ordinary-sound-definition",
+      "generationAuthority": "synthesis-definition"
+    }
+  ],
+  "diagnostics": [],
+  "fingerprint": "sha256:69f3d61a1b712d49f09ca9500c3f9183662fa9e6d0b679e8a7bfc0f79235dcdf"
+}

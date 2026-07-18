@@ -1,0 +1,32 @@
+{
+  "schema": "agentic2d.engineering.validation-receipt.v1",
+  "suiteId": "m026-smoke",
+  "shardId": "tic-tac-toe-presentation",
+  "status": "passed",
+  "suiteFingerprint": "5aa2d37d7e7dc836f32993eb0c21c36d6a88abcd42936f78d35836247aed18e7",
+  "repositoryFingerprint": "17f708a16d81f5cbcca2d624d6895fc63218739146209aa8420e36702654cf6a",
+  "commandFingerprint": "8522e62126e3350b22efa5470992d4ab85294c5fb8ec010f8d70e6cbfecd88b6",
+  "inputFingerprint": "b304b58f6cfe3d8ddb5a96e442988f40c7689949e24b1529b79bcaeadd057ff4",
+  "resultFingerprint": "2d22351bb3017df54a6f926771b2832df1d8369794219d9fa7065e7913b155f0",
+  "command": "./eng/tic-tac-toe-smoke.sh",
+  "evidencePaths": [
+    "consumers/autonomous-tic-tac-toe/artifacts/runs/presentation-smoke/tic-tac-toe-presentation.json",
+    "consumers/autonomous-tic-tac-toe/artifacts/geometry/geometry-preview.json"
+  ],
+  "artifacts": [
+    {
+      "path": "consumers/autonomous-tic-tac-toe/artifacts/runs/presentation-smoke/tic-tac-toe-presentation.json",
+      "fingerprint": "bc6eb34180d8eb11a4ba745e60a8ae53ce41a417108367ed0b5095a93b1ce954"
+    },
+    {
+      "path": "consumers/autonomous-tic-tac-toe/artifacts/geometry/geometry-preview.json",
+      "fingerprint": "c5ec41bdf036cb7758b9da638d6adebfcb2a9315a14afe274d28d020f06fde22"
+    }
+  ],
+  "completion": {
+    "startedAtUtc": "2026-07-18T15:19:35.3498332+00:00",
+    "completedAtUtc": "2026-07-18T15:20:17.4980089+00:00",
+    "platform": "linux-bash"
+  },
+  "diagnostics": []
+}

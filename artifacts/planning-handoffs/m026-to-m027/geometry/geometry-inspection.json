@@ -1,0 +1,317 @@
+{
+  "schema": "agentic2d.geometry-inspection.v1",
+  "status": "passed",
+  "previewBackground": {
+    "r": 20,
+    "g": 31,
+    "b": 48,
+    "a": 255
+  },
+  "parts": [
+    {
+      "definitionId": "visual-definition.geometry-diagnostics.all-supported-shapes",
+      "partId": "circle",
+      "shapeKind": "circle",
+      "dimensions": {
+        "width": 1,
+        "height": 1
+      },
+      "bounds": {
+        "x": -2.5,
+        "y": 0.5,
+        "width": 1,
+        "height": 1
+      },
+      "fill": {
+        "r": 81,
+        "g": 194,
+        "b": 113,
+        "a": 255
+      },
+      "outline": null,
+      "outlineWidth": 0,
+      "opacity": 1,
+      "anchor": "center",
+      "offset": {
+        "x": -2,
+        "y": 1
+      },
+      "rotation": 0,
+      "layer": "ground",
+      "order": 1,
+      "sortMode": "fixed",
+      "polygonSides": 0,
+      "ringInnerRatio": 0,
+      "lineEnd": null,
+      "provenance": {
+        "sourcePath": "/home/dev/src/dotnet-ai-first-2d-game-engine/tests/fixtures/geometry/all-supported-shapes.json",
+        "sourceKind": "authored-geometry"
+      },
+      "fingerprint": "sha256:9ef193451b6a30022acbe4156b85fedd3fcc21c91bbd3cdbd88757194b8d12eb"
+    },
+    {
+      "definitionId": "visual-definition.geometry-diagnostics.all-supported-shapes",
+      "partId": "diamond",
+      "shapeKind": "diamond",
+      "dimensions": {
+        "width": 1,
+        "height": 1
+      },
+      "bounds": {
+        "x": -2.5,
+        "y": -1.5,
+        "width": 1,
+        "height": 1
+      },
+      "fill": {
+        "r": 168,
+        "g": 121,
+        "b": 214,
+        "a": 255
+      },
+      "outline": null,
+      "outlineWidth": 0,
+      "opacity": 1,
+      "anchor": "center",
+      "offset": {
+        "x": -2,
+        "y": -1
+      },
+      "rotation": 0,
+      "layer": "foreground",
+      "order": 4,
+      "sortMode": "fixed",
+      "polygonSides": 0,
+      "ringInnerRatio": 0,
+      "lineEnd": null,
+      "provenance": {
+        "sourcePath": "/home/dev/src/dotnet-ai-first-2d-game-engine/tests/fixtures/geometry/all-supported-shapes.json",
+        "sourceKind": "authored-geometry"
+      },
+      "fingerprint": "sha256:c48a11e49f816dee63c0d8c853391d73e15f650a5570b97a55f96b5759cec283"
+    },
+    {
+      "definitionId": "visual-definition.geometry-diagnostics.all-supported-shapes",
+      "partId": "line",
+      "shapeKind": "line",
+      "dimensions": {
+        "width": 1,
+        "height": 1
+      },
+      "bounds": {
+        "x": -0.5,
+        "y": -0.5,
+        "width": 1,
+        "height": 1
+      },
+      "fill": {
+        "r": 255,
+        "g": 255,
+        "b": 255,
+        "a": 255
+      },
+      "outline": null,
+      "outlineWidth": 0.03,
+      "opacity": 1,
+      "anchor": "center",
+      "offset": {
+        "x": 0,
+        "y": 0
+      },
+      "rotation": 0,
+      "layer": "debug",
+      "order": 7,
+      "sortMode": "fixed",
+      "polygonSides": 0,
+      "ringInnerRatio": 0,
+      "lineEnd": {
+        "x": 1.5,
+        "y": 0.5
+      },
+      "provenance": {
+        "sourcePath": "/home/dev/src/dotnet-ai-first-2d-game-engine/tests/fixtures/geometry/all-supported-shapes.json",
+        "sourceKind": "authored-geometry"
+      },
+      "fingerprint": "sha256:81fa71449ccced439f7580f96648c9436a567d60d975fae625da906e9f766eaf"
+    },
+    {
+      "definitionId": "visual-definition.geometry-diagnostics.all-supported-shapes",
+      "partId": "rectangle",
+      "shapeKind": "rectangle",
+      "dimensions": {
+        "width": 1,
+        "height": 1
+      },
+      "bounds": {
+        "x": -0.5,
+        "y": 0.5,
+        "width": 1,
+        "height": 1
+      },
+      "fill": {
+        "r": 85,
+        "g": 194,
+        "b": 113,
+        "a": 255
+      },
+      "outline": {
+        "r": 255,
+        "g": 255,
+        "b": 255,
+        "a": 255
+      },
+      "outlineWidth": 0.03,
+      "opacity": 1,
+      "anchor": "center",
+      "offset": {
+        "x": 0,
+        "y": 1
+      },
+      "rotation": 10,
+      "layer": "ground",
+      "order": 2,
+      "sortMode": "fixed",
+      "polygonSides": 0,
+      "ringInnerRatio": 0,
+      "lineEnd": null,
+      "provenance": {
+        "sourcePath": "/home/dev/src/dotnet-ai-first-2d-game-engine/tests/fixtures/geometry/all-supported-shapes.json",
+        "sourceKind": "authored-geometry"
+      },
+      "fingerprint": "sha256:95dea42d2a25340a061fe2e0359a3b8237216b8f2b5a411178861cc8d37a4e67"
+    },
+    {
+      "definitionId": "visual-definition.geometry-diagnostics.all-supported-shapes",
+      "partId": "regular-polygon",
+      "shapeKind": "regular-polygon",
+      "dimensions": {
+        "width": 1,
+        "height": 1
+      },
+      "bounds": {
+        "x": -0.5,
+        "y": -1.5,
+        "width": 1,
+        "height": 1
+      },
+      "fill": {
+        "r": 54,
+        "g": 217,
+        "b": 232,
+        "a": 255
+      },
+      "outline": null,
+      "outlineWidth": 0,
+      "opacity": 1,
+      "anchor": "center",
+      "offset": {
+        "x": 0,
+        "y": -1
+      },
+      "rotation": 0,
+      "layer": "foreground",
+      "order": 5,
+      "sortMode": "fixed",
+      "polygonSides": 6,
+      "ringInnerRatio": 0,
+      "lineEnd": null,
+      "provenance": {
+        "sourcePath": "/home/dev/src/dotnet-ai-first-2d-game-engine/tests/fixtures/geometry/all-supported-shapes.json",
+        "sourceKind": "authored-geometry"
+      },
+      "fingerprint": "sha256:a1c53eb1ec4ef1131ea68ecd512f27ac1c28f761d6079749973f93648a35f70e"
+    },
+    {
+      "definitionId": "visual-definition.geometry-diagnostics.all-supported-shapes",
+      "partId": "ring",
+      "shapeKind": "ring",
+      "dimensions": {
+        "width": 1,
+        "height": 1
+      },
+      "bounds": {
+        "x": 1.5,
+        "y": -1.5,
+        "width": 1,
+        "height": 1
+      },
+      "fill": null,
+      "outline": {
+        "r": 255,
+        "g": 212,
+        "b": 94,
+        "a": 255
+      },
+      "outlineWidth": 0.04,
+      "opacity": 1,
+      "anchor": "center",
+      "offset": {
+        "x": 2,
+        "y": -1
+      },
+      "rotation": 0,
+      "layer": "foreground",
+      "order": 6,
+      "sortMode": "fixed",
+      "polygonSides": 0,
+      "ringInnerRatio": 0.7,
+      "lineEnd": null,
+      "provenance": {
+        "sourcePath": "/home/dev/src/dotnet-ai-first-2d-game-engine/tests/fixtures/geometry/all-supported-shapes.json",
+        "sourceKind": "authored-geometry"
+      },
+      "fingerprint": "sha256:a2b11f1d31fc06862bf254682f87dde92983830f7c10e40eac34279534af7c2f"
+    },
+    {
+      "definitionId": "visual-definition.geometry-diagnostics.all-supported-shapes",
+      "partId": "triangle",
+      "shapeKind": "triangle",
+      "dimensions": {
+        "width": 1,
+        "height": 1
+      },
+      "bounds": {
+        "x": 1.5,
+        "y": 0.5,
+        "width": 1,
+        "height": 1
+      },
+      "fill": {
+        "r": 244,
+        "g": 211,
+        "b": 94,
+        "a": 255
+      },
+      "outline": null,
+      "outlineWidth": 0,
+      "opacity": 1,
+      "anchor": "center",
+      "offset": {
+        "x": 2,
+        "y": 1
+      },
+      "rotation": 0,
+      "layer": "ground",
+      "order": 3,
+      "sortMode": "fixed",
+      "polygonSides": 0,
+      "ringInnerRatio": 0,
+      "lineEnd": null,
+      "provenance": {
+        "sourcePath": "/home/dev/src/dotnet-ai-first-2d-game-engine/tests/fixtures/geometry/all-supported-shapes.json",
+        "sourceKind": "authored-geometry"
+      },
+      "fingerprint": "sha256:47293578935b5b6ef2e91f067afb91053c2852a222b8a309af947ab0823340e9"
+    }
+  ],
+  "supportedShapeKinds": [
+    "circle",
+    "rectangle",
+    "triangle",
+    "diamond",
+    "regular-polygon",
+    "ring",
+    "line"
+  ],
+  "fingerprint": "sha256:2b4438fcf60df5bf568a7f725dfb3f4560c9de72495b82882120e04cdd8b258c"
+}

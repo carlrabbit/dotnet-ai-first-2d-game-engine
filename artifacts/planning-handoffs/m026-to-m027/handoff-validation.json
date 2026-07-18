@@ -1,0 +1,27 @@
+{
+  "schema": "agentic2d.m026-to-m027.handoff-validation.v1",
+  "status": "incomplete",
+  "archive": {
+    "path": "artifacts/planning-handoffs/m026-to-m027/m026-to-m027-full-evidence.zip",
+    "byteLength": 1010321,
+    "sha256": "1108bca49cc923cfc34567e205a276d6be8c5a7df82a1822f3475862e1482afa",
+    "integrityPassed": true,
+    "safePaths": true
+  },
+  "requiredBoundaryCandidatesPresent": true,
+  "boundaryDecisionCounts": {
+    "retain-existing": 4,
+    "observe-more": 2,
+    "consumer-specific": 1,
+    "improve-diagnostics-only": 1,
+    "reject": 1,
+    "formalize-next": 2
+  },
+  "m026VerifierStatus": "historical-passed/current-stale",
+  "reviewStatus": "approved/current-review-check-blocked-by-stale-M022-M025",
+  "scaledPerformanceEvidencePresent": true,
+  "deterministicAiEvidencePresent": true,
+  "saveDuringThinkingEvidencePresent": true,
+  "soundLinkageBothConsumersPresent": true,
+  "reason": "Current branch validation receipts are stale after post-M026 launcher fixes; repository-wide review check has stale M022/M025 records."
+}

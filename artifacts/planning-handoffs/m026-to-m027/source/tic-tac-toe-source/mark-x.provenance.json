@@ -1,0 +1,15 @@
+{
+  "Schema": "agentic2d.sound-synthesis-artifact.v1",
+  "Id": "sound-synthesis.tic-tac-toe.mark-x",
+  "OutputAssetId": "asset.tic-tac-toe.mark-x",
+  "OutputPath": "game-content/generated/sounds/mark-x.wav",
+  "DefinitionFingerprint": "sha256:21de6c2cffcc6086aee9ab5b368e30c84186453776d9c92e37065bdc512733e3",
+  "ImplementationVersion": "m025-offline-pcm-v1",
+  "SampleCount": 1764,
+  "SampleRate": 22050,
+  "DurationSeconds": 0.08,
+  "Peak": 0.1498764000366222,
+  "Rms": 0.0826132070992785,
+  "OutputSha256": "f8920c3c9c85d5d1f1f191c6ac5b97f49730227e22729f2f2df6371f8560b988",
+  "Diagnostics": []
+}

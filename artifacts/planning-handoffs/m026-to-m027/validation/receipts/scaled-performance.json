@@ -1,0 +1,32 @@
+{
+  "schema": "agentic2d.engineering.validation-receipt.v1",
+  "suiteId": "m026-smoke",
+  "shardId": "scaled-performance",
+  "status": "passed",
+  "suiteFingerprint": "5aa2d37d7e7dc836f32993eb0c21c36d6a88abcd42936f78d35836247aed18e7",
+  "repositoryFingerprint": "17f708a16d81f5cbcca2d624d6895fc63218739146209aa8420e36702654cf6a",
+  "commandFingerprint": "9838710240999494acb1d7d02816937ed716ae6940e2fb63347ad73dbdf92a9f",
+  "inputFingerprint": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "resultFingerprint": "ece94c3eab99f1e3b489f19b01c10e527326e1310dab9d242fa576375e1c6977",
+  "command": "./eng/perf-smoke.sh \u0026\u0026 ./eng/scaled-performance-smoke.sh \u0026\u0026 ./eng/m026-performance-report.sh",
+  "evidencePaths": [
+    "artifacts/performance/M026/performance-report.json",
+    "artifacts/performance/M026/performance-report.md"
+  ],
+  "artifacts": [
+    {
+      "path": "artifacts/performance/M026/performance-report.json",
+      "fingerprint": "ff921d1609b92d5bc64af77f7ab03105fb600b7d05ae0227b9019efcb93f4a28"
+    },
+    {
+      "path": "artifacts/performance/M026/performance-report.md",
+      "fingerprint": "23ef719f16bb09cb172febadcb2e12ffdb2d9208673c72e3030cad1f8f23027c"
+    }
+  ],
+  "completion": {
+    "startedAtUtc": "2026-07-18T15:17:59.7901961+00:00",
+    "completedAtUtc": "2026-07-18T15:18:41.0508469+00:00",
+    "platform": "linux-bash"
+  },
+  "diagnostics": []
+}

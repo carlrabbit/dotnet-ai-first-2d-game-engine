@@ -1,0 +1,74 @@
+{
+  "schema": "autonomous-tic-tac-toe.run.v2",
+  "scenario": "tic-tac-toe.release-control",
+  "status": "passed",
+  "state": {
+    "cells": [
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      ""
+    ],
+    "currentMark": "X",
+    "xController": "ai",
+    "oController": "ai",
+    "phase": "thinking",
+    "thinkingTicksRemaining": 34,
+    "winner": "",
+    "roundNumber": 1,
+    "scoreX": 0,
+    "scoreO": 0,
+    "drawCount": 0
+  },
+  "saveState": {
+    "cells": [
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      ""
+    ],
+    "currentMark": "X",
+    "xController": "ai",
+    "oController": "ai",
+    "phase": "thinking",
+    "thinkingTicksRemaining": 34,
+    "winner": "",
+    "roundNumber": 1,
+    "scoreX": 0,
+    "scoreO": 0,
+    "drawCount": 0
+  },
+  "simulationTick": 0,
+  "randomDrawCount": 1,
+  "events": [
+    {
+      "type": "round-start",
+      "cue": "cue.tic-tac-toe.round-start"
+    },
+    {
+      "type": "participant-released",
+      "participant": "x",
+      "action": "participant.release-x"
+    }
+  ],
+  "cueInventory": [
+    "cue.tic-tac-toe.round-start",
+    "cue.tic-tac-toe.thinking-start",
+    "cue.tic-tac-toe.mark-x",
+    "cue.tic-tac-toe.mark-o",
+    "cue.tic-tac-toe.invalid-selection",
+    "cue.tic-tac-toe.win",
+    "cue.tic-tac-toe.draw",
+    "cue.tic-tac-toe.human-takeover"
+  ]
+}

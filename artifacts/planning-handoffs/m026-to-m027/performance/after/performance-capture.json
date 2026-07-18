@@ -1,0 +1,271 @@
+{
+  "schema": "agentic2d.performance-capture.v2",
+  "label": "m026-after",
+  "configuration": "Release",
+  "execution": "headless",
+  "warmupIterations": 1,
+  "measuredIterations": 5,
+  "primaryStatistic": "median",
+  "comparisonScope": "same-machine-close-in-time-only",
+  "workloads": [
+    {
+      "definition": {
+        "id": "performance.runtime-reference",
+        "sourceScenario": "runtime.smoke",
+        "measuredTickCount": 30,
+        "relevantMetrics": [
+          "runtime.tick.duration",
+          "runtime.commands.accepted",
+          "runtime.events.emitted"
+        ],
+        "isScaled": false,
+        "fixedSeed": "seed.performance-reference",
+        "warmupIterations": 1,
+        "measuredIterations": 5,
+        "metricsMode": "summary",
+        "artifactWritingBoundary": "after-measurement"
+      },
+      "elapsedMedianMilliseconds": 0.0637,
+      "allocatedBytesMedian": 11320,
+      "workCounters": {
+        "runtime.commands.submitted": 1,
+        "runtime.commands.accepted": 1,
+        "runtime.commands.rejected": 0,
+        "runtime.events.emitted": 4,
+        "spatial.queries": 0,
+        "spatial.collision-checks": 0,
+        "presentation.text-commands": 0,
+        "presentation.sound-commands": 0
+      },
+      "timingAuthority": false,
+      "timingAuthorityReason": "reference median is below the 10ms timing-authority floor",
+      "referenceMedianMilliseconds": 0.0637,
+      "timingStatus": "not-timing-authoritative"
+    },
+    {
+      "definition": {
+        "id": "performance.entities-reference",
+        "sourceScenario": "entity.component-runtime-smoke",
+        "measuredTickCount": 40,
+        "relevantMetrics": [
+          "runtime.entities.active",
+          "runtime.events.emitted"
+        ],
+        "isScaled": false,
+        "fixedSeed": "seed.performance-reference",
+        "warmupIterations": 1,
+        "measuredIterations": 5,
+        "metricsMode": "summary",
+        "artifactWritingBoundary": "after-measurement"
+      },
+      "elapsedMedianMilliseconds": 0.0813,
+      "allocatedBytesMedian": 24320,
+      "workCounters": {
+        "runtime.commands.submitted": 1,
+        "runtime.commands.accepted": 1,
+        "runtime.commands.rejected": 0,
+        "runtime.events.emitted": 35,
+        "spatial.queries": 0,
+        "spatial.collision-checks": 0,
+        "presentation.text-commands": 0,
+        "presentation.sound-commands": 0,
+        "performance.entities.created": 32,
+        "performance.entities.queried": 32
+      },
+      "timingAuthority": false,
+      "timingAuthorityReason": "reference median is below the 10ms timing-authority floor",
+      "referenceMedianMilliseconds": 0.0813,
+      "timingStatus": "not-timing-authoritative"
+    },
+    {
+      "definition": {
+        "id": "performance.persistent-world-reference",
+        "sourceScenario": "persistent-world-smoke",
+        "measuredTickCount": 50,
+        "relevantMetrics": [
+          "runtime.tick.duration",
+          "runtime.events.emitted"
+        ],
+        "isScaled": false,
+        "fixedSeed": "seed.performance-reference",
+        "warmupIterations": 1,
+        "measuredIterations": 5,
+        "metricsMode": "summary",
+        "artifactWritingBoundary": "after-measurement"
+      },
+      "elapsedMedianMilliseconds": 0.651,
+      "allocatedBytesMedian": 108600,
+      "workCounters": {
+        "performance.persistent-world.ticks": 50,
+        "performance.persistent-world.entities": 4,
+        "performance.persistent-world.contributors": 13,
+        "performance.persistent-world.roundtrip": 1
+      },
+      "timingAuthority": false,
+      "timingAuthorityReason": "reference median is below the 10ms timing-authority floor",
+      "referenceMedianMilliseconds": 0.651,
+      "timingStatus": "not-timing-authoritative"
+    },
+    {
+      "definition": {
+        "id": "performance.presentation-reference",
+        "sourceScenario": "presentation.persistent-world-player-facing-smoke",
+        "measuredTickCount": 60,
+        "relevantMetrics": [
+          "presentation.render-items",
+          "presentation.effects.active",
+          "runtime.tick.duration"
+        ],
+        "isScaled": false,
+        "fixedSeed": "seed.performance-reference",
+        "warmupIterations": 1,
+        "measuredIterations": 5,
+        "metricsMode": "summary",
+        "artifactWritingBoundary": "after-measurement"
+      },
+      "elapsedMedianMilliseconds": 3.1506,
+      "allocatedBytesMedian": 951688,
+      "workCounters": {
+        "performance.presentation.effects": 2,
+        "performance.presentation.particle-samples": 96,
+        "performance.presentation.particles-per-effect": 48
+      },
+      "timingAuthority": false,
+      "timingAuthorityReason": "reference median is below the 10ms timing-authority floor",
+      "referenceMedianMilliseconds": 3.1506,
+      "timingStatus": "not-timing-authoritative"
+    },
+    {
+      "definition": {
+        "id": "performance.runtime-reference-scaled",
+        "sourceScenario": "runtime.smoke",
+        "measuredTickCount": 18000,
+        "relevantMetrics": [
+          "runtime.tick.duration",
+          "runtime.commands.accepted",
+          "runtime.events.emitted"
+        ],
+        "isScaled": true,
+        "fixedSeed": "seed.performance-reference",
+        "warmupIterations": 1,
+        "measuredIterations": 5,
+        "metricsMode": "summary",
+        "artifactWritingBoundary": "after-measurement"
+      },
+      "elapsedMedianMilliseconds": 20.6588,
+      "allocatedBytesMedian": 11320,
+      "workCounters": {
+        "runtime.commands.submitted": 1,
+        "runtime.commands.accepted": 1,
+        "runtime.commands.rejected": 0,
+        "runtime.events.emitted": 4,
+        "spatial.queries": 0,
+        "spatial.collision-checks": 0,
+        "presentation.text-commands": 0,
+        "presentation.sound-commands": 0
+      },
+      "timingAuthority": true,
+      "timingAuthorityReason": "scaled-real-workload-at-or-above-10ms-floor",
+      "referenceMedianMilliseconds": 20.6588,
+      "timingStatus": "timing-authoritative"
+    },
+    {
+      "definition": {
+        "id": "performance.entities-reference-scaled",
+        "sourceScenario": "entity.component-runtime-smoke",
+        "measuredTickCount": 30000,
+        "relevantMetrics": [
+          "runtime.entities.active",
+          "runtime.events.emitted"
+        ],
+        "isScaled": true,
+        "fixedSeed": "seed.performance-reference",
+        "warmupIterations": 1,
+        "measuredIterations": 5,
+        "metricsMode": "summary",
+        "artifactWritingBoundary": "after-measurement"
+      },
+      "elapsedMedianMilliseconds": 28.7211,
+      "allocatedBytesMedian": 2963224,
+      "workCounters": {
+        "runtime.commands.submitted": 1,
+        "runtime.commands.accepted": 1,
+        "runtime.commands.rejected": 0,
+        "runtime.events.emitted": 7503,
+        "spatial.queries": 0,
+        "spatial.collision-checks": 0,
+        "presentation.text-commands": 0,
+        "presentation.sound-commands": 0,
+        "performance.entities.created": 7500,
+        "performance.entities.queried": 7500
+      },
+      "timingAuthority": true,
+      "timingAuthorityReason": "scaled-real-workload-at-or-above-10ms-floor",
+      "referenceMedianMilliseconds": 28.7211,
+      "timingStatus": "timing-authoritative"
+    },
+    {
+      "definition": {
+        "id": "performance.persistent-world-reference-scaled",
+        "sourceScenario": "persistent-world-smoke",
+        "measuredTickCount": 96000,
+        "relevantMetrics": [
+          "runtime.tick.duration",
+          "runtime.events.emitted"
+        ],
+        "isScaled": true,
+        "fixedSeed": "seed.performance-reference",
+        "warmupIterations": 1,
+        "measuredIterations": 5,
+        "metricsMode": "summary",
+        "artifactWritingBoundary": "after-measurement"
+      },
+      "elapsedMedianMilliseconds": 43.7851,
+      "allocatedBytesMedian": 13778896,
+      "workCounters": {
+        "performance.persistent-world.ticks": 96000,
+        "performance.persistent-world.entities": 4,
+        "performance.persistent-world.contributors": 13,
+        "performance.persistent-world.roundtrip": 48
+      },
+      "timingAuthority": true,
+      "timingAuthorityReason": "scaled-real-workload-at-or-above-10ms-floor",
+      "referenceMedianMilliseconds": 43.7851,
+      "timingStatus": "timing-authoritative"
+    },
+    {
+      "definition": {
+        "id": "performance.presentation-reference-scaled",
+        "sourceScenario": "presentation.persistent-world-player-facing-smoke",
+        "measuredTickCount": 48000,
+        "relevantMetrics": [
+          "presentation.render-items",
+          "presentation.effects.active",
+          "runtime.tick.duration"
+        ],
+        "isScaled": true,
+        "fixedSeed": "seed.performance-reference",
+        "warmupIterations": 1,
+        "measuredIterations": 5,
+        "metricsMode": "summary",
+        "artifactWritingBoundary": "after-measurement"
+      },
+      "elapsedMedianMilliseconds": 98.3891,
+      "allocatedBytesMedian": 19033592,
+      "workCounters": {
+        "performance.presentation.effects": 40,
+        "performance.presentation.particle-samples": 1920,
+        "performance.presentation.particles-per-effect": 48
+      },
+      "timingAuthority": true,
+      "timingAuthorityReason": "scaled-real-workload-at-or-above-10ms-floor",
+      "referenceMedianMilliseconds": 98.3891,
+      "timingStatus": "timing-authoritative"
+    }
+  ],
+  "limitations": [
+    "Timing is observational, not a deterministic fingerprint.",
+    "Sub-10ms fixed workloads retain correctness, deterministic counters, and allocation observations but are not timing-authoritative.",
+    "Comparisons are advisory and are invalid across machines, configurations, seeds, or workload definitions."
+  ]
+}

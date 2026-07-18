@@ -1,0 +1,38 @@
+{
+  "save": {
+    "schema": "autonomous-tic-tac-toe.save.v1",
+    "state": {
+      "cells": [
+        "X",
+        "X",
+        "",
+        "O",
+        "O",
+        "O",
+        "",
+        "",
+        "X"
+      ],
+      "currentMark": "O",
+      "xController": "ai",
+      "oController": "ai",
+      "phase": "round-complete",
+      "thinkingTicksRemaining": 0,
+      "winner": "O",
+      "roundNumber": 1,
+      "scoreX": 0,
+      "scoreO": 1,
+      "drawCount": 0
+    },
+    "simulationTick": 0,
+    "randomDrawCount": 0,
+    "seed": "tic-tac-toe-v1",
+    "excludedTransientState": [
+      "sound-commands",
+      "particles",
+      "prompt-instances",
+      "completed-mark-animation"
+    ]
+  },
+  "fingerprint": "sha256:6d87d07dda148d3f6193a9cf821e108563803e9ac51431cd2cad2a8990fbf9de"
+}

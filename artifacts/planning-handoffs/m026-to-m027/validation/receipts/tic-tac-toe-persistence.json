@@ -1,0 +1,27 @@
+{
+  "schema": "agentic2d.engineering.validation-receipt.v1",
+  "suiteId": "m026-smoke",
+  "shardId": "tic-tac-toe-persistence",
+  "status": "passed",
+  "suiteFingerprint": "5aa2d37d7e7dc836f32993eb0c21c36d6a88abcd42936f78d35836247aed18e7",
+  "repositoryFingerprint": "17f708a16d81f5cbcca2d624d6895fc63218739146209aa8420e36702654cf6a",
+  "commandFingerprint": "27d93eb74da5b9149d6667b5a17c45a99a33c11efa52e7ba50df7ca024d57cf9",
+  "inputFingerprint": "76f6e287b16a7443964d2e9c4d7f25f3608e935cd94e2382f060dfd6fdad4535",
+  "resultFingerprint": "76f6e287b16a7443964d2e9c4d7f25f3608e935cd94e2382f060dfd6fdad4535",
+  "command": "./eng/tic-tac-toe-smoke.sh",
+  "evidencePaths": [
+    "consumers/autonomous-tic-tac-toe/artifacts/runs/save-during-thinking/tic-tac-toe-save.json"
+  ],
+  "artifacts": [
+    {
+      "path": "consumers/autonomous-tic-tac-toe/artifacts/runs/save-during-thinking/tic-tac-toe-save.json",
+      "fingerprint": "a60704f8d7cf178ad06417569e371b52b53656ac4a678bedfd7dd483204fd32d"
+    }
+  ],
+  "completion": {
+    "startedAtUtc": "2026-07-18T15:20:23.984877+00:00",
+    "completedAtUtc": "2026-07-18T15:21:06.0029849+00:00",
+    "platform": "linux-bash"
+  },
+  "diagnostics": []
+}

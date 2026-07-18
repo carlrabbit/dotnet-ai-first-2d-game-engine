@@ -1,0 +1,5 @@
+{
+  "schema": "agentic2d.scenario.v1", "id": "tic-tac-toe.workspace-smoke", "category": "smoke", "title": "Tic-Tac-Toe workspace", "purpose": "Validate the consumer workspace.", "seedPolicy": "scenario", "runtime": { "ticks": 3, "mapId": "map.autonomous-tic-tac-toe", "randomSeed": 26 },
+  "initialState": { "entities": [{ "id": "entity.board", "position": 0 }] }, "steps": [{ "id": "step.move", "command": { "type": "move", "entityId": "entity.board", "amount": 1 } }],
+  "expectedEvents": ["runtime.started", "entity.created", "command.accepted", "entity.moved", "runtime.completed"], "assertions": [{ "id": "board", "type": "entityPositionEquals", "entityId": "entity.board", "position": 1 }], "artifacts": { "result": "result.json", "events": "events.jsonl", "diagnostics": "diagnostics.json" }, "humanReview": { "required": false }
+}

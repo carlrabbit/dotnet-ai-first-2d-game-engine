@@ -1,0 +1,157 @@
+{
+  "schema": "agentic2d.engineering.validation-plan.v1",
+  "suiteId": "m026-smoke",
+  "executionMode": "resumable-sharded",
+  "suiteFingerprint": "5aa2d37d7e7dc836f32993eb0c21c36d6a88abcd42936f78d35836247aed18e7",
+  "repositoryFingerprint": "d1d1a30303eef347900e3edccb06489e39fe55bb9d5c745e03043e2386d06443",
+  "requiredShards": [
+    {
+      "id": "geometry-diagnostics",
+      "description": "Geometry inspection, headless preview, comparison, and all-shape evidence.",
+      "command": "./eng/geometry-diagnostics-smoke.sh",
+      "receiptPath": "artifacts/validation/m026-smoke/geometry-diagnostics.json",
+      "dependsOn": [],
+      "evidence": [
+        "artifacts/geometry/M026/signal-passage/geometry-inspection.json",
+        "artifacts/geometry/M026/tic-tac-toe/geometry-projection-comparison.json",
+        "artifacts/geometry/M026/all-supported-shapes/geometry-inspection.json"
+      ]
+    },
+    {
+      "id": "sound-linkage",
+      "description": "Explicit synthesis/WAV/provenance/sound linkage for both consumers.",
+      "command": "./eng/generated-sound-linkage-smoke.sh",
+      "receiptPath": "artifacts/validation/m026-smoke/sound-linkage.json",
+      "dependsOn": [],
+      "evidence": [
+        "artifacts/sound-linkage/M026/signal-passage/generated-sound-linkage-report.json",
+        "artifacts/sound-linkage/M026/tic-tac-toe/generated-sound-linkage-report.json"
+      ]
+    },
+    {
+      "id": "scaled-performance",
+      "description": "Small-workload timing policy and scaled real workloads.",
+      "command": "./eng/perf-smoke.sh \u0026\u0026 ./eng/scaled-performance-smoke.sh \u0026\u0026 ./eng/m026-performance-report.sh",
+      "receiptPath": "artifacts/validation/m026-smoke/scaled-performance.json",
+      "dependsOn": [],
+      "evidence": [
+        "artifacts/performance/M026/performance-report.json",
+        "artifacts/performance/M026/performance-report.md"
+      ]
+    },
+    {
+      "id": "tic-tac-toe-core",
+      "description": "Autonomous rounds, deterministic choice, takeover, rejection, win/draw, and reset.",
+      "command": "./eng/tic-tac-toe-smoke.sh",
+      "receiptPath": "artifacts/validation/m026-smoke/tic-tac-toe-core.json",
+      "dependsOn": [],
+      "evidence": [
+        "consumers/autonomous-tic-tac-toe/artifacts/runs/deterministic-random-choice/tic-tac-toe-result.json",
+        "consumers/autonomous-tic-tac-toe/artifacts/runs/draw/tic-tac-toe-result.json"
+      ]
+    },
+    {
+      "id": "tic-tac-toe-presentation",
+      "description": "Board structural presentation and cue evidence.",
+      "command": "./eng/tic-tac-toe-smoke.sh",
+      "receiptPath": "artifacts/validation/m026-smoke/tic-tac-toe-presentation.json",
+      "dependsOn": [],
+      "evidence": [
+        "consumers/autonomous-tic-tac-toe/artifacts/runs/presentation-smoke/tic-tac-toe-presentation.json",
+        "consumers/autonomous-tic-tac-toe/artifacts/geometry/geometry-preview.json"
+      ]
+    },
+    {
+      "id": "tic-tac-toe-persistence",
+      "description": "Save during deterministic AI thinking excludes transient feedback.",
+      "command": "./eng/tic-tac-toe-smoke.sh",
+      "receiptPath": "artifacts/validation/m026-smoke/tic-tac-toe-persistence.json",
+      "dependsOn": [],
+      "evidence": [
+        "consumers/autonomous-tic-tac-toe/artifacts/runs/save-during-thinking/tic-tac-toe-save.json"
+      ]
+    },
+    {
+      "id": "workspace-isolation",
+      "description": "Relocated external-style tic-tac-toe workspace validates and runs.",
+      "command": "./eng/tic-tac-toe-isolation.sh",
+      "receiptPath": "artifacts/validation/m026-smoke/workspace-isolation.json",
+      "dependsOn": [],
+      "evidence": [
+        "artifacts/tic-tac-toe/isolation/workspace-validation.json",
+        "artifacts/tic-tac-toe/isolation/run-manifest.json"
+      ]
+    },
+    {
+      "id": "linux-export",
+      "description": "Consumer Linux export, actual consumer launch, playable launcher publication, and development/export equivalence.",
+      "command": "./eng/tic-tac-toe-export.sh",
+      "receiptPath": "artifacts/validation/m026-smoke/linux-export.json",
+      "dependsOn": [],
+      "evidence": [
+        "artifacts/tic-tac-toe/export/game/agentic2d.export.json",
+        "artifacts/tic-tac-toe/export/run/run-manifest.json",
+        "artifacts/tic-tac-toe/export/playable-linux-x64/AutonomousTicTacToe.Playable",
+        "artifacts/tic-tac-toe/export/development-export-equivalence.json"
+      ]
+    },
+    {
+      "id": "consumer-boundary-report",
+      "description": "Evidence-based cross-consumer boundary decisions.",
+      "command": "test -f artifacts/consumer-boundaries/M026/consumer-boundary-decision-report.json \u0026\u0026 test -f artifacts/consumer-boundaries/M026/consumer-boundary-decision-report.md",
+      "receiptPath": "artifacts/validation/m026-smoke/consumer-boundary-report.json",
+      "dependsOn": [],
+      "evidence": [
+        "artifacts/consumer-boundaries/M026/consumer-boundary-decision-report.json",
+        "artifacts/consumer-boundaries/M026/consumer-boundary-decision-report.md"
+      ]
+    },
+    {
+      "id": "human-review",
+      "description": "Required M026 visual, UX, and artifact-quality review is approved and current.",
+      "command": "./eng/review-check.sh",
+      "receiptPath": "artifacts/validation/m026-smoke/human-review.json",
+      "dependsOn": [],
+      "evidence": [
+        ".review/records/review.m026.geometry-diagnostics-and-autonomous-tic-tac-toe.json"
+      ]
+    },
+    {
+      "id": "integrated",
+      "description": "Provider gate plus both consumer journeys.",
+      "command": "./eng/check.sh \u0026\u0026 ./eng/cli-smoke.sh \u0026\u0026 ./eng/product-validate.sh \u0026\u0026 ./eng/signal-passage-smoke.sh \u0026\u0026 ./eng/tic-tac-toe-smoke.sh",
+      "receiptPath": "artifacts/validation/m026-smoke/integrated.json",
+      "dependsOn": [],
+      "evidence": [
+        "consumers/signal-passage/artifacts/journey/complete-journey.json",
+        "consumers/autonomous-tic-tac-toe/artifacts/runs/ai-vs-ai-smoke/tic-tac-toe-result.json"
+      ]
+    }
+  ],
+  "verifierCommand": "./eng/m026-smoke.sh --verify",
+  "artifactPaths": [
+    "artifacts/geometry/M026/signal-passage/geometry-inspection.json",
+    "artifacts/geometry/M026/tic-tac-toe/geometry-projection-comparison.json",
+    "artifacts/geometry/M026/all-supported-shapes/geometry-inspection.json",
+    "artifacts/sound-linkage/M026/signal-passage/generated-sound-linkage-report.json",
+    "artifacts/sound-linkage/M026/tic-tac-toe/generated-sound-linkage-report.json",
+    "artifacts/performance/M026/performance-report.json",
+    "artifacts/performance/M026/performance-report.md",
+    "consumers/autonomous-tic-tac-toe/artifacts/runs/deterministic-random-choice/tic-tac-toe-result.json",
+    "consumers/autonomous-tic-tac-toe/artifacts/runs/draw/tic-tac-toe-result.json",
+    "consumers/autonomous-tic-tac-toe/artifacts/runs/presentation-smoke/tic-tac-toe-presentation.json",
+    "consumers/autonomous-tic-tac-toe/artifacts/geometry/geometry-preview.json",
+    "consumers/autonomous-tic-tac-toe/artifacts/runs/save-during-thinking/tic-tac-toe-save.json",
+    "artifacts/tic-tac-toe/isolation/workspace-validation.json",
+    "artifacts/tic-tac-toe/isolation/run-manifest.json",
+    "artifacts/tic-tac-toe/export/game/agentic2d.export.json",
+    "artifacts/tic-tac-toe/export/run/run-manifest.json",
+    "artifacts/tic-tac-toe/export/playable-linux-x64/AutonomousTicTacToe.Playable",
+    "artifacts/tic-tac-toe/export/development-export-equivalence.json",
+    "artifacts/consumer-boundaries/M026/consumer-boundary-decision-report.json",
+    "artifacts/consumer-boundaries/M026/consumer-boundary-decision-report.md",
+    ".review/records/review.m026.geometry-diagnostics-and-autonomous-tic-tac-toe.json",
+    "consumers/signal-passage/artifacts/journey/complete-journey.json",
+    "consumers/autonomous-tic-tac-toe/artifacts/runs/ai-vs-ai-smoke/tic-tac-toe-result.json"
+  ]
+}

@@ -1,0 +1,42 @@
+{
+  "schema": "agentic2d.engineering.validation-receipt.v1",
+  "suiteId": "m026-smoke",
+  "shardId": "linux-export",
+  "status": "passed",
+  "suiteFingerprint": "5aa2d37d7e7dc836f32993eb0c21c36d6a88abcd42936f78d35836247aed18e7",
+  "repositoryFingerprint": "17f708a16d81f5cbcca2d624d6895fc63218739146209aa8420e36702654cf6a",
+  "commandFingerprint": "f115d109f395a4cd042f6674ababa6c0c4007cd4fbf2095935b0d9fce9ab8fd9",
+  "inputFingerprint": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "resultFingerprint": "913f21c1ee83de7c8eb8e239c8ed6fe321b036a292caed3f0a1339f68f4f1def",
+  "command": "./eng/tic-tac-toe-export.sh",
+  "evidencePaths": [
+    "artifacts/tic-tac-toe/export/game/agentic2d.export.json",
+    "artifacts/tic-tac-toe/export/run/run-manifest.json",
+    "artifacts/tic-tac-toe/export/playable-linux-x64/AutonomousTicTacToe.Playable",
+    "artifacts/tic-tac-toe/export/development-export-equivalence.json"
+  ],
+  "artifacts": [
+    {
+      "path": "artifacts/tic-tac-toe/export/game/agentic2d.export.json",
+      "fingerprint": "83142979208d34f4e3dd236235e1acaa3adfb2351dd4dc6ecdebe695d238bfe5"
+    },
+    {
+      "path": "artifacts/tic-tac-toe/export/run/run-manifest.json",
+      "fingerprint": "fccd6939b08d47ba3de381d35573b83a9e099200df98c39358b4ccc7da1d9554"
+    },
+    {
+      "path": "artifacts/tic-tac-toe/export/playable-linux-x64/AutonomousTicTacToe.Playable",
+      "fingerprint": "9f54c0664685e1d07782b78d66b0b128cae63c01ead5306c750aedf285bece6d"
+    },
+    {
+      "path": "artifacts/tic-tac-toe/export/development-export-equivalence.json",
+      "fingerprint": "4f59b72929da5d27eade5ceffbe422a426fa9110d598afa27ebfbb8c575e6d15"
+    }
+  ],
+  "completion": {
+    "startedAtUtc": "2026-07-18T15:26:54.1813757+00:00",
+    "completedAtUtc": "2026-07-18T15:27:41.3342943+00:00",
+    "platform": "linux-bash"
+  },
+  "diagnostics": []
+}

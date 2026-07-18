@@ -1,0 +1,32 @@
+{
+  "schema": "agentic2d.engineering.validation-receipt.v1",
+  "suiteId": "m026-smoke",
+  "shardId": "consumer-boundary-report",
+  "status": "passed",
+  "suiteFingerprint": "5aa2d37d7e7dc836f32993eb0c21c36d6a88abcd42936f78d35836247aed18e7",
+  "repositoryFingerprint": "17f708a16d81f5cbcca2d624d6895fc63218739146209aa8420e36702654cf6a",
+  "commandFingerprint": "46a42fdad550762aeeee3bb36f32b0477cdac63a413437453ee30d36273da5d4",
+  "inputFingerprint": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "resultFingerprint": "f62d67ec1910fa5f0ffffcde2badec97eed522eb45759628aa17afc48ab9dfb4",
+  "command": "test -f artifacts/consumer-boundaries/M026/consumer-boundary-decision-report.json \u0026\u0026 test -f artifacts/consumer-boundaries/M026/consumer-boundary-decision-report.md",
+  "evidencePaths": [
+    "artifacts/consumer-boundaries/M026/consumer-boundary-decision-report.json",
+    "artifacts/consumer-boundaries/M026/consumer-boundary-decision-report.md"
+  ],
+  "artifacts": [
+    {
+      "path": "artifacts/consumer-boundaries/M026/consumer-boundary-decision-report.json",
+      "fingerprint": "150389ed6bb8f081eb259445ccf13ac1adb8376e2e3d724d4e94c6aee9981018"
+    },
+    {
+      "path": "artifacts/consumer-boundaries/M026/consumer-boundary-decision-report.md",
+      "fingerprint": "a92fbdea23435b9771b5b1459c6e33a9e65926251ce5f29606db04e80eb1999e"
+    }
+  ],
+  "completion": {
+    "startedAtUtc": "2026-07-18T15:27:46.2533786+00:00",
+    "completedAtUtc": "2026-07-18T15:27:46.3623815+00:00",
+    "platform": "linux-bash"
+  },
+  "diagnostics": []
+}

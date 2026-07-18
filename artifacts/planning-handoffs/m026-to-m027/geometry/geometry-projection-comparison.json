@@ -1,0 +1,10 @@
+{
+  "schema": "agentic2d.geometry-projection-comparison.v1",
+  "status": "passed",
+  "projectionComparison": {
+    "comparison": "structural-only",
+    "normalizedCommandCount": 4,
+    "graphicalCapture": "not-captured-in-headless-environment",
+    "conclusion": "Semantic commands are comparable to adapter capture metadata; pixels are not simulation authority."
+  }
+}

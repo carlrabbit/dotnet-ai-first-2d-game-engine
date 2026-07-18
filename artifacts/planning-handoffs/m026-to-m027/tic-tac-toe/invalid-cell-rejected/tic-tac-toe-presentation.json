@@ -1,0 +1,215 @@
+{
+  "board": "geometric-3x3",
+  "state": "placing-mark",
+  "controllerLabels": {
+    "x": "human",
+    "o": "ai"
+  },
+  "selectionHighlight": false,
+  "winnerLine": "",
+  "animation": {
+    "playback": {
+      "clipId": "place",
+      "selectionKey": "mark.0",
+      "startedAtRuntimeTick": 0,
+      "elapsedTicks": 0,
+      "localTick": 0,
+      "loopIteration": 0,
+      "status": "playing"
+    },
+    "patches": [
+      {
+        "partId": "mark",
+        "property": "visual.opacity",
+        "scalar": 0,
+        "regionId": null,
+        "trackId": "mark-opacity",
+        "keyframeId": "zero",
+        "layer": "overlay"
+      },
+      {
+        "partId": "mark",
+        "property": "visual.scale.x",
+        "scalar": 0.6,
+        "regionId": null,
+        "trackId": "mark-scale",
+        "keyframeId": "small",
+        "layer": "overlay"
+      }
+    ]
+  },
+  "particles": [
+    {
+      "particleId": "particle.2fc973b7734207efb0b3",
+      "tick": 0,
+      "age": 0,
+      "x": 1.5434,
+      "y": 1.4371,
+      "rotation": 323.3195,
+      "scale": 0.5685,
+      "opacity": 255,
+      "fingerprint": "419abd6be5f721a1258fa1a153a90abf1e6ef9e86c60f1b7c3d8fe31e65d2a6a"
+    },
+    {
+      "particleId": "particle.31987ef07f66b80498d4",
+      "tick": 0,
+      "age": 0,
+      "x": 1.5301,
+      "y": 1.4235,
+      "rotation": 202.4714,
+      "scale": 0.7043,
+      "opacity": 255,
+      "fingerprint": "8dbd0fca6dd32e59bf8e918a1198c07d719e92bdc2c9e13464f0eb766a0f88d8"
+    },
+    {
+      "particleId": "particle.3c2c82569ffaf64fbc2b",
+      "tick": 0,
+      "age": 0,
+      "x": 1.5827,
+      "y": 1.4501,
+      "rotation": 89.6964,
+      "scale": 0.5229,
+      "opacity": 255,
+      "fingerprint": "7bd9bae08523111dff034051758d7962b434e6ee2bfe8207d22a247ab9a725f5"
+    },
+    {
+      "particleId": "particle.434a12b351255c277a23",
+      "tick": 0,
+      "age": 0,
+      "x": 1.3089,
+      "y": 1.4644,
+      "rotation": 248.7337,
+      "scale": 0.9962,
+      "opacity": 255,
+      "fingerprint": "832ebcdb256ecf231bac9e41ce1f8d358c50889b99dfd5255349f4e4554f960d"
+    },
+    {
+      "particleId": "particle.44b7ad5ec8f6186e144a",
+      "tick": 0,
+      "age": 0,
+      "x": 1.6074,
+      "y": 1.6637,
+      "rotation": 229.0682,
+      "scale": 0.8738,
+      "opacity": 255,
+      "fingerprint": "ee20ce9c6c916defc5ea84f3713c0e8fde751768002720a5e174d95c0d960a4e"
+    },
+    {
+      "particleId": "particle.546fbae285d0fb2e6f08",
+      "tick": 0,
+      "age": 0,
+      "x": 1.6247,
+      "y": 1.5116,
+      "rotation": 27.3172,
+      "scale": 0.9318,
+      "opacity": 255,
+      "fingerprint": "bd925a0eb1c87253ecc2568ca01cb2762f1dc0a850f8606d672d5e93e1ad38bf"
+    },
+    {
+      "particleId": "particle.54ac09651d6a951768b0",
+      "tick": 0,
+      "age": 0,
+      "x": 1.5341,
+      "y": 1.3066,
+      "rotation": 249.702,
+      "scale": 0.6282,
+      "opacity": 255,
+      "fingerprint": "b350c400c582b41bc810a886127ee43f6147032021dc800841f9bac626a2d041"
+    },
+    {
+      "particleId": "particle.6f9d9024afed35d18e24",
+      "tick": 0,
+      "age": 0,
+      "x": 1.3488,
+      "y": 1.6496,
+      "rotation": 344.163,
+      "scale": 0.6213,
+      "opacity": 255,
+      "fingerprint": "22b779a003e7715d4580ae53613afd01d11a74336948860500f23270f447678b"
+    },
+    {
+      "particleId": "particle.8463fa7a0e8d46036cb1",
+      "tick": 0,
+      "age": 0,
+      "x": 1.4965,
+      "y": 1.4068,
+      "rotation": 223.8539,
+      "scale": 0.5564,
+      "opacity": 255,
+      "fingerprint": "c688c5aad26916e64c6ea3622570ec3d55818d3aa39eae66cb64e18fa93c722f"
+    },
+    {
+      "particleId": "particle.855adffdf3dff0d81de7",
+      "tick": 0,
+      "age": 0,
+      "x": 1.6409,
+      "y": 1.4712,
+      "rotation": 85.6817,
+      "scale": 0.8227,
+      "opacity": 255,
+      "fingerprint": "9e2dcfe04eea1916e001d781d2bcb6e4da6af0df3b5e30248bfbfe34c8e454f4"
+    },
+    {
+      "particleId": "particle.8850e708350a35609701",
+      "tick": 0,
+      "age": 0,
+      "x": 1.602,
+      "y": 1.536,
+      "rotation": 158.2489,
+      "scale": 0.5708,
+      "opacity": 255,
+      "fingerprint": "a43507a0a01a5005a0a10be8f9d65f7e74f869b3953baabf983882dba3f5c753"
+    },
+    {
+      "particleId": "particle.b240864ccf83e2854c0c",
+      "tick": 0,
+      "age": 0,
+      "x": 1.313,
+      "y": 1.5554,
+      "rotation": 80.7244,
+      "scale": 0.7356,
+      "opacity": 255,
+      "fingerprint": "5a152cfdae74a6412bec0caf95ac686e055ba83e2a0b783cd6a2d9168684c007"
+    }
+  ],
+  "semanticInputFrame": {
+    "schema": "agentic2d.input-frame.v1",
+    "tick": 0,
+    "frameSequence": 0,
+    "inputSourceId": "input-source.player-1",
+    "inputMapId": "input-map.autonomous-tic-tac-toe",
+    "inputMapRevision": "consumer-v1",
+    "digitalActions": {
+      "participant.take-x": {
+        "value": 0,
+        "phase": 0
+      },
+      "participant.take-o": {
+        "value": 0,
+        "phase": 0
+      },
+      "participant.release-x": {
+        "value": 0,
+        "phase": 0
+      },
+      "participant.release-o": {
+        "value": 0,
+        "phase": 0
+      },
+      "board.select-cell": {
+        "value": 0,
+        "phase": 0
+      },
+      "round.restart": {
+        "value": 0,
+        "phase": 0
+      }
+    },
+    "scalarActions": {},
+    "vectorActions": {},
+    "pointers": {},
+    "rawSampleSequences": [],
+    "diagnostics": []
+  },
+  "presentationIsTransient": true
+}

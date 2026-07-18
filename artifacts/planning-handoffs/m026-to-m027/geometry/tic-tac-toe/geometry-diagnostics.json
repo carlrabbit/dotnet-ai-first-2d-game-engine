@@ -1,0 +1,15 @@
+{
+  "schema": "agentic2d.geometry-diagnostics.v1",
+  "status": "passed",
+  "diagnostics": [
+    {
+      "id": "GEOMETRY0101",
+      "severity": "warning",
+      "message": "Geometry fill has bounded low contrast against the declared preview background; this is not accessibility or aesthetic certification.",
+      "target": "/home/dev/src/dotnet-ai-first-2d-game-engine/consumers/autonomous-tic-tac-toe/game-content/visuals/tic-tac-toe.json",
+      "field": "parts[].geometry.fill",
+      "partId": "board",
+      "remediation": "Choose a more distinct author-selected fill or preview background."
+    }
+  ]
+}

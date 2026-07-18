@@ -1,0 +1,37 @@
+{
+  "schema": "agentic2d.engineering.validation-receipt.v1",
+  "suiteId": "m026-smoke",
+  "shardId": "geometry-diagnostics",
+  "status": "passed",
+  "suiteFingerprint": "5aa2d37d7e7dc836f32993eb0c21c36d6a88abcd42936f78d35836247aed18e7",
+  "repositoryFingerprint": "17f708a16d81f5cbcca2d624d6895fc63218739146209aa8420e36702654cf6a",
+  "commandFingerprint": "8634c17657c090d42331b72db8e539c011571eb6bac6177b0d1c30e84804ed54",
+  "inputFingerprint": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "resultFingerprint": "c20c5323729aa3c6481196c9fd607e69527ffbecd02cb1ca6537f0b3600b1c93",
+  "command": "./eng/geometry-diagnostics-smoke.sh",
+  "evidencePaths": [
+    "artifacts/geometry/M026/signal-passage/geometry-inspection.json",
+    "artifacts/geometry/M026/tic-tac-toe/geometry-projection-comparison.json",
+    "artifacts/geometry/M026/all-supported-shapes/geometry-inspection.json"
+  ],
+  "artifacts": [
+    {
+      "path": "artifacts/geometry/M026/signal-passage/geometry-inspection.json",
+      "fingerprint": "a5781c43369da9784ab5f2fc7ec5339743156761d3f5af4e67e0185a667cd0cc"
+    },
+    {
+      "path": "artifacts/geometry/M026/tic-tac-toe/geometry-projection-comparison.json",
+      "fingerprint": "a88e10439ef6cdf205273ccf849d6c9948b6d443572e69e439eeabbddc2d92d3"
+    },
+    {
+      "path": "artifacts/geometry/M026/all-supported-shapes/geometry-inspection.json",
+      "fingerprint": "a32d42d60613c52d2a6f2923f9813fad7cf8b78360af22bad19ca3ccdf19d42a"
+    }
+  ],
+  "completion": {
+    "startedAtUtc": "2026-07-18T15:17:14.7311838+00:00",
+    "completedAtUtc": "2026-07-18T15:17:18.1562707+00:00",
+    "platform": "linux-bash"
+  },
+  "diagnostics": []
+}

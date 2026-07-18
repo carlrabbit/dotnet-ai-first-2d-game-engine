@@ -1,0 +1,15 @@
+{
+  "Schema": "agentic2d.sound-synthesis-artifact.v1",
+  "Id": "sound-synthesis.tic-tac-toe.invalid-selection",
+  "OutputAssetId": "asset.tic-tac-toe.invalid-selection",
+  "OutputPath": "game-content/generated/sounds/invalid-selection.wav",
+  "DefinitionFingerprint": "sha256:d1f50ca8cc8cbd94ae416bb1ed463534478aed2a0aa027e746d623ed41c12e4f",
+  "ImplementationVersion": "m025-offline-pcm-v1",
+  "SampleCount": 1323,
+  "SampleRate": 22050,
+  "DurationSeconds": 0.06,
+  "Peak": 0.09869685964537492,
+  "Rms": 0.02937350804179297,
+  "OutputSha256": "7de5ef168fc426137ab876b5d8738b6a9e8587631ecc7e8693f2b1832cd6607c",
+  "Diagnostics": []
+}

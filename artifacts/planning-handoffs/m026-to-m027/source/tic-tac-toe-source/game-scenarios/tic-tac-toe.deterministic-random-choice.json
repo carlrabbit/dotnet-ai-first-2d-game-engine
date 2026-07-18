@@ -1,0 +1,1 @@
+{"schema":"autonomous-tic-tac-toe.scenario.v1","id":"tic-tac-toe.deterministic-random-choice","seed":"tic-tac-toe-v1","semanticActions":[],"assertions":["identical-seed-identical-moves","identical-final-state"]}

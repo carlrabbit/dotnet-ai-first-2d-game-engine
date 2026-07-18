@@ -1,0 +1,9 @@
+{
+  "schema": "agentic2d.visual-definition.v1", "id": "visual-definition.autonomous-tic-tac-toe.board",
+  "parts": [
+    { "id": "board", "anchor": "center", "offset": { "x": 0, "y": 0 }, "worldSize": { "width": 3.4, "height": 3.4 }, "layer": "ground", "order": 1, "sortMode": "fixed", "tint": { "r": 27, "g": 38, "b": 56, "a": 255 }, "geometry": { "kind": "rectangle", "fill": { "r": 27, "g": 38, "b": 56, "a": 255 }, "outline": { "r": 136, "g": 168, "b": 205, "a": 255 }, "outlineWidth": 0.08, "opacity": 1 } },
+    { "id": "grid-horizontal", "anchor": "center", "offset": { "x": 0, "y": 0 }, "worldSize": { "width": 3, "height": 3 }, "layer": "foreground", "order": 2, "sortMode": "fixed", "tint": { "r": 136, "g": 168, "b": 205, "a": 255 }, "geometry": { "kind": "line", "fill": { "r": 136, "g": 168, "b": 205, "a": 255 }, "lineEnd": { "x": 3, "y": 0 }, "outlineWidth": 0.06, "opacity": 1 } },
+    { "id": "selection", "anchor": "center", "offset": { "x": 0, "y": 0 }, "worldSize": { "width": 0.9, "height": 0.9 }, "layer": "debug", "order": 3, "sortMode": "fixed", "tint": { "r": 255, "g": 212, "b": 94, "a": 255 }, "geometry": { "kind": "ring", "outline": { "r": 255, "g": 212, "b": 94, "a": 255 }, "outlineWidth": 0.08, "ringInnerRatio": 0.76, "opacity": 0.9 } },
+    { "id": "winner-line", "anchor": "center", "offset": { "x": 0, "y": 0 }, "worldSize": { "width": 2.7, "height": 0.2 }, "layer": "foreground", "order": 4, "sortMode": "fixed", "tint": { "r": 103, "g": 232, "b": 161, "a": 255 }, "geometry": { "kind": "line", "fill": { "r": 103, "g": 232, "b": 161, "a": 255 }, "lineEnd": { "x": 2.7, "y": 0 }, "outlineWidth": 0.14, "opacity": 1 } }
+  ]
+}

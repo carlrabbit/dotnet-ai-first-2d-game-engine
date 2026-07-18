@@ -1,0 +1,211 @@
+{
+  "schema": "agentic2d.performance-report.v1",
+  "milestone": "M026",
+  "status": "possible-regression",
+  "comparison": {
+    "schema": "agentic2d.performance-comparison.v1",
+    "beforeLabel": "m026-before",
+    "afterLabel": "m026-after",
+    "status": "possible-regression",
+    "workloads": [
+      {
+        "id": "performance.runtime-reference",
+        "elapsedChangePercent": -4.354354354354354,
+        "allocationChangePercent": 0,
+        "status": "not-timing-authoritative",
+        "beforeWorkCounters": {
+          "runtime.commands.submitted": 1,
+          "runtime.commands.accepted": 1,
+          "runtime.commands.rejected": 0,
+          "runtime.events.emitted": 4,
+          "spatial.queries": 0,
+          "spatial.collision-checks": 0,
+          "presentation.text-commands": 0,
+          "presentation.sound-commands": 0
+        },
+        "afterWorkCounters": {
+          "runtime.commands.submitted": 1,
+          "runtime.commands.accepted": 1,
+          "runtime.commands.rejected": 0,
+          "runtime.events.emitted": 4,
+          "spatial.queries": 0,
+          "spatial.collision-checks": 0,
+          "presentation.text-commands": 0,
+          "presentation.sound-commands": 0
+        },
+        "timingAuthority": false,
+        "timingAuthorityReason": "reference median is below the 10ms timing-authority floor"
+      },
+      {
+        "id": "performance.entities-reference",
+        "elapsedChangePercent": -37.74885145482389,
+        "allocationChangePercent": 0,
+        "status": "not-timing-authoritative",
+        "beforeWorkCounters": {
+          "runtime.commands.submitted": 1,
+          "runtime.commands.accepted": 1,
+          "runtime.commands.rejected": 0,
+          "runtime.events.emitted": 35,
+          "spatial.queries": 0,
+          "spatial.collision-checks": 0,
+          "presentation.text-commands": 0,
+          "presentation.sound-commands": 0,
+          "performance.entities.created": 32,
+          "performance.entities.queried": 32
+        },
+        "afterWorkCounters": {
+          "runtime.commands.submitted": 1,
+          "runtime.commands.accepted": 1,
+          "runtime.commands.rejected": 0,
+          "runtime.events.emitted": 35,
+          "spatial.queries": 0,
+          "spatial.collision-checks": 0,
+          "presentation.text-commands": 0,
+          "presentation.sound-commands": 0,
+          "performance.entities.created": 32,
+          "performance.entities.queried": 32
+        },
+        "timingAuthority": false,
+        "timingAuthorityReason": "reference median is below the 10ms timing-authority floor"
+      },
+      {
+        "id": "performance.persistent-world-reference",
+        "elapsedChangePercent": -7.685762904140672,
+        "allocationChangePercent": 0,
+        "status": "not-timing-authoritative",
+        "beforeWorkCounters": {
+          "performance.persistent-world.ticks": 50,
+          "performance.persistent-world.entities": 4,
+          "performance.persistent-world.contributors": 13,
+          "performance.persistent-world.roundtrip": 1
+        },
+        "afterWorkCounters": {
+          "performance.persistent-world.ticks": 50,
+          "performance.persistent-world.entities": 4,
+          "performance.persistent-world.contributors": 13,
+          "performance.persistent-world.roundtrip": 1
+        },
+        "timingAuthority": false,
+        "timingAuthorityReason": "reference median is below the 10ms timing-authority floor"
+      },
+      {
+        "id": "performance.presentation-reference",
+        "elapsedChangePercent": -23.154223273738385,
+        "allocationChangePercent": 0,
+        "status": "not-timing-authoritative",
+        "beforeWorkCounters": {
+          "performance.presentation.effects": 2,
+          "performance.presentation.particle-samples": 96,
+          "performance.presentation.particles-per-effect": 48
+        },
+        "afterWorkCounters": {
+          "performance.presentation.effects": 2,
+          "performance.presentation.particle-samples": 96,
+          "performance.presentation.particles-per-effect": 48
+        },
+        "timingAuthority": false,
+        "timingAuthorityReason": "reference median is below the 10ms timing-authority floor"
+      },
+      {
+        "id": "performance.runtime-reference-scaled",
+        "elapsedChangePercent": -9.137370636383231,
+        "allocationChangePercent": 0,
+        "status": "improved",
+        "beforeWorkCounters": {
+          "runtime.commands.submitted": 1,
+          "runtime.commands.accepted": 1,
+          "runtime.commands.rejected": 0,
+          "runtime.events.emitted": 4,
+          "spatial.queries": 0,
+          "spatial.collision-checks": 0,
+          "presentation.text-commands": 0,
+          "presentation.sound-commands": 0
+        },
+        "afterWorkCounters": {
+          "runtime.commands.submitted": 1,
+          "runtime.commands.accepted": 1,
+          "runtime.commands.rejected": 0,
+          "runtime.events.emitted": 4,
+          "spatial.queries": 0,
+          "spatial.collision-checks": 0,
+          "presentation.text-commands": 0,
+          "presentation.sound-commands": 0
+        },
+        "timingAuthority": true,
+        "timingAuthorityReason": "scaled-real-workload-at-or-above-10ms-floor"
+      },
+      {
+        "id": "performance.entities-reference-scaled",
+        "elapsedChangePercent": 68.10317581092629,
+        "allocationChangePercent": 0,
+        "status": "possible-regression",
+        "beforeWorkCounters": {
+          "runtime.commands.submitted": 1,
+          "runtime.commands.accepted": 1,
+          "runtime.commands.rejected": 0,
+          "runtime.events.emitted": 7503,
+          "spatial.queries": 0,
+          "spatial.collision-checks": 0,
+          "presentation.text-commands": 0,
+          "presentation.sound-commands": 0,
+          "performance.entities.created": 7500,
+          "performance.entities.queried": 7500
+        },
+        "afterWorkCounters": {
+          "runtime.commands.submitted": 1,
+          "runtime.commands.accepted": 1,
+          "runtime.commands.rejected": 0,
+          "runtime.events.emitted": 7503,
+          "spatial.queries": 0,
+          "spatial.collision-checks": 0,
+          "presentation.text-commands": 0,
+          "presentation.sound-commands": 0,
+          "performance.entities.created": 7500,
+          "performance.entities.queried": 7500
+        },
+        "timingAuthority": true,
+        "timingAuthorityReason": "scaled-real-workload-at-or-above-10ms-floor"
+      },
+      {
+        "id": "performance.persistent-world-reference-scaled",
+        "elapsedChangePercent": 0.13309884762011337,
+        "allocationChangePercent": 0,
+        "status": "within-noise",
+        "beforeWorkCounters": {
+          "performance.persistent-world.ticks": 96000,
+          "performance.persistent-world.entities": 4,
+          "performance.persistent-world.contributors": 13,
+          "performance.persistent-world.roundtrip": 48
+        },
+        "afterWorkCounters": {
+          "performance.persistent-world.ticks": 96000,
+          "performance.persistent-world.entities": 4,
+          "performance.persistent-world.contributors": 13,
+          "performance.persistent-world.roundtrip": 48
+        },
+        "timingAuthority": true,
+        "timingAuthorityReason": "scaled-real-workload-at-or-above-10ms-floor"
+      },
+      {
+        "id": "performance.presentation-reference-scaled",
+        "elapsedChangePercent": 1.8639861598716994,
+        "allocationChangePercent": 0,
+        "status": "within-noise",
+        "beforeWorkCounters": {
+          "performance.presentation.effects": 40,
+          "performance.presentation.particle-samples": 1920,
+          "performance.presentation.particles-per-effect": 48
+        },
+        "afterWorkCounters": {
+          "performance.presentation.effects": 40,
+          "performance.presentation.particle-samples": 1920,
+          "performance.presentation.particles-per-effect": 48
+        },
+        "timingAuthority": true,
+        "timingAuthorityReason": "scaled-real-workload-at-or-above-10ms-floor"
+      }
+    ],
+    "comparisonScope": "same-machine-close-in-time-only"
+  },
+  "limitations": "Advisory same-machine, same-configuration, fixed-seed, close-in-time comparison only; elapsed timing is not deterministic authority."
+}

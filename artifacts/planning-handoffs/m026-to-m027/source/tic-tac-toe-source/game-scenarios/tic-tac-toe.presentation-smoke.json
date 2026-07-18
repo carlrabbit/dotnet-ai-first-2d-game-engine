@@ -1,0 +1,1 @@
+{"schema":"autonomous-tic-tac-toe.scenario.v1","id":"tic-tac-toe.presentation-smoke","semanticActions":[],"assertions":["animation-sampled","particle-projection","geometric-board"]}

@@ -1,0 +1,12 @@
+{
+  "schema": "agentic2d.game-project.v1",
+  "id": "game.autonomous-tic-tac-toe",
+  "gameSourceRoots": ["game-src"],
+  "authoredContentRoots": ["game-content"],
+  "defaultScenarioId": "tic-tac-toe.workspace-smoke",
+  "runtime": { "seed": "tic-tac-toe-v1", "ticks": 540 },
+  "presentation": { "mode": "headless" },
+  "assemblies": ["AutonomousTicTacToe.Game"],
+  "supportedContentDomains": ["scenarios", "maps", "visuals", "sounds", "sound-synthesis", "generated-sound-linkage"],
+  "fingerprintInputs": { "structuralVersion": 1 }
+}

@@ -1,0 +1,32 @@
+{
+  "schema": "agentic2d.engineering.validation-receipt.v1",
+  "suiteId": "m026-smoke",
+  "shardId": "workspace-isolation",
+  "status": "passed",
+  "suiteFingerprint": "5aa2d37d7e7dc836f32993eb0c21c36d6a88abcd42936f78d35836247aed18e7",
+  "repositoryFingerprint": "17f708a16d81f5cbcca2d624d6895fc63218739146209aa8420e36702654cf6a",
+  "commandFingerprint": "14518eb501d83ebcdb53d9317bca07088b6d897cb115a6e8ed502bc9f0ea6038",
+  "inputFingerprint": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "resultFingerprint": "e5d7a0fea2b03871603f24ce5440fd88fd14da08d8858b15058fface4ee90ab8",
+  "command": "./eng/tic-tac-toe-isolation.sh",
+  "evidencePaths": [
+    "artifacts/tic-tac-toe/isolation/workspace-validation.json",
+    "artifacts/tic-tac-toe/isolation/run-manifest.json"
+  ],
+  "artifacts": [
+    {
+      "path": "artifacts/tic-tac-toe/isolation/workspace-validation.json",
+      "fingerprint": "3670e0fada9653ff9463ea6c9daea7e98488b556edfcc551721906381515b84e"
+    },
+    {
+      "path": "artifacts/tic-tac-toe/isolation/run-manifest.json",
+      "fingerprint": "9ada9f51064962068413e00fdce7292ded448442bd5c5b82491374550d278ce4"
+    }
+  ],
+  "completion": {
+    "startedAtUtc": "2026-07-18T15:21:13.1630083+00:00",
+    "completedAtUtc": "2026-07-18T15:21:47.1391127+00:00",
+    "platform": "linux-bash"
+  },
+  "diagnostics": []
+}

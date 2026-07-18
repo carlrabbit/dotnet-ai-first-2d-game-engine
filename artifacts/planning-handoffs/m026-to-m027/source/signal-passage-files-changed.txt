@@ -1,0 +1,2 @@
+consumers/signal-passage/agentic2d.project.json
+consumers/signal-passage/game-content/sounds/generated-sound-linkage.json

@@ -1,0 +1,1 @@
+{"schema":"autonomous-tic-tac-toe.scenario.v1","id":"tic-tac-toe.round-reset","semanticActions":["round.restart"],"assertions":["board-cleared","scores-retained"]}

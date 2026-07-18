@@ -1,0 +1,15 @@
+{
+  "schema": "agentic2d.m026-to-m027.collection-metadata.v1",
+  "repository": "carlrabbit/dotnet-ai-first-2d-game-engine",
+  "branch": "handoff/m026-to-m027",
+  "acceptedM025Base": "7d982d7",
+  "m026Revision": "5fe5a7c09051c85368257d9d6c45914c0f09e790",
+  "currentHead": "5fe5a7c09051c85368257d9d6c45914c0f09e790",
+  "commitRange": "7d982d7..5fe5a7c09051c85368257d9d6c45914c0f09e790",
+  "collectionTimestampUtc": "2026-07-18T16:38:08Z",
+  "operatingSystem": "Linux-6.17.0-35-generic-x86_64-with-glibc2.39",
+  "dotnetSdk": "10.0.109",
+  "workingTreeStatus": "D .review/pending/review.m026.geometry-diagnostics-and-autonomous-tic-tac-toe.json\n?? .review/records/review.m026.geometry-diagnostics-and-autonomous-tic-tac-toe.json",
+  "handoffStatus": "incomplete",
+  "blockingReason": "Current branch validation receipts are stale after post-M026 launcher fixes; repository-wide review check has stale M022/M025 records."
+}

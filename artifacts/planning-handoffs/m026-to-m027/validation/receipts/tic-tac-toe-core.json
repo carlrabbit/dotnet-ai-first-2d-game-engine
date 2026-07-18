@@ -1,0 +1,32 @@
+{
+  "schema": "agentic2d.engineering.validation-receipt.v1",
+  "suiteId": "m026-smoke",
+  "shardId": "tic-tac-toe-core",
+  "status": "passed",
+  "suiteFingerprint": "5aa2d37d7e7dc836f32993eb0c21c36d6a88abcd42936f78d35836247aed18e7",
+  "repositoryFingerprint": "17f708a16d81f5cbcca2d624d6895fc63218739146209aa8420e36702654cf6a",
+  "commandFingerprint": "edc7f37de12eacc6ba53408161cb533037d6de0a11dd976e747592a0d5aa8e0f",
+  "inputFingerprint": "92ab176a147b3f885726274e88a5b8c7782d27220d7432978423c9b219063bdf",
+  "resultFingerprint": "92ab176a147b3f885726274e88a5b8c7782d27220d7432978423c9b219063bdf",
+  "command": "./eng/tic-tac-toe-smoke.sh",
+  "evidencePaths": [
+    "consumers/autonomous-tic-tac-toe/artifacts/runs/deterministic-random-choice/tic-tac-toe-result.json",
+    "consumers/autonomous-tic-tac-toe/artifacts/runs/draw/tic-tac-toe-result.json"
+  ],
+  "artifacts": [
+    {
+      "path": "consumers/autonomous-tic-tac-toe/artifacts/runs/deterministic-random-choice/tic-tac-toe-result.json",
+      "fingerprint": "0b48ba3add4908cea35e03159b6c57039dec86607b9c9b334237f236ff4e0aba"
+    },
+    {
+      "path": "consumers/autonomous-tic-tac-toe/artifacts/runs/draw/tic-tac-toe-result.json",
+      "fingerprint": "448c519e088f3d3ab8fcdb4df95b8745792e1ec44089fda8a3aea07ace821615"
+    }
+  ],
+  "completion": {
+    "startedAtUtc": "2026-07-18T15:18:46.695024+00:00",
+    "completedAtUtc": "2026-07-18T15:19:28.2682748+00:00",
+    "platform": "linux-bash"
+  },
+  "diagnostics": []
+}

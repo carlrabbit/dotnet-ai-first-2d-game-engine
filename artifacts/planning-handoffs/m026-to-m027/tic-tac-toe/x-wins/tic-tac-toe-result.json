@@ -1,0 +1,104 @@
+{
+  "schema": "autonomous-tic-tac-toe.run.v2",
+  "scenario": "tic-tac-toe.x-wins",
+  "status": "passed",
+  "state": {
+    "cells": [
+      "X",
+      "X",
+      "X",
+      "O",
+      "O",
+      "",
+      "",
+      "",
+      ""
+    ],
+    "currentMark": "X",
+    "xController": "ai",
+    "oController": "ai",
+    "phase": "round-complete",
+    "thinkingTicksRemaining": 0,
+    "winner": "X",
+    "roundNumber": 1,
+    "scoreX": 1,
+    "scoreO": 0,
+    "drawCount": 0
+  },
+  "saveState": {
+    "cells": [
+      "X",
+      "X",
+      "X",
+      "O",
+      "O",
+      "",
+      "",
+      "",
+      ""
+    ],
+    "currentMark": "X",
+    "xController": "ai",
+    "oController": "ai",
+    "phase": "round-complete",
+    "thinkingTicksRemaining": 0,
+    "winner": "X",
+    "roundNumber": 1,
+    "scoreX": 1,
+    "scoreO": 0,
+    "drawCount": 0
+  },
+  "simulationTick": 0,
+  "randomDrawCount": 0,
+  "events": [
+    {
+      "type": "round-start",
+      "cue": "cue.tic-tac-toe.round-start"
+    },
+    {
+      "type": "mark-placed",
+      "cell": 0,
+      "mark": "X",
+      "cue": "cue.tic-tac-toe.mark-x"
+    },
+    {
+      "type": "mark-placed",
+      "cell": 3,
+      "mark": "O",
+      "cue": "cue.tic-tac-toe.mark-o"
+    },
+    {
+      "type": "mark-placed",
+      "cell": 1,
+      "mark": "X",
+      "cue": "cue.tic-tac-toe.mark-x"
+    },
+    {
+      "type": "mark-placed",
+      "cell": 4,
+      "mark": "O",
+      "cue": "cue.tic-tac-toe.mark-o"
+    },
+    {
+      "type": "mark-placed",
+      "cell": 2,
+      "mark": "X",
+      "cue": "cue.tic-tac-toe.mark-x"
+    },
+    {
+      "type": "round-won",
+      "winner": "X",
+      "cue": "cue.tic-tac-toe.win"
+    }
+  ],
+  "cueInventory": [
+    "cue.tic-tac-toe.round-start",
+    "cue.tic-tac-toe.thinking-start",
+    "cue.tic-tac-toe.mark-x",
+    "cue.tic-tac-toe.mark-o",
+    "cue.tic-tac-toe.invalid-selection",
+    "cue.tic-tac-toe.win",
+    "cue.tic-tac-toe.draw",
+    "cue.tic-tac-toe.human-takeover"
+  ]
+}

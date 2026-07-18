@@ -1,0 +1,11 @@
+error: m026-smoke/geometry-diagnostics: invalid receipt (repository fingerprint)
+error: m026-smoke/sound-linkage: invalid receipt (repository fingerprint)
+error: m026-smoke/scaled-performance: invalid receipt (repository fingerprint)
+error: m026-smoke/tic-tac-toe-core: invalid receipt (repository fingerprint)
+error: m026-smoke/tic-tac-toe-presentation: invalid receipt (repository fingerprint)
+error: m026-smoke/tic-tac-toe-persistence: invalid receipt (repository fingerprint)
+error: m026-smoke/workspace-isolation: invalid receipt (repository fingerprint)
+error: m026-smoke/linux-export: invalid receipt (repository fingerprint)
+error: m026-smoke/consumer-boundary-report: invalid receipt (repository fingerprint)
+error: m026-smoke/human-review: receipt is missing
+error: m026-smoke/integrated: invalid receipt (repository fingerprint)

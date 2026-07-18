@@ -1,0 +1,13 @@
+src/Agentic2D.DebugClient.Raylib/Agentic2D.DebugClient.Raylib.csproj
+src/Agentic2D.DebugClient.Raylib/Program.cs
+src/Agentic2D.DebugClient.Raylib/RaylibGameWindow.cs
+src/Agentic2D.DebugClient.Raylib/TicTacToeWindow.cs
+src/Agentic2D.Engineering/Agentic2D.Engineering.csproj
+src/Agentic2D.Engineering/EngineeringHost.cs
+src/Agentic2D.Engineering/PerformanceHost.cs
+src/Agentic2D.Tools/M025SoundSynthesisCommands.cs
+src/Agentic2D.Tools/M026GeometryCommands.cs
+src/Agentic2D.Tools/M026SoundLinkageCommands.cs
+src/Agentic2D.Tools/ToolsCli.cs
+src/Agentic2D.Workspaces/ExportCommands.cs
+src/Agentic2D.Workspaces/WorkspaceCommands.cs

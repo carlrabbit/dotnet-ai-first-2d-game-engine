@@ -1,0 +1,8 @@
+{
+  "schema": "signal-passage.save.v1",
+  "health": 2,
+  "fragments": 3,
+  "mechanism": true,
+  "exit": true,
+  "transientFeedback": []
+}

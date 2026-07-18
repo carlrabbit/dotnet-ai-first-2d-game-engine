@@ -1,0 +1,197 @@
+{
+  "schema": "agentic2d.geometry-inspection.v1",
+  "status": "passed",
+  "previewBackground": {
+    "r": 20,
+    "g": 31,
+    "b": 48,
+    "a": 255
+  },
+  "parts": [
+    {
+      "definitionId": "visual-definition.autonomous-tic-tac-toe.board",
+      "partId": "board",
+      "shapeKind": "rectangle",
+      "dimensions": {
+        "width": 3.4,
+        "height": 3.4
+      },
+      "bounds": {
+        "x": -1.7,
+        "y": -1.7,
+        "width": 3.4,
+        "height": 3.4
+      },
+      "fill": {
+        "r": 27,
+        "g": 38,
+        "b": 56,
+        "a": 255
+      },
+      "outline": {
+        "r": 136,
+        "g": 168,
+        "b": 205,
+        "a": 255
+      },
+      "outlineWidth": 0.08,
+      "opacity": 1,
+      "anchor": "center",
+      "offset": {
+        "x": 0,
+        "y": 0
+      },
+      "rotation": 0,
+      "layer": "ground",
+      "order": 1,
+      "sortMode": "fixed",
+      "polygonSides": 0,
+      "ringInnerRatio": 0,
+      "lineEnd": null,
+      "provenance": {
+        "sourcePath": "/home/dev/src/dotnet-ai-first-2d-game-engine/consumers/autonomous-tic-tac-toe/game-content/visuals/tic-tac-toe.json",
+        "sourceKind": "authored-geometry"
+      },
+      "fingerprint": "sha256:b7bff7dcf8833b3d62fd337a060cda0639658f238280a6fc81d236a3bd5ff367"
+    },
+    {
+      "definitionId": "visual-definition.autonomous-tic-tac-toe.board",
+      "partId": "grid-horizontal",
+      "shapeKind": "line",
+      "dimensions": {
+        "width": 3,
+        "height": 3
+      },
+      "bounds": {
+        "x": -1.5,
+        "y": -1.5,
+        "width": 3,
+        "height": 3
+      },
+      "fill": {
+        "r": 136,
+        "g": 168,
+        "b": 205,
+        "a": 255
+      },
+      "outline": null,
+      "outlineWidth": 0.06,
+      "opacity": 1,
+      "anchor": "center",
+      "offset": {
+        "x": 0,
+        "y": 0
+      },
+      "rotation": 0,
+      "layer": "foreground",
+      "order": 2,
+      "sortMode": "fixed",
+      "polygonSides": 0,
+      "ringInnerRatio": 0,
+      "lineEnd": {
+        "x": 3,
+        "y": 0
+      },
+      "provenance": {
+        "sourcePath": "/home/dev/src/dotnet-ai-first-2d-game-engine/consumers/autonomous-tic-tac-toe/game-content/visuals/tic-tac-toe.json",
+        "sourceKind": "authored-geometry"
+      },
+      "fingerprint": "sha256:e520eb418940e3304c1b6b97bc895748b3947d0f624d2ab943924750117356fb"
+    },
+    {
+      "definitionId": "visual-definition.autonomous-tic-tac-toe.board",
+      "partId": "selection",
+      "shapeKind": "ring",
+      "dimensions": {
+        "width": 0.9,
+        "height": 0.9
+      },
+      "bounds": {
+        "x": -0.45,
+        "y": -0.45,
+        "width": 0.9,
+        "height": 0.9
+      },
+      "fill": null,
+      "outline": {
+        "r": 255,
+        "g": 212,
+        "b": 94,
+        "a": 255
+      },
+      "outlineWidth": 0.08,
+      "opacity": 0.9,
+      "anchor": "center",
+      "offset": {
+        "x": 0,
+        "y": 0
+      },
+      "rotation": 0,
+      "layer": "debug",
+      "order": 3,
+      "sortMode": "fixed",
+      "polygonSides": 0,
+      "ringInnerRatio": 0.76,
+      "lineEnd": null,
+      "provenance": {
+        "sourcePath": "/home/dev/src/dotnet-ai-first-2d-game-engine/consumers/autonomous-tic-tac-toe/game-content/visuals/tic-tac-toe.json",
+        "sourceKind": "authored-geometry"
+      },
+      "fingerprint": "sha256:053d5d2e066c5e6a84b28fec33fe765f95daac8aec23bb44691c03394ae43348"
+    },
+    {
+      "definitionId": "visual-definition.autonomous-tic-tac-toe.board",
+      "partId": "winner-line",
+      "shapeKind": "line",
+      "dimensions": {
+        "width": 2.7,
+        "height": 0.2
+      },
+      "bounds": {
+        "x": -1.35,
+        "y": -0.1,
+        "width": 2.7,
+        "height": 0.2
+      },
+      "fill": {
+        "r": 103,
+        "g": 232,
+        "b": 161,
+        "a": 255
+      },
+      "outline": null,
+      "outlineWidth": 0.14,
+      "opacity": 1,
+      "anchor": "center",
+      "offset": {
+        "x": 0,
+        "y": 0
+      },
+      "rotation": 0,
+      "layer": "foreground",
+      "order": 4,
+      "sortMode": "fixed",
+      "polygonSides": 0,
+      "ringInnerRatio": 0,
+      "lineEnd": {
+        "x": 2.7,
+        "y": 0
+      },
+      "provenance": {
+        "sourcePath": "/home/dev/src/dotnet-ai-first-2d-game-engine/consumers/autonomous-tic-tac-toe/game-content/visuals/tic-tac-toe.json",
+        "sourceKind": "authored-geometry"
+      },
+      "fingerprint": "sha256:eb52c05d263b904b3f7ba498694c89da95c76324ad6c6ff90436709cd69e8d6e"
+    }
+  ],
+  "supportedShapeKinds": [
+    "circle",
+    "rectangle",
+    "triangle",
+    "diamond",
+    "regular-polygon",
+    "ring",
+    "line"
+  ],
+  "fingerprint": "sha256:3c8718b452fc3685ab33a24ff6d59c5ffb462a485cec3d8e5c04ff7dc01ee568"
+}

@@ -1,0 +1,32 @@
+{
+  "schema": "agentic2d.engineering.validation-receipt.v1",
+  "suiteId": "m026-smoke",
+  "shardId": "sound-linkage",
+  "status": "passed",
+  "suiteFingerprint": "5aa2d37d7e7dc836f32993eb0c21c36d6a88abcd42936f78d35836247aed18e7",
+  "repositoryFingerprint": "17f708a16d81f5cbcca2d624d6895fc63218739146209aa8420e36702654cf6a",
+  "commandFingerprint": "34415d9e3359753802a1a0bb737f7ed8d66efc93c1962aac4f4b1cd9cf91bd3e",
+  "inputFingerprint": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "resultFingerprint": "85558de2889ad40819a96e81c9b6447e934b90c38f35718922d1f0e142550da4",
+  "command": "./eng/generated-sound-linkage-smoke.sh",
+  "evidencePaths": [
+    "artifacts/sound-linkage/M026/signal-passage/generated-sound-linkage-report.json",
+    "artifacts/sound-linkage/M026/tic-tac-toe/generated-sound-linkage-report.json"
+  ],
+  "artifacts": [
+    {
+      "path": "artifacts/sound-linkage/M026/signal-passage/generated-sound-linkage-report.json",
+      "fingerprint": "3fc2cb4ebb796f5967f824b79ba306462a05ab010d158a0b1a6ddf006e027d83"
+    },
+    {
+      "path": "artifacts/sound-linkage/M026/tic-tac-toe/generated-sound-linkage-report.json",
+      "fingerprint": "58a8f98cacaf7773c5c10d2543085545e3eb9edd4d8f69752535bf7c4c74300b"
+    }
+  ],
+  "completion": {
+    "startedAtUtc": "2026-07-18T15:17:22.0673787+00:00",
+    "completedAtUtc": "2026-07-18T15:17:54.3247848+00:00",
+    "platform": "linux-bash"
+  },
+  "diagnostics": []
+}

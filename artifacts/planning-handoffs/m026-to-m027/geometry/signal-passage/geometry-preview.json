@@ -1,0 +1,391 @@
+{
+  "schema": "agentic2d.geometry-preview.v1",
+  "status": "passed",
+  "mode": "headless-structural",
+  "background": {
+    "r": 20,
+    "g": 31,
+    "b": 48,
+    "a": 255
+  },
+  "commands": [
+    {
+      "id": "geometry-command.000",
+      "kind": "draw-geometry",
+      "part": {
+        "definitionId": "visual-definition.player.signal-passage",
+        "partId": "player",
+        "shapeKind": "circle",
+        "dimensions": {
+          "width": 0.8,
+          "height": 0.8
+        },
+        "bounds": {
+          "x": -0.4,
+          "y": -0.4,
+          "width": 0.8,
+          "height": 0.8
+        },
+        "fill": {
+          "r": 54,
+          "g": 217,
+          "b": 232,
+          "a": 255
+        },
+        "outline": null,
+        "outlineWidth": 0,
+        "opacity": 1,
+        "anchor": "center",
+        "offset": {
+          "x": 0,
+          "y": 0
+        },
+        "rotation": 0,
+        "layer": "entities",
+        "order": 1,
+        "sortMode": "y",
+        "polygonSides": 0,
+        "ringInnerRatio": 0,
+        "lineEnd": null,
+        "provenance": {
+          "sourcePath": "/home/dev/src/dotnet-ai-first-2d-game-engine/consumers/signal-passage/game-content/visuals/signal-passage-visuals.json",
+          "sourceKind": "authored-geometry"
+        },
+        "fingerprint": "sha256:315ed2451b48a375e080ff37c2dd58f8b73c219fa15c002000754a9c5c901cfa"
+      }
+    },
+    {
+      "id": "geometry-command.001",
+      "kind": "draw-geometry",
+      "part": {
+        "definitionId": "visual-definition.signal-passage.container",
+        "partId": "container",
+        "shapeKind": "diamond",
+        "dimensions": {
+          "width": 1,
+          "height": 1
+        },
+        "bounds": {
+          "x": -0.5,
+          "y": -0.5,
+          "width": 1,
+          "height": 1
+        },
+        "fill": {
+          "r": 239,
+          "g": 140,
+          "b": 58,
+          "a": 255
+        },
+        "outline": {
+          "r": 255,
+          "g": 220,
+          "b": 160,
+          "a": 255
+        },
+        "outlineWidth": 0.08,
+        "opacity": 1,
+        "anchor": "center",
+        "offset": {
+          "x": 0,
+          "y": 0
+        },
+        "rotation": 0,
+        "layer": "entities",
+        "order": 1,
+        "sortMode": "y",
+        "polygonSides": 0,
+        "ringInnerRatio": 0,
+        "lineEnd": null,
+        "provenance": {
+          "sourcePath": "/home/dev/src/dotnet-ai-first-2d-game-engine/consumers/signal-passage/game-content/visuals/container.json",
+          "sourceKind": "authored-geometry"
+        },
+        "fingerprint": "sha256:16bb07187ccbb22fd75452b38ea969b0aee1ab31f8a9207382310942f9857d8f"
+      }
+    },
+    {
+      "id": "geometry-command.002",
+      "kind": "draw-geometry",
+      "part": {
+        "definitionId": "visual-definition.signal-passage.fragment",
+        "partId": "fragment",
+        "shapeKind": "regular-polygon",
+        "dimensions": {
+          "width": 0.55,
+          "height": 0.55
+        },
+        "bounds": {
+          "x": -0.275,
+          "y": -0.275,
+          "width": 0.55,
+          "height": 0.55
+        },
+        "fill": {
+          "r": 244,
+          "g": 211,
+          "b": 94,
+          "a": 255
+        },
+        "outline": null,
+        "outlineWidth": 0,
+        "opacity": 1,
+        "anchor": "center",
+        "offset": {
+          "x": 0,
+          "y": 0
+        },
+        "rotation": 20,
+        "layer": "entities",
+        "order": 2,
+        "sortMode": "y",
+        "polygonSides": 6,
+        "ringInnerRatio": 0,
+        "lineEnd": null,
+        "provenance": {
+          "sourcePath": "/home/dev/src/dotnet-ai-first-2d-game-engine/consumers/signal-passage/game-content/visuals/fragment.json",
+          "sourceKind": "authored-geometry"
+        },
+        "fingerprint": "sha256:715793c003c94273c370062c0df19e18c1ef6c6526b061778589d97e61af9510"
+      }
+    },
+    {
+      "id": "geometry-command.003",
+      "kind": "draw-geometry",
+      "part": {
+        "definitionId": "visual-definition.signal-passage.gate",
+        "partId": "gate",
+        "shapeKind": "rectangle",
+        "dimensions": {
+          "width": 1.2,
+          "height": 1.6
+        },
+        "bounds": {
+          "x": -0.6,
+          "y": -0.8,
+          "width": 1.2,
+          "height": 1.6
+        },
+        "fill": {
+          "r": 85,
+          "g": 194,
+          "b": 113,
+          "a": 255
+        },
+        "outline": null,
+        "outlineWidth": 0,
+        "opacity": 0.82,
+        "anchor": "center",
+        "offset": {
+          "x": 0,
+          "y": 0
+        },
+        "rotation": 0,
+        "layer": "foreground",
+        "order": 1,
+        "sortMode": "fixed",
+        "polygonSides": 0,
+        "ringInnerRatio": 0,
+        "lineEnd": null,
+        "provenance": {
+          "sourcePath": "/home/dev/src/dotnet-ai-first-2d-game-engine/consumers/signal-passage/game-content/visuals/gate.json",
+          "sourceKind": "authored-geometry"
+        },
+        "fingerprint": "sha256:c32b4d1341e4f217e60118fed8de93e114c53e4b38e6f9bd00f2ef0f1fc190be"
+      }
+    },
+    {
+      "id": "geometry-command.004",
+      "kind": "draw-geometry",
+      "part": {
+        "definitionId": "visual-definition.signal-passage.hazard",
+        "partId": "hazard",
+        "shapeKind": "triangle",
+        "dimensions": {
+          "width": 0.9,
+          "height": 0.9
+        },
+        "bounds": {
+          "x": -0.45,
+          "y": -0.45,
+          "width": 0.9,
+          "height": 0.9
+        },
+        "fill": {
+          "r": 233,
+          "g": 80,
+          "b": 80,
+          "a": 255
+        },
+        "outline": null,
+        "outlineWidth": 0,
+        "opacity": 1,
+        "anchor": "center",
+        "offset": {
+          "x": 0,
+          "y": 0
+        },
+        "rotation": 0,
+        "layer": "entities",
+        "order": 1,
+        "sortMode": "y",
+        "polygonSides": 0,
+        "ringInnerRatio": 0,
+        "lineEnd": null,
+        "provenance": {
+          "sourcePath": "/home/dev/src/dotnet-ai-first-2d-game-engine/consumers/signal-passage/game-content/visuals/hazard.json",
+          "sourceKind": "authored-geometry"
+        },
+        "fingerprint": "sha256:3a37405bb7d5152307274b962b54971b0c0452f9d96002e8f3bda52532abf5cf"
+      }
+    },
+    {
+      "id": "geometry-command.005",
+      "kind": "draw-geometry",
+      "part": {
+        "definitionId": "visual-definition.signal-passage.mechanism",
+        "partId": "mechanism",
+        "shapeKind": "rectangle",
+        "dimensions": {
+          "width": 1,
+          "height": 1
+        },
+        "bounds": {
+          "x": -0.5,
+          "y": -0.5,
+          "width": 1,
+          "height": 1
+        },
+        "fill": {
+          "r": 168,
+          "g": 121,
+          "b": 214,
+          "a": 255
+        },
+        "outline": {
+          "r": 220,
+          "g": 190,
+          "b": 250,
+          "a": 255
+        },
+        "outlineWidth": 0.08,
+        "opacity": 1,
+        "anchor": "center",
+        "offset": {
+          "x": 0,
+          "y": 0
+        },
+        "rotation": 0,
+        "layer": "entities",
+        "order": 1,
+        "sortMode": "fixed",
+        "polygonSides": 0,
+        "ringInnerRatio": 0,
+        "lineEnd": null,
+        "provenance": {
+          "sourcePath": "/home/dev/src/dotnet-ai-first-2d-game-engine/consumers/signal-passage/game-content/visuals/mechanism.json",
+          "sourceKind": "authored-geometry"
+        },
+        "fingerprint": "sha256:60080eb60a21f174f4935d7a2215f97a63ae03bb7c18690ed2664878b9690437"
+      }
+    },
+    {
+      "id": "geometry-command.006",
+      "kind": "draw-geometry",
+      "part": {
+        "definitionId": "visual-definition.signal-passage.objective-zone",
+        "partId": "objective",
+        "shapeKind": "ring",
+        "dimensions": {
+          "width": 1.5,
+          "height": 1.5
+        },
+        "bounds": {
+          "x": -0.75,
+          "y": -0.75,
+          "width": 1.5,
+          "height": 1.5
+        },
+        "fill": null,
+        "outline": {
+          "r": 85,
+          "g": 194,
+          "b": 113,
+          "a": 255
+        },
+        "outlineWidth": 0.1,
+        "opacity": 1,
+        "anchor": "center",
+        "offset": {
+          "x": 0,
+          "y": 0
+        },
+        "rotation": 0,
+        "layer": "ground",
+        "order": 1,
+        "sortMode": "fixed",
+        "polygonSides": 0,
+        "ringInnerRatio": 0.72,
+        "lineEnd": null,
+        "provenance": {
+          "sourcePath": "/home/dev/src/dotnet-ai-first-2d-game-engine/consumers/signal-passage/game-content/visuals/objective-zone.json",
+          "sourceKind": "authored-geometry"
+        },
+        "fingerprint": "sha256:c0341a79220fb99ff3f4087a252a3a579d7d3af0aebf3701016ae3507674db20"
+      }
+    },
+    {
+      "id": "geometry-command.007",
+      "kind": "draw-geometry",
+      "part": {
+        "definitionId": "visual-definition.signal-passage.wall",
+        "partId": "wall",
+        "shapeKind": "line",
+        "dimensions": {
+          "width": 1,
+          "height": 1
+        },
+        "bounds": {
+          "x": -0.5,
+          "y": -0.5,
+          "width": 1,
+          "height": 1
+        },
+        "fill": {
+          "r": 82,
+          "g": 101,
+          "b": 122,
+          "a": 255
+        },
+        "outline": null,
+        "outlineWidth": 0.18,
+        "opacity": 1,
+        "anchor": "top-left",
+        "offset": {
+          "x": 0,
+          "y": 0
+        },
+        "rotation": 0,
+        "layer": "background",
+        "order": 1,
+        "sortMode": "fixed",
+        "polygonSides": 0,
+        "ringInnerRatio": 0,
+        "lineEnd": {
+          "x": 1,
+          "y": 0
+        },
+        "provenance": {
+          "sourcePath": "/home/dev/src/dotnet-ai-first-2d-game-engine/consumers/signal-passage/game-content/visuals/wall.json",
+          "sourceKind": "authored-geometry"
+        },
+        "fingerprint": "sha256:515a8ba940b0368fb5f0e2a10cc566198778086ad69349b25d5430667637f0a6"
+      }
+    }
+  ],
+  "graphicalCapture": {
+    "status": "conditional",
+    "owner": "Agentic2D.DebugClient.Raylib",
+    "reason": "A graphics-capable environment is required for PNG capture."
+  }
+}

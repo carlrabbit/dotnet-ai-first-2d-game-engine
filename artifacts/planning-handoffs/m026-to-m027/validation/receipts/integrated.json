@@ -1,0 +1,32 @@
+{
+  "schema": "agentic2d.engineering.validation-receipt.v1",
+  "suiteId": "m026-smoke",
+  "shardId": "integrated",
+  "status": "passed",
+  "suiteFingerprint": "5aa2d37d7e7dc836f32993eb0c21c36d6a88abcd42936f78d35836247aed18e7",
+  "repositoryFingerprint": "17f708a16d81f5cbcca2d624d6895fc63218739146209aa8420e36702654cf6a",
+  "commandFingerprint": "5f4c60bd8ce16bd4a0d3e216413cb20d502d3dd6d318062bd7daab26cee772df",
+  "inputFingerprint": "1dd1590ef3ff89756fb3306834b12526babf06883f501934b66a8e5676bdb9bc",
+  "resultFingerprint": "4bc28061384b682282aca0641a8faad0206f3dc325e34e3e23948e75f72f10c4",
+  "command": "./eng/check.sh \u0026\u0026 ./eng/cli-smoke.sh \u0026\u0026 ./eng/product-validate.sh \u0026\u0026 ./eng/signal-passage-smoke.sh \u0026\u0026 ./eng/tic-tac-toe-smoke.sh",
+  "evidencePaths": [
+    "consumers/signal-passage/artifacts/journey/complete-journey.json",
+    "consumers/autonomous-tic-tac-toe/artifacts/runs/ai-vs-ai-smoke/tic-tac-toe-result.json"
+  ],
+  "artifacts": [
+    {
+      "path": "consumers/signal-passage/artifacts/journey/complete-journey.json",
+      "fingerprint": "00dd027ea65b6816175e8c5052a43219f0558df1074a2f4ef9695b6d0ec1e098"
+    },
+    {
+      "path": "consumers/autonomous-tic-tac-toe/artifacts/runs/ai-vs-ai-smoke/tic-tac-toe-result.json",
+      "fingerprint": "9896d33611763cc039cab3fb217b44d7f14626f0d61f82d422146034faf158a3"
+    }
+  ],
+  "completion": {
+    "startedAtUtc": "2026-07-18T15:27:50.9190151+00:00",
+    "completedAtUtc": "2026-07-18T15:29:40.2344825+00:00",
+    "platform": "linux-bash"
+  },
+  "diagnostics": []
+}

@@ -1,0 +1,425 @@
+{
+  "passed": true,
+  "fingerprint": "589e140768beb0f7f2aac4e18edbea67cef441c38363bd6016c490c8d72d52db",
+  "referenceGraph": {
+    "schema": "agentic2d.project-reference-graph.v1",
+    "nodes": [
+      {
+        "id": "game-content",
+        "kind": "authoredContentRoots"
+      },
+      {
+        "id": "game-content/maps/tic-tac-toe.map.json",
+        "kind": "maps"
+      },
+      {
+        "id": "game-content/scenarios/tic-tac-toe.linux-export-smoke.json",
+        "kind": "scenarios"
+      },
+      {
+        "id": "game-content/scenarios/tic-tac-toe.workspace-smoke.json",
+        "kind": "scenarios"
+      },
+      {
+        "id": "game-content/sound-synthesis/draw.json",
+        "kind": "sound-synthesis"
+      },
+      {
+        "id": "game-content/sound-synthesis/human-takeover.json",
+        "kind": "sound-synthesis"
+      },
+      {
+        "id": "game-content/sound-synthesis/invalid-selection.json",
+        "kind": "sound-synthesis"
+      },
+      {
+        "id": "game-content/sound-synthesis/mark-o.json",
+        "kind": "sound-synthesis"
+      },
+      {
+        "id": "game-content/sound-synthesis/mark-x.json",
+        "kind": "sound-synthesis"
+      },
+      {
+        "id": "game-content/sound-synthesis/round-start.json",
+        "kind": "sound-synthesis"
+      },
+      {
+        "id": "game-content/sound-synthesis/thinking-start.json",
+        "kind": "sound-synthesis"
+      },
+      {
+        "id": "game-content/sound-synthesis/win.json",
+        "kind": "sound-synthesis"
+      },
+      {
+        "id": "game-content/sounds/draw.json",
+        "kind": "sounds"
+      },
+      {
+        "id": "game-content/sounds/generated-sound-linkage.json",
+        "kind": "generated-sound-linkage"
+      },
+      {
+        "id": "game-content/sounds/human-takeover.json",
+        "kind": "sounds"
+      },
+      {
+        "id": "game-content/sounds/invalid-selection.json",
+        "kind": "sounds"
+      },
+      {
+        "id": "game-content/sounds/mark-o.json",
+        "kind": "sounds"
+      },
+      {
+        "id": "game-content/sounds/mark-x.json",
+        "kind": "sounds"
+      },
+      {
+        "id": "game-content/sounds/round-start.json",
+        "kind": "sounds"
+      },
+      {
+        "id": "game-content/sounds/thinking-start.json",
+        "kind": "sounds"
+      },
+      {
+        "id": "game-content/sounds/win.json",
+        "kind": "sounds"
+      },
+      {
+        "id": "game-content/visuals/tic-tac-toe.json",
+        "kind": "visuals"
+      },
+      {
+        "id": "game-src",
+        "kind": "gameSourceRoots"
+      },
+      {
+        "id": "game-src/AutonomousTicTacToe.Game/bin/Debug/net10.0/AutonomousTicTacToe.Game.deps.json",
+        "kind": "unknown-content"
+      },
+      {
+        "id": "game-src/AutonomousTicTacToe.Game/bin/Debug/net10.0/AutonomousTicTacToe.Game.runtimeconfig.json",
+        "kind": "unknown-content"
+      },
+      {
+        "id": "game-src/AutonomousTicTacToe.Game/bin/Release/net10.0/linux-x64/AutonomousTicTacToe.Game.deps.json",
+        "kind": "unknown-content"
+      },
+      {
+        "id": "game-src/AutonomousTicTacToe.Game/bin/Release/net10.0/linux-x64/AutonomousTicTacToe.Game.runtimeconfig.json",
+        "kind": "unknown-content"
+      },
+      {
+        "id": "game-src/AutonomousTicTacToe.Game/obj/AutonomousTicTacToe.Game.csproj.nuget.dgspec.json",
+        "kind": "unknown-content"
+      },
+      {
+        "id": "game-src/AutonomousTicTacToe.Game/obj/Debug/net10.0/AutonomousTicTacToe.Game.sourcelink.json",
+        "kind": "unknown-content"
+      },
+      {
+        "id": "game-src/AutonomousTicTacToe.Game/obj/Release/net10.0/linux-x64/AutonomousTicTacToe.Game.sourcelink.json",
+        "kind": "unknown-content"
+      },
+      {
+        "id": "game-src/AutonomousTicTacToe.Game/obj/project.assets.json",
+        "kind": "unknown-content"
+      },
+      {
+        "id": "game-src/AutonomousTicTacToe.Playable/bin/Debug/net10.0/Agentic2D.DebugClient.Raylib.deps.json",
+        "kind": "unknown-content"
+      },
+      {
+        "id": "game-src/AutonomousTicTacToe.Playable/bin/Debug/net10.0/Agentic2D.DebugClient.Raylib.runtimeconfig.json",
+        "kind": "unknown-content"
+      },
+      {
+        "id": "game-src/AutonomousTicTacToe.Playable/bin/Debug/net10.0/AutonomousTicTacToe.Game.deps.json",
+        "kind": "unknown-content"
+      },
+      {
+        "id": "game-src/AutonomousTicTacToe.Playable/bin/Debug/net10.0/AutonomousTicTacToe.Game.runtimeconfig.json",
+        "kind": "unknown-content"
+      },
+      {
+        "id": "game-src/AutonomousTicTacToe.Playable/bin/Debug/net10.0/AutonomousTicTacToe.Playable.deps.json",
+        "kind": "unknown-content"
+      },
+      {
+        "id": "game-src/AutonomousTicTacToe.Playable/bin/Debug/net10.0/AutonomousTicTacToe.Playable.runtimeconfig.json",
+        "kind": "unknown-content"
+      },
+      {
+        "id": "game-src/AutonomousTicTacToe.Playable/bin/Release/net10.0/linux-x64/Agentic2D.DebugClient.Raylib.deps.json",
+        "kind": "unknown-content"
+      },
+      {
+        "id": "game-src/AutonomousTicTacToe.Playable/bin/Release/net10.0/linux-x64/Agentic2D.DebugClient.Raylib.runtimeconfig.json",
+        "kind": "unknown-content"
+      },
+      {
+        "id": "game-src/AutonomousTicTacToe.Playable/bin/Release/net10.0/linux-x64/AutonomousTicTacToe.Game.deps.json",
+        "kind": "unknown-content"
+      },
+      {
+        "id": "game-src/AutonomousTicTacToe.Playable/bin/Release/net10.0/linux-x64/AutonomousTicTacToe.Game.runtimeconfig.json",
+        "kind": "unknown-content"
+      },
+      {
+        "id": "game-src/AutonomousTicTacToe.Playable/bin/Release/net10.0/linux-x64/AutonomousTicTacToe.Playable.deps.json",
+        "kind": "unknown-content"
+      },
+      {
+        "id": "game-src/AutonomousTicTacToe.Playable/bin/Release/net10.0/linux-x64/AutonomousTicTacToe.Playable.runtimeconfig.json",
+        "kind": "unknown-content"
+      },
+      {
+        "id": "game-src/AutonomousTicTacToe.Playable/obj/AutonomousTicTacToe.Playable.csproj.nuget.dgspec.json",
+        "kind": "unknown-content"
+      },
+      {
+        "id": "game-src/AutonomousTicTacToe.Playable/obj/Debug/net10.0/AutonomousTicTacToe.Playable.sourcelink.json",
+        "kind": "unknown-content"
+      },
+      {
+        "id": "game-src/AutonomousTicTacToe.Playable/obj/Release/net10.0/linux-x64/AutonomousTicTacToe.Playable.sourcelink.json",
+        "kind": "unknown-content"
+      },
+      {
+        "id": "game-src/AutonomousTicTacToe.Playable/obj/project.assets.json",
+        "kind": "unknown-content"
+      }
+    ],
+    "edges": [
+      {
+        "from": "game-content",
+        "to": "game-content/maps/tic-tac-toe.map.json",
+        "kind": "contains"
+      },
+      {
+        "from": "game-content",
+        "to": "game-content/scenarios/tic-tac-toe.linux-export-smoke.json",
+        "kind": "contains"
+      },
+      {
+        "from": "game-content",
+        "to": "game-content/scenarios/tic-tac-toe.workspace-smoke.json",
+        "kind": "contains"
+      },
+      {
+        "from": "game-content",
+        "to": "game-content/sound-synthesis/draw.json",
+        "kind": "contains"
+      },
+      {
+        "from": "game-content",
+        "to": "game-content/sound-synthesis/human-takeover.json",
+        "kind": "contains"
+      },
+      {
+        "from": "game-content",
+        "to": "game-content/sound-synthesis/invalid-selection.json",
+        "kind": "contains"
+      },
+      {
+        "from": "game-content",
+        "to": "game-content/sound-synthesis/mark-o.json",
+        "kind": "contains"
+      },
+      {
+        "from": "game-content",
+        "to": "game-content/sound-synthesis/mark-x.json",
+        "kind": "contains"
+      },
+      {
+        "from": "game-content",
+        "to": "game-content/sound-synthesis/round-start.json",
+        "kind": "contains"
+      },
+      {
+        "from": "game-content",
+        "to": "game-content/sound-synthesis/thinking-start.json",
+        "kind": "contains"
+      },
+      {
+        "from": "game-content",
+        "to": "game-content/sound-synthesis/win.json",
+        "kind": "contains"
+      },
+      {
+        "from": "game-content",
+        "to": "game-content/sounds/draw.json",
+        "kind": "contains"
+      },
+      {
+        "from": "game-content",
+        "to": "game-content/sounds/generated-sound-linkage.json",
+        "kind": "contains"
+      },
+      {
+        "from": "game-content",
+        "to": "game-content/sounds/human-takeover.json",
+        "kind": "contains"
+      },
+      {
+        "from": "game-content",
+        "to": "game-content/sounds/invalid-selection.json",
+        "kind": "contains"
+      },
+      {
+        "from": "game-content",
+        "to": "game-content/sounds/mark-o.json",
+        "kind": "contains"
+      },
+      {
+        "from": "game-content",
+        "to": "game-content/sounds/mark-x.json",
+        "kind": "contains"
+      },
+      {
+        "from": "game-content",
+        "to": "game-content/sounds/round-start.json",
+        "kind": "contains"
+      },
+      {
+        "from": "game-content",
+        "to": "game-content/sounds/thinking-start.json",
+        "kind": "contains"
+      },
+      {
+        "from": "game-content",
+        "to": "game-content/sounds/win.json",
+        "kind": "contains"
+      },
+      {
+        "from": "game-content",
+        "to": "game-content/visuals/tic-tac-toe.json",
+        "kind": "contains"
+      },
+      {
+        "from": "game-src",
+        "to": "game-src/AutonomousTicTacToe.Game/bin/Debug/net10.0/AutonomousTicTacToe.Game.deps.json",
+        "kind": "contains"
+      },
+      {
+        "from": "game-src",
+        "to": "game-src/AutonomousTicTacToe.Game/bin/Debug/net10.0/AutonomousTicTacToe.Game.runtimeconfig.json",
+        "kind": "contains"
+      },
+      {
+        "from": "game-src",
+        "to": "game-src/AutonomousTicTacToe.Game/bin/Release/net10.0/linux-x64/AutonomousTicTacToe.Game.deps.json",
+        "kind": "contains"
+      },
+      {
+        "from": "game-src",
+        "to": "game-src/AutonomousTicTacToe.Game/bin/Release/net10.0/linux-x64/AutonomousTicTacToe.Game.runtimeconfig.json",
+        "kind": "contains"
+      },
+      {
+        "from": "game-src",
+        "to": "game-src/AutonomousTicTacToe.Game/obj/AutonomousTicTacToe.Game.csproj.nuget.dgspec.json",
+        "kind": "contains"
+      },
+      {
+        "from": "game-src",
+        "to": "game-src/AutonomousTicTacToe.Game/obj/Debug/net10.0/AutonomousTicTacToe.Game.sourcelink.json",
+        "kind": "contains"
+      },
+      {
+        "from": "game-src",
+        "to": "game-src/AutonomousTicTacToe.Game/obj/Release/net10.0/linux-x64/AutonomousTicTacToe.Game.sourcelink.json",
+        "kind": "contains"
+      },
+      {
+        "from": "game-src",
+        "to": "game-src/AutonomousTicTacToe.Game/obj/project.assets.json",
+        "kind": "contains"
+      },
+      {
+        "from": "game-src",
+        "to": "game-src/AutonomousTicTacToe.Playable/bin/Debug/net10.0/Agentic2D.DebugClient.Raylib.deps.json",
+        "kind": "contains"
+      },
+      {
+        "from": "game-src",
+        "to": "game-src/AutonomousTicTacToe.Playable/bin/Debug/net10.0/Agentic2D.DebugClient.Raylib.runtimeconfig.json",
+        "kind": "contains"
+      },
+      {
+        "from": "game-src",
+        "to": "game-src/AutonomousTicTacToe.Playable/bin/Debug/net10.0/AutonomousTicTacToe.Game.deps.json",
+        "kind": "contains"
+      },
+      {
+        "from": "game-src",
+        "to": "game-src/AutonomousTicTacToe.Playable/bin/Debug/net10.0/AutonomousTicTacToe.Game.runtimeconfig.json",
+        "kind": "contains"
+      },
+      {
+        "from": "game-src",
+        "to": "game-src/AutonomousTicTacToe.Playable/bin/Debug/net10.0/AutonomousTicTacToe.Playable.deps.json",
+        "kind": "contains"
+      },
+      {
+        "from": "game-src",
+        "to": "game-src/AutonomousTicTacToe.Playable/bin/Debug/net10.0/AutonomousTicTacToe.Playable.runtimeconfig.json",
+        "kind": "contains"
+      },
+      {
+        "from": "game-src",
+        "to": "game-src/AutonomousTicTacToe.Playable/bin/Release/net10.0/linux-x64/Agentic2D.DebugClient.Raylib.deps.json",
+        "kind": "contains"
+      },
+      {
+        "from": "game-src",
+        "to": "game-src/AutonomousTicTacToe.Playable/bin/Release/net10.0/linux-x64/Agentic2D.DebugClient.Raylib.runtimeconfig.json",
+        "kind": "contains"
+      },
+      {
+        "from": "game-src",
+        "to": "game-src/AutonomousTicTacToe.Playable/bin/Release/net10.0/linux-x64/AutonomousTicTacToe.Game.deps.json",
+        "kind": "contains"
+      },
+      {
+        "from": "game-src",
+        "to": "game-src/AutonomousTicTacToe.Playable/bin/Release/net10.0/linux-x64/AutonomousTicTacToe.Game.runtimeconfig.json",
+        "kind": "contains"
+      },
+      {
+        "from": "game-src",
+        "to": "game-src/AutonomousTicTacToe.Playable/bin/Release/net10.0/linux-x64/AutonomousTicTacToe.Playable.deps.json",
+        "kind": "contains"
+      },
+      {
+        "from": "game-src",
+        "to": "game-src/AutonomousTicTacToe.Playable/bin/Release/net10.0/linux-x64/AutonomousTicTacToe.Playable.runtimeconfig.json",
+        "kind": "contains"
+      },
+      {
+        "from": "game-src",
+        "to": "game-src/AutonomousTicTacToe.Playable/obj/AutonomousTicTacToe.Playable.csproj.nuget.dgspec.json",
+        "kind": "contains"
+      },
+      {
+        "from": "game-src",
+        "to": "game-src/AutonomousTicTacToe.Playable/obj/Debug/net10.0/AutonomousTicTacToe.Playable.sourcelink.json",
+        "kind": "contains"
+      },
+      {
+        "from": "game-src",
+        "to": "game-src/AutonomousTicTacToe.Playable/obj/Release/net10.0/linux-x64/AutonomousTicTacToe.Playable.sourcelink.json",
+        "kind": "contains"
+      },
+      {
+        "from": "game-src",
+        "to": "game-src/AutonomousTicTacToe.Playable/obj/project.assets.json",
+        "kind": "contains"
+      }
+    ]
+  },
+  "diagnostics": []
+}

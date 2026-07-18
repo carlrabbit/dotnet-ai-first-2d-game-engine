@@ -1,0 +1,25 @@
+{
+  "schema": "agentic2d.m026-performance-handoff-assessment.v1",
+  "belowTenMilliseconds": [
+    "performance.runtime-reference",
+    "performance.entities-reference",
+    "performance.persistent-world-reference",
+    "performance.presentation-reference"
+  ],
+  "timingAuthoritative": [
+    "performance.runtime-reference-scaled",
+    "performance.entities-reference-scaled",
+    "performance.persistent-world-reference-scaled",
+    "performance.presentation-reference-scaled"
+  ],
+  "scaledWorkloads": [
+    "performance.runtime-reference-scaled",
+    "performance.entities-reference-scaled",
+    "performance.persistent-world-reference-scaled",
+    "performance.presentation-reference-scaled"
+  ],
+  "allScaledTargetReached": true,
+  "realEngineWork": true,
+  "busyLoopOrArtificialWait": false,
+  "recommendation": "Retain the 10 ms authority floor and use scaled workloads for M027 comparison; do not treat small-workload percentages as regressions."
+}

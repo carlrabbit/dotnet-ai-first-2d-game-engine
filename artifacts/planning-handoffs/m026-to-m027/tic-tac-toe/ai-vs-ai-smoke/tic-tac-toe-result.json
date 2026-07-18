@@ -1,0 +1,123 @@
+{
+  "schema": "autonomous-tic-tac-toe.run.v2",
+  "scenario": "tic-tac-toe.ai-vs-ai-smoke",
+  "status": "passed",
+  "state": {
+    "cells": [
+      "X",
+      "",
+      "",
+      "X",
+      "O",
+      "O",
+      "X",
+      "X",
+      "O"
+    ],
+    "currentMark": "X",
+    "xController": "ai",
+    "oController": "ai",
+    "phase": "round-complete",
+    "thinkingTicksRemaining": 0,
+    "winner": "X",
+    "roundNumber": 1,
+    "scoreX": 1,
+    "scoreO": 0,
+    "drawCount": 0
+  },
+  "saveState": {
+    "cells": [
+      "X",
+      "",
+      "",
+      "X",
+      "O",
+      "O",
+      "X",
+      "X",
+      "O"
+    ],
+    "currentMark": "X",
+    "xController": "ai",
+    "oController": "ai",
+    "phase": "round-complete",
+    "thinkingTicksRemaining": 0,
+    "winner": "X",
+    "roundNumber": 1,
+    "scoreX": 1,
+    "scoreO": 0,
+    "drawCount": 0
+  },
+  "simulationTick": 455,
+  "randomDrawCount": 14,
+  "events": [
+    {
+      "type": "round-start",
+      "cue": "cue.tic-tac-toe.round-start"
+    },
+    {
+      "type": "thinking-start",
+      "mark": "X",
+      "cue": "cue.tic-tac-toe.thinking-start",
+      "ticks": 34,
+      "simulationTick": 1
+    },
+    {
+      "type": "mark-placed",
+      "cell": 6,
+      "mark": "X",
+      "cue": "cue.tic-tac-toe.mark-x"
+    },
+    {
+      "type": "mark-placed",
+      "cell": 5,
+      "mark": "O",
+      "cue": "cue.tic-tac-toe.mark-o"
+    },
+    {
+      "type": "mark-placed",
+      "cell": 7,
+      "mark": "X",
+      "cue": "cue.tic-tac-toe.mark-x"
+    },
+    {
+      "type": "mark-placed",
+      "cell": 8,
+      "mark": "O",
+      "cue": "cue.tic-tac-toe.mark-o"
+    },
+    {
+      "type": "mark-placed",
+      "cell": 0,
+      "mark": "X",
+      "cue": "cue.tic-tac-toe.mark-x"
+    },
+    {
+      "type": "mark-placed",
+      "cell": 4,
+      "mark": "O",
+      "cue": "cue.tic-tac-toe.mark-o"
+    },
+    {
+      "type": "mark-placed",
+      "cell": 3,
+      "mark": "X",
+      "cue": "cue.tic-tac-toe.mark-x"
+    },
+    {
+      "type": "round-won",
+      "winner": "X",
+      "cue": "cue.tic-tac-toe.win"
+    }
+  ],
+  "cueInventory": [
+    "cue.tic-tac-toe.round-start",
+    "cue.tic-tac-toe.thinking-start",
+    "cue.tic-tac-toe.mark-x",
+    "cue.tic-tac-toe.mark-o",
+    "cue.tic-tac-toe.invalid-selection",
+    "cue.tic-tac-toe.win",
+    "cue.tic-tac-toe.draw",
+    "cue.tic-tac-toe.human-takeover"
+  ]
+}

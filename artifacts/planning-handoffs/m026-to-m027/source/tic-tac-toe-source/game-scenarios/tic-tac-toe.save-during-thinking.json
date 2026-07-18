@@ -1,0 +1,1 @@
+{"schema":"autonomous-tic-tac-toe.scenario.v1","id":"tic-tac-toe.save-during-thinking","semanticActions":[],"assertions":["remaining-ticks-restored","random-continuation-restored","no-transient-replay"]}
