@@ -1,0 +1,15 @@
+{
+  "Schema": "agentic2d.sound-synthesis-artifact.v1",
+  "Id": "sound-synthesis.signal-passage.container-opened",
+  "OutputAssetId": "asset.signal-passage.container-opened",
+  "OutputPath": "game-content/generated/sounds/container-opened.wav",
+  "DefinitionFingerprint": "sha256:9e384a9432015ab1bf75253131068cb1c84ff2eaf4450a3e066c381bb8070409",
+  "ImplementationVersion": "m025-offline-pcm-v1",
+  "SampleCount": 6395,
+  "SampleRate": 22050,
+  "DurationSeconds": 0.29002267573696144,
+  "Peak": 0.29706717123935666,
+  "Rms": 0.1143321938648189,
+  "OutputSha256": "291676e9e40360ab77f319705fce718d08a2739ddefaccb1c6d207b7b86b8d02",
+  "Diagnostics": []
+}

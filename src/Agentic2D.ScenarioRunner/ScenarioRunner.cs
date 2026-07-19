@@ -372,9 +372,9 @@ public static class ScenarioSourceLoader
             diagnostics.Add(new ScenarioDiagnostic("SCENARIO0002", "error", "Scenario category must be smoke for Milestone 005."));
         }
 
-        if (scenario.Behaviors.Count == 0 && !StringComparer.Ordinal.Equals(scenario.SeedPolicy, "none"))
+        if (scenario.SeedPolicy is not ("none" or "scenario"))
         {
-            diagnostics.Add(new ScenarioDiagnostic("SCENARIO0002", "error", "Scenario seedPolicy must be none for minimal scenarios."));
+            diagnostics.Add(new ScenarioDiagnostic("SCENARIO0002", "error", "Scenario seedPolicy must be none or scenario."));
         }
 
         if (scenario.Runtime is null)

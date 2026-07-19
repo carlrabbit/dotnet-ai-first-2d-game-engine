@@ -1,0 +1,14 @@
+{
+  "schema": "agentic2d.game-workspace.v1",
+  "id": "workspace.autonomous-tic-tac-toe",
+  "projectManifest": "agentic2d.project.json",
+  "engine": { "provider": "directory-reference", "placement": "reference", "source": "../..", "resolved": "directory", "fingerprint": "autonomous-tic-tac-toe-development" },
+  "areas": [
+    { "root": "../..", "role": "engine-provider", "mutationPolicy": "read-only-unless-authorized" },
+    { "root": "game-src", "role": "game-code", "mutationPolicy": "writable" },
+    { "root": "game-content", "role": "authored-content", "mutationPolicy": "writable" },
+    { "root": "artifacts", "role": "generated-artifacts", "mutationPolicy": "replaceable-generated" },
+    { "root": "eng", "role": "tooling", "mutationPolicy": "writable" }
+  ],
+  "artifactRoot": "artifacts", "wrapperRoot": "eng", "fingerprintInputs": { "structuralVersion": 1 }
+}

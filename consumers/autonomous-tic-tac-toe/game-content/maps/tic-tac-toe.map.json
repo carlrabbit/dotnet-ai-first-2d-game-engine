@@ -1,0 +1,1 @@
+{"schema":"agentic2d.map.v1","id":"map.autonomous-tic-tac-toe","title":"Autonomous Tic-Tac-Toe","width":4,"height":4,"tileSize":{"width":8,"height":8},"geometryOnly":true,"assetRefs":[],"layers":[],"markers":[{"id":"marker.board","kind":"spawn","x":1,"y":1}]}

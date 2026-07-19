@@ -52,6 +52,10 @@ This document indexes permanent behavioral authority. Milestones sequence work; 
 | `docs/specs/resource-damage-and-lifecycle-contract.md` | Health, damage, defeat, and lifecycle. |
 | `docs/specs/item-inventory-and-collection-contract.md` | Items, inventory, and atomic collection. |
 | `docs/specs/gameplay-presentation-event-contract.md` | Post-commit gameplay presentation events. |
+| `docs/specs/geometry-authoring-diagnostics-contract.md` | Geometry inspection, preview, diagnostics, and structural/graphical comparison. |
+| `docs/specs/generated-sound-linkage-contract.md` | Explicit synthesis-to-derived-asset-to-runtime-sound linkage. |
+| `docs/specs/scaled-performance-workload-contract.md` | Bounded scaled performance workload and timing-authority policy. |
+| `docs/specs/autonomous-tic-tac-toe-consumer-contract.md` | Second consumer state, rules, presentation, and validation scope. |
 
 ## Current invariants
 

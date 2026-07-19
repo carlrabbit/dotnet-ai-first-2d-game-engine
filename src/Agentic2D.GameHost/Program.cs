@@ -28,6 +28,14 @@ try
         ?? throw new InvalidOperationException("HOST0006: scenario was not found in bundled content: " + scenario);
     var validation = new ContentValidator().Validate(scenarioPath);
     if (validation.Result.ExitCode != 0) throw new InvalidOperationException("HOST0007: bundled scenario validation failed.");
+    using var scenarioDocument = JsonDocument.Parse(File.ReadAllText(scenarioPath));
+    if (!parsed.Headless && scenarioDocument.RootElement.TryGetProperty("playable", out var playable))
+    {
+        RaylibGameWindow.ShowPlayableContent(manifest.DisplayName, playable, output, parsed.AutoCloseAfterFrames, parsed.Capture);
+        await File.WriteAllTextAsync(Path.Combine(output, "run-manifest.json"), JsonSerializer.Serialize(new { schema = "agentic2d.exported-game-run.v1", status = "passed", scenarioId = scenario, mode = "interactive", artifactRoot = output }, ExportManifest.Json));
+        await File.WriteAllTextAsync(Path.Combine(output, "startup-diagnostics.json"), JsonSerializer.Serialize(new { schema = "agentic2d.exported-game-diagnostics.v1", status = "passed", mode = "interactive", graphicalAdapter = "raylib-isolated-adapter" }, ExportManifest.Json));
+        return 0;
+    }
     if (scenario == "presentation.persistent-world-player-facing-smoke")
     {
         var presentationExit = await M021PresentationCommands.RunAsync(["project", "run", ".", "--scenario", scenario, "--output", output], Console.Out, Console.Error);
@@ -38,7 +46,7 @@ try
             await File.WriteAllTextAsync(Path.Combine(output, "metrics-summary.json"), JsonSerializer.Serialize(new { schema = "agentic2d.runtime-metrics-summary.v1", mode = parsed.Metrics.ToString().ToLowerInvariant(), tickCount = presentationMetrics.TickCount, metrics = presentationMetrics.Summary }, ExportManifest.Json));
         }
         await File.WriteAllTextAsync(Path.Combine(output, "startup-diagnostics.json"), JsonSerializer.Serialize(new { schema = "agentic2d.exported-game-diagnostics.v1", status = presentationExit == 0 ? "passed" : "failed", mode = parsed.Headless ? "headless" : "graphical", graphicalAdapter = parsed.Headless ? "not-requested" : "raylib-isolated-adapter", playerFacingPresentation = "m021-authoritative" }, ExportManifest.Json));
-        if (!parsed.Headless && presentationExit == 0) RaylibGameWindow.Show(manifest.DisplayName, scenario, 6);
+        if (!parsed.Headless && presentationExit == 0) RaylibGameWindow.Show(manifest.DisplayName, scenario, 6, parsed.AutoCloseAfterFrames);
         return presentationExit;
     }
     var execution = new ScenarioRunner().Run(scenarioPath);
@@ -63,37 +71,39 @@ try
     }
     await File.WriteAllTextAsync(Path.Combine(output, "run-manifest.json"), JsonSerializer.Serialize(new { schema = "agentic2d.exported-game-run.v1", status = exit == 0 ? "passed" : "failed", scenarioId = scenario, projectFingerprint = manifest.ProjectFingerprint, contentFingerprint = manifest.ContentFingerprint, headless = parsed.Headless, recording = parsed.Recording, semanticInputConsumed = recording is not null, ticks = parsed.Ticks, writableSaveRoot = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), manifest.GameId, "saves"), artifactRoot = output }, ExportManifest.Json));
     await File.WriteAllTextAsync(Path.Combine(output, "startup-diagnostics.json"), JsonSerializer.Serialize(new { schema = "agentic2d.exported-game-diagnostics.v1", status = exit == 0 ? "passed" : "failed", mode = parsed.Headless ? "headless" : "graphical", graphicalAdapter = parsed.Headless ? "not-requested" : "raylib-isolated-adapter" }, ExportManifest.Json));
-    if (!parsed.Headless && exit == 0) RaylibGameWindow.Show(manifest.DisplayName, scenario, execution.Result.Runtime.FinalTick);
+    if (!parsed.Headless && exit == 0) RaylibGameWindow.Show(manifest.DisplayName, scenario, execution.Result.Runtime.FinalTick, parsed.AutoCloseAfterFrames);
     return exit;
 }
 catch (Exception exception) { return Fail(exception.Message, 1); }
 
 static int Fail(string message, int code) { Console.Error.WriteLine(message); return code; }
 
-file sealed record HostOptions(bool Headless, string? Scenario, string? Recording, string? Ticks, MetricsCollectionMode Metrics, string? Output, bool Help, bool Version, string? Error)
+file sealed record HostOptions(bool Headless, string? Scenario, string? Recording, string? Ticks, MetricsCollectionMode Metrics, string? Output, int? AutoCloseAfterFrames, string? Capture, bool Help, bool Version, string? Error)
 {
-    public const string Usage = "agentic2d-game [--headless] [--scenario <id>] [--recording <path>] [--ticks <count-or-final>] [--metrics off|summary|per-tick] [--output <path>] [--help] [--version]";
+    public const string Usage = "agentic2d-game [--headless] [--scenario <id>] [--recording <path>] [--ticks <count-or-final>] [--metrics off|summary|per-tick] [--output <path>] [--auto-close-after <frames>] [--capture <png>] [--help] [--version]";
     public static HostOptions Parse(string[] args)
     {
-        var headless = false; string? scenario = null, recording = null, ticks = null, output = null; var metrics = MetricsCollectionMode.Off;
+        var headless = false; string? scenario = null, recording = null, ticks = null, output = null, capture = null; int? autoCloseAfterFrames = null; var metrics = MetricsCollectionMode.Off;
         for (var i = 0; i < args.Length; i++)
         {
             switch (args[i])
             {
                 case "--headless": headless = true; break;
-                case "--help": return new(false, null, null, null, metrics, null, true, false, null);
-                case "--version": return new(false, null, null, null, metrics, null, false, true, null);
+                case "--help": return new(false, null, null, null, metrics, null, null, null, true, false, null);
+                case "--version": return new(false, null, null, null, metrics, null, null, null, false, true, null);
                 case "--scenario": if (++i >= args.Length) return Invalid("missing value for --scenario"); scenario = args[i]; break;
                 case "--recording": if (++i >= args.Length) return Invalid("missing value for --recording"); recording = args[i]; break;
                 case "--ticks": if (++i >= args.Length || (args[i] != "final" && (!int.TryParse(args[i], out var count) || count < 0))) return Invalid("--ticks must be a non-negative count or final"); ticks = args[i]; break;
                 case "--metrics": if (++i >= args.Length || !TryMetrics(args[i], out metrics)) return Invalid("--metrics must be off, summary, or per-tick"); break;
                 case "--output": if (++i >= args.Length) return Invalid("missing value for --output"); output = args[i]; break;
+                case "--auto-close-after": if (++i >= args.Length || !int.TryParse(args[i], out var frames) || frames <= 0) return Invalid("--auto-close-after must be a positive frame count"); autoCloseAfterFrames = frames; break;
+                case "--capture": if (++i >= args.Length || Path.IsPathRooted(args[i]) || args[i].Contains("..", StringComparison.Ordinal)) return Invalid("--capture must be a safe relative path"); capture = args[i]; break;
                 default: return Invalid("unsupported option: " + args[i]);
             }
         }
-        return new(headless, scenario, recording, ticks, metrics, output, false, false, null);
+        return new(headless, scenario, recording, ticks, metrics, output, autoCloseAfterFrames, capture, false, false, null);
     }
-    private static HostOptions Invalid(string value) => new(false, null, null, null, MetricsCollectionMode.Off, null, false, false, value);
+    private static HostOptions Invalid(string value) => new(false, null, null, null, MetricsCollectionMode.Off, null, null, null, false, false, value);
     private static bool TryMetrics(string value, out MetricsCollectionMode mode) { mode = value switch { "off" => MetricsCollectionMode.Off, "summary" => MetricsCollectionMode.Summary, "per-tick" => MetricsCollectionMode.PerTick, _ => MetricsCollectionMode.Off }; return value is "off" or "summary" or "per-tick"; }
 }
 

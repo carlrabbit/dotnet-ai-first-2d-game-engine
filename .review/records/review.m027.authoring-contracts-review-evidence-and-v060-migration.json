@@ -1,0 +1,59 @@
+{
+  "schema": "agentic2d.engineering.review-record.v2",
+  "id": "review.m027.authoring-contracts-review-evidence-and-v060-migration",
+  "owningMilestone": "M027",
+  "owningMilestonePath": "docs/milestones/MILESTONE-027-geometry-and-generated-sound-contract-stabilization-review-evidence-packs-and-guide-system-v060-migration.md",
+  "subject": "M027 authoring contracts, review evidence packs, and guide-system v0.6.0 review migration",
+  "classes": [
+    "migration",
+    "artifact-quality",
+    "visual"
+  ],
+  "level": "blocking",
+  "reviewerRole": "repository user",
+  "status": "approved",
+  "evidence": [
+    "artifacts/review-migration/M027/review-migration-report.json",
+    "artifacts/geometry/M027",
+    "artifacts/sound-linkage/M027",
+    "artifacts/review/M027",
+    "artifacts/validation/m027-smoke"
+  ],
+  "acceptanceCriteria": [
+    "Historical completed reviews are preserved and are not invalidated by later commits.",
+    "Every active pending review has one owning milestone.",
+    "Canonical IDs and ephemeral interactive aliases behave correctly.",
+    "Geometry and sound diagnostics are clear and stable across both consumers.",
+    "Review packs contain sufficient bounded evidence or explicit acceptable omissions.",
+    "No approval was fabricated during migration."
+  ],
+  "acceptableDecisions": [
+    "approved"
+  ],
+  "waiverPolicy": "No implicit waiver. A waiver is acceptable only after this request is explicitly amended to authorize one and the record states the reason.",
+  "decision": "approved",
+  "reviewedRevision": "ref: refs/heads/m25m26m27",
+  "reviewedFingerprint": "038de87d9464fe9c137fef64fa2c0a1c0b323a49393dc626bda3a10b318d2aec",
+  "conditions": [],
+  "completedAt": "2026-07-19T08:21:29.6737747+00:00",
+  "decisionHistory": [
+    {
+      "decision": "approved",
+      "reviewer": "repository user",
+      "notes": "Approved by repository user after reviewing the M027 authoring-contract, evidence-pack, and review-migration materials.",
+      "evidence": [
+        "artifacts/review-migration/M027/review-migration-report.json",
+        "artifacts/geometry/M027",
+        "artifacts/sound-linkage/M027",
+        "artifacts/review/M027",
+        "artifacts/validation/m027-smoke"
+      ],
+      "revision": "ref: refs/heads/m25m26m27",
+      "fingerprint": "038de87d9464fe9c137fef64fa2c0a1c0b323a49393dc626bda3a10b318d2aec",
+      "recordedAt": "2026-07-19T08:21:29.6021607+00:00",
+      "recordCorrection": false
+    }
+  ],
+  "correctsReviewId": "",
+  "path": ".review/records/review.m027.authoring-contracts-review-evidence-and-v060-migration.json"
+}

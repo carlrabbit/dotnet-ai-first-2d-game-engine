@@ -1,0 +1,1 @@
+{"schema":"agentic2d.map.v1","id":"map.signal-passage","title":"Signal Passage","width":12,"height":8,"tileSize":{"width":8,"height":8},"geometryOnly":true,"assetRefs":[],"layers":[],"markers":[{"id":"marker.player","kind":"spawn","x":1,"y":1}]}

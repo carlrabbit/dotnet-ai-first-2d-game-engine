@@ -1,0 +1,1 @@
+{"schema":"autonomous-tic-tac-toe.scenario.v1","id":"tic-tac-toe.draw","semanticActions":[],"assertions":["draw","draw-count-incremented"]}

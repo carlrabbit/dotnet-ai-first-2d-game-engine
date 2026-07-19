@@ -12,6 +12,8 @@ The product CLI is the engine/runtime API for agents, CI, and humans. It is sepa
 
 The product CLI must execute real product behavior and produce structured artifacts. It must not contain success-only placeholders.
 
+Repository-local human-review commands are engineering commands, not product CLI commands; their contract is in `docs/engineering/human-review-workflow.md`.
+
 ## CLI host
 
 The CLI host project is:
@@ -57,6 +59,8 @@ agentic2d animation project --scenario <scenario-id> --output <directory>
 agentic2d sound inspect <sound-id-or-path> --output <directory>
 agentic2d sound project --project <project-or-workspace> --scenario <scenario-id> --output <directory>
 agentic2d gameplay inspect --project <project-or-workspace> --scenario <scenario-id> --output <directory>
+agentic2d geometry review-pack <project-or-definition> --output <directory>
+agentic2d sound linkage review-pack <project-or-workspace> [--export <linux-export-directory>] --output <directory>
 ```
 
 Development equivalents:
@@ -82,6 +86,8 @@ dotnet run --project src/Agentic2D.Tools -- asset review apply --decisions game/
 dotnet run --project src/Agentic2D.Tools -- map inspect map.smoke --output artifacts/maps/map-smoke
 dotnet run --project src/Agentic2D.Tools -- review pack --input artifacts --output artifacts/review/latest
 dotnet run --project src/Agentic2D.Tools -- asset curate --asset asset.tile-atlas-smoke --review-pack artifacts/review/latest --output artifacts/workbench/asset-curation
+dotnet run --project src/Agentic2D.Tools -- geometry review-pack consumers/signal-passage --output artifacts/geometry/M027/signal-passage
+dotnet run --project src/Agentic2D.Tools -- sound linkage review-pack consumers/signal-passage --output artifacts/sound-linkage/M027/signal-passage
 ```
 
 ## Command table

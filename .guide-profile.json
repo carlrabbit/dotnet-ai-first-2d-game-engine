@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "guideSystemVersion": "0.5.1",
+  "guideSystemVersion": "0.6.0",
   "guideRepository": "carlrabbit/agentic-project-guides",
   "targetRepository": "carlrabbit/dotnet-ai-first-2d-game-engine",
   "repositoryRole": "capability-provider",
@@ -13,7 +13,7 @@
     "implementation-ready",
     "artifact-first"
   ],
-  "executionMode": "migration",
+  "executionMode": "ai-executed-broad",
   "guideUse": [
     "planning",
     "migration",
@@ -21,13 +21,15 @@
     "release-readiness"
   ],
   "adoption": {
-    "migratedFromGuideSystemVersion": "0.3.0",
+    "migratedFromGuideSystemVersion": "0.5.1",
     "includesGuideSystemVersions": [
       "0.4.0",
       "0.5.0",
-      "0.5.1"
+      "0.5.1",
+      "0.5.2",
+      "0.6.0"
     ],
-    "humanReviewModel": "repository-local-when-applicable",
+    "humanReviewModel": "milestone-scoped-completion-gate",
     "validationExecutionModel": "direct-or-resumable-sharded",
     "engineeringCommandModel": "thin-launchers-over-tested-dotnet-host"
   },
@@ -45,9 +47,9 @@
   },
   "notes": [
     "This file is guide-selection and traceability metadata only.",
-    "Project truth remains in README.md, AGENTS.md, docs/, eng/, source, tests, authored project data, and activated review records.",
+    "Project truth remains in README.md, AGENTS.md, docs/, eng/, source, tests, authored project data, and completed repository-local review records.",
     "Do not copy guide documents or prompt templates into this repository.",
-    "Planning packages for disconnected implementation agents include a filled execution prompt in chat.",
+    "Human review is owned by one milestone, gates only that milestone, and becomes immutable historical evidence when completed.",
     "Aggregate validation success is established only by direct bounded completion or by fast verification of current fingerprinted shard receipts."
   ]
 }

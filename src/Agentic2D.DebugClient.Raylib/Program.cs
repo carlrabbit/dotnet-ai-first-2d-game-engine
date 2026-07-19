@@ -2,9 +2,11 @@ using System.Numerics;
 using System.Text.Json;
 using Agentic2D.Rendering;
 using Agentic2D.ScenarioRunner;
+using Agentic2D.Validation;
 using Raylib_cs;
 
 if (args.Length == 0) return Usage();
+if (args[0] == "geometry") return CaptureGeometry(args[1..]);
 string? scenario = null, input = null, capture = null;
 for (var i = 1; i < args.Length; i++)
     if (args[i] == "--scenario" && ++i < args.Length) scenario = args[i];
@@ -60,4 +62,43 @@ void Capture(string path) { Raylib.TakeScreenshot(path); File.WriteAllText(Path.
 static void Draw(RenderItem item, Texture2D texture) { var src = item.RegionId switch { "region.ground" => new Rectangle(0, 0, 8, 8), "region.player" => new Rectangle(8, 0, 8, 8), "region.npc" => new Rectangle(16, 0, 8, 8), "region.blocked" => new Rectangle(0, 8, 8, 8), "region.tree-base" => new Rectangle(8, 8, 8, 8), _ => new Rectangle(16, 8, 8, 8) }; var d = item.Destination; Raylib.DrawTexturePro(texture, src, new Rectangle((float)d.Position.X, (float)d.Position.Y, (float)d.Size.Width, (float)d.Size.Height), item.Anchor == "bottom-center" ? new Vector2((float)d.Size.Width / 2, (float)d.Size.Height) : Vector2.Zero, 0, new Color(item.Tint.R, item.Tint.G, item.Tint.B, item.Tint.A)); }
 static void DrawOverlays(RenderProjectionResult p, int s) { var entities = p.Snapshot.Entities.OrderBy(x => x.Id, StringComparer.Ordinal).ToArray(); for (var i = 0; i < entities.Length; i++) { var e = entities[i]; Raylib.DrawRectangleLines((int)(e.X - .25), (int)(e.Y - .25), 1, 1, i == s ? Color.Yellow : Color.Magenta); Raylib.DrawText(e.Id, (int)e.X, (int)(e.Y - .3), 1, Color.White); } }
 static int Cycle(IReadOnlyList<RenderSnapshotEntity> e, int current, bool backward) => e.Count == 0 ? 0 : (current + (backward ? e.Count - 1 : 1)) % e.Count;
-static int Usage() { Console.Error.WriteLine("usage: scenario --scenario <id> [--capture <png>] | snapshot --input <render-snapshot.json> [--capture <png>]"); return 2; }
+static int CaptureGeometry(string[] arguments)
+{
+    string? input = null, capture = null;
+    for (var index = 0; index < arguments.Length; index++)
+    {
+        if (arguments[index] == "--input" && ++index < arguments.Length) input = arguments[index];
+        else if (arguments[index] == "--capture" && ++index < arguments.Length) capture = arguments[index];
+        else return Usage();
+    }
+    if (string.IsNullOrWhiteSpace(input) || string.IsNullOrWhiteSpace(capture)) return Usage();
+    var visual = new VisualDefinitionValidator().ValidateFile(input);
+    if (visual.Definition is null || visual.Status != ContentValidationStatus.Passed) { Console.Error.WriteLine("geometry capture requires a valid visual definition."); return 3; }
+    try
+    {
+        Raylib.InitWindow(960, 540, "Agentic2D geometry capture");
+        Raylib.BeginDrawing(); Raylib.ClearBackground(new Color(20, 31, 48, 255));
+        foreach (var part in visual.Definition.Parts.Where(x => x.Geometry is not null).OrderBy(x => x.Layer, StringComparer.Ordinal).ThenBy(x => x.Order).ThenBy(x => x.Id, StringComparer.Ordinal)) DrawGeometry(part);
+        Raylib.DrawText(visual.Definition.Id, 24, 20, 20, Color.White); Raylib.EndDrawing();
+        Directory.CreateDirectory(Path.GetDirectoryName(Path.GetFullPath(capture))!); Raylib.TakeScreenshot(Path.GetRelativePath(Directory.GetCurrentDirectory(), Path.GetFullPath(capture)));
+        File.WriteAllText(Path.ChangeExtension(capture, ".metadata.json"), JsonSerializer.Serialize(new { schema = "agentic2d.geometry-graphical-capture.v1", visualId = visual.Definition.Id, sourcePath = Path.GetFullPath(input), parts = visual.Definition.Parts.Where(x => x.Geometry is not null).Select(x => new { id = x.Id, kind = x.Geometry!.Kind }).OrderBy(x => x.id, StringComparer.Ordinal), outputPath = Path.GetFullPath(capture), background = new { r = 20, g = 31, b = 48, a = 255 } }));
+        return 0;
+    }
+    finally { if (Raylib.IsWindowReady()) Raylib.CloseWindow(); }
+}
+static void DrawGeometry(VisualPartSource part)
+{
+    var geometry = part.Geometry!; var center = new Vector2(480 + (float)(part.Offset.X * 100), 280 + (float)(part.Offset.Y * 100)); var width = (float)(part.WorldSize.Width * 100); var height = (float)(part.WorldSize.Height * 100); var fill = ToColor(geometry.Fill ?? part.Tint, geometry.Opacity); var outline = geometry.Outline is null ? new Color(0, 0, 0, 0) : ToColor(geometry.Outline, geometry.Opacity); var thickness = Math.Max(1f, (float)(geometry.OutlineWidth * 100));
+    switch (geometry.Kind)
+    {
+        case "rectangle": Raylib.DrawRectanglePro(new Rectangle(center.X - width / 2, center.Y - height / 2, width, height), new Vector2(width / 2, height / 2), (float)geometry.Rotation, fill); if (geometry.Outline is not null) Raylib.DrawRectangleLinesEx(new Rectangle(center.X - width / 2, center.Y - height / 2, width, height), thickness, outline); break;
+        case "circle": Raylib.DrawCircleV(center, Math.Max(width, height) / 2, fill); if (geometry.Outline is not null) Raylib.DrawCircleLinesV(center, Math.Max(width, height) / 2, outline); break;
+        case "triangle": Raylib.DrawPoly(center, 3, Math.Max(width, height) / 2, (float)geometry.Rotation, fill); break;
+        case "diamond": Raylib.DrawPoly(center, 4, Math.Max(width, height) / 2, (float)geometry.Rotation + 45, fill); break;
+        case "regular-polygon": Raylib.DrawPoly(center, geometry.PolygonSides, Math.Max(width, height) / 2, (float)geometry.Rotation, fill); break;
+        case "ring": Raylib.DrawRing(center, Math.Max(width, height) * (float)geometry.RingInnerRatio / 2, Math.Max(width, height) / 2, 0, 360, 32, outline); break;
+        case "line": var end = geometry.LineEnd ?? new VisualPoint(0, 0); Raylib.DrawLineEx(center, new Vector2(center.X + (float)(end.X * 100), center.Y + (float)(end.Y * 100)), thickness, fill); break;
+    }
+}
+static Color ToColor(VisualColor color, double opacity) => new(color.R, color.G, color.B, (int)Math.Round(color.A * opacity));
+static int Usage() { Console.Error.WriteLine("usage: scenario --scenario <id> [--capture <png>] | snapshot --input <render-snapshot.json> [--capture <png>] | geometry --input <visual-definition.json> --capture <png>"); return 2; }

@@ -1,0 +1,1 @@
+{"schema":"autonomous-tic-tac-toe.scenario.v1","id":"tic-tac-toe.human-takes-o","semanticActions":["participant.take-o","board.select-cell"],"assertions":["o-controller-human","selected-free-cell-placed"]}

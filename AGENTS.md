@@ -98,7 +98,7 @@ Project-specific operational rules must exist in active repository docs before i
 
 For resumable suites, run `--plan-json`, then each required `--shard <id>` in a separate invocation, then `--verify`. Only the verifier establishes aggregate success. Do not use backgrounding, detached processes, timeout inflation, or partial logs as proof.
 
-Use `.review/` only through the canonical review commands. Required and blocking review must pass `./eng/review-check.sh`.
+Use `.review/` only through the canonical command family in `docs/engineering/human-review-workflow.md`. Required and blocking review must pass `./eng/review-check.sh --milestone <id>` for its owning milestone.
 
 The canonical launcher platform is Bash on Linux. Native Windows and PowerShell are unsupported until implemented and tested.
 

@@ -1,0 +1,1 @@
+{"schema":"autonomous-tic-tac-toe.scenario.v1","id":"tic-tac-toe.invalid-cell-rejected","semanticActions":["participant.take-x","board.select-cell"],"assertions":["occupied-cell-rejected","bounded-feedback-cue"]}
