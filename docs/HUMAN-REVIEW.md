@@ -58,6 +58,6 @@ Screenshot pixels are not cross-platform semantic truth.
 
 ## Repository-local review gate
 
-Required and blocking reviews use `.review/pending/`, `.review/records/`, and `.review/evidence/`. Generated or large evidence remains in `artifacts/review/`.
+Required and blocking reviews use `.review/pending/`, `.review/records/`, and `.review/closed/`. Generated or large evidence remains in `artifacts/review/`.
 
-Use the canonical review commands. `./eng/review-check.sh` fails required/blocking reviews that are unresolved, malformed, stale, superseded, or missing evidence. M022 requires an approved, current migration review covering shard boundaries, receipt/fingerprint trustworthiness, review usability, platform support, guide leakage, and ordinary-agent isolation.
+Use the canonical review command family defined in `docs/engineering/human-review-workflow.md`. `./eng/review-check.sh --milestone <id>` evaluates only required/blocking reviews owned by that milestone and fails unresolved, malformed, superseded, or insufficiently evidenced reviews. Completed records are immutable historical evidence: later commits do not stale M022, M025, or M026. M027 requires `review.m027.authoring-contracts-review-evidence-and-v060-migration` and its durable consumer-authoring review pack.

@@ -82,6 +82,8 @@ Do not create success-only placeholder scripts.
 
 Receipts are generated at `artifacts/validation/<suite>/<shard>.json`. The host deletes a previous receipt before execution and only atomically replaces it after command success and evidence validation.
 
-Canonical review commands are `./eng/review-list.sh`, `./eng/review-request.sh`, `./eng/review-record.sh`, and `./eng/review-check.sh`.
+The canonical six-command engineering review family, including positional review targets, current aliases, atomic alias-map storage, and historical reopening restrictions, is defined in `docs/engineering/human-review-workflow.md`. Durable files always use canonical review IDs.
+
+`./eng/m027-smoke.sh` is resumable-sharded. It has `--list`, `--plan-json`, `--shard <id>`, `--verify`, and no-argument modes. Its human-review shard remains pending until the owning M027 review is approved.
 
 The Bash launchers delegate structured semantics to `src/Agentic2D.Engineering`; they are not product commands.

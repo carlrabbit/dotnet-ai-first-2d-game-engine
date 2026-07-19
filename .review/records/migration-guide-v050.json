@@ -1,22 +1,23 @@
 {
-  "schema": "agentic2d.engineering.review.v1",
+  "schema": "agentic2d.engineering.review-record.v2",
   "id": "migration-guide-v050",
+  "owningMilestone": "M022",
+  "owningMilestonePath": "docs/milestones/MILESTONE-022-adopt-guide-system-v0.5.0-constrained-validation-and-human-review.md",
   "subject": "Milestone 022 constrained validation and human review migration",
-  "class": "migration",
+  "classes": ["migration"],
   "level": "required",
   "source": "M022",
   "reviewerRole": "project owner",
   "status": "approved",
-  "evidence": [
+  "requiredEvidence": [
     ".review/evidence/migration-guide-v050.md"
   ],
   "decision": "Refreshed approval by project owner for the current repository fingerprint.",
+  "reviewedRevision": "legacy-m022-review",
   "reviewedFingerprint": "81a264fd187fe85e95145e79f92473cebe083f1827293e9d54214762f9ece0f6",
-  "reReviewTriggers": [
-    "source",
-    "acceptance criteria",
-    "evidence",
-    "fingerprint"
-  ],
+  "conditions": [],
+  "completedAt": "2026-07-18T20:46:00Z",
+  "acceptableCompletionDecisions": ["approved", "waived"],
+  "waiverPolicy": "Historical record; no new waiver is implied.",
   "path": ".review/records/migration-guide-v050.json"
 }

@@ -1,4 +1,8 @@
-# Review Request — M026 Geometry Diagnostics and Autonomous Tic-Tac-Toe
+# Historical Review Request — M026 Geometry Diagnostics and Autonomous Tic-Tac-Toe
+
+This request is closed as historical evidence. Its approved immutable record is
+`.review/records/review.m026.geometry-diagnostics-and-autonomous-tic-tac-toe.json`;
+later repository commits do not reopen it.
 
 ## Review ID
 

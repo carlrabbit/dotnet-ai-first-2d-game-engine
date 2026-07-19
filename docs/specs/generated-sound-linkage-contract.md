@@ -2,23 +2,47 @@
 
 ## Authority
 
-Authoritative for explicit linkage between offline synthesis outputs and ordinary sound definitions, including validation, provenance, drift detection, and inspection.
+Authoritative for stable M027 linkage between synthesis definitions, generated WAV/provenance, ordinary sound definitions, export inclusion, diagnostics, inspection, and review packs.
+
+## Stable schemas
+
+```text
+agentic2d.generated-sound-linkage.v1
+agentic2d.generated-sound-provenance.v1
+agentic2d.generated-sound-linkage-report.v1
+agentic2d.generated-sound-review-pack.v1
+```
+
+## Authority boundary
 
 ```text
 synthesis definition: generation source truth
-generated WAV + provenance: derived asset
-sound definition: runtime sound authority
+generated WAV and provenance: derived artifact
+ordinary sound definition: runtime authority
+linkage: validation and inspection relationship
 ```
 
-Each linkage connects synthesis definition ID, expected output path/asset, provenance, output hash, sound-definition ID, and variant/raw-asset reference. Filename convention alone is insufficient.
-
-Validation detects missing definition/output/provenance, stale definition fingerprint, output hash drift, wrong sound mapping, duplicate incompatible linkage, orphan output, and incompatible multiple claims.
-
-Artifacts:
+## Diagnostics
 
 ```text
-generated-sound-linkage-report.json
-generated-sound-linkage-report.md
+SNDL001 generated output missing
+SNDL002 output hash differs from provenance
+SNDL003 sound definition references unknown output
+SNDL004 generated output has no ordinary sound definition
+SNDL005 duplicate incompatible linkage
+SNDL006 stale synthesis-definition fingerprint
+SNDL007 unknown synthesis definition
+SNDL008 missing or malformed provenance
+SNDL009 export omitted linked output
+SNDL010 linkage schema/version unsupported
 ```
 
-Runtime cue selection and playback remain unchanged.
+Each diagnostic identifies exact linkage field and related source, output, provenance, runtime definition, and export member.
+
+## Export
+
+Every generated output referenced by an included ordinary sound definition must be included in export. Missing inclusion fails validation.
+
+## Review pack
+
+Include manifest, index, linkage report, identities, hashes, rebuild status, export status, representative cue inventory, and omissions.

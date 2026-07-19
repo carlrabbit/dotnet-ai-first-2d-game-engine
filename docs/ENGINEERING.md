@@ -109,6 +109,13 @@ The repository includes deterministic runtime, product CLI, scenarios, content v
 ./eng/tic-tac-toe-export.sh
 ./eng/tic-tac-toe-review.sh
 ./eng/m026-smoke.sh
+./eng/review-migration-smoke.sh
+./eng/geometry-review-pack-smoke.sh
+./eng/generated-sound-review-pack-smoke.sh
+./eng/consumer-authoring-review-pack-smoke.sh
+./eng/scenario-diagnostics-smoke.sh
+./eng/persistence-diagnostics-smoke.sh
+./eng/m027-smoke.sh
 ```
 
 ## Validation boundary
@@ -128,6 +135,6 @@ Commands must validate meaningful state or fail clearly. Success-only placeholde
 
 The resumable suites are `./eng/m019-smoke.sh`, `./eng/m020-smoke.sh`, `./eng/m021-smoke.sh`, `./eng/m023-smoke.sh`, `./eng/m026-smoke.sh`, and `./eng/guide-migration-v050.sh`. Each supports `--list`, `--plan-json`, `--shard <id>`, and `--verify`; a no-argument run is for unconstrained local/CI use. Performance comparisons are advisory same-machine evidence, never deterministic validation authority. M026 marks sub-10-ms references not timing-authoritative and uses bounded scaled real workloads for elapsed comparison.
 
-Repository-local review state is `.review/pending/`, `.review/records/`, and `.review/evidence/`; generated or large evidence belongs under `artifacts/review/`. Use `review-list.sh`, `review-request.sh`, `review-record.sh`, and `review-check.sh`.
+Repository-local review state is `.review/pending/`, `.review/records/`, and `.review/closed/`; generated or large evidence belongs under `artifacts/review/`. The full six-command review family, alias behavior, and reopening policy are authoritative in `docs/engineering/human-review-workflow.md`. Completed records are immutable historical evidence and do not stale because later commits change the repository.
 
 The tested engineering baseline is Linux with Bash, Git, .NET SDK 10.0.109, and same-filesystem atomic file replacement. Native Windows and PowerShell are not supported or claimed. Graphics smoke remains conditional on its documented graphics-capable environment.

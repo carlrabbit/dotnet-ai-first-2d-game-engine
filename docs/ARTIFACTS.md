@@ -34,6 +34,7 @@ Failures must produce enough structured evidence for diagnosis. Generated artifa
 | `docs/artifacts/animation-execution-artifact-contract.md` | Animation compilation, samples, markers, and animated rendering. |
 | `docs/artifacts/sound-execution-artifact-contract.md` | Sound projection evidence. |
 | `docs/artifacts/gameplay-state-artifact-contract.md` | Gameplay state and transaction evidence. |
+| `docs/artifacts/consumer-authoring-review-pack-artifact-contract.md` | Bounded milestone-owned geometry, sound, scenario, persistence, performance, and capture evidence. |
 
 ## Artifact roots
 

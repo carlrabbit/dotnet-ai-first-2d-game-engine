@@ -1,4 +1,8 @@
-# Review Request — M025 Signal Passage Playable Vertical Slice
+# Historical Review Request — M025 Signal Passage Playable Vertical Slice
+
+This request is closed as historical evidence. Its approved immutable record is
+`.review/records/review.m025.signal-passage-playable-vertical-slice.json`; later
+repository commits do not reopen it.
 
 ## Review ID
 

@@ -68,7 +68,7 @@ public static class ToolsCli
                   agentic2d sound inspect <sound-id-or-path> --output <directory>
                   agentic2d sound synthesize <definition-or-directory> --output <directory>
                   agentic2d sound synthesis validate|inspect <definition-or-directory> --output <directory>
-                  agentic2d sound linkage inspect|validate <project-or-workspace> --output <directory>
+                  agentic2d sound linkage inspect|validate|review-pack <project-or-workspace> [--export <linux-export-directory>] --output <directory>
                   agentic2d sound project --project <project-or-workspace> --scenario <scenario-id> --output <directory>
                   agentic2d gameplay inspect --project <project-or-workspace> --scenario <scenario-id> --output <directory>
                   agentic2d asset inspect <asset-id-or-path> --output <directory>

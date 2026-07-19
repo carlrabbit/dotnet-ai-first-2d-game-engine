@@ -33,3 +33,4 @@ This document indexes durable project decisions.
 Create an ADR for durable choices affecting architecture, repository shape, runtime, content, validation, command/artifact contracts, or public APIs. Routine implementation details governed by existing authority do not need separate ADRs.
 | `docs/decisions/ADR-0028-engineering-validation-uses-resumable-fingerprinted-suites.md` | Accepted | Resumable fingerprinted engineering validation. |
 | `docs/decisions/ADR-0029-human-review-state-is-repository-local.md` | Accepted | Repository-local required review state. |
+| `docs/decisions/ADR-0039-m027-combines-authoring-contract-stabilization-with-guide-system-v060-review-migration.md` | Proposed | Stable authoring evidence and milestone-scoped review migration. |

@@ -5,6 +5,7 @@ artifacts/**
 !artifacts/.gitkeep
 !artifacts/review/
 !artifacts/review/.gitkeep
+artifacts/review/session/
 
 # Generated game assets and local previews
 game/assets/generated/**

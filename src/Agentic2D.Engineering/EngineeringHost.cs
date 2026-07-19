@@ -85,26 +85,36 @@ public static class EngineeringCli
 
         return args[0] switch
         {
-            "list" when args.Length == 1 => host.ListReviews(stdout),
-            "check" when args.Length == 1 => host.CheckReviews(stderr) ? 0 : 1,
+            "list" => host.ListReviewsFromArguments(args[1..], stdout),
+            "show" when args.Length == 2 => host.ShowReview(args[1], stdout),
+            "check" => host.CheckReviews(ReviewMilestone(args[1..]), stderr) ? 0 : 1,
+            "migration-report" => await host.WriteReviewMigrationReportAsync(ReviewMilestone(args[1..]), stdout),
             "request" => await host.CreateReviewRequestAsync(args[1..], stdout),
             "record" => await host.RecordReviewAsync(args[1..], stdout),
+            "reopen" => await host.ReopenReviewAsync(args[1..], stdout),
             _ => Usage(stderr)
         };
     }
 
     private static int Usage(TextWriter stderr)
     {
-        stderr.WriteLine("usage: engineering suite <id> [--list|--plan-json|--shard <id>|--verify] | engineering review <list|check|request|record> | engineering performance <smoke|capture|compare|report>");
+        stderr.WriteLine("usage: engineering suite <id> [--list|--plan-json|--shard <id>|--verify] | engineering review list [--milestone <id>] [--state <active|historical>] [--status <status>] | engineering review show <review-id-or-alias> | engineering review request --milestone <id> ... | engineering review record <review-id-or-alias> <decision> ... | engineering review reopen <review-id-or-alias> --reason <reason> [--correct-record] | engineering review check --milestone <id> | engineering performance <smoke|capture|compare|report>");
         return 2;
     }
+
+    private static string ReviewMilestone(string[] args) => args.Length == 2 && args[0] == "--milestone" && !string.IsNullOrWhiteSpace(args[1])
+        ? args[1]
+        : throw new EngineeringException("review commands require --milestone <id>");
+
 }
 
 public sealed class EngineeringHost
 {
     private const string PlanSchema = "agentic2d.engineering.validation-plan.v1";
     private const string ReceiptSchema = "agentic2d.engineering.validation-receipt.v1";
-    private const string ReviewSchema = "agentic2d.engineering.review.v1";
+    private const string ReviewRequestSchema = "agentic2d.engineering.review-request.v2";
+    private const string ReviewRecordSchema = "agentic2d.engineering.review-record.v2";
+    private const string AliasMapPath = "artifacts/review/session/aliases.json";
     private readonly string root;
     private readonly IReadOnlyDictionary<string, ValidationSuite> suites;
     private readonly JsonSerializerOptions json = new() { WriteIndented = true, PropertyNamingPolicy = JsonNamingPolicy.CamelCase, DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull };
@@ -247,19 +257,57 @@ public sealed class EngineeringHost
         return success;
     }
 
-    public int ListReviews(TextWriter stdout)
+    public int ListReviewsFromArguments(string[] args, TextWriter stdout) => ListReviews(ParseListOptions(args), stdout);
+
+    public int ListReviews(string? milestone, TextWriter stdout) => ListReviews(new ReviewListOptions(milestone, null, null), stdout);
+
+    private int ListReviews(ReviewListOptions options, TextWriter stdout)
     {
-        foreach (var review in ReadReviews())
+        var reviews = FilterReviews(options).ToArray();
+        WriteAliasMap(options, reviews);
+        for (var index = 0; index < reviews.Length; index++)
         {
-            stdout.WriteLine($"{review.Id}\t{review.Status}\t{review.Level}\t{review.Subject}\t{review.Path}");
+            var review = reviews[index];
+            stdout.WriteLine($"{index + 1}\t{ReviewStateKind(review)}\t{review.OwningMilestone}\t{review.Id}\t{review.Status}\t{review.Level}\t{review.Subject}\t{review.Path}");
         }
 
         return 0;
     }
 
-    public bool CheckReviews(TextWriter diagnostics)
+    public int ShowReview(string idOrAlias, TextWriter stdout)
     {
-        var reviews = ReadReviews();
+        var id = ResolveReviewTarget(idOrAlias);
+        var entries = ReadReviewFiles().Where(review => review.Id == id).ToArray();
+        if (entries.Length == 0) throw new EngineeringException($"unknown review '{id}'");
+
+        var review = SelectCurrentReview(entries);
+        var request = entries.FirstOrDefault(entry => entry.Path.StartsWith(".review/pending/", StringComparison.Ordinal));
+        var records = entries.Where(entry => entry.Path.StartsWith(".review/records/", StringComparison.Ordinal)).OrderBy(entry => entry.CompletedAt).ToArray();
+        stdout.WriteLine($"Canonical review ID: {review.Id}");
+        stdout.WriteLine($"Owning milestone: {review.OwningMilestone}");
+        stdout.WriteLine($"Owning milestone path: {review.OwningMilestonePath}");
+        stdout.WriteLine($"State: {ReviewStateKind(review)}");
+        stdout.WriteLine($"Status: {review.Status}");
+        stdout.WriteLine($"Subject: {review.Subject}");
+        stdout.WriteLine($"Classes: {string.Join(", ", review.Classes)}");
+        stdout.WriteLine($"Applicability: {review.Level}");
+        stdout.WriteLine($"Reviewer role: {review.ReviewerRole}");
+        stdout.WriteLine($"Waiver policy: {review.WaiverPolicy}");
+        stdout.WriteLine($"Current decision: {DisplayValue(review.Decision)}");
+        stdout.WriteLine($"Required evidence: {DisplayList(review.Evidence)}");
+        stdout.WriteLine($"Acceptance criteria: {DisplayList(review.AcceptanceCriteria)}");
+        stdout.WriteLine($"Decision history: {DisplayHistory(review.DecisionHistory)}");
+        stdout.WriteLine($"Provenance revision: {DisplayValue(review.ReviewedRevision)}");
+        stdout.WriteLine($"Provenance fingerprint: {DisplayValue(review.ReviewedFingerprint)}");
+        stdout.WriteLine($"Request path: {request?.Path ?? "none"}");
+        stdout.WriteLine($"Record paths: {DisplayList(records.Select(record => record.Path))}");
+        if (!string.IsNullOrWhiteSpace(review.CorrectsReviewId)) stdout.WriteLine($"Corrects review: {review.CorrectsReviewId}");
+        return 0;
+    }
+
+    public bool CheckReviews(string milestone, TextWriter diagnostics)
+    {
+        var reviews = ReadReviews().Where(review => review.OwningMilestone == milestone).ToArray();
         var success = true;
         foreach (var review in reviews.Where(review => review.Level is "required" or "blocking"))
         {
@@ -268,12 +316,6 @@ public sealed class EngineeringHost
                 diagnostics.WriteLine($"error: required review '{review.Id}' is {review.Status}");
                 success = false;
                 continue;
-            }
-
-            if (string.IsNullOrWhiteSpace(review.ReviewedFingerprint) || review.ReviewedFingerprint != Fingerprints.Review(root))
-            {
-                diagnostics.WriteLine($"error: required review '{review.Id}' is stale");
-                success = false;
             }
 
             if (review.Evidence.Count == 0 || review.Evidence.Any(path => !File.Exists(Absolute(path)) && !Directory.Exists(Absolute(path))))
@@ -285,13 +327,13 @@ public sealed class EngineeringHost
 
         if (!reviews.Any(review => review.Level is "required" or "blocking"))
         {
-            diagnostics.WriteLine("error: no required or blocking review record exists");
+            diagnostics.WriteLine($"error: no required or blocking review exists for milestone '{milestone}'");
             return false;
         }
 
         if (success)
         {
-            diagnostics.WriteLine("review-check: passed");
+            diagnostics.WriteLine($"review-check: passed for {milestone}");
         }
 
         return success;
@@ -301,19 +343,30 @@ public sealed class EngineeringHost
     {
         var options = ParseOptions(args);
         var id = Required(options, "--id");
+        var milestone = Required(options, "--milestone");
+        ValidateCanonicalReviewId(id);
+        if (ReadReviewFiles().Any(review => review.Id == id)) throw new EngineeringException($"review ID already exists: {id}");
         var review = new ReviewState(
-            ReviewSchema,
+            ReviewRequestSchema,
             id,
+            milestone,
+            options.GetValueOrDefault("--milestone-path", $"docs/milestones/{milestone}.md"),
             Required(options, "--subject"),
-            Required(options, "--class"),
+            Split(Required(options, "--class")),
             Required(options, "--level"),
-            Required(options, "--source"),
             options.GetValueOrDefault("--reviewer", "human reviewer"),
             "pending",
             Split(options.GetValueOrDefault("--evidence", string.Empty)),
+            Split(options.GetValueOrDefault("--criteria", string.Empty)),
+            Split(options.GetValueOrDefault("--acceptable", "approved")),
+            options.GetValueOrDefault("--waiver-policy", "No implicit waiver."),
             string.Empty,
             string.Empty,
-            Split(options.GetValueOrDefault("--triggers", "source,acceptance criteria,evidence,fingerprint")),
+            string.Empty,
+            [],
+            null,
+            [],
+            string.Empty,
             Path.Combine(".review", "pending", id + ".json"));
         WriteReview(review, Path.Combine(".review", "pending", id + ".json"));
         await stdout.WriteLineAsync($"review request created: {review.Path}");
@@ -322,34 +375,162 @@ public sealed class EngineeringHost
 
     public async Task<int> RecordReviewAsync(string[] args, TextWriter stdout)
     {
-        var options = ParseOptions(args);
-        var id = Required(options, "--id");
+        if (args.Length < 2) throw new EngineeringException("review record requires <review-id-or-alias> <decision>");
+        var id = ResolveReviewTarget(args[0]);
+        var decision = args[1];
+        var options = ParseOptions(args[2..]);
+        ValidateDecision(decision);
         var pendingPath = Path.Combine(".review", "pending", id + ".json");
         if (!TryReadReview(Absolute(pendingPath), out var pending, out var error))
         {
-            throw new EngineeringException(error);
+            throw new EngineeringException(string.IsNullOrWhiteSpace(error) ? $"review '{id}' is not an active request" : error);
         }
 
-        var status = options.GetValueOrDefault("--status", "approved");
-        if (status is not ("approved" or "changes-requested" or "rejected" or "waived"))
+        if (!IsMilestoneActive(pending!.OwningMilestone))
         {
-            throw new EngineeringException($"invalid review status: {status}");
+            throw new EngineeringException($"review '{id}' belongs to completed milestone {pending.OwningMilestone}; create a future milestone review or use explicit record correction");
+        }
+
+        if (IsFinalDecision(decision) && !pending.AcceptableDecisions.Contains(decision, StringComparer.Ordinal))
+        {
+            throw new EngineeringException($"review decision '{decision}' is not an acceptable completion decision for '{id}'");
         }
 
         var evidence = options.TryGetValue("--evidence", out var suppliedEvidence) ? Split(suppliedEvidence) : pending!.Evidence;
-        var recordPath = Path.Combine(".review", "records", id + ".json");
-        var record = pending! with
+        var reviewer = options.GetValueOrDefault("--reviewer", pending.ReviewerRole);
+        var conditions = Split(options.GetValueOrDefault("--conditions", string.Empty));
+        var history = pending.DecisionHistory.Append(new ReviewDecision(
+            decision,
+            reviewer,
+            options.GetValueOrDefault("--notes", string.Empty),
+            evidence,
+            RepositoryRevision(),
+            Fingerprints.Review(root),
+            DateTimeOffset.UtcNow,
+            false)).ToArray();
+        if (!IsFinalDecision(decision))
         {
-            Status = status,
-            ReviewerRole = options.GetValueOrDefault("--reviewer", pending.ReviewerRole),
+            WriteReview(pending with
+            {
+                Status = decision,
+                ReviewerRole = reviewer,
+                Evidence = evidence,
+                Decision = decision,
+                Conditions = conditions,
+                DecisionHistory = history
+            }, pendingPath);
+            await stdout.WriteLineAsync($"review request updated: {pendingPath}");
+            return 0;
+        }
+
+        var recordPath = NextRecordPath(id);
+        var record = pending with
+        {
+            Schema = ReviewRecordSchema,
+            Status = decision,
+            ReviewerRole = reviewer,
             Evidence = evidence,
-            Decision = Required(options, "--decision"),
+            Decision = decision,
+            Conditions = conditions,
+            ReviewedRevision = RepositoryRevision(),
             ReviewedFingerprint = Fingerprints.Review(root),
+            CompletedAt = DateTimeOffset.UtcNow,
+            DecisionHistory = history,
             Path = recordPath
         };
         WriteReview(record, recordPath);
         File.Delete(Absolute(pendingPath));
         await stdout.WriteLineAsync($"review record written: {recordPath}");
+        return 0;
+    }
+
+    public async Task<int> ReopenReviewAsync(string[] args, TextWriter stdout)
+    {
+        if (args.Length < 1) throw new EngineeringException("review reopen requires <review-id-or-alias> --reason <reason>");
+        var id = ResolveReviewTarget(args[0]);
+        var (correctRecord, options) = ParseReopenOptions(args[1..]);
+        var reason = Required(options, "--reason");
+        var entries = ReadReviewFiles().Where(review => review.Id == id).ToArray();
+        if (entries.Length == 0) throw new EngineeringException($"unknown review '{id}'");
+
+        var current = SelectCurrentReview(entries);
+        var reviewer = options.GetValueOrDefault("--reviewer", current.ReviewerRole);
+        var history = current.DecisionHistory.Append(new ReviewDecision("reopened", reviewer, reason, current.Evidence, RepositoryRevision(), Fingerprints.Review(root), DateTimeOffset.UtcNow, correctRecord)).ToArray();
+        var pending = entries.FirstOrDefault(entry => entry.Path.StartsWith(".review/pending/", StringComparison.Ordinal));
+        if (IsMilestoneActive(current.OwningMilestone))
+        {
+            var reopened = current with
+            {
+                Schema = ReviewRequestSchema,
+                Status = "pending",
+                Decision = string.Empty,
+                CompletedAt = null,
+                DecisionHistory = history,
+                Path = Path.Combine(".review", "pending", id + ".json")
+            };
+            WriteReview(reopened, reopened.Path);
+            await stdout.WriteLineAsync($"review reopened: {reopened.Path}");
+            return 0;
+        }
+
+        if (!correctRecord)
+        {
+            throw new EngineeringException($"review '{id}' is historical. Later repository changes do not reopen it; create a review for a future milestone or use --correct-record --reason <reason> to correct an erroneous record");
+        }
+
+        var correctionId = id + ".correction." + DateTimeOffset.UtcNow.ToUnixTimeMilliseconds().ToString(System.Globalization.CultureInfo.InvariantCulture);
+        var correction = current with
+        {
+            Schema = ReviewRequestSchema,
+            Id = correctionId,
+            Status = "pending",
+            Decision = string.Empty,
+            ReviewedRevision = string.Empty,
+            ReviewedFingerprint = string.Empty,
+            CompletedAt = null,
+            DecisionHistory = history,
+            CorrectsReviewId = id,
+            Path = Path.Combine(".review", "pending", correctionId + ".json")
+        };
+        WriteReview(correction, correction.Path);
+        await stdout.WriteLineAsync($"review correction opened: {correction.Path}");
+        return 0;
+    }
+
+    public async Task<int> WriteReviewMigrationReportAsync(string milestone, TextWriter stdout)
+    {
+        var entries = new List<object>();
+        foreach (var directory in new[] { ".review/pending", ".review/records", ".review/closed" })
+        {
+            var absolute = Absolute(directory);
+            if (!Directory.Exists(absolute)) continue;
+            foreach (var path in Directory.EnumerateFiles(absolute, "*", SearchOption.TopDirectoryOnly).OrderBy(path => path, StringComparer.Ordinal))
+            {
+                var relative = Path.GetRelativePath(root, path).Replace('\\', '/');
+                if (path.EndsWith(".json", StringComparison.Ordinal) && TryReadReview(path, out var review, out _))
+                {
+                    var classification = directory == ".review/records" ? "historical-completed" : review!.OwningMilestone == milestone ? "active-owned" : "unfinished-focused-work";
+                    entries.Add(new { path = relative, id = review!.Id, owningMilestone = review.OwningMilestone, status = review.Status, classification, rationale = classification == "historical-completed" ? "Completed record retained as immutable historical evidence." : "Pending request is explicitly owned by its milestone." });
+                }
+                else if (directory == ".review/closed")
+                {
+                    entries.Add(new { path = relative, id = Path.GetFileNameWithoutExtension(path), owningMilestone = "historical", status = "closed", classification = "historical-completed", rationale = "Legacy request retained beside its immutable completed record." });
+                }
+                else if (path.EndsWith(".json", StringComparison.Ordinal))
+                {
+                    entries.Add(new { path = relative, id = Path.GetFileNameWithoutExtension(path), owningMilestone = "", status = "invalid", classification = "invalid", rationale = "Review JSON could not be parsed as a supported review record." });
+                }
+            }
+        }
+
+        var ordered = entries.OrderBy(entry => JsonSerializer.Serialize(entry), StringComparer.Ordinal).ToArray();
+        var output = Absolute(Path.Combine("artifacts", "review-migration", milestone));
+        Directory.CreateDirectory(output);
+        var report = new { schema = "agentic2d.review-migration-report.v1", milestone, generatedBy = "agentic2d-engineering", entries = ordered, fingerprint = "sha256:" + Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(JsonSerializer.Serialize(ordered)))).ToLowerInvariant() };
+        await File.WriteAllTextAsync(Path.Combine(output, "review-migration-report.json"), JsonSerializer.Serialize(report, json));
+        var markdown = "# Review Migration Report\n\nMilestone: `" + milestone + "`\n\n| Review source | Classification | Ownership | Status |\n|---|---|---|---|\n" + string.Join("\n", ordered.Select(entry => { using var document = JsonDocument.Parse(JsonSerializer.Serialize(entry)); var item = document.RootElement; return "| `" + item.GetProperty("path").GetString() + "` | `" + item.GetProperty("classification").GetString() + "` | `" + item.GetProperty("owningMilestone").GetString() + "` | `" + item.GetProperty("status").GetString() + "` |"; })) + "\n\nNo approval was created by this report. Completed records are historical and do not stale from later commits.\n";
+        await File.WriteAllTextAsync(Path.Combine(output, "review-migration-report.md"), markdown);
+        await stdout.WriteLineAsync($"review migration report written: artifacts/review-migration/{milestone}");
         return 0;
     }
 
@@ -428,9 +609,15 @@ public sealed class EngineeringHost
         return artifacts;
     }
 
-    private IEnumerable<ReviewState> ReadReviews()
+    private IEnumerable<ReviewState> ReadReviews() => ReadReviewFiles()
+        .GroupBy(review => review.Id, StringComparer.Ordinal)
+        .Select(SelectCurrentReview)
+        .OrderBy(review => review.OwningMilestone, StringComparer.Ordinal)
+        .ThenBy(review => review.Id, StringComparer.Ordinal);
+
+    private IEnumerable<ReviewState> ReadReviewFiles()
     {
-        foreach (var directory in new[] { ".review/pending", ".review/records" })
+        foreach (var directory in new[] { ".review/pending", ".review/records", ".review/closed" })
         {
             var absolute = Absolute(directory);
             if (!Directory.Exists(absolute)) continue;
@@ -447,8 +634,16 @@ public sealed class EngineeringHost
         error = string.Empty;
         try
         {
-            review = JsonSerializer.Deserialize<ReviewState>(File.ReadAllText(path), json);
-            if (review is null || review.Schema != ReviewSchema || string.IsNullOrWhiteSpace(review.Id) || review.Evidence is null)
+            using var document = JsonDocument.Parse(File.ReadAllText(path));
+            var item = document.RootElement;
+            var schema = String(item, "schema");
+            review = schema switch
+            {
+                "agentic2d.engineering.review-request.v2" or "agentic2d.engineering.review-record.v2" => ReadV2(item, schema),
+                "agentic2d.engineering.review.v1" => ReadV1(item),
+                _ => null
+            };
+            if (review is null || string.IsNullOrWhiteSpace(review.Id) || review.Evidence is null || string.IsNullOrWhiteSpace(review.OwningMilestone))
             {
                 error = $"malformed review record: {path}";
                 return false;
@@ -492,6 +687,176 @@ public sealed class EngineeringHost
         : throw new EngineeringException($"missing required {key} <value>");
     private static IReadOnlyList<string> Split(string value) => value.Split(',', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries);
 
+    private ReviewListOptions ParseListOptions(string[] args)
+    {
+        var options = ParseOptions(args);
+        foreach (var key in options.Keys)
+        {
+            if (key is not ("--milestone" or "--state" or "--status")) throw new EngineeringException($"unsupported review list filter: {key}");
+        }
+
+        var state = options.GetValueOrDefault("--state");
+        if (state is not null and not ("active" or "historical")) throw new EngineeringException("review list --state must be active or historical");
+        return new ReviewListOptions(options.GetValueOrDefault("--milestone"), state, options.GetValueOrDefault("--status"));
+    }
+
+    private IEnumerable<ReviewState> FilterReviews(ReviewListOptions options) => ReadReviews()
+        .Where(review => options.Milestone is null || review.OwningMilestone == options.Milestone)
+        .Where(review => options.State is null || ReviewStateKind(review) == options.State)
+        .Where(review => options.Status is null || review.Status == options.Status);
+
+    private void WriteAliasMap(ReviewListOptions options, IReadOnlyList<ReviewState> reviews)
+    {
+        var map = new ReviewAliasMap(
+            "agentic2d.engineering.review-alias-map.v1",
+            AliasContextFingerprint(options, reviews),
+            options,
+            reviews.Select((review, index) => new ReviewAlias(index + 1, review.Id)).ToArray(),
+            DateTimeOffset.UtcNow);
+        ReceiptStore.WriteAtomic(Absolute(AliasMapPath), map, json);
+    }
+
+    private string ResolveReviewTarget(string idOrAlias)
+    {
+        if (!int.TryParse(idOrAlias, out var alias) || alias < 1) return idOrAlias;
+        var path = Absolute(AliasMapPath);
+        if (!File.Exists(path)) throw StaleAlias();
+        try
+        {
+            var map = JsonSerializer.Deserialize<ReviewAliasMap>(File.ReadAllText(path), json);
+            if (map is null || map.Schema != "agentic2d.engineering.review-alias-map.v1") throw StaleAlias();
+            var reviews = FilterReviews(map.Options).ToArray();
+            if (map.ContextFingerprint != AliasContextFingerprint(map.Options, reviews)) throw StaleAlias();
+            return map.Aliases.SingleOrDefault(item => item.Alias == alias)?.ReviewId ?? throw StaleAlias();
+        }
+        catch (JsonException)
+        {
+            throw StaleAlias();
+        }
+    }
+
+    private static EngineeringException StaleAlias() => new("Review alias is stale or unknown. Run ./eng/review-list.sh again.");
+
+    private static string AliasContextFingerprint(ReviewListOptions options, IReadOnlyList<ReviewState> reviews) =>
+        "sha256:" + Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(JsonSerializer.Serialize(new { options, reviews })))).ToLowerInvariant();
+
+    private static void ValidateCanonicalReviewId(string id)
+    {
+        if (!id.StartsWith("review.", StringComparison.Ordinal) || id.Any(character => !(char.IsLower(character) || char.IsDigit(character) || character is '.' or '-')))
+        {
+            throw new EngineeringException("review ID must be a canonical lowercase review.<name> identifier");
+        }
+    }
+
+    private static void ValidateDecision(string decision)
+    {
+        if (decision is not ("approved" or "changes-requested" or "rejected" or "waived" or "superseded"))
+        {
+            throw new EngineeringException($"unsupported review decision: {decision}");
+        }
+    }
+
+    private static bool IsFinalDecision(string decision) => decision is "approved" or "rejected" or "waived" or "superseded";
+
+    private bool IsMilestoneActive(string milestone)
+    {
+        var directory = Absolute(Path.Combine("docs", "milestones"));
+        if (!Directory.Exists(directory)) return ReadReviewFiles().Any(review => review.OwningMilestone == milestone && review.Path.StartsWith(".review/pending/", StringComparison.Ordinal));
+        var latest = Directory.EnumerateFiles(directory, "*.md", SearchOption.TopDirectoryOnly)
+            .Select(Path.GetFileNameWithoutExtension)
+            .Select(ParseMilestoneId)
+            .OrderByDescending(value => value.Sequence)
+            .FirstOrDefault();
+        return latest.Sequence >= 0 && latest.Id == milestone;
+    }
+
+    private static (string Id, int Sequence) ParseMilestoneId(string? name)
+    {
+        if (string.IsNullOrWhiteSpace(name)) return (string.Empty, -1);
+        var digits = name.StartsWith("MILESTONE-", StringComparison.OrdinalIgnoreCase) ? name.AsSpan("MILESTONE-".Length) : name.StartsWith('M') ? name.AsSpan(1) : ReadOnlySpan<char>.Empty;
+        var length = 0;
+        while (length < digits.Length && char.IsDigit(digits[length])) length++;
+        return length > 0 && int.TryParse(digits[..length], out var sequence)
+            ? ("M" + sequence.ToString("D3", System.Globalization.CultureInfo.InvariantCulture), sequence)
+            : (string.Empty, -1);
+    }
+
+    private string ReviewStateKind(ReviewState review) => !IsFinalDecision(review.Status) || IsMilestoneActive(review.OwningMilestone)
+        ? "active"
+        : "historical";
+
+    private ReviewState SelectCurrentReview(IEnumerable<ReviewState> entries) => entries
+        .OrderByDescending(review => review.Path.StartsWith(".review/pending/", StringComparison.Ordinal))
+        .ThenByDescending(review => review.CompletedAt)
+        .First();
+
+    private string NextRecordPath(string id)
+    {
+        var basePath = Path.Combine(".review", "records", id + ".json");
+        if (!File.Exists(Absolute(basePath))) return basePath;
+        var revision = 2;
+        while (File.Exists(Absolute(Path.Combine(".review", "records", id + ".revision-" + revision.ToString(System.Globalization.CultureInfo.InvariantCulture) + ".json")))) revision++;
+        return Path.Combine(".review", "records", id + ".revision-" + revision.ToString(System.Globalization.CultureInfo.InvariantCulture) + ".json");
+    }
+
+    private static (bool CorrectRecord, IReadOnlyDictionary<string, string> Options) ParseReopenOptions(string[] args)
+    {
+        var correctRecord = args.Contains("--correct-record", StringComparer.Ordinal);
+        return (correctRecord, ParseOptions(args.Where(argument => argument != "--correct-record").ToArray()));
+    }
+
+    private static string DisplayValue(string value) => string.IsNullOrWhiteSpace(value) ? "none" : value;
+    private static string DisplayList(IEnumerable<string> values) => string.Join("; ", values.DefaultIfEmpty("none"));
+    private static string DisplayHistory(IEnumerable<ReviewDecision> decisions) => string.Join("; ", decisions.Select(decision => $"{decision.RecordedAt:O} {decision.Decision} by {decision.Reviewer}: {DisplayValue(decision.Notes)}").DefaultIfEmpty("none"));
+
+    private string RepositoryRevision()
+    {
+        var head = Path.Combine(root, ".git", "HEAD");
+        return File.Exists(head) ? File.ReadAllText(head).Trim() : "unavailable";
+    }
+
+    private static ReviewState ReadV2(JsonElement item, string schema) => new(
+        schema, String(item, "id"), String(item, "owningMilestone"), String(item, "owningMilestonePath"), String(item, "subject"),
+        Strings(item, "classes"), String(item, "level"), String(item, "reviewerRole"), String(item, "status"),
+        Strings(item, "requiredEvidence", "evidence"), Strings(item, "acceptanceCriteria"), Strings(item, "acceptableCompletionDecisions"),
+        String(item, "waiverPolicy"), String(item, "decision"), String(item, "reviewedRevision"), String(item, "reviewedFingerprint"),
+        Strings(item, "conditions"), DateTimeOffset.TryParse(String(item, "completedAt"), out var completedAt) ? completedAt : null,
+        Decisions(item), String(item, "correctsReviewId"), String(item, "path"));
+
+    private static ReviewState? ReadV1(JsonElement item)
+    {
+        var source = String(item, "source");
+        return string.IsNullOrWhiteSpace(source) ? null : new ReviewState(
+            String(item, "schema"), String(item, "id"), source, $"docs/milestones/{source}.md", String(item, "subject"),
+            [String(item, "class")], String(item, "level"), String(item, "reviewerRole"), String(item, "status"), Strings(item, "evidence"),
+            [], ["approved", "waived"], "Historical migrated record.", String(item, "decision"), "legacy", String(item, "reviewedFingerprint"), [], null,
+            [new ReviewDecision(String(item, "decision"), String(item, "reviewerRole"), string.Empty, Strings(item, "evidence"), "legacy", String(item, "reviewedFingerprint"), DateTimeOffset.MinValue, false)], string.Empty, String(item, "path"));
+    }
+
+    private static string String(JsonElement item, string property) => item.TryGetProperty(property, out var value) && value.ValueKind == JsonValueKind.String ? value.GetString() ?? string.Empty : string.Empty;
+    private static IReadOnlyList<string> Strings(JsonElement item, params string[] properties)
+    {
+        foreach (var property in properties)
+        {
+            if (item.TryGetProperty(property, out var value) && value.ValueKind == JsonValueKind.Array)
+                return value.EnumerateArray().Where(value => value.ValueKind == JsonValueKind.String).Select(value => value.GetString() ?? string.Empty).Where(value => !string.IsNullOrWhiteSpace(value)).ToArray();
+        }
+        return [];
+    }
+
+    private static IReadOnlyList<ReviewDecision> Decisions(JsonElement item)
+    {
+        if (item.TryGetProperty("decisionHistory", out var value) && value.ValueKind == JsonValueKind.Array)
+        {
+            return value.EnumerateArray().Where(decision => decision.ValueKind == JsonValueKind.Object).Select(decision => new ReviewDecision(
+                String(decision, "decision"), String(decision, "reviewer"), String(decision, "notes"), Strings(decision, "evidence"), String(decision, "revision"), String(decision, "fingerprint"),
+                DateTimeOffset.TryParse(String(decision, "recordedAt"), out var recordedAt) ? recordedAt : DateTimeOffset.MinValue, decision.TryGetProperty("recordCorrection", out var correction) && correction.ValueKind == JsonValueKind.True)).ToArray();
+        }
+
+        var decisionValue = String(item, "decision");
+        return string.IsNullOrWhiteSpace(decisionValue) ? [] : [new ReviewDecision(decisionValue, String(item, "reviewerRole"), string.Empty, Strings(item, "requiredEvidence", "evidence"), String(item, "reviewedRevision"), String(item, "reviewedFingerprint"), DateTimeOffset.TryParse(String(item, "completedAt"), out var completedAt) ? completedAt : DateTimeOffset.MinValue, false)];
+    }
+
     private static IReadOnlyList<ValidationSuite> BuildSuites() =>
     [
         new("m019-smoke", "resumable-sharded",
@@ -530,7 +895,7 @@ public sealed class EngineeringHost
             Shard("m019-suite", "Current M019 receipt verification.", "./eng/m019-smoke.sh --verify", ["artifacts/validation/m019-smoke/replay.json"]),
             Shard("m020-suite", "Current M020 receipt verification.", "./eng/m020-smoke.sh --verify", ["artifacts/validation/m020-smoke/review.json"]),
             Shard("m021-suite", "Current M021 receipt verification.", "./eng/m021-smoke.sh --verify", ["artifacts/validation/m021-smoke/review.json"]),
-            Shard("review-workflow", "Required migration review is current.", "./eng/review-check.sh", [".review/records/migration-guide-v050.json"]),
+            Shard("review-workflow", "Historical M022 migration review is present.", "./eng/review-check.sh --milestone M022", [".review/records/migration-guide-v050.json"]),
             Shard("platform-and-leakage", "Declared Linux/Bash support and authority isolation.", "internal:platform-and-leakage", ["AGENTS.md", "docs/ENGINEERING.md"], isInternal: true)
         ]),
         new("m023-smoke", "resumable-sharded",
@@ -563,7 +928,7 @@ public sealed class EngineeringHost
             Shard("linux-export", "Consumer workspace exports and runs through the standalone Linux host.", "./eng/signal-passage-export.sh", ["artifacts/signal-passage/export/game/agentic2d.export.json", "artifacts/signal-passage/export/run/run-manifest.json"]),
             Shard("performance-report", "M025 advisory performance report is present.", "./eng/signal-passage-performance.sh", ["artifacts/performance/M025/performance-report.json", "artifacts/performance/M025/performance-report.md"]),
             Shard("extension-discovery", "Consumer extension classifications are complete.", "test -f consumers/signal-passage/consumer-extension-report.json && test -f consumers/signal-passage/consumer-extension-report.md", ["consumers/signal-passage/consumer-extension-report.json", "consumers/signal-passage/consumer-extension-report.md"]),
-            Shard("human-review", "Blocking human review is current and approved.", "./eng/review-check.sh", [".review/records/review.m025.signal-passage-playable-vertical-slice.json"]),
+            Shard("human-review", "Historical M025 review is present and approved.", "./eng/review-check.sh --milestone M025", [".review/records/review.m025.signal-passage-playable-vertical-slice.json"]),
             Shard("integrated", "Provider build and consumer journey integration.", "./eng/build.sh && ./eng/signal-passage-smoke.sh", ["consumers/signal-passage/artifacts/journey/complete-journey.json"])
         ]),
         new("m026-smoke", "resumable-sharded",
@@ -577,8 +942,22 @@ public sealed class EngineeringHost
             Shard("workspace-isolation", "Relocated external-style tic-tac-toe workspace validates and runs.", "./eng/tic-tac-toe-isolation.sh", ["artifacts/tic-tac-toe/isolation/workspace-validation.json", "artifacts/tic-tac-toe/isolation/run-manifest.json"]),
             Shard("linux-export", "Consumer Linux export, actual consumer launch, playable launcher publication, and development/export equivalence.", "./eng/tic-tac-toe-export.sh", ["artifacts/tic-tac-toe/export/game/agentic2d.export.json", "artifacts/tic-tac-toe/export/run/run-manifest.json", "artifacts/tic-tac-toe/export/playable-linux-x64/AutonomousTicTacToe.Playable", "artifacts/tic-tac-toe/export/development-export-equivalence.json"]),
             Shard("consumer-boundary-report", "Evidence-based cross-consumer boundary decisions.", "test -f artifacts/consumer-boundaries/M026/consumer-boundary-decision-report.json && test -f artifacts/consumer-boundaries/M026/consumer-boundary-decision-report.md", ["artifacts/consumer-boundaries/M026/consumer-boundary-decision-report.json", "artifacts/consumer-boundaries/M026/consumer-boundary-decision-report.md"]),
-            Shard("human-review", "Required M026 visual, UX, and artifact-quality review is approved and current.", "./eng/review-check.sh", [".review/records/review.m026.geometry-diagnostics-and-autonomous-tic-tac-toe.json"]),
+            Shard("human-review", "Historical M026 visual, UX, and artifact-quality review is present and approved.", "./eng/review-check.sh --milestone M026", [".review/records/review.m026.geometry-diagnostics-and-autonomous-tic-tac-toe.json"]),
             Shard("integrated", "Provider gate plus both consumer journeys.", "./eng/check.sh && ./eng/cli-smoke.sh && ./eng/product-validate.sh && ./eng/signal-passage-smoke.sh && ./eng/tic-tac-toe-smoke.sh", ["consumers/signal-passage/artifacts/journey/complete-journey.json", "consumers/autonomous-tic-tac-toe/artifacts/runs/ai-vs-ai-smoke/tic-tac-toe-result.json"])
+        ]),
+        new("m027-smoke", "resumable-sharded",
+        [
+            Shard("review-migration", "All six review commands, alias lifecycle, state transitions, historical safeguards, migration inventory, and documentation consistency.", "./eng/review-migration-smoke.sh", ["artifacts/review-migration/M027/review-migration-report.json", "artifacts/review-migration/M027/review-migration-report.md"]),
+            Shard("geometry-contracts", "Stable geometry schemas, diagnostics, and both consumer packs.", "./eng/geometry-diagnostics-smoke.sh && ./eng/geometry-review-pack-smoke.sh", ["artifacts/geometry/M027/signal-passage/manifest.json", "artifacts/geometry/M027/tic-tac-toe/manifest.json"]),
+            Shard("sound-linkage-contracts", "Stable generated-sound linkage and provenance across both consumers.", "./eng/generated-sound-linkage-smoke.sh && ./eng/generated-sound-review-pack-smoke.sh", ["artifacts/sound-linkage/M027/signal-passage/manifest.json", "artifacts/sound-linkage/M027/tic-tac-toe/manifest.json"]),
+            Shard("review-packs", "Bounded durable consumer-authoring review pack.", "./eng/consumer-authoring-review-pack-smoke.sh", ["artifacts/review/M027/review-pack/manifest.json", "artifacts/review/M027/review-pack/index.md"], ["review-migration", "geometry-contracts", "sound-linkage-contracts"]),
+            Shard("scenario-persistence-diagnostics", "Scenario assertion and persistence comparison diagnostics.", "./eng/scenario-diagnostics-smoke.sh && ./eng/persistence-diagnostics-smoke.sh", ["artifacts/review/M027/scenarios/scenario-diagnostics.json", "artifacts/review/M027/persistence/persistence-diagnostics.json"]),
+            Shard("signal-passage", "Signal Passage compatibility fixture.", "./eng/signal-passage-smoke.sh", ["consumers/signal-passage/artifacts/journey/complete-journey.json"]),
+            Shard("tic-tac-toe", "Autonomous Tic-Tac-Toe compatibility fixture and persistence.", "./eng/tic-tac-toe-smoke.sh", ["consumers/autonomous-tic-tac-toe/artifacts/runs/save-during-thinking/tic-tac-toe-save.json"]),
+            Shard("performance-regression", "Unchanged scaled-performance policy.", "./eng/perf-smoke.sh && ./eng/scaled-performance-smoke.sh", ["artifacts/performance/smoke/performance-capture.json"]),
+            Shard("documentation", "Active M027 contracts and command documentation are present.", "test -f docs/specs/geometry-authoring-diagnostics-contract.md && test -f docs/specs/generated-sound-linkage-contract.md && test -f docs/artifacts/consumer-authoring-review-pack-artifact-contract.md", ["docs/specs/geometry-authoring-diagnostics-contract.md", "docs/specs/generated-sound-linkage-contract.md", "docs/artifacts/consumer-authoring-review-pack-artifact-contract.md"]),
+            Shard("human-review", "Blocking M027 review is approved by a human.", "./eng/review-check.sh --milestone M027", [".review/records/review.m027.authoring-contracts-review-evidence-and-v060-migration.json"]),
+            Shard("integrated", "Provider build, test, and product validation.", "./eng/check.sh && ./eng/cli-smoke.sh && ./eng/product-validate.sh", ["artifacts/cli/runtime-smoke/result.json", "artifacts/cli/validate/result.json"])
         ])
     ];
 
@@ -605,10 +984,10 @@ public static class Fingerprints
         .Where(path => !IsExcluded(Relative(root, path), includeReview))
         .OrderBy(path => path, StringComparer.Ordinal);
     private static bool IsExcluded(string path, bool includeReview) =>
-        path.StartsWith(".git/", StringComparison.Ordinal) || path.StartsWith("artifacts/", StringComparison.Ordinal) ||
+        path.StartsWith(".git/", StringComparison.Ordinal) || path.StartsWith("artifacts/", StringComparison.Ordinal) || path.Contains("/artifacts/", StringComparison.Ordinal) ||
         path.Contains("/bin/", StringComparison.Ordinal) || path.Contains("/obj/", StringComparison.Ordinal) ||
         path.StartsWith(".guide-sync/", StringComparison.Ordinal) || (!includeReview && path.StartsWith(".review/", StringComparison.Ordinal)) ||
-        path.EndsWith(".zip", StringComparison.Ordinal) || path.StartsWith("game/assets/generated/", StringComparison.Ordinal);
+        path.EndsWith(".zip", StringComparison.Ordinal) || path.StartsWith("game/assets/generated/", StringComparison.Ordinal) || path.Contains("/game-content/generated/", StringComparison.Ordinal);
     private static string Relative(string root, string path) => System.IO.Path.GetRelativePath(root, path).Replace('\\', '/');
     private static string HashLines(IEnumerable<string> lines) => Hash(string.Join("\n", lines));
     private static string Hash(string value) => Hash(Encoding.UTF8.GetBytes(value));
@@ -706,4 +1085,29 @@ public sealed record PlanShard(string Id, string Description, string Command, st
 public sealed record ArtifactFingerprint(string Path, string Fingerprint);
 public sealed record CompletionMetadata(DateTimeOffset StartedAtUtc, DateTimeOffset CompletedAtUtc, string Platform);
 public sealed record ValidationReceipt(string Schema, string SuiteId, string ShardId, string Status, string SuiteFingerprint, string RepositoryFingerprint, string CommandFingerprint, string InputFingerprint, string ResultFingerprint, string Command, IReadOnlyList<string> EvidencePaths, IReadOnlyList<ArtifactFingerprint> Artifacts, CompletionMetadata Completion, IReadOnlyList<string> Diagnostics);
-public sealed record ReviewState(string Schema, string Id, string Subject, string Class, string Level, string Source, string ReviewerRole, string Status, IReadOnlyList<string> Evidence, string Decision, string ReviewedFingerprint, IReadOnlyList<string> ReReviewTriggers, string Path);
+public sealed record ReviewListOptions(string? Milestone, string? State, string? Status);
+public sealed record ReviewAlias(int Alias, string ReviewId);
+public sealed record ReviewAliasMap(string Schema, string ContextFingerprint, ReviewListOptions Options, IReadOnlyList<ReviewAlias> Aliases, DateTimeOffset GeneratedAt);
+public sealed record ReviewDecision(string Decision, string Reviewer, string Notes, IReadOnlyList<string> Evidence, string Revision, string Fingerprint, DateTimeOffset RecordedAt, bool RecordCorrection);
+public sealed record ReviewState(
+    string Schema,
+    string Id,
+    string OwningMilestone,
+    string OwningMilestonePath,
+    string Subject,
+    IReadOnlyList<string> Classes,
+    string Level,
+    string ReviewerRole,
+    string Status,
+    IReadOnlyList<string> Evidence,
+    IReadOnlyList<string> AcceptanceCriteria,
+    IReadOnlyList<string> AcceptableDecisions,
+    string WaiverPolicy,
+    string Decision,
+    string ReviewedRevision,
+    string ReviewedFingerprint,
+    IReadOnlyList<string> Conditions,
+    DateTimeOffset? CompletedAt,
+    IReadOnlyList<ReviewDecision> DecisionHistory,
+    string CorrectsReviewId,
+    string Path);
