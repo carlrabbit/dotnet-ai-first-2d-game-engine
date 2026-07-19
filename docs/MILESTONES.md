@@ -1,5 +1,9 @@
 # Milestones
 
+## M028
+
+M028 supplies the machine-local shared asset home, reusable discovery profiles and annotations, game-local campaigns/batches, and copyable headless evidence. Its blocking review is `review.m028.shared-asset-library-discovery-and-campaign-foundation`; M029 workbench interaction and asset promotion remain deferred.
+
 ## Authority
 
 This document indexes planned and completed implementation milestones.

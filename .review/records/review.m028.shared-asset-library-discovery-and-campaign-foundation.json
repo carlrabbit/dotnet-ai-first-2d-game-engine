@@ -1,0 +1,61 @@
+{
+  "schema": "agentic2d.engineering.review-record.v2",
+  "id": "review.m028.shared-asset-library-discovery-and-campaign-foundation",
+  "owningMilestone": "M028",
+  "owningMilestonePath": "docs/milestones/MILESTONE-028-shared-asset-library-reusable-discovery-profiles-and-campaign-foundations.md",
+  "subject": "M028 shared asset-home safety, reusable discovery authority, cleanup and annotation behavior, campaign separation, and M029 readiness",
+  "classes": [
+    "semantic",
+    "artifact-quality"
+  ],
+  "level": "blocking",
+  "reviewerRole": "repository user",
+  "status": "approved",
+  "evidence": [
+    "artifacts/assets/M028/asset-home",
+    "artifacts/assets/M028/discovery",
+    "artifacts/assets/M028/annotations-cleanup",
+    "artifacts/assets/M028/campaign-reuse",
+    "artifacts/assets/M028/review-pack",
+    "artifacts/assets/M028/m029-readiness",
+    "artifacts/validation/m028-smoke"
+  ],
+  "acceptanceCriteria": [
+    "Shared metadata separates observations, reusable annotations, campaign proposals, and future approved game semantics.",
+    "Generated cleanup is safe and preserves raw sources and retained annotations.",
+    "One profile is reused by two campaigns without shared-profile mutation.",
+    "Headless evidence is sufficient to proceed to M029.",
+    "No runtime, export, server, database, or profile-bundle dependency is introduced."
+  ],
+  "acceptableDecisions": [
+    "approved"
+  ],
+  "waiverPolicy": "No implicit waiver.",
+  "decision": "approved",
+  "reviewedRevision": "ref: refs/heads/m28m29m30",
+  "reviewedFingerprint": "75c2f1820b727856279657e2f65ed246da6ccade7a4de7fd208702ff7618b3be",
+  "conditions": [],
+  "completedAt": "2026-07-19T15:21:05.1097418+00:00",
+  "decisionHistory": [
+    {
+      "decision": "approved",
+      "reviewer": "repository user",
+      "notes": "",
+      "evidence": [
+        "artifacts/assets/M028/asset-home",
+        "artifacts/assets/M028/discovery",
+        "artifacts/assets/M028/annotations-cleanup",
+        "artifacts/assets/M028/campaign-reuse",
+        "artifacts/assets/M028/review-pack",
+        "artifacts/assets/M028/m029-readiness",
+        "artifacts/validation/m028-smoke"
+      ],
+      "revision": "ref: refs/heads/m28m29m30",
+      "fingerprint": "75c2f1820b727856279657e2f65ed246da6ccade7a4de7fd208702ff7618b3be",
+      "recordedAt": "2026-07-19T15:21:05.0554366+00:00",
+      "recordCorrection": false
+    }
+  ],
+  "correctsReviewId": "",
+  "path": ".review/records/review.m028.shared-asset-library-discovery-and-campaign-foundation.json"
+}

@@ -116,6 +116,17 @@ The repository includes deterministic runtime, product CLI, scenarios, content v
 ./eng/scenario-diagnostics-smoke.sh
 ./eng/persistence-diagnostics-smoke.sh
 ./eng/m027-smoke.sh
+./eng/asset-home-smoke.sh
+./eng/asset-source-registry-smoke.sh
+./eng/asset-source-profile-smoke.sh
+./eng/asset-source-cleanup-smoke.sh
+./eng/asset-source-annotation-smoke.sh
+./eng/asset-campaign-smoke.sh
+./eng/asset-batch-smoke.sh
+./eng/asset-discovery-review-pack-smoke.sh
+./eng/m028-smoke.sh
+./eng/m028-m011-audit.sh
+./eng/m028-generalization-smoke.sh
 ```
 
 ## Validation boundary

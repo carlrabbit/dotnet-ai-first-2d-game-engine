@@ -10,6 +10,10 @@ Review generated evidence rather than reconstructing behavior from implementatio
 
 ## Current review areas
 
+### M028 shared asset-library foundation
+
+The blocking M028 review is `review.m028.shared-asset-library-discovery-and-campaign-foundation`. It verifies safe generated cleanup, retained reusable annotations, campaign/profile authority separation, and usable headless review evidence. It remains pending until an explicit repository-user approval record exists.
+
 ### Asset semantics and curation
 
 Verify proposed versus approved semantics, asset provenance, review decisions, generated workbench usefulness, and that high-impact gameplay semantics remain review-gated.

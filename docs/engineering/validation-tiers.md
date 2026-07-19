@@ -17,6 +17,6 @@ Milestones and implementation tasks should name the expected validation tier.
 
 ## Execution modes
 
-Tier names are independent of execution mode: `direct`, `resumable-sharded`, `CI-only`, or `human-review`. A resumable Tier 2 suite has current passing receipts only when its fast `--verify` passes. Tier 5 required/blocking review is established by `./eng/review-check.sh --milestone <id>` for the review's owning milestone; see `docs/engineering/human-review-workflow.md` for the full review command contract. M027 uses direct focused checks plus the resumable `m027-smoke` aggregate.
+Tier names are independent of execution mode: `direct`, `resumable-sharded`, `CI-only`, or `human-review`. A resumable Tier 2 suite has current passing receipts only when its fast `--verify` passes. Tier 5 required/blocking review is established by `./eng/review-check.sh --milestone <id>` for the review's owning milestone; see `docs/engineering/human-review-workflow.md` for the full review command contract. M027 and M028 use direct focused checks plus resumable aggregates.
 
 Linux/Bash is the tested platform baseline for engineering commands. Native Windows/PowerShell is unsupported until implemented and validated.

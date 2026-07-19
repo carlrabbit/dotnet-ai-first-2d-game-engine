@@ -35,5 +35,8 @@ This document is authoritative for project vocabulary.
 | Structural render evidence | Backend-neutral JSON render frame, item, command, binding, and diagnostic artifacts. |
 | Screenshot evidence | Explicitly captured PNG review evidence; not cross-platform semantic truth. |
 | Human review gate | Explicit validation for outputs automation cannot fully judge. |
+| Shared asset home | Machine-local authoring infrastructure for raw sources, reusable discovery, annotations, and disposable generated evidence; never game or runtime authority. |
+| Discovery profile | Deterministic observed facts and conservative image/audio proposals for one source fingerprint. |
+| Asset campaign | Game-local relevance and presentation proposal overlay that references, but does not mutate, a shared discovery profile. |
 | Debug runtime | Development representation optimized for inspection and diagnostics. |
 | Packaged runtime | Future release representation optimized for compactness and performance; not yet implemented. |

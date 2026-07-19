@@ -48,6 +48,13 @@ agentic2d scenario run <scenario-id-or-path> --output <directory>
 agentic2d content validate <scope-or-path> --output <directory>
 agentic2d asset inspect <asset-id-or-path> --output <directory>
 agentic2d asset perceive <asset-id-or-path> --output <directory>
+agentic2d asset home inspect --output <directory>
+agentic2d asset home clean --stale --output <directory>
+agentic2d asset source add <path> [--name <display-name>] --output <directory>
+agentic2d asset source list|show|refresh|clean|profile|annotation ... --output <directory>
+agentic2d asset campaign validate|status|propose <campaign-path> --output <directory>
+agentic2d asset batch inventory|propose|validate|review-pack <batch-path> --output <directory>
+agentic2d asset discovery self-test --output <directory>
 agentic2d asset review apply --decisions <review-file> [--dry-run] --output <directory>
 agentic2d map inspect <map-id-or-path> --output <directory>
 agentic2d review pack --input <artifact-root> --output <directory>
