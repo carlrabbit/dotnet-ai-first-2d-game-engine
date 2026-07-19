@@ -15,6 +15,8 @@ public static class ToolsCli
 {
     public static async Task<int> RunAsync(string[] args, TextWriter output, TextWriter error)
     {
+        var m029 = await M029AssetWorkbenchCommands.RunAsync(args, output, error);
+        if (m029 >= 0) return m029;
         var m028Corpus = await M028DiscoveryCorpusCommands.RunAsync(args, output, error);
         if (m028Corpus >= 0) return m028Corpus;
         var m028 = await M028AssetLibraryCommands.RunAsync(args, output, error);
@@ -86,6 +88,13 @@ public static class ToolsCli
                   agentic2d asset source list|show|refresh|clean|profile|annotation ... --output <directory>
                   agentic2d asset campaign validate|status|propose <campaign-path> --output <directory>
                   agentic2d asset batch inventory|propose|validate|review-pack <batch-path> --output <directory>
+                  agentic2d asset workbench [--campaign <campaign-path>] [--session <session-id>] [--headless] --output <directory>
+                  agentic2d asset workbench resume|status|close <session-id> --output <directory>
+                  agentic2d asset workbench ui <session-id> --commands <input-command.jsonl> [--capture <png>] [--frames <count>]
+                  agentic2d asset preview-host [ui|serve] <session-id> --output <directory> [--capture <png>]
+                  agentic2d asset preview-host request <session-id> --request <request.json> --output <directory>
+                  agentic2d asset batch apply-review|promotion-plan|promote ... --output <directory>
+                  agentic2d asset approved validate|inspect|list|show <workspace> --output <directory>
                   agentic2d workspace create <target> --template minimal-game (--engine-directory <path> --engine-placement reference|copy | --engine-git <url-or-path> --engine-revision <revision>) --output <directory>
                   agentic2d save create --project <project-or-workspace> --run <run-directory> --tick <tick-or-final> --save-id <stable-id> --output <directory>
                   agentic2d save inspect <save-path> --output <directory>

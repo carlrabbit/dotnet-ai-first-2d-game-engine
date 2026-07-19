@@ -38,5 +38,8 @@ This document is authoritative for project vocabulary.
 | Shared asset home | Machine-local authoring infrastructure for raw sources, reusable discovery, annotations, and disposable generated evidence; never game or runtime authority. |
 | Discovery profile | Deterministic observed facts and conservative image/audio proposals for one source fingerprint. |
 | Asset campaign | Game-local relevance and presentation proposal overlay that references, but does not mutate, a shared discovery profile. |
+| Workbench session | Provider-side resumable review context containing canonical campaign state, durable decisions, and only operational input/alias references. |
+| Workbench alias | Ephemeral session/list-generation numeric convenience reference; never durable authority. |
+| Approved asset | Project-local presentation authority materialized from current reviewed decisions with processing and source provenance. |
 | Debug runtime | Development representation optimized for inspection and diagnostics. |
 | Packaged runtime | Future release representation optimized for compactness and performance; not yet implemented. |

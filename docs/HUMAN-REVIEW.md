@@ -14,6 +14,10 @@ Review generated evidence rather than reconstructing behavior from implementatio
 
 The blocking M028 review is `review.m028.shared-asset-library-discovery-and-campaign-foundation`. It verifies safe generated cleanup, retained reusable annotations, campaign/profile authority separation, and usable headless review evidence. It remains pending until an explicit repository-user approval record exists.
 
+### M029 choice-driven workbench and promotion
+
+The blocking M029 review is `review.m029.choice-driven-workbench-preview-and-promotion`. It reviews editable text-stream and mouse/touch interaction, preview/recovery evidence, consequence-aware decisions, deterministic promotion provenance, and the M030 handoff. It does not approve consumer-game integration.
+
 ### Asset semantics and curation
 
 Verify proposed versus approved semantics, asset provenance, review decisions, generated workbench usefulness, and that high-impact gameplay semantics remain review-gated.

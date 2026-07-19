@@ -1,0 +1,70 @@
+{
+  "schema": "agentic2d.engineering.review-record.v2",
+  "id": "review.m029.choice-driven-workbench-preview-and-promotion",
+  "owningMilestone": "M029",
+  "owningMilestonePath": "docs/milestones/MILESTONE-029-choice-driven-asset-workbench-persistent-audiovisual-preview-and-deterministic-promotion.md",
+  "subject": "M029 RDP-safe choice-driven workbench, persistent actual-engine preview, consequence-aware decisions, recovery, deterministic promotion, and M030 readiness",
+  "classes": [
+    "UX",
+    "visual",
+    "creative",
+    "semantic",
+    "artifact-quality"
+  ],
+  "level": "blocking",
+  "reviewerRole": "repository user",
+  "status": "approved",
+  "evidence": [
+    "artifacts/assets/M029/workbench",
+    "artifacts/assets/M029/input",
+    "artifacts/assets/M029/preview",
+    "artifacts/assets/M029/decisions",
+    "artifacts/assets/M029/promotion",
+    "artifacts/assets/M029/recovery",
+    "artifacts/assets/M029/m030-readiness.json",
+    "artifacts/validation/m029-smoke"
+  ],
+  "acceptanceCriteria": [
+    "The workbench is usable through editable text-stream input and mouse/touch without raw physical key events.",
+    "Text can be corrected before explicit submission, and invalid input records no decision.",
+    "Mouse/touch and text submission produce identical canonical actions.",
+    "The numbered workflow is usable without raw metadata editing.",
+    "One persistent preview uses actual engine audiovisual systems.",
+    "High-impact consequences require confirmation and presentation-only approval remains possible.",
+    "Preview failure and resume do not lose decisions or disable workbench input.",
+    "Promotion deterministically matches effective decisions with complete provenance.",
+    "M030 has sufficient approved inputs without consumer integration occurring in M029."
+  ],
+  "acceptableDecisions": [
+    "approved"
+  ],
+  "waiverPolicy": "No implicit waiver.",
+  "decision": "approved",
+  "reviewedRevision": "ref: refs/heads/m28m29m30",
+  "reviewedFingerprint": "0ace83759db472656a506860513b3148404d76b8d6b2f9e1810443c9abfa7c26",
+  "conditions": [],
+  "completedAt": "2026-07-19T21:04:40.5907104+00:00",
+  "decisionHistory": [
+    {
+      "decision": "approved",
+      "reviewer": "repository user",
+      "notes": "",
+      "evidence": [
+        "artifacts/assets/M029/workbench",
+        "artifacts/assets/M029/input",
+        "artifacts/assets/M029/preview",
+        "artifacts/assets/M029/decisions",
+        "artifacts/assets/M029/promotion",
+        "artifacts/assets/M029/recovery",
+        "artifacts/assets/M029/m030-readiness.json",
+        "artifacts/validation/m029-smoke"
+      ],
+      "revision": "ref: refs/heads/m28m29m30",
+      "fingerprint": "0ace83759db472656a506860513b3148404d76b8d6b2f9e1810443c9abfa7c26",
+      "recordedAt": "2026-07-19T21:04:40.5293112+00:00",
+      "recordCorrection": false
+    }
+  ],
+  "correctsReviewId": "",
+  "path": ".review/records/review.m029.choice-driven-workbench-preview-and-promotion.json"
+}

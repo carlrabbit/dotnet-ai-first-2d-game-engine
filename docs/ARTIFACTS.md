@@ -36,6 +36,7 @@ Failures must produce enough structured evidence for diagnosis. Generated artifa
 | `docs/artifacts/gameplay-state-artifact-contract.md` | Gameplay state and transaction evidence. |
 | `docs/artifacts/consumer-authoring-review-pack-artifact-contract.md` | Bounded milestone-owned geometry, sound, scenario, persistence, performance, and capture evidence. |
 | `docs/artifacts/asset-discovery-and-campaign-review-pack-artifact-contract.md` | Copyable M028 discovery, campaign, audio, and visual review evidence. |
+| `docs/artifacts/asset-workbench-session-and-promotion-review-pack-contract.md` | M029 session, input, preview, recovery, promotion, and M030-readiness evidence. |
 
 ## Artifact roots
 

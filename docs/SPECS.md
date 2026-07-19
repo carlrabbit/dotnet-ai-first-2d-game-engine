@@ -25,6 +25,11 @@ This document indexes permanent behavioral authority. Milestones sequence work; 
 | `docs/specs/reusable-asset-discovery-profile-contract.md` | Reusable PNG/WAV observations and conservative proposals. |
 | `docs/specs/reusable-asset-annotation-and-cleanup-contract.md` | Retained reusable corrections and disposable generated metadata. |
 | `docs/specs/asset-campaign-and-batch-contract.md` | Game-local campaign proposals and bounded batches. |
+| `docs/specs/asset-workbench-session-and-alias-contract.md` | Persistent provider-side workbench sessions and ephemeral aliases. |
+| `docs/specs/asset-workbench-input-contract.md` | Explicit text-stream and mouse/touch workbench input. |
+| `docs/specs/asset-workbench-decision-and-consequence-contract.md` | Review decisions, consequence confirmation, history, and staleness. |
+| `docs/specs/asset-preview-host-ipc-contract.md` | Restartable local preview-host protocol. |
+| `docs/specs/approved-asset-and-deterministic-promotion-contract.md` | Project-local approved assets and atomic deterministic promotion. |
 | `docs/specs/map-content-contract.md` | Authored map content. |
 | `docs/specs/runtime-inspection-contract.md` | Structured runtime inspection. |
 | `docs/specs/behavior-modules.md` | Behavior-module principles. |

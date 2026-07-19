@@ -54,6 +54,14 @@ agentic2d asset source add <path> [--name <display-name>] --output <directory>
 agentic2d asset source list|show|refresh|clean|profile|annotation ... --output <directory>
 agentic2d asset campaign validate|status|propose <campaign-path> --output <directory>
 agentic2d asset batch inventory|propose|validate|review-pack <batch-path> --output <directory>
+agentic2d asset workbench [--campaign <campaign-path>] [--session <session-id>] [--headless] --output <directory>
+agentic2d asset workbench resume|status|close <session-id> --output <directory>
+agentic2d asset workbench ui <session-id> --commands <input-command.jsonl> [--capture <png>] [--frames <count>]
+agentic2d asset preview-host [ui|serve] <session-id> --output <directory> [--capture <png>]
+agentic2d asset preview-host request <session-id> --request <request.json> --output <directory>
+agentic2d asset batch apply-review|promotion-plan|promote ... --output <directory>
+agentic2d asset approved validate|inspect|list|show <workspace> --output <directory>
+agentic2d asset rebuild --affected <source-or-approved-id> --target <workspace> --output <directory>
 agentic2d asset discovery self-test --output <directory>
 agentic2d asset review apply --decisions <review-file> [--dry-run] --output <directory>
 agentic2d map inspect <map-id-or-path> --output <directory>

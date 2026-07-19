@@ -79,6 +79,8 @@ Do not create success-only placeholder scripts.
 
 `./eng/geometry-diagnostics-smoke.sh` is the mandatory headless geometry evidence path. `./eng/geometry-graphics-capture.sh` is explicitly opt-in and requires a supported graphics session; it captures the all-supported-shapes fixture through the isolated raylib debug client and can be compared with structural inspection through `geometry preview --graphical-metadata <capture-metadata.json>`.
 
+`./eng/m029-smoke.sh` is resumable-sharded. It has `--list`, `--plan-json`, `--shard <id>`, `--verify`, and no-argument modes. Its verifier is the only aggregate-success authority; its human-review shard remains pending until the owning M029 review is approved.
+
 `./eng/tic-tac-toe-play.sh` starts the consumer-owned graphical launcher. It requires a graphics session and accepts `--frames <count>` for bounded graphics smoke use. `./eng/tic-tac-toe-export.sh` publishes the same playable launcher to `artifacts/tic-tac-toe/export/playable-linux-x64/AutonomousTicTacToe.Playable` in addition to its headless equivalence evidence.
 
 Receipts are generated at `artifacts/validation/<suite>/<shard>.json`. The host deletes a previous receipt before execution and only atomically replaces it after command success and evidence validation.
