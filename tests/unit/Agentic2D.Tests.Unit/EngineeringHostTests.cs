@@ -48,7 +48,7 @@ public sealed class EngineeringHostTests
         var output = new StringWriter();
 
         await Assert.That(host.ListReviews("M027", output)).IsEqualTo(0);
-        await Assert.That(output.ToString()).Contains("1\tactive\tM027\treview.m027.authoring-contracts-review-evidence-and-v060-migration\t");
+        await Assert.That(output.ToString()).Contains("1\thistorical\tM027\treview.m027.authoring-contracts-review-evidence-and-v060-migration\t");
     }
 
     [Test]
@@ -59,7 +59,7 @@ public sealed class EngineeringHostTests
 
         await Assert.That(host.ListReviews(null, output)).IsEqualTo(0);
         await Assert.That(output.ToString()).Contains("1\thistorical\tM022\tmigration-guide-v050");
-        await Assert.That(output.ToString()).Contains("active\tM027\treview.m027.authoring-contracts-review-evidence-and-v060-migration\t");
+        await Assert.That(output.ToString()).Contains("historical\tM027\treview.m027.authoring-contracts-review-evidence-and-v060-migration\t");
     }
 
     [Test]

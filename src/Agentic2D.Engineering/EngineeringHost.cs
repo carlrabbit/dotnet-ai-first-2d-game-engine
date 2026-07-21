@@ -958,6 +958,42 @@ public sealed class EngineeringHost
             Shard("documentation", "Active M027 contracts and command documentation are present.", "test -f docs/specs/geometry-authoring-diagnostics-contract.md && test -f docs/specs/generated-sound-linkage-contract.md && test -f docs/artifacts/consumer-authoring-review-pack-artifact-contract.md", ["docs/specs/geometry-authoring-diagnostics-contract.md", "docs/specs/generated-sound-linkage-contract.md", "docs/artifacts/consumer-authoring-review-pack-artifact-contract.md"]),
             Shard("human-review", "Blocking M027 review is approved by a human.", "./eng/review-check.sh --milestone M027", [".review/records/review.m027.authoring-contracts-review-evidence-and-v060-migration.json"]),
             Shard("integrated", "Provider build, test, and product validation.", "./eng/check.sh && ./eng/cli-smoke.sh && ./eng/product-validate.sh", ["artifacts/cli/runtime-smoke/result.json", "artifacts/cli/validate/result.json"])
+        ]),
+        new("m028-smoke", "resumable-sharded",
+        [
+            Shard("m011-audit-generalization", "Evidence-backed M011 capability audit and generated unknown-library discovery acceptance.", "./eng/m028-generalization-smoke.sh", ["artifacts/assets/M028/m011-capability-audit.json", "artifacts/assets/M028/generalization/unknown-library-acceptance.json", "artifacts/assets/M028/generalization/metamorphic-test-results.json"]),
+            Shard("asset-home", "Local asset-home resolution and safe stale cleanup.", "./eng/asset-home-smoke.sh", ["artifacts/assets/M028/home/asset-home.json"]),
+            Shard("source-registry", "Path-independent source registry and refresh pointer.", "./eng/asset-source-registry-smoke.sh", ["artifacts/assets/M028/registry/refresh/source-profile.json"], ["m011-audit-generalization"]),
+            Shard("image-discovery", "Deterministic PNG grid, regions, duplicates, and animation proposals.", "./eng/asset-source-profile-smoke.sh", ["artifacts/assets/M028/discovery/profile/image-observations.jsonl"], ["m011-audit-generalization"]),
+            Shard("audio-discovery", "Bounded WAV observations.", "./eng/m028-provider-smoke.sh audio", ["artifacts/assets/M028/audio/profile/audio-observations.jsonl"], ["m011-audit-generalization"]),
+            Shard("annotations-cleanup", "Generated cleanup retains reusable annotations.", "./eng/asset-source-annotation-smoke.sh && ./eng/asset-source-cleanup-smoke.sh", ["artifacts/assets/M028/annotations/list/annotations.json"]),
+            Shard("campaign-reuse", "Campaign proposals stay separate from shared discovery.", "./eng/asset-campaign-smoke.sh", ["artifacts/assets/M028/campaign/campaign/propose/proposal-summary.json"]),
+            Shard("batch-proposals", "Bounded batch inventory, proposals, validation, and review evidence.", "./eng/asset-batch-smoke.sh", ["artifacts/assets/M028/batch/batch/review/asset-review-pack/manifest.json"]),
+            Shard("headless-review-pack", "Copyable headless image/audio evidence and M029 readiness.", "./eng/asset-discovery-review-pack-smoke.sh", ["artifacts/assets/M028/review-pack/review/asset-review-pack/manifest.json"]),
+            Shard("m011-regression", "M011 asset inspection/perception/review/curation remain valid.", "./eng/m011-smoke.sh", ["artifacts/review/m011/review-manifest.json"]),
+            Shard("documentation", "M028 authority and command documentation are present.", "./eng/m028-documentation-smoke.sh", ["docs/specs/shared-asset-home-and-source-registry-contract.md", "docs/specs/asset-campaign-and-batch-contract.md", "artifacts/assets/M028/documentation/diff-summary.md"]),
+            Shard("human-review", "Blocking M028 review is approved by a human.", "./eng/review-check.sh --milestone M028", [".review/records/review.m028.shared-asset-library-discovery-and-campaign-foundation.json"]),
+            Shard("integrated", "Provider build, product validation, and CLI integration.", "./eng/build.sh && ./eng/cli-smoke.sh && ./eng/product-validate.sh", ["artifacts/cli/runtime-smoke/result.json", "artifacts/cli/validate/result.json"])
+        ]),
+        new("m029-smoke", "resumable-sharded",
+        [
+            Shard("session-aliases", "Persistent sessions, regenerated aliases, and safe stale-alias behavior.", "./eng/asset-workbench-session-smoke.sh && ./eng/asset-workbench-alias-smoke.sh", ["artifacts/assets/M029/aliases/aliases.json"]),
+            Shard("rdp-text-input", "Editable text stream, explicit submission, correction, paste, composition, focus recovery, and invalid-input behavior.", "./eng/test-filter.sh AssetWorkbenchInput && ./eng/asset-workbench-input-smoke.sh && ./eng/asset-workbench-rdp-input-smoke.sh", ["artifacts/assets/M029/input/rdp/input-state.json"]),
+            Shard("mouse-touch-input", "Mouse/touch visible choice selection works without raw key events.", "./eng/asset-workbench-mouse-input-smoke.sh", ["artifacts/assets/M029/input/mouse/input-result.json"]),
+            Shard("input-equivalence", "Mouse, text, and headless input share canonical actions.", "./eng/asset-workbench-smoke.sh equivalence", ["artifacts/assets/M029/input/mouse/input-result.json"]),
+            Shard("guided-decisions", "Canonical decision history and bounded guided review.", "./eng/test-filter.sh AssetWorkbenchDecision && ./eng/asset-workbench-decision-smoke.sh", ["artifacts/assets/M029/decisions/review-decisions.jsonl"]),
+            Shard("consequence-confirmation", "High-impact implications require explicit confirmation or presentation-only approval.", "./eng/asset-workbench-consequence-smoke.sh", ["artifacts/assets/M029/decisions/review-decisions.jsonl"]),
+            Shard("preview-ipc", "Versioned persistent actual-engine preview protocol evidence.", "./eng/test-filter.sh AssetPreviewIpc && ./eng/asset-preview-ipc-smoke.sh", ["artifacts/assets/M029/preview/preview-ipc.json"]),
+            Shard("preview-recovery", "Preview restart preserves input and decisions.", "./eng/asset-preview-recovery-smoke.sh", ["artifacts/assets/M029/recovery/input-result.json"]),
+            Shard("graphical-preview", "Preview visual controls, overlays, and malformed-candidate diagnostic scene.", "./eng/asset-preview-graphical-smoke.sh", ["artifacts/assets/M029/preview/malformed/preview-scene.json"]),
+            Shard("audio-preview", "Manual audio projection, A/B, and safe no-device evidence.", "./eng/asset-preview-audio-smoke.sh", ["artifacts/assets/M029/preview/preview-scene.json"]),
+            Shard("promotion", "Deterministic staged promotion and approved-definition validation.", "./eng/test-filter.sh AssetPromotion && ./eng/asset-promotion-smoke.sh", ["artifacts/assets/M029/promotion/workspace/promotion-manifest.json"]),
+            Shard("affected-rebuild", "Affected rebuild limits changes to dependencies.", "./eng/asset-affected-rebuild-smoke.sh", ["artifacts/assets/M029/promotion/rebuild/affected-rebuild.json"]),
+            Shard("workbench-review-pack", "M029 bounded review pack and M030 readiness handoff.", "./eng/asset-workbench-review-pack-smoke.sh", ["artifacts/assets/M029/workbench/asset-workbench-review-pack/manifest.json", "artifacts/assets/M029/m030-readiness.json"]),
+            Shard("m028-regression", "M028 provider remains valid historical foundation.", "./eng/m028-provider-smoke.sh review-pack", ["artifacts/assets/M028/review-pack/review/asset-review-pack/manifest.json"]),
+            Shard("documentation", "M029 active authority and command documentation are indexed.", "test -f docs/specs/asset-workbench-input-contract.md && test -f docs/specs/approved-asset-and-deterministic-promotion-contract.md && test -f docs/artifacts/asset-workbench-session-and-promotion-review-pack-contract.md", ["docs/specs/asset-workbench-input-contract.md", "docs/specs/approved-asset-and-deterministic-promotion-contract.md"]),
+            Shard("human-review", "Blocking M029 review is approved by a human.", "./eng/review-check.sh --milestone M029", [".review/records/review.m029.choice-driven-workbench-preview-and-promotion.json"]),
+            Shard("integrated", "Provider build, workbench flow, and product validation.", "./eng/build.sh && ./eng/asset-workbench-smoke.sh integrated && ./eng/product-validate.sh", ["artifacts/assets/M029/workbench/asset-workbench-review-pack/manifest.json", "artifacts/cli/validate/result.json"])
         ])
     ];
 

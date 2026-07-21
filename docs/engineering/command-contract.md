@@ -36,6 +36,7 @@ These commands are the canonical local engineering API.
 | `./eng/map-smoke.sh` | Runs map scope and direct-path content validation plus `agentic2d map inspect`, and verifies required map artifacts exist. | Tier 2 map smoke gate |
 | `./eng/runtime-inspect-smoke.sh` | Runs `agentic2d runtime inspect --scenario runtime.smoke --map map.smoke` and verifies required runtime inspection artifacts exist. | Tier 2 runtime inspection smoke gate |
 | `./eng/m011-smoke.sh` | Runs the bounded Milestone 011 end-to-end smoke journey and verifies final review-pack/workbench artifacts while leaving tracked source unchanged. | Tier 2 milestone smoke gate |
+| `./eng/asset-home-smoke.sh`, `./eng/asset-source-registry-smoke.sh`, `./eng/asset-source-profile-smoke.sh`, `./eng/asset-source-cleanup-smoke.sh`, `./eng/asset-source-annotation-smoke.sh`, `./eng/asset-campaign-smoke.sh`, `./eng/asset-batch-smoke.sh`, `./eng/asset-discovery-review-pack-smoke.sh` | Focused M028 local asset-home, discovery, annotation, campaign, batch, and headless-evidence validation. | Tier 1/2 provider validation |
 
 ## Future focused commands
 
@@ -72,11 +73,13 @@ Do not create success-only placeholder scripts.
 
 ## Resumable validation commands
 
-`m019-smoke.sh`, `m020-smoke.sh`, `m021-smoke.sh`, `m023-smoke.sh`, `m026-smoke.sh`, and `guide-migration-v050.sh` are resumable-sharded suites. They expose `--list`, `--plan-json`, `--shard <id>`, `--verify`, and no-argument local/CI aggregate mode. `--verify` is the only aggregate-success authority.
+`m019-smoke.sh`, `m020-smoke.sh`, `m021-smoke.sh`, `m023-smoke.sh`, `m026-smoke.sh`, `m027-smoke.sh`, `m028-smoke.sh`, and `guide-migration-v050.sh` are resumable-sharded suites. They expose `--list`, `--plan-json`, `--shard <id>`, `--verify`, and no-argument local/CI aggregate mode. `--verify` is the only aggregate-success authority.
 
 `./eng/perf-smoke.sh` captures bounded reference-workload evidence. `perf-capture`, `perf-compare`, and `perf-report` are thin launchers over the engineering host and produce advisory same-machine performance evidence; elapsed timing is never a deterministic receipt fingerprint or cross-machine claim. M026 retains small-workload counters/allocations but classifies sub-10-ms references as not timing-authoritative; scaled real workloads carry ordinary elapsed comparison authority.
 
 `./eng/geometry-diagnostics-smoke.sh` is the mandatory headless geometry evidence path. `./eng/geometry-graphics-capture.sh` is explicitly opt-in and requires a supported graphics session; it captures the all-supported-shapes fixture through the isolated raylib debug client and can be compared with structural inspection through `geometry preview --graphical-metadata <capture-metadata.json>`.
+
+`./eng/m029-smoke.sh` is resumable-sharded. It has `--list`, `--plan-json`, `--shard <id>`, `--verify`, and no-argument modes. Its verifier is the only aggregate-success authority; its human-review shard remains pending until the owning M029 review is approved.
 
 `./eng/tic-tac-toe-play.sh` starts the consumer-owned graphical launcher. It requires a graphics session and accepts `--frames <count>` for bounded graphics smoke use. `./eng/tic-tac-toe-export.sh` publishes the same playable launcher to `artifacts/tic-tac-toe/export/playable-linux-x64/AutonomousTicTacToe.Playable` in addition to its headless equivalence evidence.
 

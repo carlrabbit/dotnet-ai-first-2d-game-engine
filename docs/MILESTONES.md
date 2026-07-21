@@ -1,5 +1,13 @@
 # Milestones
 
+## M028
+
+M028 supplies the machine-local shared asset home, reusable discovery profiles and annotations, game-local campaigns/batches, and copyable headless evidence. Its blocking review is `review.m028.shared-asset-library-discovery-and-campaign-foundation`; M029 workbench interaction and asset promotion remain deferred.
+
+## M029
+
+M029 adds persistent provider-side workbench sessions, explicit text-stream and mouse/touch command routing, a restartable preview-host protocol, history-preserving consequence-aware review, and atomic deterministic promotion. Its blocking review is `review.m029.choice-driven-workbench-preview-and-promotion`; consumer integration remains M030 scope.
+
 ## Authority
 
 This document indexes planned and completed implementation milestones.

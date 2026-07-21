@@ -55,6 +55,8 @@ dotnet run --project src/Agentic2D.Tools -- content validate visuals --output ar
 - entity definitions and bounded whole-component overrides;
 - visual definitions and multi-part visual bindings;
 - authored asset review decisions.
+- game-local asset campaigns and bounded candidate batches may reference shared profile fingerprints, but shared asset-home data is not authored game truth.
+- M029 sessions, aliases, input buffers, preview state, and decision logs are provider-side operational/review records; promotion materializes project-local approved definitions without making the shared asset home runtime authority.
 
 Runtime entities, component state, trigger overlap state, interactions, and render frames are runtime or generated evidence, not authored source.
 

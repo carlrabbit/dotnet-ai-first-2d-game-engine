@@ -3,10 +3,13 @@ using System.Text.Json;
 using Agentic2D.Rendering;
 using Agentic2D.ScenarioRunner;
 using Agentic2D.Validation;
+using Agentic2D.DebugClient;
 using Raylib_cs;
 
 if (args.Length == 0) return Usage();
 if (args[0] == "geometry") return CaptureGeometry(args[1..]);
+if (args[0] == "asset-workbench") return AssetWorkbenchRaylibWindow.Run(args[1..]);
+if (args[0] == "asset-preview") return AssetPreviewRaylibWindow.Run(args[1..]);
 string? scenario = null, input = null, capture = null;
 for (var i = 1; i < args.Length; i++)
     if (args[i] == "--scenario" && ++i < args.Length) scenario = args[i];
@@ -101,4 +104,4 @@ static void DrawGeometry(VisualPartSource part)
     }
 }
 static Color ToColor(VisualColor color, double opacity) => new(color.R, color.G, color.B, (int)Math.Round(color.A * opacity));
-static int Usage() { Console.Error.WriteLine("usage: scenario --scenario <id> [--capture <png>] | snapshot --input <render-snapshot.json> [--capture <png>] | geometry --input <visual-definition.json> --capture <png>"); return 2; }
+static int Usage() { Console.Error.WriteLine("usage: scenario --scenario <id> [--capture <png>] | snapshot --input <render-snapshot.json> [--capture <png>] | geometry --input <visual-definition.json> --capture <png> | asset-workbench --session <review-session.json> --commands <input-command.jsonl> [--capture <png>] [--frames <count>] | asset-preview --scene <preview-scene.json> [--capture <png>] [--frames <count>]"); return 2; }
