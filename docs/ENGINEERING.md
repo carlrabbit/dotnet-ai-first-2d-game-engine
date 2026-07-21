@@ -150,6 +150,17 @@ The repository includes deterministic runtime, product CLI, scenarios, content v
 ./eng/simulation-inspection-smoke.sh
 ./eng/m031-wood-workflow-smoke.sh
 ./eng/m031-smoke.sh
+./eng/designation-work-smoke.sh
+./eng/worker-selection-smoke.sh
+./eng/detailed-grid-navigation-smoke.sh
+./eng/detailed-activity-execution-smoke.sh
+./eng/logistics-conservation-smoke.sh
+./eng/basic-needs-interruption-smoke.sh
+./eng/detailed-region-persistence-smoke.sh
+./eng/detailed-region-projection-smoke.sh
+./eng/m032-forest-logistics-smoke.sh
+./eng/m032-detailed-region-graphics-smoke.sh # graphics-capable environment required for passing evidence
+./eng/m032-smoke.sh
 ```
 
 ## Validation boundary

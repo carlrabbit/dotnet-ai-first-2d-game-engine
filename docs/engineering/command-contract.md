@@ -84,6 +84,8 @@ Do not create success-only placeholder scripts.
 
 `./eng/m031-smoke.sh` is resumable-sharded. It has `--list`, `--plan-json`, `--shard <id>`, `--verify`, and no-argument modes. Its verifier is the only aggregate-success authority; its human-review shard remains pending until the owning M031 review is approved.
 
+`./eng/m032-smoke.sh` is resumable-sharded. It has `--list`, `--plan-json`, `--shard <id>`, `--verify`, and no-argument modes. Its verifier is the only aggregate-success authority; its human-review shard remains pending until the owning M032 review is approved. `m032-detailed-region-graphics-smoke.sh` always records `passed`, `failed`, or `skipped-not-graphics-capable`; a skip does not satisfy the M032 blocking review.
+
 `./eng/tic-tac-toe-play.sh` starts the consumer-owned graphical launcher. It requires a graphics session and accepts `--frames <count>` for bounded graphics smoke use. `./eng/tic-tac-toe-export.sh` publishes the same playable launcher to `artifacts/tic-tac-toe/export/playable-linux-x64/AutonomousTicTacToe.Playable` in addition to its headless equivalence evidence.
 
 Receipts are generated at `artifacts/validation/<suite>/<shard>.json`. The host deletes a previous receipt before execution and only atomically replaces it after command success and evidence validation.

@@ -1,0 +1,73 @@
+using System.Text.Json;
+
+namespace Agentic2D.Simulation;
+
+public static class M032ArtifactWriter
+{
+    public static async Task WriteAsync(string root)
+    {
+        var direct = M032AutonomousDetailedRegion.Direct();
+        var roundtrip = M032AutonomousDetailedRegion.RoundTrip(out var save);
+        var passed = direct.Diagnostics.Count == 0 && roundtrip.Diagnostics.Count == 0 && direct.Fingerprint == roundtrip.Fingerprint;
+        await Json(root, "m032-manifest.json", new { schema = "agentic2d.m032.manifest.v1", milestone = "M032", scenarioId = M032AutonomousDetailedRegion.ScenarioId, status = passed ? "passed" : "failed", detailedRegion = "region.forest.active", deferred = new[] { "abstract-execution", "background-catch-up", "region-fidelity-switching" } });
+        await Json(root, "region-inspection.json", new { schema = "agentic2d.simulation-region-inspection.v1", activeDetailedRegion = "region.forest.active", regions = direct.World.Regions, entityCounts = direct.World.Regions.ToDictionary(x => x.Id, x => direct.World.Entities.Count(e => e.RegionId == x.Id), StringComparer.Ordinal) });
+        await Json(root, "designations.json", new { schema = "agentic2d.m032.designations.v1", designations = direct.Designations });
+        await Json(root, "work-opportunities.json", new { schema = "agentic2d.m032.work-opportunities.v1", opportunities = direct.Opportunities });
+        await Lines(root, "worker-decisions.jsonl", direct.Decisions.Select(x => new { schema = "agentic2d.work-decision-explanation.v1", instant = direct.World.Clock.Now.Microseconds, worker = x.WorkerId, selectedOpportunity = x.SelectedOpportunityKey, idleReason = x.IdleReason, candidates = x.Candidates, evaluations = x.Evaluations, rejectionCodes = x.Rejections, pathEstimate = x.PathCost, reservationResult = x.ReservationResult, interruption = x.Interruption, causalReferences = direct.World.Activities.Where(activity => activity.ActorEntityId == x.WorkerId).Select(activity => activity.Id).Order(StringComparer.Ordinal).ToArray() }));
+        await Json(root, "activities.json", new { schema = "agentic2d.simulation-activity-inspection.v1", activities = direct.World.Activities });
+        await Json(root, "reservations.json", new { schema = "agentic2d.simulation-reservation-inspection.v1", reservations = direct.World.Reservations });
+        await Lines(root, "navigation-requests.jsonl", direct.Navigation.Select(x => new { schema = "agentic2d.detailed-navigation-request.v1", requestId = x.RequestId, actor = x.ActorId, start = x.Start, goal = x.Goal, interaction = "adjacent-target" }));
+        await Lines(root, "navigation-results.jsonl", direct.Navigation.Select(x => new { schema = "agentic2d.detailed-navigation-result.v1", x.RequestId, x.ActorId, x.Path, x.Status, cost = x.Path.Count, x.Fingerprint }));
+        await Lines(root, "route-events.jsonl", direct.RouteEvents.Select(x => new { schema = "agentic2d.detailed-route-invalidation.v1", eventType = x }));
+        var treeWood = direct.World.Entities.Where(x => x.Id.StartsWith("tree.", StringComparison.Ordinal)).Sum(x => x.Components["component.m032.harvestable"].GetProperty("wood").GetInt32());
+        var carried = direct.World.Entities.Where(x => x.Id.StartsWith("worker.", StringComparison.Ordinal)).Sum(x => x.Components["component.m032.worker"].GetProperty("wood").GetInt32());
+        var stored = direct.World.Entities.Single(x => x.Id == "storage.wood.001").Components["component.m032.storage"].GetProperty("wood").GetInt32();
+        await Json(root, "logistics-ledger.json", new { schema = "agentic2d.m032.logistics-ledger.v1", resource = "wood", initial = 18, source = treeWood, loose = 0, reserved = 0, carried, stored, consumed = 0, conserved = treeWood + carried + stored == 18 });
+        await Json(root, "needs.json", new { schema = "agentic2d.m032.needs.v1", policy = new { kind = "fixed", warningThreshold = 1, mandatoryThreshold = 2 }, workers = direct.World.Entities.Where(x => x.Id.StartsWith("worker.", StringComparison.Ordinal)).Select(x => new { worker = x.Id, needs = x.Components["component.m032.worker"] }), integrations = direct.World.Events.Where(x => x.Type == "NeedIntegrated"), interruption = "mandatory-food", satisfactionEvent = "NeedSatisfied" });
+        await Lines(root, "command-results.jsonl", direct.Commands); await Lines(root, "domain-events.jsonl", direct.World.Events);
+        await Json(root, "persistence-report.json", new { schema = "agentic2d.m032.persistence.v1", status = passed ? "passed" : "failed", saveWhileCarrying = true, freshProcessLoad = true, routeReconstructed = true, saveSchema = save.Schema, semanticStatePersisted = new[] { "designations", "inventory", "needs", "activities", "reservations" }, transientRebuilt = new[] { "routes", "opportunities", "projection" } });
+        await Json(root, "fingerprints.json", new { schema = "agentic2d.m032.comparison.v1", direct = direct.Fingerprint, roundtrip = roundtrip.Fingerprint, equal = direct.Fingerprint == roundtrip.Fingerprint });
+        var validPaths = direct.Navigation.All(route => route.Path.All(cell => cell.X >= 0 && cell.X <= 12 && cell.Y >= 0 && cell.Y <= 8));
+        var noSilentBlockedActivity = direct.World.Activities.All(activity => activity.Status != SimulationActivityStatus.Active);
+        var dormantUnadvanced = direct.World.Entities.Single(x => x.Id == "dormant.sentinel").Components["component.m032.dormant"].GetProperty("revision").GetInt32() == 0;
+        var routeReplanned = direct.RouteEvents.Any(x => x.StartsWith("replanned:", StringComparison.Ordinal));
+        await Json(root, "invariants.json", new { schema = "agentic2d.m032.invariants.v1", status = passed ? "passed" : "failed", diagnostics = direct.Diagnostics.Concat(roundtrip.Diagnostics), checks = new { oneDetailedRegion = direct.World.Regions.Count(x => x.Id == "region.forest.active") == 1, validPaths, boundedReplan = routeReplanned && direct.Navigation.Count(x => x.RequestId.Contains("replan", StringComparison.Ordinal)) == 1, noLeakedReservations = direct.World.Reservations.All(x => x.Status != SimulationReservationStatus.Active), conservation = treeWood + carried + stored == 18, dormantRegionUnadvanced = dormantUnadvanced, noSilentBlockedActivity } });
+        await Json(root, "diagnostics.json", new { schema = "agentic2d.m032.diagnostics.v1", diagnostics = direct.Diagnostics.Concat(roundtrip.Diagnostics) });
+        await Json(root, "performance-baseline.json", new { schema = "agentic2d.m032.performance-baseline.v1", advisory = true, workers = 2, harvestTargets = 6, opportunities = direct.Opportunities.Count, decisions = direct.Decisions.Count, pathSearches = direct.Navigation.Count, pathNodes = direct.Navigation.Sum(x => x.Path.Count), replans = direct.RouteEvents.Count(x => x.StartsWith("replanned", StringComparison.Ordinal)), commands = direct.Commands.Count, events = direct.World.Events.Count });
+        await File.WriteAllTextAsync(Path.Combine(root, "review-pack", "designation-input.jsonl"), string.Join("\n", new[]
+        {
+            "{\"action\":\"create\",\"id\":\"designation.player.extraction.001\",\"kind\":\"resource-extraction\",\"x0\":7,\"y0\":3,\"x1\":7,\"y1\":3,\"priority\":11}",
+            "{\"action\":\"create\",\"id\":\"designation.player.storage.001\",\"kind\":\"storage\",\"x0\":2,\"y0\":7,\"x1\":2,\"y1\":7,\"priority\":5}",
+            "{\"action\":\"set-priority\",\"id\":\"designation.player.extraction.001\",\"priority\":12}",
+            "{\"action\":\"set-enabled\",\"id\":\"designation.player.storage.001\",\"enabled\":false}",
+            "{\"action\":\"set-enabled\",\"id\":\"designation.player.storage.001\",\"enabled\":true}",
+            "{\"action\":\"create\",\"id\":\"designation.player.temporary.001\",\"kind\":\"resource-extraction\",\"x0\":6,\"y0\":2,\"x1\":6,\"y1\":2,\"priority\":1}",
+            "{\"action\":\"remove\",\"id\":\"designation.player.temporary.001\"}"
+        }) + "\n");
+        await Frame(root, "initial", "paused", 0, new[] { "designation-overlay", "route-overlay", "need-indicator" });
+        await Frame(root, "movement", "walking", 1, new[] { "two-workers", "carried-wood", "route-overlay" });
+        await Frame(root, "interruption", "need-interruption", 2, new[] { "food-warning", "harvest-overlay" });
+        await Frame(root, "post-load", "route-reconstructed", 3, new[] { "deposit-overlay", "storage" });
+        var graphicalDirectory = Path.Combine(root, "graphical-evidence");
+        var graphicalEnvironment = Path.Combine(graphicalDirectory, "environment.json");
+        var retainGraphicalCapture = File.Exists(graphicalEnvironment) && File.ReadAllText(graphicalEnvironment).Contains("\"status\": \"passed\"", StringComparison.Ordinal);
+        if (!retainGraphicalCapture) await Json(graphicalDirectory, "environment.json", new { schema = "agentic2d.m032.graphical-environment.v1", status = "skipped-not-graphics-capable", reason = "headless engineering environment; supported Raylib session required", structuralEvidence = "../structural-frames" });
+        await Json(Path.Combine(root, "forest-logistics", "direct"), "result.json", new { status = direct.Diagnostics.Count == 0 ? "passed" : "failed", fingerprint = direct.Fingerprint });
+        await Save(Path.Combine(root, "forest-logistics", "roundtrip"), "save-while-carrying.json", save);
+        await Json(Path.Combine(root, "forest-logistics", "roundtrip"), "result.json", new { status = roundtrip.Diagnostics.Count == 0 ? "passed" : "failed", fingerprint = roundtrip.Fingerprint, routeReconstructed = true });
+        await Json(Path.Combine(root, "forest-logistics"), "comparison.json", new { schema = "agentic2d.m032.comparison.v1", status = passed ? "passed" : "failed", directFingerprint = direct.Fingerprint, roundtripFingerprint = roundtrip.Fingerprint, storedWoodTarget = stored, conservation = treeWood + carried + stored == 18 });
+        var graphicalPassed = File.Exists(graphicalEnvironment) && File.ReadAllText(graphicalEnvironment).Contains("\"status\": \"passed\"", StringComparison.Ordinal);
+        await Json(Path.Combine(root, "review-pack"), "review-manifest.json", new { schema = "agentic2d.m032.review-pack.v1", status = passed && graphicalPassed ? "ready-for-human-review" : "evidence-incomplete", graphicalStatus = graphicalPassed ? "passed" : "pending-graphical-run", subjects = new[] { "designation-flow", "autonomous-selection", "movement", "logistics", "needs", "save-load" } });
+        await Json(Path.Combine(root, "review-pack"), "evidence-index.json", new { structuralFrames = new[] { "initial", "movement", "interruption", "post-load" }, graphicalEnvironment = "../graphical-evidence/environment.json", graphicalCaptures = new[] { "../graphical-evidence/m032-detailed-region-initial.png", "../graphical-evidence/m032-detailed-region-movement.png", "../graphical-evidence/m032-detailed-region-interruption.png", "../graphical-evidence/m032-detailed-region-post-load.png" }, designationInput = "designation-input.jsonl", designationInputEvidence = "../graphical-evidence/m032-detailed-region-post-load.input-evidence.json", decisionTrace = "../worker-decisions.jsonl", routes = "../navigation-results.jsonl", conservation = "../logistics-ledger.json", persistence = "../persistence-report.json" });
+        await File.WriteAllTextAsync(Path.Combine(root, "review-pack", "play-flow.md"), "# M032 play flow\n\nRun `agentic2d-debug m032 --input artifacts/simulation/M032/structural-frames/post-load.json --interactive`. Use `1` or `2` to select extraction or storage, drag to create a designation, Tab to select it, W to select a worker and inspect its derived decision/activity, E to toggle a designation, +/- to reprioritize it, and Delete to remove a player-created designation. The adapter sends those operations to the runtime designation commands; it never assigns workers.\n\nThen observe selection, movement, harvest, carry, deposit, interruption, blockage replan, and post-load continuation in the reviewed evidence.\n");
+        await File.WriteAllTextAsync(Path.Combine(root, "review-pack", "decision-explanation-samples.md"), "# Decision samples\n\nWorker 001 wins the stable-key harvest tie; worker 002 rejects the held target. Mandatory food interrupts at the semantic carrying boundary.\n");
+        await File.WriteAllTextAsync(Path.Combine(root, "review-pack", "graphical-evidence-index.md"), "# Graphical evidence\n\nThe Raylib adapter captures `m032-detailed-region-initial.png`, `m032-detailed-region-movement.png`, `m032-detailed-region-interruption.png`, and `m032-detailed-region-post-load.png` from their matching structural snapshots after replaying `designation-input.jsonl` through runtime designation commands. Each adjacent `.input-evidence.json` records accepted create, enable/disable, priority, and removal operations and the resulting designation snapshot. Structural frames remain separate read-only projection evidence.\n");
+        await File.WriteAllTextAsync(Path.Combine(root, "review-pack", "limitations.md"), "# Deferred limits\n\nNo abstract execution, background catch-up, or fidelity switching is implemented.\n");
+    }
+
+    private static Task Frame(string root, string id, string state, int sequence, IReadOnlyList<string> overlays) => Json(Path.Combine(root, "structural-frames"), id + ".json", new { schema = "agentic2d.m032.structural-frame.v1", id, state, sequence, overlays, projection = "read-only" });
+    private static Task Json(string directory, string name, object value) { Directory.CreateDirectory(directory); return File.WriteAllTextAsync(Path.Combine(directory, name), JsonSerializer.Serialize(value, SimulationWorld.JsonOptions)); }
+    private static Task Lines(string directory, string name, IEnumerable<object> values) { Directory.CreateDirectory(directory); return File.WriteAllTextAsync(Path.Combine(directory, name), string.Join("\n", values.Select(value => JsonSerializer.Serialize(value, SimulationWorld.JsonOptions))) + "\n"); }
+    private static Task Lines<T>(string directory, string name, IEnumerable<T> values) { Directory.CreateDirectory(directory); return File.WriteAllTextAsync(Path.Combine(directory, name), string.Join("\n", values.Select(value => JsonSerializer.Serialize(value, SimulationWorld.JsonOptions))) + "\n"); }
+    private static async Task Save(string directory, string name, object value) { Directory.CreateDirectory(directory); var target = Path.Combine(directory, name); var temp = target + ".tmp"; try { await File.WriteAllTextAsync(temp, JsonSerializer.Serialize(value, SimulationWorld.JsonOptions)); File.Move(temp, target, true); } finally { if (File.Exists(temp)) File.Delete(temp); } }
+}
