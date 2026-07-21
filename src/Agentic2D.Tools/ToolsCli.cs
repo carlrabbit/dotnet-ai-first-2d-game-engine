@@ -15,6 +15,8 @@ public static class ToolsCli
 {
     public static async Task<int> RunAsync(string[] args, TextWriter output, TextWriter error)
     {
+        var m031 = await M031SimulationCommands.RunAsync(args, output, error);
+        if (m031 >= 0) return m031;
         var m029 = await M029AssetWorkbenchCommands.RunAsync(args, output, error);
         if (m029 >= 0) return m029;
         var m028Corpus = await M028DiscoveryCorpusCommands.RunAsync(args, output, error);

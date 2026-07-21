@@ -21,6 +21,7 @@ Scenarios validate behavior that unit tests alone cannot prove, including runtim
 | M015 | Headless rendering of `interaction.npc-smoke` and snapshot reconstruction. |
 | M016 | `input.mapping-mixed-device-smoke`, `input.runtime-approach-and-interact-smoke`, and `input.semantic-replay-smoke`. |
 | M017 | `animation-player-locomotion-smoke`, `animation-overlay-marker-smoke`, and `animation-semantic-replay-smoke`. |
+| M031 | `scenario.m031.simulation-foundation.wood-workflow`: deterministic two-region harvest/deposit proof with a fresh-process save/load continuation. |
 
 ## Current commands
 
@@ -33,6 +34,7 @@ dotnet run --project src/Agentic2D.Tools -- render project --scenario <id> --tic
 Graphical live and snapshot presentation is provided by `src/Agentic2D.DebugClient.Raylib`; it does not define scenario semantics.
 dotnet run --project src/Agentic2D.Tools -- project run <project-or-workspace> --scenario <id> --output <run-directory>
 dotnet run --project src/Agentic2D.Tools -- run inspect <run-directory> --output <directory>
+dotnet run --project src/Agentic2D.Tools -- simulation wood-workflow --output artifacts/simulation/M031
 
 ## Required scenario qualities
 

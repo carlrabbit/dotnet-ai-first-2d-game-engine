@@ -20,6 +20,11 @@ This document is authoritative for project vocabulary.
 | Runtime entity | Stable mutable runtime identity plus typed components. |
 | Static map object | Authored map content projected into static world or rendering data without runtime entity lifecycle. |
 | Component | Typed runtime state owned and mutated by the runtime. |
+| Simulation world | Optional authoritative runtime capability containing persistent entities, explicit regions, semantic time, activities, reservations, commands, and factual events. |
+| Region | Durable logical partition inside one simulation world; it is not an independent world. |
+| Simulation instant | Canonical integer-microsecond point on the authoritative simulation timeline. |
+| Activity | Explicit mode-independent semantic work state with actor, stage, progress, revision, status, and causal identity. |
+| Reservation | Authoritative, deterministic claim over a contested entity, quantity, or capacity owned by an activity. |
 | Behavior module | Code that reads immutable snapshots and emits intents rather than mutating stores directly. |
 | Spatial module | Capability that interprets spatial components and static world data without owning entity identity. |
 | Spatial query | Read-only deterministic query over compatible spatial entity state. |
