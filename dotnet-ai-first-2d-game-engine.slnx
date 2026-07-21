@@ -3,6 +3,7 @@
     <Project Path="src/Agentic2D.Contracts/Agentic2D.Contracts.csproj" />
     <Project Path="src/Agentic2D.Behaviors/Agentic2D.Behaviors.csproj" />
     <Project Path="src/Agentic2D.Engine/Agentic2D.Engine.csproj" />
+    <Project Path="src/Agentic2D.Simulation/Agentic2D.Simulation.csproj" />
     <Project Path="src/Agentic2D.Metrics/Agentic2D.Metrics.csproj" />
     <Project Path="src/Agentic2D.Engineering/Agentic2D.Engineering.csproj" />
     <Project Path="src/Agentic2D.ScenarioRunner/Agentic2D.ScenarioRunner.csproj" />

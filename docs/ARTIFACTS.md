@@ -37,6 +37,7 @@ Failures must produce enough structured evidence for diagnosis. Generated artifa
 | `docs/artifacts/consumer-authoring-review-pack-artifact-contract.md` | Bounded milestone-owned geometry, sound, scenario, persistence, performance, and capture evidence. |
 | `docs/artifacts/asset-discovery-and-campaign-review-pack-artifact-contract.md` | Copyable M028 discovery, campaign, audio, and visual review evidence. |
 | `docs/artifacts/asset-workbench-session-and-promotion-review-pack-contract.md` | M029 session, input, preview, recovery, promotion, and M030-readiness evidence. |
+| `docs/artifacts/simulation-foundation-artifact-contract.md` | M031 semantic world, persistence, inspection, workflow, and review evidence. |
 
 ## Artifact roots
 
@@ -70,3 +71,7 @@ frame-metadata.json
 Structural JSON artifacts are deterministic semantic evidence. PNGs are explicit human-review evidence and are not required to match pixel-for-pixel across platforms.
 
 Review-pack manifests must make current artifact families discoverable.
+
+## Simulation foundation evidence
+
+M031 writes deterministic structural evidence under `artifacts/simulation/M031/`, including canonical world inspections, activities, reservations, command/event JSON Lines, persistence and invariant reports, direct-versus-roundtrip wood-workflow comparison, and a bounded review pack. Timing is advisory only.

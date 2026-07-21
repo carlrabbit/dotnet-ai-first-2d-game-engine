@@ -60,6 +60,7 @@ This document indexes permanent behavioral authority. Milestones sequence work; 
 | `docs/specs/sound-cue-projection-contract.md` | Presentation-only cue projection. |
 | `docs/specs/resource-damage-and-lifecycle-contract.md` | Health, damage, defeat, and lifecycle. |
 | `docs/specs/item-inventory-and-collection-contract.md` | Items, inventory, and atomic collection. |
+| `docs/specs/simulation-world-and-semantic-foundation-contract.md` | Optional partitioned simulation world, semantic time, commands/events, activities, reservations, persistence, and inspection. |
 | `docs/specs/gameplay-presentation-event-contract.md` | Post-commit gameplay presentation events. |
 | `docs/specs/geometry-authoring-diagnostics-contract.md` | Geometry inspection, preview, diagnostics, and structural/graphical comparison. |
 | `docs/specs/generated-sound-linkage-contract.md` | Explicit synthesis-to-derived-asset-to-runtime-sound linkage. |
@@ -78,3 +79,4 @@ This document indexes permanent behavioral authority. Milestones sequence work; 
 - Structural artifacts are semantic evidence; screenshots are review evidence.
 - Game/product truth remains independent of engine acquisition and checkout composition.
 - Failures produce stable diagnostics and useful artifacts.
+- The optional simulation foundation uses one authoritative world with explicit regions; rendering and spatial modules do not own or mutate it.

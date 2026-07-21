@@ -18,5 +18,6 @@
     <ProjectReference Include="../Agentic2D.Presentation/Agentic2D.Presentation.csproj" />
     <ProjectReference Include="../Agentic2D.UI/Agentic2D.UI.csproj" />
     <ProjectReference Include="../Agentic2D.Workspaces/Agentic2D.Workspaces.csproj" />
+    <ProjectReference Include="../Agentic2D.Simulation/Agentic2D.Simulation.csproj" />
   </ItemGroup>
 </Project>

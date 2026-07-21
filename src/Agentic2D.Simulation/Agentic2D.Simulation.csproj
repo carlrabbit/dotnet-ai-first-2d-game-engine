@@ -1,0 +1,6 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <ItemGroup>
+    <ProjectReference Include="../Agentic2D.Contracts/Agentic2D.Contracts.csproj" />
+    <ProjectReference Include="../Agentic2D.Engine/Agentic2D.Engine.csproj" />
+  </ItemGroup>
+</Project>

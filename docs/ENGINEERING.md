@@ -142,6 +142,14 @@ The repository includes deterministic runtime, product CLI, scenarios, content v
 ./eng/asset-affected-rebuild-smoke.sh
 ./eng/asset-workbench-review-pack-smoke.sh
 ./eng/m029-smoke.sh
+./eng/simulation-world-smoke.sh
+./eng/simulation-time-smoke.sh
+./eng/simulation-command-event-smoke.sh
+./eng/simulation-activity-reservation-smoke.sh
+./eng/simulation-persistence-smoke.sh
+./eng/simulation-inspection-smoke.sh
+./eng/m031-wood-workflow-smoke.sh
+./eng/m031-smoke.sh
 ```
 
 ## Validation boundary
@@ -159,7 +167,7 @@ Commands must validate meaningful state or fail clearly. Success-only placeholde
 
 `src/Agentic2D.Engineering` is the tested .NET host for validation plans, fingerprints, atomic receipts, fast verification, and repository-local review state. `eng/*.sh` remains the stable engineering API and only forwards arguments and exit codes.
 
-The resumable suites are `./eng/m019-smoke.sh`, `./eng/m020-smoke.sh`, `./eng/m021-smoke.sh`, `./eng/m023-smoke.sh`, `./eng/m026-smoke.sh`, and `./eng/guide-migration-v050.sh`. Each supports `--list`, `--plan-json`, `--shard <id>`, and `--verify`; a no-argument run is for unconstrained local/CI use. Performance comparisons are advisory same-machine evidence, never deterministic validation authority. M026 marks sub-10-ms references not timing-authoritative and uses bounded scaled real workloads for elapsed comparison.
+The resumable suites are `./eng/m019-smoke.sh`, `./eng/m020-smoke.sh`, `./eng/m021-smoke.sh`, `./eng/m023-smoke.sh`, `./eng/m026-smoke.sh`, `./eng/m029-smoke.sh`, `./eng/m031-smoke.sh`, and `./eng/guide-migration-v050.sh`. Each supports `--list`, `--plan-json`, `--shard <id>`, and `--verify`; a no-argument run is for unconstrained local/CI use. Performance comparisons are advisory same-machine evidence, never deterministic validation authority. M026 marks sub-10-ms references not timing-authoritative and uses bounded scaled real workloads for elapsed comparison.
 
 Repository-local review state is `.review/pending/`, `.review/records/`, and `.review/closed/`; generated or large evidence belongs under `artifacts/review/`. The full six-command review family, alias behavior, and reopening policy are authoritative in `docs/engineering/human-review-workflow.md`. Completed records are immutable historical evidence and do not stale because later commits change the repository.
 

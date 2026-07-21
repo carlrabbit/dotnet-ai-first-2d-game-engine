@@ -254,6 +254,13 @@ public sealed class EngineeringHost
             diagnostics.WriteLine($"{suite.Id}: verification passed ({suite.Shards.Count} current receipts)");
         }
 
+        if (suite.Id == "m031-smoke")
+        {
+            var path = Absolute(Path.Combine("artifacts", "validation", suite.Id, "verify.json"));
+            Directory.CreateDirectory(Path.GetDirectoryName(path)!);
+            File.WriteAllText(path, JsonSerializer.Serialize(new { schema = "agentic2d.simulation-foundation-verification.v1", suite = suite.Id, status = success ? "passed" : "failed", receiptCount = suite.Shards.Count }, json));
+        }
+
         return success;
     }
 
@@ -666,7 +673,9 @@ public sealed class EngineeringHost
         ReceiptStore.WriteAtomic(path, review, json);
     }
 
-    private string ReceiptPath(ValidationSuite suite, ValidationShard shard) => Path.Combine("artifacts", "validation", suite.Id, shard.Id + ".json").Replace('\\', '/');
+    private string ReceiptPath(ValidationSuite suite, ValidationShard shard) => (suite.Id == "m031-smoke"
+        ? Path.Combine("artifacts", "validation", suite.Id, "receipts", shard.Id + ".json")
+        : Path.Combine("artifacts", "validation", suite.Id, shard.Id + ".json")).Replace('\\', '/');
     private string Absolute(string relative) => Path.Combine(root, relative);
 
     private static IReadOnlyDictionary<string, string> ParseOptions(string[] args)
@@ -818,7 +827,7 @@ public sealed class EngineeringHost
     private static ReviewState ReadV2(JsonElement item, string schema) => new(
         schema, String(item, "id"), String(item, "owningMilestone"), String(item, "owningMilestonePath"), String(item, "subject"),
         Strings(item, "classes"), String(item, "level"), String(item, "reviewerRole"), String(item, "status"),
-        Strings(item, "requiredEvidence", "evidence"), Strings(item, "acceptanceCriteria"), Strings(item, "acceptableCompletionDecisions"),
+        Strings(item, "requiredEvidence", "evidence"), Strings(item, "acceptanceCriteria"), Strings(item, "acceptableCompletionDecisions", "acceptableDecisions"),
         String(item, "waiverPolicy"), String(item, "decision"), String(item, "reviewedRevision"), String(item, "reviewedFingerprint"),
         Strings(item, "conditions"), DateTimeOffset.TryParse(String(item, "completedAt"), out var completedAt) ? completedAt : null,
         Decisions(item), String(item, "correctsReviewId"), String(item, "path"));
@@ -994,6 +1003,23 @@ public sealed class EngineeringHost
             Shard("documentation", "M029 active authority and command documentation are indexed.", "test -f docs/specs/asset-workbench-input-contract.md && test -f docs/specs/approved-asset-and-deterministic-promotion-contract.md && test -f docs/artifacts/asset-workbench-session-and-promotion-review-pack-contract.md", ["docs/specs/asset-workbench-input-contract.md", "docs/specs/approved-asset-and-deterministic-promotion-contract.md"]),
             Shard("human-review", "Blocking M029 review is approved by a human.", "./eng/review-check.sh --milestone M029", [".review/records/review.m029.choice-driven-workbench-preview-and-promotion.json"]),
             Shard("integrated", "Provider build, workbench flow, and product validation.", "./eng/build.sh && ./eng/asset-workbench-smoke.sh integrated && ./eng/product-validate.sh", ["artifacts/assets/M029/workbench/asset-workbench-review-pack/manifest.json", "artifacts/cli/validate/result.json"])
+        ]),
+        new("m031-smoke", "resumable-sharded",
+        [
+            Shard("documentation", "M031 active specifications, scenario, artifact contract, and command indexes are present.", "test -f docs/specs/simulation-world-and-semantic-foundation-contract.md && test -f docs/scenarios/m031-headless-wood-workflow.md && test -f docs/artifacts/simulation-foundation-artifact-contract.md", ["docs/specs/simulation-world-and-semantic-foundation-contract.md", "docs/artifacts/simulation-foundation-artifact-contract.md"]),
+            Shard("component-registration", "Deterministic game-defined component registration.", "./eng/test-filter.sh SimulationFoundation", ["tests/unit/Agentic2D.Tests.Unit/SimulationFoundationTests.cs"]),
+            Shard("entity-lifecycle", "Validated lifecycle and identity tombstones.", "./eng/test-filter.sh SimulationWorld", ["src/Agentic2D.Simulation/SimulationFoundation.cs"]),
+            Shard("region-partition", "One-world deterministic region partition evidence.", "./eng/simulation-world-smoke.sh", ["artifacts/simulation/M031/world-after.json"]),
+            Shard("simulation-time-ordering", "Semantic clock and deterministic ordering.", "./eng/simulation-time-smoke.sh", ["artifacts/simulation/M031/world-after.json"]),
+            Shard("commands-domain-events", "Atomic commands and factual post-commit events.", "./eng/simulation-command-event-smoke.sh", ["artifacts/simulation/M031/command-results.jsonl", "artifacts/simulation/M031/domain-events.jsonl"]),
+            Shard("activities-reservations", "Explicit stage/revision and reservation semantics.", "./eng/simulation-activity-reservation-smoke.sh", ["artifacts/simulation/M031/activities.json", "artifacts/simulation/M031/reservations.json"]),
+            Shard("persistence-roundtrip", "Canonical transactional fresh-process persistence.", "./eng/simulation-persistence-smoke.sh", ["artifacts/simulation/M031/persistence-report.json", "artifacts/simulation/M031/fingerprints.json"]),
+            Shard("inspection-artifacts", "Structured semantic inspection and artifact contract evidence.", "./eng/simulation-inspection-smoke.sh", ["artifacts/simulation/M031/invariants.json", "artifacts/simulation/M031/performance-baseline.json"]),
+            Shard("wood-workflow", "Bounded two-region harvest/deposit proof.", "./eng/m031-wood-workflow-smoke.sh", ["artifacts/simulation/M031/wood-workflow/comparison.json", "artifacts/simulation/M031/review-pack/review-manifest.json"]),
+            Shard("runtime-regression", "Existing runtime/entity/behavior/spatial/inspection/persistence evidence remains structurally valid.", "test -s artifacts/runtime/entity-runtime-smoke/result.json && test -s artifacts/runtime/continuous-kinematic-tree-collision-smoke/continuous-resolutions.jsonl && test -s artifacts/runtime/inspect/result.json && test -s artifacts/scenarios/runtime-smoke/result.json && jq -e '.status == \"passed\"' artifacts/review/M027/persistence/persistence-diagnostics.json >/dev/null", ["artifacts/runtime/entity-runtime-smoke/result.json", "artifacts/runtime/continuous-kinematic-tree-collision-smoke/continuous-resolutions.jsonl", "artifacts/runtime/inspect/result.json", "artifacts/scenarios/runtime-smoke/result.json", "artifacts/review/M027/persistence/persistence-diagnostics.json"]),
+            Shard("asset-train-regression", "Implemented M028 and M029 provider surfaces remain available.", "./eng/m028-provider-smoke.sh review-pack && ./eng/asset-workbench-smoke.sh integrated", ["artifacts/assets/M028/review-pack/review/asset-review-pack/manifest.json", "artifacts/assets/M029/workbench/asset-workbench-review-pack/manifest.json"]),
+            Shard("human-review", "Blocking M031 review is approved by a human.", "./eng/review-check.sh --milestone M031", [".review/records/review.m031.simulation-world-and-semantic-foundation.json"]),
+            Shard("integrated", "M031 build, focused proof, and product integration.", "./eng/build.sh && ./eng/test-filter.sh SimulationFoundation && ./eng/m031-wood-workflow-smoke.sh", ["artifacts/simulation/M031/foundation-manifest.json"])
         ])
     ];
 

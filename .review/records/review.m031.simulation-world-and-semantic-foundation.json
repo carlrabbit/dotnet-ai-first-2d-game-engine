@@ -1,0 +1,67 @@
+{
+  "schema": "agentic2d.engineering.review-record.v2",
+  "id": "review.m031.simulation-world-and-semantic-foundation",
+  "owningMilestone": "M031",
+  "owningMilestonePath": "docs/milestones/MILESTONE-031-simulation-world-and-semantic-foundation.md",
+  "subject": "M031 simulation-world boundaries, semantic contracts, persistence/inspection evidence, and bounded headless wood workflow",
+  "classes": [
+    "architecture",
+    "semantic",
+    "artifact-quality"
+  ],
+  "level": "blocking",
+  "reviewerRole": "repository user",
+  "status": "approved",
+  "evidence": [
+    "artifacts/simulation/M031/review-pack/review-manifest.json",
+    "artifacts/simulation/M031/review-pack/architecture-summary.md",
+    "artifacts/simulation/M031/review-pack/evidence-index.json",
+    "artifacts/simulation/M031/wood-workflow/comparison.json",
+    "artifacts/simulation/M031/persistence-report.json",
+    "artifacts/simulation/M031/invariants.json",
+    "artifacts/simulation/M031/diagnostics.json",
+    "artifacts/validation/m031-smoke/verify.json"
+  ],
+  "acceptanceCriteria": [
+    "The implementation preserves one authoritative world, explicit region partitions, and existing runtime mutation boundaries.",
+    "The public identity, simulation-time, command, event, activity, and reservation concepts are coherent foundations for both later detailed and abstract executors.",
+    "Game-defined components register deterministically without exposing serializer or store internals as public authority.",
+    "Persistence classifications and fresh-process round-trip evidence are understandable and complete.",
+    "The direct and save/load wood-workflow branches are semantically equivalent and conserve all three units of wood.",
+    "Activity and reservation failure diagnostics are sufficient to understand stale revisions, conflicts, invalidation, and rollback without a debugger.",
+    "Artifacts clearly separate automated semantic evidence from advisory timing data and future deferred capabilities.",
+    "No speculative archetype rewrite, dynamic plugin loader, discrete-event queue, multi-fidelity transition, or M030 asset integration was introduced."
+  ],
+  "acceptableDecisions": [
+    "approved"
+  ],
+  "waiverPolicy": "No implicit waiver. A waiver is acceptable only if this pending request is explicitly amended before review to authorize one and the completed record states the bounded reason.",
+  "decision": "approved",
+  "reviewedRevision": "ref: refs/heads/m31",
+  "reviewedFingerprint": "1458d17cc1928c7937659aef621440a7ba09ea1e198df01aede530746baabff5",
+  "conditions": [],
+  "completedAt": "2026-07-21T19:24:57.867681+00:00",
+  "decisionHistory": [
+    {
+      "decision": "approved",
+      "reviewer": "repository user",
+      "notes": "Repository user reviewed and approved M031 architecture, runtime ownership correction, persistence/inspection evidence, diagnostics, and bounded wood-workflow equivalence.",
+      "evidence": [
+        "artifacts/simulation/M031/review-pack/review-manifest.json",
+        "artifacts/simulation/M031/review-pack/architecture-summary.md",
+        "artifacts/simulation/M031/review-pack/evidence-index.json",
+        "artifacts/simulation/M031/wood-workflow/comparison.json",
+        "artifacts/simulation/M031/persistence-report.json",
+        "artifacts/simulation/M031/invariants.json",
+        "artifacts/simulation/M031/diagnostics.json",
+        "artifacts/validation/m031-smoke/verify.json"
+      ],
+      "revision": "ref: refs/heads/m31",
+      "fingerprint": "1458d17cc1928c7937659aef621440a7ba09ea1e198df01aede530746baabff5",
+      "recordedAt": "2026-07-21T19:24:57.771466+00:00",
+      "recordCorrection": false
+    }
+  ],
+  "correctsReviewId": "",
+  "path": ".review/records/review.m031.simulation-world-and-semantic-foundation.json"
+}
