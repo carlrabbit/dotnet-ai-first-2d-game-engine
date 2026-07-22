@@ -15,6 +15,8 @@ public static class ToolsCli
 {
     public static async Task<int> RunAsync(string[] args, TextWriter output, TextWriter error)
     {
+        var m034 = await M034SimulationCommands.RunAsync(args, output, error);
+        if (m034 >= 0) return m034;
         var m033 = await M033SimulationCommands.RunAsync(args, output, error);
         if (m033 >= 0) return m033;
         var m032 = await M032SimulationCommands.RunAsync(args, output, error);
@@ -116,6 +118,7 @@ public static class ToolsCli
                   agentic2d run inspect <run-directory> --output <directory>
                   agentic2d run review <run-directory> --output <directory>
                   agentic2d simulation run scenario.m033.multi-region-equivalence-and-switching --until <duration> --mode abstract --output <directory>
+                  agentic2d simulation m034-settlement --output <directory>
 
                 Exit codes:
                   0  Command completed and validation passed.

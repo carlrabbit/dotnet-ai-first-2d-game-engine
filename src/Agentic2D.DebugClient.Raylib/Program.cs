@@ -10,6 +10,7 @@ if (args.Length == 0) return Usage();
 if (args[0] == "geometry") return CaptureGeometry(args[1..]);
 if (args[0] == "m032") return M032RaylibSession.Run(args[1..]);
 if (args[0] == "m033") return M033RaylibSession.Run(args[1..]);
+if (args[0] == "m034") return M034RaylibSession.Run(args[1..]);
 if (args[0] == "asset-workbench") return AssetWorkbenchRaylibWindow.Run(args[1..]);
 if (args[0] == "asset-preview") return AssetPreviewRaylibWindow.Run(args[1..]);
 string? scenario = null, input = null, capture = null;

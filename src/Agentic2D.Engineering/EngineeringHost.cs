@@ -149,7 +149,7 @@ public sealed class EngineeringHost
             $"./eng/{suite.Id}.sh --verify",
             suite.Shards.SelectMany(shard => shard.Evidence).Distinct(StringComparer.Ordinal).ToArray());
         var serialized = JsonSerializer.Serialize(plan, json);
-        if (suite.Id == "m033-smoke")
+        if (suite.Id is "m033-smoke" or "m034-smoke")
         {
             var planPath = Absolute(Path.Combine("artifacts", "validation", suite.Id, "plan.json"));
             Directory.CreateDirectory(Path.GetDirectoryName(planPath)!);
@@ -261,7 +261,7 @@ public sealed class EngineeringHost
             diagnostics.WriteLine($"{suite.Id}: verification passed ({suite.Shards.Count} current receipts)");
         }
 
-        if (suite.Id is "m031-smoke" or "m032-smoke" or "m033-smoke")
+        if (suite.Id is "m031-smoke" or "m032-smoke" or "m033-smoke" or "m034-smoke")
         {
             var path = Absolute(Path.Combine("artifacts", "validation", suite.Id, "verify.json"));
             Directory.CreateDirectory(Path.GetDirectoryName(path)!);
@@ -269,7 +269,8 @@ public sealed class EngineeringHost
             {
                 "m031-smoke" => "agentic2d.simulation-foundation-verification.v1",
                 "m032-smoke" => "agentic2d.autonomous-detailed-region-verification.v1",
-                _ => "agentic2d.m033.verification.v1"
+                "m033-smoke" => "agentic2d.m033.verification.v1",
+                _ => "agentic2d.m034.verification.v1"
             };
             if (suite.Id == "m033-smoke")
             {
@@ -277,6 +278,15 @@ public sealed class EngineeringHost
                 if (!File.Exists(graphical) || !File.ReadAllText(graphical).Contains("\"status\": \"passed\"", StringComparison.Ordinal))
                 {
                     diagnostics.WriteLine("error: m033-smoke/graphical-switch-proof: graphics-capable proof is not passed");
+                    success = false;
+                }
+            }
+            if (suite.Id == "m034-smoke")
+            {
+                var graphical = Absolute("artifacts/simulation/M034/graphical-evidence/environment.json");
+                if (!File.Exists(graphical) || !File.ReadAllText(graphical).Contains("\"status\": \"passed\"", StringComparison.Ordinal))
+                {
+                    diagnostics.WriteLine("error: m034-smoke/graphical-play-proof: graphics-capable proof is not passed");
                     success = false;
                 }
             }
@@ -695,7 +705,7 @@ public sealed class EngineeringHost
         ReceiptStore.WriteAtomic(path, review, json);
     }
 
-    private string ReceiptPath(ValidationSuite suite, ValidationShard shard) => (suite.Id is "m031-smoke" or "m033-smoke"
+    private string ReceiptPath(ValidationSuite suite, ValidationShard shard) => (suite.Id is "m031-smoke" or "m033-smoke" or "m034-smoke"
         ? Path.Combine("artifacts", "validation", suite.Id, "receipts", shard.Id + ".json")
         : Path.Combine("artifacts", "validation", suite.Id, shard.Id + ".json")).Replace('\\', '/');
     private string Absolute(string relative) => Path.Combine(root, relative);
@@ -1078,6 +1088,30 @@ public sealed class EngineeringHost
             Shard("asset-train-regression", "Earlier asset provider artifacts remain available.", "test -s artifacts/assets/M028/review-pack/review/asset-review-pack/manifest.json && test -s artifacts/assets/M029/workbench/asset-workbench-review-pack/manifest.json", ["artifacts/assets/M028/review-pack/review/asset-review-pack/manifest.json", "artifacts/assets/M029/workbench/asset-workbench-review-pack/manifest.json"]),
             Shard("human-review", "Blocking M033 review is approved by a human.", "./eng/review-check.sh --milestone M033", ["artifacts/simulation/M033/review-pack/review-manifest.json"]),
             Shard("integrated", "M033 build and complete structural proof.", "./eng/build.sh && ./eng/m033-multi-region-smoke.sh", ["artifacts/simulation/M033/m033-manifest.json", "artifacts/simulation/M033/review-pack/review-manifest.json"])
+        ]),
+        new("m034-smoke", "resumable-sharded",
+        [
+            Shard("documentation", "M034 authority, scenario, artifact contract, and direct indexes are present.", "test -f docs/specs/construction-and-infrastructure-lifecycle-contract.md && test -f docs/specs/environmental-resource-and-flow-contract.md && test -f docs/specs/settlement-operations-surface-contract.md && test -f docs/artifacts/settlement-infrastructure-and-operations-artifact-contract.md", ["docs/specs/construction-and-infrastructure-lifecycle-contract.md", "docs/artifacts/settlement-infrastructure-and-operations-artifact-contract.md"]),
+            Shard("construction-plans", "Validated planning and cancellation conservation.", "./eng/test-filter.sh ConstructionPlan && ./eng/construction-lifecycle-smoke.sh", ["artifacts/simulation/M034/construction-plans.json"]),
+            Shard("construction-execution", "Delivery, activity-backed work, and completion.", "./eng/test-filter.sh InfrastructureLifecycle && ./eng/construction-lifecycle-smoke.sh", ["artifacts/simulation/M034/structures.json"]),
+            Shard("water-flow", "Conserved collector, storage, hauling, and consumption.", "./eng/test-filter.sh EnvironmentalResource && ./eng/test-filter.sh WaterFlow && ./eng/water-infrastructure-smoke.sh", ["artifacts/simulation/M034/water-flow.json"]),
+            Shard("food-farming", "Farm preparation through harvest and storage.", "./eng/test-filter.sh CropProduction && ./eng/farm-production-smoke.sh", ["artifacts/simulation/M034/farm-production.json"]),
+            Shard("comfort-capacity", "Finite comfort infrastructure capacity.", "./eng/test-filter.sh ComfortInfrastructure && ./eng/comfort-capacity-smoke.sh", ["artifacts/simulation/M034/comfort-capacity.json"]),
+            Shard("wear-maintenance", "Deterministic wear, failure, and repair.", "./eng/test-filter.sh Maintenance && ./eng/maintenance-failure-smoke.sh", ["artifacts/simulation/M034/maintenance.json"]),
+            Shard("roads-travel-modifiers", "Shared detailed/abstract road cost authority.", "./eng/road-travel-modifier-smoke.sh", ["artifacts/simulation/M034/roads.json"]),
+            Shard("policies-alerts", "Reserve policy and causal deterministic alerts.", "./eng/test-filter.sh SettlementAlert && ./eng/settlement-alert-smoke.sh", ["artifacts/simulation/M034/alerts.jsonl"]),
+            Shard("operations-projection", "Read-only world and region operations dashboard.", "./eng/test-filter.sh OperationsProjection && ./eng/operations-surface-smoke.sh", ["artifacts/simulation/M034/world-dashboard.json"]),
+            Shard("operations-input", "Explicit command journal for planning, policies, switching, save/load.", "./eng/operations-surface-smoke.sh", ["artifacts/simulation/M034/operations-commands.jsonl"]),
+            Shard("mixed-fidelity-infrastructure", "Infrastructure remains semantic across fidelity switching.", "./eng/m034-settlement-smoke.sh", ["artifacts/simulation/M034/mixed-fidelity-report.json"]),
+            Shard("persistence-resume", "Fresh-process infrastructure continuation evidence.", "./eng/test-filter.sh InfrastructurePersistence && ./eng/infrastructure-persistence-smoke.sh", ["artifacts/simulation/M034/persistence-report.json"]),
+            Shard("shortage-recovery", "Water, storage, and maintenance recovery proof.", "./eng/m034-settlement-smoke.sh", ["artifacts/simulation/M034/shortage-recovery-report.json"]),
+            Shard("sustained-fourteen-day", "Fourteen post-stabilization days with declared reserves.", "./eng/m034-settlement-smoke.sh", ["artifacts/simulation/M034/sustained-run-report.json"]),
+            Shard("graphical-play-proof", "Graphics-capable M034 operations proof.", "./eng/m034-settlement-graphics-smoke.sh", ["artifacts/simulation/M034/graphical-evidence/environment.json"]),
+            Shard("m031-m033-regression", "M031 through M033 aggregate receipts remain current.", "./eng/m031-smoke.sh --verify && ./eng/m032-smoke.sh --verify && ./eng/m033-smoke.sh --verify", ["artifacts/validation/m031-smoke/verify.json", "artifacts/validation/m033-smoke/verify.json"]),
+            Shard("engine-regression", "Provider build and focused M034 test suite.", "./eng/build.sh && ./eng/test-filter.sh M034SettlementInfrastructure", ["src/Agentic2D.Simulation/M034SettlementInfrastructure.cs"]),
+            Shard("asset-train-regression", "Earlier asset provider artifacts remain available.", "test -s artifacts/assets/M028/review-pack/review/asset-review-pack/manifest.json && test -s artifacts/assets/M029/workbench/asset-workbench-review-pack/manifest.json", ["artifacts/assets/M028/review-pack/review/asset-review-pack/manifest.json", "artifacts/assets/M029/workbench/asset-workbench-review-pack/manifest.json"]),
+            Shard("human-review", "Blocking M034 review is approved by a human.", "./eng/review-check.sh --milestone M034", ["artifacts/simulation/M034/review-pack/review-manifest.json"]),
+            Shard("integrated", "M034 build and full structural settlement proof.", "./eng/build.sh && ./eng/m034-settlement-smoke.sh", ["artifacts/simulation/M034/m034-manifest.json", "artifacts/simulation/M034/review-pack/review-manifest.json"])
         ])
     ];
 

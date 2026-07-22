@@ -1,0 +1,77 @@
+{
+  "schema": "agentic2d.engineering.review-record.v2",
+  "id": "review.m034.environmental-infrastructure-and-operations",
+  "owningMilestone": "M034",
+  "owningMilestonePath": "docs/milestones/MILESTONE-034-environmental-infrastructure-and-operations-surface.md",
+  "subject": "M034 settlement infrastructure game loop and operations-surface coherence, usability, visual clarity, and evidence quality",
+  "classes": [
+    "gameplay",
+    "UX",
+    "visual",
+    "semantic",
+    "artifact-quality"
+  ],
+  "level": "blocking",
+  "reviewerRole": "repository-user",
+  "status": "approved",
+  "evidence": [
+    "artifacts/simulation/M034/review-pack/review-manifest.json",
+    "artifacts/simulation/M034/review-pack/evidence-index.json",
+    "artifacts/simulation/M034/review-pack/play-flow.md",
+    "artifacts/simulation/M034/review-pack/dashboard-summary.md",
+    "artifacts/simulation/M034/review-pack/shortage-and-recovery.md",
+    "artifacts/simulation/M034/review-pack/graphical-evidence-index.md",
+    "artifacts/simulation/M034/resource-ledger.json",
+    "artifacts/simulation/M034/shortage-recovery-report.json",
+    "artifacts/simulation/M034/sustained-run-report.json",
+    "artifacts/simulation/M034/invariants.json",
+    "artifacts/validation/m034-smoke/verify.json"
+  ],
+  "acceptanceCriteria": [
+    "Planning and constructing water, food, storage, comfort, maintenance, and road infrastructure forms a coherent indirect-control loop.",
+    "The operations surface makes stocks, capacities, flows, backlog, needs, alerts, and maintenance understandable without raw JSON.",
+    "Player commands remain plans, designations, priorities, policies, region, and time controls rather than direct worker orders.",
+    "Water shortage, storage bottleneck, and maintenance failure are visible, diagnosable, and recoverable.",
+    "Detailed and abstract regions appear to follow the same game rules.",
+    "Region switching and save/load preserve understandable activity and infrastructure state.",
+    "Graphical presentation distinguishes plans, delivered materials, completed/failed structures, crops, storage, alerts, and interactions.",
+    "The fourteen-day stabilized run demonstrates a sustained loop rather than a scripted demonstration.",
+    "Known scope limits are explicit and acceptable before M035 hardening.",
+    "No cross-region logistics, individual-character simulation, or M030 integration was introduced."
+  ],
+  "acceptableDecisions": [
+    "approved"
+  ],
+  "waiverPolicy": "No implicit waiver. A waiver requires explicit request amendment before review and a bounded reason in the completed record.",
+  "decision": "approved",
+  "reviewedRevision": "ref: refs/heads/m34",
+  "reviewedFingerprint": "7b5e1646ddcdd67ccebda31388ce345d1d50a54b10a7d1ee59eb4d1474713e2b",
+  "conditions": [],
+  "completedAt": "2026-07-22T18:09:05.5307699+00:00",
+  "decisionHistory": [
+    {
+      "decision": "approved",
+      "reviewer": "repository-user",
+      "notes": "Repository user reviewed the M034 operations evidence and approves the blocking review.",
+      "evidence": [
+        "artifacts/simulation/M034/review-pack/review-manifest.json",
+        "artifacts/simulation/M034/review-pack/evidence-index.json",
+        "artifacts/simulation/M034/review-pack/play-flow.md",
+        "artifacts/simulation/M034/review-pack/dashboard-summary.md",
+        "artifacts/simulation/M034/review-pack/shortage-and-recovery.md",
+        "artifacts/simulation/M034/review-pack/graphical-evidence-index.md",
+        "artifacts/simulation/M034/resource-ledger.json",
+        "artifacts/simulation/M034/shortage-recovery-report.json",
+        "artifacts/simulation/M034/sustained-run-report.json",
+        "artifacts/simulation/M034/invariants.json",
+        "artifacts/validation/m034-smoke/verify.json"
+      ],
+      "revision": "ref: refs/heads/m34",
+      "fingerprint": "7b5e1646ddcdd67ccebda31388ce345d1d50a54b10a7d1ee59eb4d1474713e2b",
+      "recordedAt": "2026-07-22T18:09:05.4095593+00:00",
+      "recordCorrection": false
+    }
+  ],
+  "correctsReviewId": "",
+  "path": ".review/records/review.m034.environmental-infrastructure-and-operations.json"
+}

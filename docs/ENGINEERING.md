@@ -173,6 +173,18 @@ The repository includes deterministic runtime, product CLI, scenarios, content v
 ./eng/m033-multi-region-smoke.sh
 ./eng/m033-region-switch-graphics-smoke.sh # graphics-capable environment required for passing review evidence
 ./eng/m033-smoke.sh
+./eng/construction-lifecycle-smoke.sh
+./eng/water-infrastructure-smoke.sh
+./eng/farm-production-smoke.sh
+./eng/comfort-capacity-smoke.sh
+./eng/maintenance-failure-smoke.sh
+./eng/road-travel-modifier-smoke.sh
+./eng/settlement-alert-smoke.sh
+./eng/operations-surface-smoke.sh
+./eng/infrastructure-persistence-smoke.sh
+./eng/m034-settlement-smoke.sh
+./eng/m034-settlement-graphics-smoke.sh # graphics-capable environment required for passing review evidence
+./eng/m034-smoke.sh
 ```
 
 ## Validation boundary
@@ -195,3 +207,5 @@ The resumable suites are `./eng/m019-smoke.sh`, `./eng/m020-smoke.sh`, `./eng/m0
 Repository-local review state is `.review/pending/`, `.review/records/`, and `.review/closed/`; generated or large evidence belongs under `artifacts/review/`. The full six-command review family, alias behavior, and reopening policy are authoritative in `docs/engineering/human-review-workflow.md`. Completed records are immutable historical evidence and do not stale because later commits change the repository.
 
 The tested engineering baseline is Linux with Bash, Git, .NET SDK 10.0.109, and same-filesystem atomic file replacement. Native Windows and PowerShell are not supported or claimed. Graphics smoke remains conditional on its documented graphics-capable environment.
+
+`./eng/m034-smoke.sh` is resumable-sharded. It has `--list`, `--plan-json`, `--shard <id>`, `--verify`, and no-argument modes. Its verifier requires current receipts, graphics-capable operations proof, and approved M034 blocking review. Focused commands write construction, flow, production, maintenance, operations, persistence, and sustained-settlement evidence under `artifacts/simulation/M034/`.
