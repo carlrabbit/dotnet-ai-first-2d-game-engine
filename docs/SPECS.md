@@ -47,6 +47,10 @@ This document indexes permanent behavioral authority. Milestones sequence work; 
 | `docs/specs/raylib-debug-client-contract.md` | Isolated raylib-cs graphical client. |
 | `docs/specs/autonomous-work-and-detailed-logistics-contract.md` | M032 derived work, selection, logistics, needs, and explanation. |
 | `docs/specs/detailed-grid-navigation-and-activity-execution-contract.md` | M032 detailed navigation, movement, and command-backed execution. |
+| `docs/specs/discrete-event-simulation-contract.md` | M033 standalone deterministic scheduled-trigger execution. |
+| `docs/specs/abstract-activity-and-travel-contract.md` | M033 abstract activities, coarse travel, duration models, and needs. |
+| `docs/specs/region-fidelity-and-reconciliation-contract.md` | M033 authoritative region fidelity and transactional conversion. |
+| `docs/specs/multi-fidelity-equivalence-contract.md` | M033 conservation, tolerances, control runs, and observer neutrality. |
 | `docs/specs/input-action-map-contract.md` | Backend-neutral input maps and mapping. |
 | `docs/specs/tick-bound-input-frame-contract.md` | Tick input frames and accumulator. |
 | `docs/specs/game-project-manifest-contract.md` | Game/product manifest independent of acquisition. |

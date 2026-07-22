@@ -1,0 +1,78 @@
+{
+  "schema": "agentic2d.engineering.review-record.v2",
+  "id": "review.m033.abstract-and-multi-fidelity-simulation",
+  "owningMilestone": "M033",
+  "owningMilestonePath": "docs/milestones/MILESTONE-033-abstract-and-multi-fidelity-simulation.md",
+  "subject": "M033 standalone discrete-event simulation and abstract/detailed transition continuity, plausibility, equivalence, and evidence quality",
+  "classes": [
+    "architecture",
+    "semantic",
+    "visual",
+    "artifact-quality"
+  ],
+  "level": "blocking",
+  "reviewerRole": "repository user",
+  "status": "approved",
+  "evidence": [
+    "artifacts/simulation/M033/review-pack/review-manifest.json",
+    "artifacts/simulation/M033/review-pack/evidence-index.json",
+    "artifacts/simulation/M033/review-pack/architecture-summary.md",
+    "artifacts/simulation/M033/review-pack/transition-samples.md",
+    "artifacts/simulation/M033/review-pack/equivalence-summary.md",
+    "artifacts/simulation/M033/review-pack/graphical-evidence-index.md",
+    "artifacts/simulation/M033/equivalence-report.json",
+    "artifacts/simulation/M033/observer-neutrality-report.json",
+    "artifacts/simulation/M033/conservation-ledger.json",
+    "artifacts/simulation/M033/invariants.json",
+    "artifacts/simulation/M033/long-horizon-report.json",
+    "artifacts/validation/m033-smoke/verify.json"
+  ],
+  "acceptanceCriteria": [
+    "The discrete-event subsystem is coherent as an optional standalone engine capability.",
+    "Trigger ownership, stale handling, and region executor ownership are explicit.",
+    "Materialization produces plausible deterministic positions and understandable route reconstruction.",
+    "Abstraction preserves progress and schedules a credible next transition.",
+    "Travel, work, carrying, needs, blocked, and idle transitions continue without duplication or silent loss.",
+    "Graphical switching evidence corresponds to structural evidence.",
+    "Equivalence and observer-neutrality reports state tolerances and divergence honestly.",
+    "Thirty-day runs, conservation, persistence, and reruns provide sufficient evidence.",
+    "Approximation limits are explicit and acceptable.",
+    "No M034 infrastructure or M030 integration was introduced."
+  ],
+  "acceptableDecisions": [
+    "approved"
+  ],
+  "waiverPolicy": "No implicit waiver. A waiver is acceptable only if the pending request is explicitly amended before review and the completed record states the bounded reason.",
+  "decision": "approved",
+  "reviewedRevision": "ref: refs/heads/m33",
+  "reviewedFingerprint": "04402f356bf9ace45bc29b130c2b02bde02025c4fed949593792ab1e34ed8f62",
+  "conditions": [],
+  "completedAt": "2026-07-22T15:16:03.8908075+00:00",
+  "decisionHistory": [
+    {
+      "decision": "approved",
+      "reviewer": "repository user",
+      "notes": "Approved by the repository user after reviewing the M033 evidence; recorded at the user\u0027s direction.",
+      "evidence": [
+        "artifacts/simulation/M033/review-pack/review-manifest.json",
+        "artifacts/simulation/M033/review-pack/evidence-index.json",
+        "artifacts/simulation/M033/review-pack/architecture-summary.md",
+        "artifacts/simulation/M033/review-pack/transition-samples.md",
+        "artifacts/simulation/M033/review-pack/equivalence-summary.md",
+        "artifacts/simulation/M033/review-pack/graphical-evidence-index.md",
+        "artifacts/simulation/M033/equivalence-report.json",
+        "artifacts/simulation/M033/observer-neutrality-report.json",
+        "artifacts/simulation/M033/conservation-ledger.json",
+        "artifacts/simulation/M033/invariants.json",
+        "artifacts/simulation/M033/long-horizon-report.json",
+        "artifacts/validation/m033-smoke/verify.json"
+      ],
+      "revision": "ref: refs/heads/m33",
+      "fingerprint": "04402f356bf9ace45bc29b130c2b02bde02025c4fed949593792ab1e34ed8f62",
+      "recordedAt": "2026-07-22T15:16:03.7801762+00:00",
+      "recordCorrection": false
+    }
+  ],
+  "correctsReviewId": "",
+  "path": ".review/records/review.m033.abstract-and-multi-fidelity-simulation.json"
+}

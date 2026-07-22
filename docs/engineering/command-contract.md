@@ -74,7 +74,7 @@ Do not create success-only placeholder scripts.
 
 ## Resumable validation commands
 
-`m019-smoke.sh`, `m020-smoke.sh`, `m021-smoke.sh`, `m023-smoke.sh`, `m026-smoke.sh`, `m027-smoke.sh`, `m028-smoke.sh`, and `guide-migration-v050.sh` are resumable-sharded suites. They expose `--list`, `--plan-json`, `--shard <id>`, `--verify`, and no-argument local/CI aggregate mode. `--verify` is the only aggregate-success authority.
+`m019-smoke.sh`, `m020-smoke.sh`, `m021-smoke.sh`, `m023-smoke.sh`, `m026-smoke.sh`, `m027-smoke.sh`, `m028-smoke.sh`, `m031-smoke.sh`, `m032-smoke.sh`, `m033-smoke.sh`, and `guide-migration-v050.sh` are resumable-sharded suites. They expose `--list`, `--plan-json`, `--shard <id>`, `--verify`, and no-argument local/CI aggregate mode. `--verify` is the only aggregate-success authority.
 
 `./eng/perf-smoke.sh` captures bounded reference-workload evidence. `perf-capture`, `perf-compare`, and `perf-report` are thin launchers over the engineering host and produce advisory same-machine performance evidence; elapsed timing is never a deterministic receipt fingerprint or cross-machine claim. M026 retains small-workload counters/allocations but classifies sub-10-ms references as not timing-authoritative; scaled real workloads carry ordinary elapsed comparison authority.
 
@@ -85,6 +85,8 @@ Do not create success-only placeholder scripts.
 `./eng/m031-smoke.sh` is resumable-sharded. It has `--list`, `--plan-json`, `--shard <id>`, `--verify`, and no-argument modes. Its verifier is the only aggregate-success authority; its human-review shard remains pending until the owning M031 review is approved.
 
 `./eng/m032-smoke.sh` is resumable-sharded. It has `--list`, `--plan-json`, `--shard <id>`, `--verify`, and no-argument modes. Its verifier is the only aggregate-success authority; its human-review shard remains pending until the owning M032 review is approved. `m032-detailed-region-graphics-smoke.sh` always records `passed`, `failed`, or `skipped-not-graphics-capable`; a skip does not satisfy the M032 blocking review.
+
+`./eng/m033-smoke.sh` is resumable-sharded. It has `--list`, `--plan-json`, `--shard <id>`, `--verify`, and no-argument modes. Its verifier requires current receipts, graphics-capable switch evidence, and approved M033 blocking review. Focused M033 commands write queue, transition, persistence, equivalence, and standalone evidence under `artifacts/simulation/M033/`.
 
 `./eng/tic-tac-toe-play.sh` starts the consumer-owned graphical launcher. It requires a graphics session and accepts `--frames <count>` for bounded graphics smoke use. `./eng/tic-tac-toe-export.sh` publishes the same playable launcher to `artifacts/tic-tac-toe/export/playable-linux-x64/AutonomousTicTacToe.Playable` in addition to its headless equivalence evidence.
 

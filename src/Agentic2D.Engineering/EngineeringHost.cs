@@ -148,7 +148,14 @@ public sealed class EngineeringHost
                 shard.Evidence)).ToArray(),
             $"./eng/{suite.Id}.sh --verify",
             suite.Shards.SelectMany(shard => shard.Evidence).Distinct(StringComparer.Ordinal).ToArray());
-        return JsonSerializer.Serialize(plan, json);
+        var serialized = JsonSerializer.Serialize(plan, json);
+        if (suite.Id == "m033-smoke")
+        {
+            var planPath = Absolute(Path.Combine("artifacts", "validation", suite.Id, "plan.json"));
+            Directory.CreateDirectory(Path.GetDirectoryName(planPath)!);
+            File.WriteAllText(planPath, serialized);
+        }
+        return serialized;
     }
 
     public async Task<int> RunAllAsync(ValidationSuite suite, TextWriter stdout, TextWriter stderr)
@@ -254,11 +261,26 @@ public sealed class EngineeringHost
             diagnostics.WriteLine($"{suite.Id}: verification passed ({suite.Shards.Count} current receipts)");
         }
 
-        if (suite.Id == "m031-smoke")
+        if (suite.Id is "m031-smoke" or "m032-smoke" or "m033-smoke")
         {
             var path = Absolute(Path.Combine("artifacts", "validation", suite.Id, "verify.json"));
             Directory.CreateDirectory(Path.GetDirectoryName(path)!);
-            File.WriteAllText(path, JsonSerializer.Serialize(new { schema = "agentic2d.simulation-foundation-verification.v1", suite = suite.Id, status = success ? "passed" : "failed", receiptCount = suite.Shards.Count }, json));
+            var schema = suite.Id switch
+            {
+                "m031-smoke" => "agentic2d.simulation-foundation-verification.v1",
+                "m032-smoke" => "agentic2d.autonomous-detailed-region-verification.v1",
+                _ => "agentic2d.m033.verification.v1"
+            };
+            if (suite.Id == "m033-smoke")
+            {
+                var graphical = Absolute("artifacts/simulation/M033/graphical-evidence/environment.json");
+                if (!File.Exists(graphical) || !File.ReadAllText(graphical).Contains("\"status\": \"passed\"", StringComparison.Ordinal))
+                {
+                    diagnostics.WriteLine("error: m033-smoke/graphical-switch-proof: graphics-capable proof is not passed");
+                    success = false;
+                }
+            }
+            File.WriteAllText(path, JsonSerializer.Serialize(new { schema, suite = suite.Id, status = success ? "passed" : "failed", receiptCount = suite.Shards.Count }, json));
         }
 
         return success;
@@ -673,7 +695,7 @@ public sealed class EngineeringHost
         ReceiptStore.WriteAtomic(path, review, json);
     }
 
-    private string ReceiptPath(ValidationSuite suite, ValidationShard shard) => (suite.Id == "m031-smoke"
+    private string ReceiptPath(ValidationSuite suite, ValidationShard shard) => (suite.Id is "m031-smoke" or "m033-smoke"
         ? Path.Combine("artifacts", "validation", suite.Id, "receipts", shard.Id + ".json")
         : Path.Combine("artifacts", "validation", suite.Id, shard.Id + ".json")).Replace('\\', '/');
     private string Absolute(string relative) => Path.Combine(root, relative);
@@ -1032,6 +1054,30 @@ public sealed class EngineeringHost
             Shard("graphics", "Graphics smoke reports a classified result.", "./eng/m032-detailed-region-graphics-smoke.sh", ["artifacts/simulation/M032/graphical-evidence/environment.json"]),
             Shard("human-review", "Blocking M032 review is approved by a human.", "./eng/review-check.sh --milestone M032", [".review/records/review.m032.autonomous-detailed-region-work-and-logistics.json"]),
             Shard("integrated", "M032 build and complete bounded proof.", "./eng/build.sh && ./eng/m032-forest-logistics-smoke.sh", ["artifacts/simulation/M032/m032-manifest.json"])
+        ]),
+        new("m033-smoke", "resumable-sharded",
+        [
+            Shard("documentation", "M033 authority, scenario, artifact contract, and direct indexes are present.", "test -f docs/specs/discrete-event-simulation-contract.md && test -f docs/specs/abstract-activity-and-travel-contract.md && test -f docs/specs/region-fidelity-and-reconciliation-contract.md && test -f docs/specs/multi-fidelity-equivalence-contract.md && test -f docs/artifacts/multi-fidelity-simulation-artifact-contract.md", ["docs/specs/discrete-event-simulation-contract.md", "docs/artifacts/multi-fidelity-simulation-artifact-contract.md"]),
+            Shard("scheduler-ordering", "Deterministic equal-time event ordering and bounded advancement.", "./eng/test-filter.sh DiscreteEvent && ./eng/discrete-event-scheduler-smoke.sh", ["artifacts/simulation/M033/queue-inspection.json"]),
+            Shard("trigger-invalidation", "Cancellation, stale revisions, and duplicate-delivery safety.", "./eng/test-filter.sh ScheduledTrigger && ./eng/discrete-event-scheduler-smoke.sh", ["artifacts/simulation/M033/trigger-outcomes.jsonl"]),
+            Shard("standalone-host", "Headless accelerated simulation host and structural receipt.", "./eng/test-filter.sh StandaloneSimulationHost && ./eng/standalone-simulation-smoke.sh", ["artifacts/simulation/M033/long-horizon-report.json"]),
+            Shard("abstract-work-logistics", "Command-backed abstract activity and logistics families.", "./eng/test-filter.sh AbstractActivity && ./eng/abstract-activity-smoke.sh", ["artifacts/simulation/M033/invariants.json"]),
+            Shard("abstract-needs", "Lazy semantic need threshold duration evidence.", "./eng/abstract-needs-smoke.sh", ["artifacts/simulation/M033/duration-models.json"]),
+            Shard("abstract-travel", "Coarse graph planning independent of detailed paths.", "./eng/test-filter.sh AbstractTravel && ./eng/abstract-travel-smoke.sh", ["artifacts/simulation/M033/abstract-routes.jsonl"]),
+            Shard("fidelity-ownership", "Exactly one detailed region and explicit executor owners.", "./eng/test-filter.sh RegionFidelity && ./eng/region-fidelity-smoke.sh", ["artifacts/simulation/M033/executor-ownership.json"]),
+            Shard("abstract-to-detailed", "Deterministic materialization and route reconstruction evidence.", "./eng/test-filter.sh RegionReconciliation && ./eng/region-reconciliation-smoke.sh", ["artifacts/simulation/M033/materialization-mappings.jsonl"]),
+            Shard("detailed-to-abstract", "Deterministic abstraction and next-trigger evidence.", "./eng/region-reconciliation-smoke.sh", ["artifacts/simulation/M033/abstraction-mappings.jsonl"]),
+            Shard("transition-rollback", "Failed materialization restores a prior stable owner.", "./eng/test-filter.sh RegionReconciliation", ["tests/unit/Agentic2D.Tests.Unit/M033MultiFidelitySimulationTests.cs"]),
+            Shard("mixed-fidelity-persistence", "Stable mixed-fidelity queue and ownership restore.", "./eng/test-filter.sh MultiFidelityPersistence && ./eng/multi-fidelity-persistence-smoke.sh", ["artifacts/simulation/M033/persistence-report.json"]),
+            Shard("equivalence-conservation", "Independent conservation and declared bounded equivalence.", "./eng/test-filter.sh MultiFidelityEquivalence && ./eng/multi-fidelity-equivalence-smoke.sh", ["artifacts/simulation/M033/conservation-ledger.json", "artifacts/simulation/M033/equivalence-report.json"]),
+            Shard("observer-neutrality", "Control-run productivity and safety comparison.", "./eng/multi-fidelity-equivalence-smoke.sh", ["artifacts/simulation/M033/observer-neutrality-report.json"]),
+            Shard("long-horizon", "Thirty-day repeated-switch standalone proof.", "./eng/m033-multi-region-smoke.sh", ["artifacts/simulation/M033/long-horizon-report.json"]),
+            Shard("graphical-switch-proof", "Graphics-capable capture or explicit classified skip.", "./eng/m033-region-switch-graphics-smoke.sh", ["artifacts/simulation/M033/graphical-evidence/environment.json"]),
+            Shard("m031-m032-regression", "M031/M032 aggregate receipts remain current.", "./eng/m031-smoke.sh --verify && ./eng/m032-smoke.sh --verify", ["artifacts/validation/m031-smoke/verify.json", "artifacts/validation/m032-smoke/verify.json"]),
+            Shard("engine-regression", "Current provider build and focused simulation tests.", "./eng/build.sh && ./eng/test-filter.sh SimulationFoundation", ["src/Agentic2D.Simulation/M033MultiFidelitySimulation.cs"]),
+            Shard("asset-train-regression", "Earlier asset provider artifacts remain available.", "test -s artifacts/assets/M028/review-pack/review/asset-review-pack/manifest.json && test -s artifacts/assets/M029/workbench/asset-workbench-review-pack/manifest.json", ["artifacts/assets/M028/review-pack/review/asset-review-pack/manifest.json", "artifacts/assets/M029/workbench/asset-workbench-review-pack/manifest.json"]),
+            Shard("human-review", "Blocking M033 review is approved by a human.", "./eng/review-check.sh --milestone M033", ["artifacts/simulation/M033/review-pack/review-manifest.json"]),
+            Shard("integrated", "M033 build and complete structural proof.", "./eng/build.sh && ./eng/m033-multi-region-smoke.sh", ["artifacts/simulation/M033/m033-manifest.json", "artifacts/simulation/M033/review-pack/review-manifest.json"])
         ])
     ];
 
