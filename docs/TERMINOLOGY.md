@@ -25,6 +25,10 @@ This document is authoritative for project vocabulary.
 | Simulation instant | Canonical integer-microsecond point on the authoritative simulation timeline. |
 | Activity | Explicit mode-independent semantic work state with actor, stage, progress, revision, status, and causal identity. |
 | Reservation | Authoritative, deterministic claim over a contested entity, quantity, or capacity owned by an activity. |
+| Scheduled trigger | Persistent future simulation input with a due instant and guards; it is not a factual domain event. |
+| Abstract executor | Optional discrete-event strategy that advances semantic activities through shared commands without detailed pathfinding. |
+| Region fidelity | Authoritative persistent choice of `detailed` or `abstract` execution for a region. |
+| Materialization | Transactional conversion of abstract semantic state into deterministic valid detailed spatial state. |
 | Behavior module | Code that reads immutable snapshots and emits intents rather than mutating stores directly. |
 | Spatial module | Capability that interprets spatial components and static world data without owning entity identity. |
 | Spatial query | Read-only deterministic query over compatible spatial entity state. |

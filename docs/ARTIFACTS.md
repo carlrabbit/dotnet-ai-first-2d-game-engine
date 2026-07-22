@@ -38,6 +38,7 @@ Failures must produce enough structured evidence for diagnosis. Generated artifa
 | `docs/artifacts/asset-discovery-and-campaign-review-pack-artifact-contract.md` | Copyable M028 discovery, campaign, audio, and visual review evidence. |
 | `docs/artifacts/asset-workbench-session-and-promotion-review-pack-contract.md` | M029 session, input, preview, recovery, promotion, and M030-readiness evidence. |
 | `docs/artifacts/simulation-foundation-artifact-contract.md` | M031 semantic world, persistence, inspection, workflow, and review evidence. |
+| `docs/artifacts/multi-fidelity-simulation-artifact-contract.md` | M033 queue, transition, persistence, equivalence, and review evidence. |
 
 ## Artifact roots
 
@@ -75,3 +76,5 @@ Review-pack manifests must make current artifact families discoverable.
 ## Simulation foundation evidence
 
 M031 writes deterministic structural evidence under `artifacts/simulation/M031/`, including canonical world inspections, activities, reservations, command/event JSON Lines, persistence and invariant reports, direct-versus-roundtrip wood-workflow comparison, and a bounded review pack. Timing is advisory only.
+
+M033 writes queue inspections, guarded trigger outcomes, fidelity/transition mappings, mixed-fidelity persistence, conservation/equivalence/control-run reports, and review evidence under `artifacts/simulation/M033/`. Graphics evidence is explicitly classified and is required for its blocking review.
