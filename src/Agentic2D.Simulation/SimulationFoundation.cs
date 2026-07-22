@@ -45,6 +45,7 @@ public sealed record SimulationRegion(string Id, string Name, bool Active = true
 public sealed record SimulationEntity(string Id, SimulationEntityScope Scope, string? RegionId, SimulationLifecycle Lifecycle, SortedDictionary<string, JsonElement> Components);
 public sealed record SimulationActivity(string Id, string ActorEntityId, string Kind, string Stage, IReadOnlyList<string> Targets, SimulationInstant StartedAt, SimulationInstant LastTransitionAt, long Progress, int Revision, SimulationActivityStatus Status, string CorrelationId, string CausationId, string? Reason = null, string? CompletionResult = null);
 public sealed record SimulationReservation(string Id, string ActivityId, string ReservingEntityId, string SubjectId, string Kind, int Quantity, SimulationInstant AcquiredAt, int SubjectRevision, int Revision, SimulationReservationStatus Status, string? ReleaseReason = null);
+public sealed record SimulationReservationRequest(ReservationId Id, string SubjectId, string Kind, int Quantity, int SubjectCapacity);
 public sealed record SimulationDiagnostic(string Code, string Severity, string Message, IReadOnlyList<string> RelatedIds);
 public sealed record SimulationCommandResult(string CommandId, string Type, string Status, SimulationInstant IssuedAt, SimulationInstant CompletedAt, int? ExpectedRevision, int? CurrentRevision, IReadOnlyList<string> EventIds, IReadOnlyList<SimulationDiagnostic> Diagnostics);
 public sealed record SimulationDomainEvent(string Id, string Type, SimulationInstant Instant, long Sequence, IReadOnlyList<string> AffectedIds, string CorrelationId, string CausationId, object Payload);
@@ -100,6 +101,22 @@ public sealed class SimulationWorld
             runtimeWorld.CreateEntity(id); runtimeWorld.Set(id, entity); observations.Add(new(++sequence, id, null, "created")); Emit("EntityCreated", [id], new { id, scope = scope.ToString(), region = entity.RegionId }); return Success();
         });
 
+    /// <summary>Atomically creates an entity with its first persistent component.</summary>
+    public SimulationCommandResult CreateEntityWithComponent(string id, SimulationEntityScope scope, RegionId? region, string componentKey, JsonElement value, string? semanticEventType = null, object? semanticPayload = null)
+        => Execute("entity.create-with-component", null, () =>
+        {
+            if (string.IsNullOrWhiteSpace(id) || runtimeWorld.Exists(id) || tombstones.Contains(id)) return Fail("SIMENTITY0001", "duplicate, destroyed, or invalid entity ID", id);
+            if (scope == SimulationEntityScope.RegionOwned && (region is null || !regions.ContainsKey(region.Value.Value))) return Fail("SIMREGION0002", "region-owned entity requires an existing region", id);
+            if (scope == SimulationEntityScope.WorldScoped && region is not null) return Fail("SIMREGION0003", "world-scoped entity cannot have a region", id);
+            if (!registrations.ContainsKey(componentKey)) return Fail("SIMCOMP0003", "unknown component key", componentKey);
+            var entity = new SimulationEntity(id, scope, region is null ? null : region.Value.Value, SimulationLifecycle.Created, new(StringComparer.Ordinal) { [componentKey] = value.Clone() });
+            runtimeWorld.CreateEntity(id); runtimeWorld.Set(id, entity); observations.Add(new(++sequence, id, componentKey, "created-with-component")); Emit("EntityCreated", [id], new { id, scope = scope.ToString(), region = entity.RegionId, componentKey });
+            if (!string.IsNullOrWhiteSpace(semanticEventType)) Emit(semanticEventType, [id], semanticPayload ?? new { id });
+            return Success();
+        });
+
+    public SimulationCommandResult RejectCommand(string type, string diagnosticCode, string message, IReadOnlyList<string> relatedIds) => Execute(type, null, () => Fail(diagnosticCode, message, string.Join(",", relatedIds.Order(StringComparer.Ordinal))));
+
     public SimulationCommandResult ActivateEntity(string id) => TransitionLifecycle(id, SimulationLifecycle.Created, SimulationLifecycle.Active, "EntityActivated");
     public SimulationCommandResult DeactivateEntity(string id) => TransitionLifecycle(id, SimulationLifecycle.Active, SimulationLifecycle.Inactive, "EntityDeactivated");
     public SimulationCommandResult DestroyEntity(string id) => Execute("entity.destroy", null, () =>
@@ -133,6 +150,31 @@ public sealed class SimulationWorld
     {
         if (activities.ContainsKey(id.Value) || !IsActive(actor) || targets.Any(target => !runtimeWorld.Exists(target))) return Fail("SIMACTIVITY0001", "invalid or duplicate activity", id.Value);
         activities.Add(id.Value, new(id.Value, actor, kind, initialStage, targets.Order(StringComparer.Ordinal).ToArray(), Clock.Now, Clock.Now, 0, 1, SimulationActivityStatus.Planned, correlation.Value, causation.Value)); Emit("ActivityCreated", [id.Value, actor], new { id = id.Value, kind, stage = initialStage }); return Success();
+    });
+
+    /// <summary>
+    /// Atomically starts an activity and acquires all of its initial reservations.  Domain
+    /// coordinators must use this instead of separately creating an activity and claiming its
+    /// contested targets, so a failed reservation cannot leave an assignable activity behind.
+    /// </summary>
+    public SimulationCommandResult CreateActivityWithReservations(ActivityId id, string actor, string kind, string initialStage, IReadOnlyList<string> targets, IReadOnlyList<SimulationReservationRequest> requests, CorrelationId correlation, CausationId causation) => Execute("activity.start-with-reservations", null, () =>
+    {
+        if (activities.ContainsKey(id.Value) || !IsActive(actor) || targets.Any(target => !runtimeWorld.Exists(target)) || requests.Count == 0 || requests.GroupBy(x => x.Id.Value, StringComparer.Ordinal).Any(x => x.Count() != 1)) return Fail("SIMACTIVITY0001", "invalid activity assignment request", id.Value);
+        foreach (var request in requests.OrderBy(x => x.Id.Value, StringComparer.Ordinal))
+        {
+            if (request.Quantity <= 0 || request.SubjectCapacity <= 0 || reservations.ContainsKey(request.Id.Value) || !TryEntity(request.SubjectId, out var subject) || subject.Lifecycle == SimulationLifecycle.Destroyed) return Fail("SIMRESERVE0001", "invalid assignment reservation", request.Id.Value);
+            var held = reservations.Values.Where(x => x.SubjectId == request.SubjectId && x.Kind == request.Kind && x.Status == SimulationReservationStatus.Active).Sum(x => x.Quantity);
+            if (checked(held + request.Quantity) > request.SubjectCapacity) return Fail("SIMRESERVE0003", "assignment reservation capacity conflict", request.SubjectId);
+        }
+        var activity = new SimulationActivity(id.Value, actor, kind, initialStage, targets.Order(StringComparer.Ordinal).ToArray(), Clock.Now, Clock.Now, 0, 1, SimulationActivityStatus.Planned, correlation.Value, causation.Value);
+        activities.Add(id.Value, activity);
+        foreach (var request in requests.OrderBy(x => x.Id.Value, StringComparer.Ordinal))
+        {
+            reservations.Add(request.Id.Value, new(request.Id.Value, id.Value, actor, request.SubjectId, request.Kind, request.Quantity, Clock.Now, 1, 1, SimulationReservationStatus.Active));
+            Emit("ReservationAcquired", [request.Id.Value, id.Value, request.SubjectId], new { id = request.Id.Value, subject = request.SubjectId, kind = request.Kind, quantity = request.Quantity });
+        }
+        Emit("ActivityStarted", [id.Value, actor], new { id = id.Value, kind, stage = initialStage, reservationCount = requests.Count });
+        return Success();
     });
 
     public SimulationCommandResult TransitionActivity(ActivityId id, int expectedRevision, string stage, SimulationActivityStatus status, long? progress = null, string? reason = null) => Execute("activity.transition", expectedRevision, () =>

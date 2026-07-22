@@ -8,6 +8,7 @@ using Raylib_cs;
 
 if (args.Length == 0) return Usage();
 if (args[0] == "geometry") return CaptureGeometry(args[1..]);
+if (args[0] == "m032") return M032RaylibSession.Run(args[1..]);
 if (args[0] == "asset-workbench") return AssetWorkbenchRaylibWindow.Run(args[1..]);
 if (args[0] == "asset-preview") return AssetPreviewRaylibWindow.Run(args[1..]);
 string? scenario = null, input = null, capture = null;
@@ -104,4 +105,4 @@ static void DrawGeometry(VisualPartSource part)
     }
 }
 static Color ToColor(VisualColor color, double opacity) => new(color.R, color.G, color.B, (int)Math.Round(color.A * opacity));
-static int Usage() { Console.Error.WriteLine("usage: scenario --scenario <id> [--capture <png>] | snapshot --input <render-snapshot.json> [--capture <png>] | geometry --input <visual-definition.json> --capture <png> | asset-workbench --session <review-session.json> --commands <input-command.jsonl> [--capture <png>] [--frames <count>] | asset-preview --scene <preview-scene.json> [--capture <png>] [--frames <count>]"); return 2; }
+static int Usage() { Console.Error.WriteLine("usage: scenario --scenario <id> [--capture <png>] | snapshot --input <render-snapshot.json> [--capture <png>] | m032 --input <structural-frame.json> [--commands <designation-input.jsonl>] (--capture <png> | --interactive) | geometry --input <visual-definition.json> --capture <png> | asset-workbench --session <review-session.json> --commands <input-command.jsonl> [--capture <png>] [--frames <count>] | asset-preview --scene <preview-scene.json> [--capture <png>] [--frames <count>]"); return 2; }

@@ -1,0 +1,114 @@
+{
+  "schema": "agentic2d.engineering.review-record.v2",
+  "id": "review.m032.autonomous-detailed-region-work-and-logistics",
+  "owningMilestone": "M032",
+  "owningMilestonePath": "docs/milestones/MILESTONE-032-autonomous-detailed-region-work-and-logistics-vertical-slice.md",
+  "subject": "M032 indirect-control designation flow, autonomous detailed-region work selection, movement, logistics, needs interruption, and evidence quality",
+  "classes": [
+    "UX",
+    "visual",
+    "semantic",
+    "artifact-quality"
+  ],
+  "level": "blocking",
+  "reviewerRole": "repository user",
+  "status": "approved",
+  "evidence": [
+    "artifacts/simulation/M032/review-pack/review-manifest.json",
+    "artifacts/simulation/M032/review-pack/evidence-index.json",
+    "artifacts/simulation/M032/review-pack/play-flow.md",
+    "artifacts/simulation/M032/review-pack/decision-explanation-samples.md",
+    "artifacts/simulation/M032/review-pack/graphical-evidence-index.md",
+    "artifacts/simulation/M032/forest-logistics/comparison.json",
+    "artifacts/simulation/M032/logistics-ledger.json",
+    "artifacts/simulation/M032/invariants.json",
+    "artifacts/simulation/M032/persistence-report.json"
+  ],
+  "acceptanceCriteria": [
+    "Extraction and storage are designated through the supported graphical input path without direct worker assignment.",
+    "Two generic workers autonomously choose distinct valid work and their choices are understandable.",
+    "Movement, carried resources, interactions, needs, and blocked/replan states are visually readable.",
+    "Temporary blockage causes coherent replan rather than teleportation or silent stall.",
+    "Mandatory need interruption occurs at a sensible semantic boundary and is explained.",
+    "Designation changes recover without duplicate work.",
+    "Save/load while carrying continues coherently and structural evidence proves conservation.",
+    "Route and decision debug projections are useful.",
+    "The slice feels autonomous rather than scripted.",
+    "Evidence separates semantic authority from graphical review and deferred work."
+  ],
+  "acceptableDecisions": [
+    "approved"
+  ],
+  "waiverPolicy": "No implicit waiver. A waiver is acceptable only if the pending request is explicitly amended before review and the record states the bounded reason.",
+  "decision": "approved",
+  "reviewedRevision": "ref: refs/heads/m32",
+  "reviewedFingerprint": "6c989fba5a0c6dc5c5cdfb9372ca443180e09d74c17665bfe167e96cee1a2e2f",
+  "conditions": [],
+  "completedAt": "2026-07-21T21:29:08.8989128+00:00",
+  "decisionHistory": [
+    {
+      "decision": "approved",
+      "reviewer": "repository user",
+      "notes": "",
+      "evidence": [
+        "artifacts/simulation/M032/review-pack/review-manifest.json",
+        "artifacts/simulation/M032/review-pack/evidence-index.json",
+        "artifacts/simulation/M032/review-pack/play-flow.md",
+        "artifacts/simulation/M032/review-pack/decision-explanation-samples.md",
+        "artifacts/simulation/M032/review-pack/graphical-evidence-index.md",
+        "artifacts/simulation/M032/forest-logistics/comparison.json",
+        "artifacts/simulation/M032/logistics-ledger.json",
+        "artifacts/simulation/M032/invariants.json",
+        "artifacts/simulation/M032/persistence-report.json",
+        "artifacts/validation/m032-smoke/verify.json"
+      ],
+      "revision": "ref: refs/heads/m32",
+      "fingerprint": "6c989fba5a0c6dc5c5cdfb9372ca443180e09d74c17665bfe167e96cee1a2e2f",
+      "recordedAt": "2026-07-21T21:26:13.6052125+00:00",
+      "recordCorrection": false
+    },
+    {
+      "decision": "reopened",
+      "reviewer": "repository user",
+      "notes": "Remove the circular aggregate-verifier output from required review evidence; it cannot exist until this review gate passes.",
+      "evidence": [
+        "artifacts/simulation/M032/review-pack/review-manifest.json",
+        "artifacts/simulation/M032/review-pack/evidence-index.json",
+        "artifacts/simulation/M032/review-pack/play-flow.md",
+        "artifacts/simulation/M032/review-pack/decision-explanation-samples.md",
+        "artifacts/simulation/M032/review-pack/graphical-evidence-index.md",
+        "artifacts/simulation/M032/forest-logistics/comparison.json",
+        "artifacts/simulation/M032/logistics-ledger.json",
+        "artifacts/simulation/M032/invariants.json",
+        "artifacts/simulation/M032/persistence-report.json",
+        "artifacts/validation/m032-smoke/verify.json"
+      ],
+      "revision": "ref: refs/heads/m32",
+      "fingerprint": "6c989fba5a0c6dc5c5cdfb9372ca443180e09d74c17665bfe167e96cee1a2e2f",
+      "recordedAt": "2026-07-21T21:28:58.8579668+00:00",
+      "recordCorrection": false
+    },
+    {
+      "decision": "approved",
+      "reviewer": "repository user",
+      "notes": "",
+      "evidence": [
+        "artifacts/simulation/M032/review-pack/review-manifest.json",
+        "artifacts/simulation/M032/review-pack/evidence-index.json",
+        "artifacts/simulation/M032/review-pack/play-flow.md",
+        "artifacts/simulation/M032/review-pack/decision-explanation-samples.md",
+        "artifacts/simulation/M032/review-pack/graphical-evidence-index.md",
+        "artifacts/simulation/M032/forest-logistics/comparison.json",
+        "artifacts/simulation/M032/logistics-ledger.json",
+        "artifacts/simulation/M032/invariants.json",
+        "artifacts/simulation/M032/persistence-report.json"
+      ],
+      "revision": "ref: refs/heads/m32",
+      "fingerprint": "6c989fba5a0c6dc5c5cdfb9372ca443180e09d74c17665bfe167e96cee1a2e2f",
+      "recordedAt": "2026-07-21T21:29:08.7985621+00:00",
+      "recordCorrection": false
+    }
+  ],
+  "correctsReviewId": "",
+  "path": ".review/records/review.m032.autonomous-detailed-region-work-and-logistics.revision-2.json"
+}

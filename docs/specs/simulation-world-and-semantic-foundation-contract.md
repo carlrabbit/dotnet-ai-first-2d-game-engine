@@ -385,6 +385,8 @@ Stage transitions:
 
 Stage progress is semantic, not presentation animation progress.
 
+When a coordinator accepts work that requires initial reservations, it must atomically revalidate the candidate, create the activity, and acquire every initial reservation. A conflict or stale candidate leaves no created activity or partial reservation behind.
+
 ## Reservations
 
 A reservation protects a contested entity, resource quantity, or capacity while an activity is active.
