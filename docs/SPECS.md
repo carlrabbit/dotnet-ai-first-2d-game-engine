@@ -51,6 +51,10 @@ This document indexes permanent behavioral authority. Milestones sequence work; 
 | `docs/specs/abstract-activity-and-travel-contract.md` | M033 abstract activities, coarse travel, duration models, and needs. |
 | `docs/specs/region-fidelity-and-reconciliation-contract.md` | M033 authoritative region fidelity and transactional conversion. |
 | `docs/specs/multi-fidelity-equivalence-contract.md` | M033 conservation, tolerances, control runs, and observer neutrality. |
+| `docs/specs/construction-and-infrastructure-lifecycle-contract.md` | M034 construction plans, infrastructure condition, maintenance, failure, and repair. |
+| `docs/specs/environmental-resource-and-flow-contract.md` | M034 integer environmental resource production, storage, consumption, and conservation. |
+| `docs/specs/settlement-production-and-needs-infrastructure-contract.md` | M034 farming, food, and finite comfort infrastructure. |
+| `docs/specs/settlement-operations-surface-contract.md` | M034 read-only operations projections, commands, alerts, and journal. |
 | `docs/specs/input-action-map-contract.md` | Backend-neutral input maps and mapping. |
 | `docs/specs/tick-bound-input-frame-contract.md` | Tick input frames and accumulator. |
 | `docs/specs/game-project-manifest-contract.md` | Game/product manifest independent of acquisition. |

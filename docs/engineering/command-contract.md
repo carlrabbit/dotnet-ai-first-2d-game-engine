@@ -88,6 +88,8 @@ Do not create success-only placeholder scripts.
 
 `./eng/m033-smoke.sh` is resumable-sharded. It has `--list`, `--plan-json`, `--shard <id>`, `--verify`, and no-argument modes. Its verifier requires current receipts, graphics-capable switch evidence, and approved M033 blocking review. Focused M033 commands write queue, transition, persistence, equivalence, and standalone evidence under `artifacts/simulation/M033/`.
 
+`./eng/m034-smoke.sh` is resumable-sharded. It has `--list`, `--plan-json`, `--shard <id>`, `--verify`, and no-argument modes. Its verifier requires current receipts, graphics-capable operations proof, and approved M034 blocking review. `construction-lifecycle-smoke`, `water-infrastructure-smoke`, `farm-production-smoke`, `comfort-capacity-smoke`, `maintenance-failure-smoke`, `road-travel-modifier-smoke`, `settlement-alert-smoke`, `operations-surface-smoke`, `infrastructure-persistence-smoke`, and `m034-settlement-smoke` are focused M034 structural validations; graphical evidence is conditional and an explicit skip cannot satisfy review.
+
 `./eng/tic-tac-toe-play.sh` starts the consumer-owned graphical launcher. It requires a graphics session and accepts `--frames <count>` for bounded graphics smoke use. `./eng/tic-tac-toe-export.sh` publishes the same playable launcher to `artifacts/tic-tac-toe/export/playable-linux-x64/AutonomousTicTacToe.Playable` in addition to its headless equivalence evidence.
 
 Receipts are generated at `artifacts/validation/<suite>/<shard>.json`. The host deletes a previous receipt before execution and only atomically replaces it after command success and evidence validation.

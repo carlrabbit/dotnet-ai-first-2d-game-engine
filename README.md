@@ -25,7 +25,8 @@ The engine is headless-first, CLI/API-first, validation-first, and artifact-firs
   - deterministic backend-neutral semantic input mapping, tick frames, synthetic sources, and hardware-free replay;
   - isolated raylib-cs debug client with live and snapshot modes.
   - optional deterministic simulation foundation with one partitioned world, semantic time, activities, reservations, canonical persistence, and a headless wood-workflow proof;
-  - optional standalone discrete-event simulation, coarse abstract travel/activity execution, authoritative one-region detailed fidelity, transactional reconciliation, and bounded multi-region evidence.
+  - optional standalone discrete-event simulation, coarse abstract travel/activity execution, authoritative one-region detailed fidelity, transactional reconciliation, and bounded multi-region evidence;
+  - optional environmental infrastructure and settlement operations capability with construction plans, water/food/comfort infrastructure, maintenance, reserve policies, causal alerts, and bounded three-region evidence.
 
 ## Current solution shape
 
