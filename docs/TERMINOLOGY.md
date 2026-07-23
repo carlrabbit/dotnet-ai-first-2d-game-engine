@@ -52,3 +52,10 @@ This document is authoritative for project vocabulary.
 | Approved asset | Project-local presentation authority materialized from current reviewed decisions with processing and source provenance. |
 | Debug runtime | Development representation optimized for inspection and diagnostics. |
 | Packaged runtime | Future release representation optimized for compactness and performance; not yet implemented. |
+| Support envelope | Versioned fixture, host/runtime, scale, budget, and known-limit declaration for a bounded readiness claim. |
+| Soak | A sustained deterministic or supervised session that records target/completed duration, trends, checkpoints, and early termination. |
+| Campaign | A versioned matrix of deterministic stress, fault, compatibility, or soak cases with resumable receipts and an aggregate verifier. |
+| Fault injection | Explicit deterministic test composition at an approved infrastructure boundary; disabled by default and never gameplay authority. |
+| Reproduction bundle | Portable bounded evidence containing the seed, input/checkpoint, failure signature, environment, and exact run/verify command. |
+| Readiness decision | The M035 evidence-gate decision: `ready`, `ready-with-declared-limitations`, or `not-ready`. |
+| Blocking defect | A supported-envelope corruption, duplication/loss, ownership leak, deterministic divergence, unreproducible crash, persistent progress failure, failed campaign, or unusable critical diagnosis. |

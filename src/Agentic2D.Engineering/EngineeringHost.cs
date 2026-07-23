@@ -149,7 +149,7 @@ public sealed class EngineeringHost
             $"./eng/{suite.Id}.sh --verify",
             suite.Shards.SelectMany(shard => shard.Evidence).Distinct(StringComparer.Ordinal).ToArray());
         var serialized = JsonSerializer.Serialize(plan, json);
-        if (suite.Id is "m033-smoke" or "m034-smoke")
+        if (suite.Id is "m033-smoke" or "m034-smoke" or "m035-smoke")
         {
             var planPath = Absolute(Path.Combine("artifacts", "validation", suite.Id, "plan.json"));
             Directory.CreateDirectory(Path.GetDirectoryName(planPath)!);
@@ -261,7 +261,7 @@ public sealed class EngineeringHost
             diagnostics.WriteLine($"{suite.Id}: verification passed ({suite.Shards.Count} current receipts)");
         }
 
-        if (suite.Id is "m031-smoke" or "m032-smoke" or "m033-smoke" or "m034-smoke")
+        if (suite.Id is "m031-smoke" or "m032-smoke" or "m033-smoke" or "m034-smoke" or "m035-smoke")
         {
             var path = Absolute(Path.Combine("artifacts", "validation", suite.Id, "verify.json"));
             Directory.CreateDirectory(Path.GetDirectoryName(path)!);
@@ -270,7 +270,8 @@ public sealed class EngineeringHost
                 "m031-smoke" => "agentic2d.simulation-foundation-verification.v1",
                 "m032-smoke" => "agentic2d.autonomous-detailed-region-verification.v1",
                 "m033-smoke" => "agentic2d.m033.verification.v1",
-                _ => "agentic2d.m034.verification.v1"
+                "m034-smoke" => "agentic2d.m034.verification.v1",
+                _ => "agentic2d.m035.verification.v1"
             };
             if (suite.Id == "m033-smoke")
             {
@@ -289,6 +290,37 @@ public sealed class EngineeringHost
                     diagnostics.WriteLine("error: m034-smoke/graphical-play-proof: graphics-capable proof is not passed");
                     success = false;
                 }
+            }
+            if (suite.Id == "m035-smoke")
+            {
+                var graphical = Absolute("artifacts/readiness/M035/graphical-soak-report.json");
+                if (!File.Exists(graphical) || !File.ReadAllText(graphical).Contains("\"status\": \"passed\"", StringComparison.Ordinal))
+                {
+                    diagnostics.WriteLine("error: m035-smoke/graphical-4-hour-soak: graphics-capable four-hour proof is not passed");
+                    success = false;
+                }
+                var session = Absolute("artifacts/readiness/M035/graphical-soak/session.json");
+                if (!File.Exists(session) || !File.ReadAllText(session).Contains("\"status\": \"passed\"", StringComparison.Ordinal) || !File.ReadAllText(session).Contains("\"earlyTermination\": false", StringComparison.Ordinal))
+                {
+                    diagnostics.WriteLine("error: m035-smoke/graphical-4-hour-soak: validated Raylib session evidence is absent, incomplete, or early-terminated");
+                    success = false;
+                }
+                var readiness = Absolute("artifacts/readiness/M035/readiness-report.json");
+                if (!File.Exists(readiness) || (!File.ReadAllText(readiness).Contains("\"decision\": \"ready\"", StringComparison.Ordinal) && !File.ReadAllText(readiness).Contains("\"decision\": \"ready-with-declared-limitations\"", StringComparison.Ordinal)))
+                {
+                    diagnostics.WriteLine("error: m035-smoke/readiness-report: readiness decision is not an allowed completion decision");
+                    success = false;
+                }
+                foreach (var campaign in new[] { "population-entity", "pathfinding-work", "abstract-queue", "fidelity-transition", "persistence-cycle", "infrastructure-shortage", "headless-365-day" })
+                {
+                    var campaignVerify = Absolute(Path.Combine("artifacts", "readiness", "M035", "campaigns", campaign, "verify.json"));
+                    if (!File.Exists(campaignVerify) || !File.ReadAllText(campaignVerify).Contains("\"status\": \"passed\"", StringComparison.Ordinal))
+                    {
+                        diagnostics.WriteLine($"error: m035-smoke campaign '{campaign}' is not verified");
+                        success = false;
+                    }
+                }
+                if (!CheckReviews("M035", diagnostics)) success = false;
             }
             File.WriteAllText(path, JsonSerializer.Serialize(new { schema, suite = suite.Id, status = success ? "passed" : "failed", receiptCount = suite.Shards.Count }, json));
         }
@@ -1112,6 +1144,37 @@ public sealed class EngineeringHost
             Shard("asset-train-regression", "Earlier asset provider artifacts remain available.", "test -s artifacts/assets/M028/review-pack/review/asset-review-pack/manifest.json && test -s artifacts/assets/M029/workbench/asset-workbench-review-pack/manifest.json", ["artifacts/assets/M028/review-pack/review/asset-review-pack/manifest.json", "artifacts/assets/M029/workbench/asset-workbench-review-pack/manifest.json"]),
             Shard("human-review", "Blocking M034 review is approved by a human.", "./eng/review-check.sh --milestone M034", ["artifacts/simulation/M034/review-pack/review-manifest.json"]),
             Shard("integrated", "M034 build and full structural settlement proof.", "./eng/build.sh && ./eng/m034-settlement-smoke.sh", ["artifacts/simulation/M034/m034-manifest.json", "artifacts/simulation/M034/review-pack/review-manifest.json"])
+        ]),
+        new("m035-smoke", "resumable-sharded",
+        [
+            Shard("documentation", "M035 authority, runbook, campaign, artifact contract, and indexes are present.", "test -f docs/specs/internal-testing-scale-and-performance-contract.md && test -f docs/specs/runtime-health-and-diagnostics-contract.md && test -f docs/specs/stress-soak-and-fault-campaign-contract.md && test -f docs/specs/save-compatibility-and-recovery-contract.md && test -f docs/specs/reproduction-and-internal-testing-contract.md && test -f docs/artifacts/heavy-internal-testing-readiness-artifact-contract.md", ["docs/specs/internal-testing-scale-and-performance-contract.md", "docs/artifacts/heavy-internal-testing-readiness-artifact-contract.md"]),
+            Shard("scale-fixtures", "Five-region supported-scale fixture and capacity envelope.", "./eng/m035-probe.sh campaign", ["artifacts/readiness/M035/support-envelope.json"]),
+            Shard("performance-baselines", "Versioned explicit baseline provenance and metric definitions.", "./eng/test-filter.sh PerformanceBudget && ./eng/performance-budget-smoke.sh", ["artifacts/readiness/M035/performance-baseline.json", "artifacts/readiness/M035/performance-budgets.json"]),
+            Shard("performance-regression", "Comparable same-machine comparison with thresholds.", "./eng/performance-budget-smoke.sh", ["artifacts/readiness/M035/performance-comparison.json"]),
+            Shard("runtime-invariants", "Bounded observer-only invariant monitoring.", "./eng/test-filter.sh RuntimeHealth && ./eng/runtime-health-smoke.sh", ["artifacts/readiness/M035/runtime-health-summary.json", "artifacts/readiness/M035/invariant-violations.jsonl"]),
+            Shard("deadlock-livelock-starvation", "Actionable deadlock, livelock, and starvation diagnostics.", "./eng/test-filter.sh DeadlockDetection && ./eng/deadlock-detection-smoke.sh", ["artifacts/readiness/M035/deadlock-livelock-report.json"]),
+            Shard("queue-reservation-health", "Queue ordering and activity/reservation health remain bounded.", "./eng/runtime-health-smoke.sh", ["artifacts/readiness/M035/runtime-health-summary.json"]),
+            Shard("fault-command-persistence", "Test-only deterministic command and persistence faults.", "./eng/test-filter.sh FaultInjection && ./eng/fault-injection-smoke.sh", ["artifacts/readiness/M035/fault-campaign-report.json"]),
+            Shard("fault-transition-execution", "Transition, delivery, routing, projection, and graphical fault boundaries.", "./eng/fault-injection-smoke.sh", ["artifacts/readiness/M035/fault-campaign-report.json"]),
+            Shard("save-compatibility-matrix", "Explicit current/prior/forward save compatibility policy.", "./eng/test-filter.sh SaveCompatibility && ./eng/save-compatibility-smoke.sh", ["artifacts/readiness/M035/save-compatibility-matrix.json", "artifacts/readiness/M035/reference-save-manifest.json"]),
+            Shard("save-corruption-recovery", "Atomic previous-good recovery and corruption diagnostics.", "./eng/test-filter.sh SaveRecovery && ./eng/save-recovery-smoke.sh", ["artifacts/readiness/M035/save-recovery-report.json"]),
+            Shard("reproduction-bundles", "Portable bounded fault reproduction coverage.", "./eng/test-filter.sh ReproductionBundle && ./eng/reproduction-bundle-smoke.sh", ["artifacts/readiness/M035/reproduction-bundle-index.json"]),
+            Shard("tester-session-workflow", "Tester session manifest and operational evidence.", "./eng/test-filter.sh InternalTestSession && ./eng/internal-test-session-smoke.sh", ["artifacts/readiness/M035/tester-session-index.json"]),
+            Shard("population-entity-stress", "Population/entity scale campaign is nested and verified.", "./eng/m035-probe.sh campaign", ["artifacts/readiness/M035/campaigns/population-entity/verify.json"]),
+            Shard("pathfinding-work-stress", "Pathfinding and work contention campaign is nested and verified.", "./eng/m035-probe.sh campaign", ["artifacts/readiness/M035/campaigns/pathfinding-work/verify.json"]),
+            Shard("abstract-queue-stress", "Abstract queue/stale-trigger campaign is nested and verified.", "./eng/m035-probe.sh campaign", ["artifacts/readiness/M035/campaigns/abstract-queue/verify.json"]),
+            Shard("fidelity-transition-churn", "One-thousand transition campaign is nested and verified.", "./eng/m035-probe.sh campaign", ["artifacts/readiness/M035/campaigns/fidelity-transition/verify.json"]),
+            Shard("persistence-cycle-campaign", "Two-hundred-fifty save/load campaign is nested and verified.", "./eng/m035-probe.sh campaign", ["artifacts/readiness/M035/campaigns/persistence-cycle/verify.json"]),
+            Shard("infrastructure-shortage-campaign", "Shortage, maintenance, and recovery campaign is nested and verified.", "./eng/m035-probe.sh campaign", ["artifacts/readiness/M035/campaigns/infrastructure-shortage/verify.json"]),
+            Shard("headless-365-day-soak", "365-day headless soak is nested and verified.", "./eng/m035-probe.sh campaign", ["artifacts/readiness/M035/headless-soak-report.json", "artifacts/readiness/M035/campaigns/headless-365-day/verify.json"]),
+            Shard("graphical-4-hour-soak", "Four-hour graphical soak records passed, failed, or explicit graphics skip.", "./eng/m035-graphical-soak-smoke.sh", ["artifacts/readiness/M035/graphical-soak-report.json"]),
+            Shard("memory-throughput-trends", "Memory, queue, journal, artifact, projection, and throughput trend evidence.", "./eng/m035-probe.sh campaign", ["artifacts/readiness/M035/memory-throughput-trends.json"]),
+            Shard("m031-m034-regression", "M031 through M034 aggregate receipts remain current.", "./eng/m031-smoke.sh --verify && ./eng/m032-smoke.sh --verify && ./eng/m033-smoke.sh --verify && ./eng/m034-smoke.sh --verify", ["artifacts/validation/m031-smoke/verify.json", "artifacts/validation/m034-smoke/verify.json"]),
+            Shard("engine-regression", "Provider build and focused M035 readiness tests.", "./eng/build.sh && ./eng/test-filter.sh M035", ["src/Agentic2D.Simulation/M035InternalTestingReadiness.cs", "tests/unit/Agentic2D.Tests.Unit/M035InternalTestingReadinessTests.cs"]),
+            Shard("asset-train-regression", "Existing asset provider evidence remains available.", "test -s artifacts/assets/M028/review-pack/review/asset-review-pack/manifest.json && test -s artifacts/assets/M029/workbench/asset-workbench-review-pack/manifest.json", ["artifacts/assets/M028/review-pack/review/asset-review-pack/manifest.json", "artifacts/assets/M029/workbench/asset-workbench-review-pack/manifest.json"]),
+            Shard("readiness-report", "Readiness report and review pack are complete candidate evidence.", "./eng/test-filter.sh ReadinessGate && ./eng/m035-readiness-smoke.sh", ["artifacts/readiness/M035/readiness-report.json", "artifacts/readiness/M035/review-pack/review-manifest.json"]),
+            Shard("human-review", "Blocking M035 readiness review is approved by a human.", "./eng/review-check.sh --milestone M035", ["artifacts/readiness/M035/review-pack/review-manifest.json"]),
+            Shard("integrated", "M035 structural campaign, build, and readiness evidence.", "./eng/build.sh && ./eng/m035-probe.sh campaign && ./eng/m035-readiness-smoke.sh", ["artifacts/readiness/M035/m035-manifest.json", "artifacts/readiness/M035/readiness-report.json"])
         ])
     ];
 
