@@ -1,0 +1,83 @@
+{
+  "schema": "agentic2d.engineering.review-record.v2",
+  "id": "review.m035.heavy-internal-testing-readiness",
+  "owningMilestone": "M035",
+  "owningMilestonePath": "docs/milestones/MILESTONE-035-scale-stability-and-heavy-internal-testing-readiness.md",
+  "subject": "M035 supported envelope, stability, recovery, reproducibility, tester workflow, and heavy-internal-testing readiness decision",
+  "classes": [
+    "release-readiness",
+    "engineering",
+    "gameplay-operations",
+    "UX",
+    "artifact-quality"
+  ],
+  "level": "blocking",
+  "reviewerRole": "repository user and designated engine reviewer",
+  "status": "approved",
+  "evidence": [
+    "artifacts/readiness/M035/review-pack/review-manifest.json",
+    "artifacts/readiness/M035/review-pack/evidence-index.json",
+    "artifacts/readiness/M035/support-envelope.json",
+    "artifacts/readiness/M035/performance-comparison.json",
+    "artifacts/readiness/M035/runtime-health-summary.json",
+    "artifacts/readiness/M035/save-compatibility-matrix.json",
+    "artifacts/readiness/M035/save-recovery-report.json",
+    "artifacts/readiness/M035/reproduction-bundle-index.json",
+    "artifacts/readiness/M035/headless-soak-report.json",
+    "artifacts/readiness/M035/graphical-soak-report.json",
+    "artifacts/readiness/M035/blocking-defects.json",
+    "artifacts/readiness/M035/known-limitations.json",
+    "artifacts/readiness/M035/readiness-report.json",
+    "artifacts/validation/m035-smoke/verify.json"
+  ],
+  "acceptanceCriteria": [
+    "The declared support envelope is concrete, useful for internal testing, and fully evidenced.",
+    "Required stress, fault, transition, save-cycle, 365-day headless, and four-hour graphical campaigns completed rather than being inferred from partial logs.",
+    "No unresolved corruption, duplication, reservation/ownership leak, or blocking deadlock exists inside the support envelope.",
+    "Performance budgets and regressions are honestly classified and tied to comparable evidence.",
+    "Save compatibility, corruption diagnostics, and previous-good recovery are credible for repeated internal use.",
+    "Representative failures can be reproduced from portable bounded bundles without planning context or debugger knowledge.",
+    "The internal-testing runbook is sufficient for the repository user to operate, diagnose, and report supported sessions.",
+    "Graphical long-session evidence shows the operations surface remains usable and diagnostically coherent.",
+    "Known limitations are explicit, non-blocking inside the envelope, and do not conceal semantic defects.",
+    "The final decision is ready or ready-with-declared-limitations."
+  ],
+  "acceptableDecisions": [
+    "approved"
+  ],
+  "waiverPolicy": "No implicit waiver. A not-ready decision blocks completion. Any limitation accepted for readiness must be explicit, outside the supported envelope or non-blocking within it, and recorded in the final readiness report.",
+  "decision": "approved",
+  "reviewedRevision": "ref: refs/heads/m35",
+  "reviewedFingerprint": "706fd8ef3b28ec08dd1954340d098ed38cd2dc6700e1191c7662c26679d22dc9",
+  "conditions": [],
+  "completedAt": "2026-07-23T04:58:07.7436731+00:00",
+  "decisionHistory": [
+    {
+      "decision": "approved",
+      "reviewer": "repository user and designated engine reviewer",
+      "notes": "Repository user explicitly approved the completed interactive graphical workflow, including Pause and Resume as distinct controls, and authorized this approval.",
+      "evidence": [
+        "artifacts/readiness/M035/review-pack/review-manifest.json",
+        "artifacts/readiness/M035/review-pack/evidence-index.json",
+        "artifacts/readiness/M035/support-envelope.json",
+        "artifacts/readiness/M035/performance-comparison.json",
+        "artifacts/readiness/M035/runtime-health-summary.json",
+        "artifacts/readiness/M035/save-compatibility-matrix.json",
+        "artifacts/readiness/M035/save-recovery-report.json",
+        "artifacts/readiness/M035/reproduction-bundle-index.json",
+        "artifacts/readiness/M035/headless-soak-report.json",
+        "artifacts/readiness/M035/graphical-soak-report.json",
+        "artifacts/readiness/M035/blocking-defects.json",
+        "artifacts/readiness/M035/known-limitations.json",
+        "artifacts/readiness/M035/readiness-report.json",
+        "artifacts/validation/m035-smoke/verify.json"
+      ],
+      "revision": "ref: refs/heads/m35",
+      "fingerprint": "706fd8ef3b28ec08dd1954340d098ed38cd2dc6700e1191c7662c26679d22dc9",
+      "recordedAt": "2026-07-23T04:58:07.6402629+00:00",
+      "recordCorrection": false
+    }
+  ],
+  "correctsReviewId": "",
+  "path": ".review/records/review.m035.heavy-internal-testing-readiness.json"
+}

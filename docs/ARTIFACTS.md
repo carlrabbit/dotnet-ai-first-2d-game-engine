@@ -39,6 +39,7 @@ Failures must produce enough structured evidence for diagnosis. Generated artifa
 | `docs/artifacts/asset-workbench-session-and-promotion-review-pack-contract.md` | M029 session, input, preview, recovery, promotion, and M030-readiness evidence. |
 | `docs/artifacts/simulation-foundation-artifact-contract.md` | M031 semantic world, persistence, inspection, workflow, and review evidence. |
 | `docs/artifacts/multi-fidelity-simulation-artifact-contract.md` | M033 queue, transition, persistence, equivalence, and review evidence. |
+| `docs/artifacts/heavy-internal-testing-readiness-artifact-contract.md` | M035 scale, health, campaign, recovery, reproduction, soak, and readiness evidence. |
 
 ## Artifact roots
 
@@ -78,3 +79,7 @@ Review-pack manifests must make current artifact families discoverable.
 M031 writes deterministic structural evidence under `artifacts/simulation/M031/`, including canonical world inspections, activities, reservations, command/event JSON Lines, persistence and invariant reports, direct-versus-roundtrip wood-workflow comparison, and a bounded review pack. Timing is advisory only.
 
 M033 writes queue inspections, guarded trigger outcomes, fidelity/transition mappings, mixed-fidelity persistence, conservation/equivalence/control-run reports, and review evidence under `artifacts/simulation/M033/`. Graphics evidence is explicitly classified and is required for its blocking review.
+
+## Heavy internal-testing readiness evidence
+
+M035 writes its bounded readiness evidence under `artifacts/readiness/M035/` and resumable receipts under `artifacts/validation/m035-smoke/`. A graphical-soak skip is explicit evidence of an incomplete gate, never a readiness pass. The readiness report may claim `ready` or `ready-with-declared-limitations` only after the aggregate verifier and blocking review pass.

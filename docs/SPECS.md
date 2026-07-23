@@ -76,6 +76,11 @@ This document indexes permanent behavioral authority. Milestones sequence work; 
 | `docs/specs/generated-sound-linkage-contract.md` | Explicit synthesis-to-derived-asset-to-runtime-sound linkage. |
 | `docs/specs/scaled-performance-workload-contract.md` | Bounded scaled performance workload and timing-authority policy. |
 | `docs/specs/autonomous-tic-tac-toe-consumer-contract.md` | Second consumer state, rules, presentation, and validation scope. |
+| `docs/specs/internal-testing-scale-and-performance-contract.md` | M035 supported scale envelope, budgets, baseline provenance, and comparisons. |
+| `docs/specs/runtime-health-and-diagnostics-contract.md` | M035 bounded invariant, deadlock, livelock, and starvation diagnostics. |
+| `docs/specs/stress-soak-and-fault-campaign-contract.md` | M035 deterministic campaigns, soaks, and test-only fault injection. |
+| `docs/specs/save-compatibility-and-recovery-contract.md` | M035 save compatibility, migration, corruption diagnostics, and recovery. |
+| `docs/specs/reproduction-and-internal-testing-contract.md` | M035 tester sessions, reproduction bundles, and readiness decisions. |
 
 ## Current invariants
 

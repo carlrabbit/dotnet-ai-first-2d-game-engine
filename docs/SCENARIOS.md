@@ -23,6 +23,7 @@ Scenarios validate behavior that unit tests alone cannot prove, including runtim
 | M017 | `animation-player-locomotion-smoke`, `animation-overlay-marker-smoke`, and `animation-semantic-replay-smoke`. |
 | M031 | `scenario.m031.simulation-foundation.wood-workflow`: deterministic two-region harvest/deposit proof with a fresh-process save/load continuation. |
 | M033 | `scenario.m033.multi-region-equivalence-and-switching`: three persistent regions, one detailed owner, abstract event advancement, repeated switches, and thirty-day controls. |
+| M035 | `campaign.m035.heavy-internal-testing-readiness`: five-region supported-scale, fault, compatibility, transition, save-cycle, 365-day headless-soak, and four-hour graphical-soak readiness campaign. |
 
 ## Current commands
 
@@ -37,6 +38,7 @@ dotnet run --project src/Agentic2D.Tools -- project run <project-or-workspace> -
 dotnet run --project src/Agentic2D.Tools -- run inspect <run-directory> --output <directory>
 dotnet run --project src/Agentic2D.Tools -- simulation wood-workflow --output artifacts/simulation/M031
 dotnet run --project src/Agentic2D.Tools -- simulation run scenario.m033.multi-region-equivalence-and-switching --until 30d --mode abstract --output artifacts/simulation/M033
+dotnet run --project src/Agentic2D.Tools -- simulation m035-readiness --output artifacts/readiness/M035
 
 ## Required scenario qualities
 
