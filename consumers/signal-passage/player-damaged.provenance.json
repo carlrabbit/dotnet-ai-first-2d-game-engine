@@ -3,7 +3,7 @@
   "Id": "sound-synthesis.signal-passage.player-damaged",
   "OutputAssetId": "asset.signal-passage.player-damaged",
   "OutputPath": "game-content/generated/sounds/player-damaged.wav",
-  "DefinitionFingerprint": "sha256:0e9a05bb3028c78b99e601e2ed0572c506f12e3773100b784a8498a93b396448",
+  "DefinitionFingerprint": "sha256:cd3d2ae0d44a1fb2347234685635bec13ffaecd93bbff5aae2af7803fd96f420",
   "ImplementationVersion": "m025-offline-pcm-v1",
   "SampleCount": 5733,
   "SampleRate": 22050,

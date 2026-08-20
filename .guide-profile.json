@@ -1,9 +1,15 @@
 {
-  "schemaVersion": 1,
-  "guideSystemVersion": "0.6.0",
+  "schemaVersion": 2,
+  "guideSystemVersion": "0.7.2",
   "guideRepository": "carlrabbit/agentic-project-guides",
+  "guideSystem": { "repository": "carlrabbit/agentic-project-guides", "version": "0.7.2" },
+  "baseProfileVersion": "0.7.2",
+  "appliedProfileVersion": "0.7.2",
+  "base": { "profileVersion": "0.7.2" },
+  "applied": { "profileVersion": "0.7.2" },
   "targetRepository": "carlrabbit/dotnet-ai-first-2d-game-engine",
   "repositoryRole": "capability-provider",
+  "maturityStage": "implementation-ready",
   "repositoryProfiles": [
     "artifact-first-agentic-authoring",
     "runtime-tool",
@@ -14,6 +20,19 @@
     "artifact-first"
   ],
   "executionMode": "ai-executed-broad",
+  "executionModel": {
+    "baselineImplementationModel": "GPT-5.6 Luna",
+    "defaultImplementationMode": "ai-executed-broad",
+    "documentationSync": "separate-pass",
+    "releaseReadiness": "separate-pass",
+    "humanReview": "milestone-scoped"
+  },
+  "engineeringCommands": {
+    "canonicalInterface": "eng",
+    "implementation": "repository-specific",
+    "supportedLaunchers": ["bash", "powershell"],
+    "testedPlatforms": ["linux", "windows"]
+  },
   "guideUse": [
     "planning",
     "migration",
@@ -41,6 +60,8 @@
     ]
   },
   "planningWorkflow": {
+    "lifecycle": ["planning", "ready", "implementation"],
+    "readyDefinition": "The configured baseline implementation model can execute the milestone without inventing a material decision about architecture, semantics, compatibility, scope, acceptance, or validation policy.",
     "requiresExecutionPromptHandoff": true,
     "latestGuideVersionResolvedAtPlanningTime": true,
     "externalGuideRepositoryRequiredForImplementation": false
@@ -50,6 +71,8 @@
     "Project truth remains in README.md, AGENTS.md, docs/, eng/, source, tests, authored project data, and completed repository-local review records.",
     "Do not copy guide documents or prompt templates into this repository.",
     "Human review is owned by one milestone, gates only that milestone, and becomes immutable historical evidence when completed.",
-    "Aggregate validation success is established only by direct bounded completion or by fast verification of current fingerprinted shard receipts."
+    "Aggregate validation success is established only by direct bounded completion or by fast verification of current fingerprinted shard receipts.",
+    "Implementation lifecycle is implement, validate, completion audit, continue resolving agent-resolvable gaps, then terminate only as COMPLETE, AWAITING HUMAN REVIEW, or BLOCKED.",
+    "M037 is reserved for the postponed product shell; M036 does not implement product-shell work."
   ]
 }

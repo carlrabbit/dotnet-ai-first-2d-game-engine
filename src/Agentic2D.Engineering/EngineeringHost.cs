@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using System.Runtime.InteropServices;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
@@ -71,6 +72,13 @@ public static class EngineeringCli
         if (operation.SequenceEqual(["--verify"]))
         {
             return host.Verify(suite, stderr) ? 0 : 1;
+        }
+
+        if (suite.Id == "m036-smoke" && operation.SequenceEqual(["--emit-blocked"]))
+        {
+            M036EngineeringSuite.EmitBlockedEvidence(host.Root);
+            await stdout.WriteLineAsync("m036-smoke: blocked external-platform evidence written");
+            return 0;
         }
 
         return Usage(stderr);
@@ -216,7 +224,7 @@ public sealed class EngineeringHost
             shard.Command,
             shard.Evidence,
             artifacts,
-            new CompletionMetadata(started, DateTimeOffset.UtcNow, "linux-bash"),
+            new CompletionMetadata(started, DateTimeOffset.UtcNow, EngineeringEnvironment.Current.Launcher, EngineeringEnvironment.Current),
             []);
         ReceiptStore.WriteAtomic(receiptPath, receipt, json);
         await stdout.WriteLineAsync($"{suite.Id}/{shard.Id}: passed; receipt {ReceiptPath(suite, shard)}");
@@ -259,6 +267,32 @@ public sealed class EngineeringHost
         if (success)
         {
             diagnostics.WriteLine($"{suite.Id}: verification passed ({suite.Shards.Count} current receipts)");
+        }
+
+        if (suite.Id == "m036-smoke")
+        {
+            var audit = Absolute("artifacts/engineering/M036/m036-completion-audit.json");
+            var comparison = Absolute("artifacts/engineering/M036/platform-comparison.json");
+            if (!File.Exists(audit) || !File.ReadAllText(audit).Contains("\"terminalOutcome\": \"COMPLETE\"", StringComparison.Ordinal))
+            {
+                diagnostics.WriteLine("error: m036-smoke: completion audit is not COMPLETE");
+                success = false;
+            }
+            if (!File.Exists(comparison) || !File.ReadAllText(comparison).Contains("\"status\": \"passed\"", StringComparison.Ordinal))
+            {
+                diagnostics.WriteLine("error: m036-smoke: platform semantic comparison is not passed");
+                success = false;
+            }
+            foreach (var platform in new[] { "linux", "windows" })
+            {
+                var report = Absolute($"artifacts/engineering/M036/platform/{platform}/platform-verification.json");
+                var graphics = Absolute($"artifacts/engineering/M036/platform/{platform}/graphics-development.json");
+                if (!File.Exists(report) || !File.ReadAllText(report).Contains("\"status\": \"passed\"", StringComparison.Ordinal) || !File.Exists(graphics) || !File.ReadAllText(graphics).Contains("\"status\": \"passed\"", StringComparison.Ordinal))
+                {
+                    diagnostics.WriteLine($"error: m036-smoke: {platform} platform and graphics proofs are not passed");
+                    success = false;
+                }
+            }
         }
 
         if (suite.Id is "m031-smoke" or "m032-smoke" or "m033-smoke" or "m034-smoke" or "m035-smoke")
@@ -607,40 +641,15 @@ public sealed class EngineeringHost
 
     private async Task<int> RunInternalShardAsync(ValidationSuite suite, ValidationShard shard, TextWriter diagnostics)
     {
-        if (suite.Id != "m022-smoke")
+        if (suite.Id == "m036-smoke")
         {
-            throw new EngineeringException($"unsupported internal shard: {suite.Id}/{shard.Id}");
+            return await M036EngineeringSuite.RunAsync(root, shard.Id, diagnostics);
         }
 
-        return shard.Id switch
-        {
-            "platform-and-leakage" => CheckPlatformAndLeakage(diagnostics),
-            _ => throw new EngineeringException($"unsupported internal shard: {shard.Id}")
-        };
+        throw new EngineeringException($"unsupported internal shard: {suite.Id}/{shard.Id}");
     }
 
-    private int CheckPlatformAndLeakage(TextWriter diagnostics)
-    {
-        if (!OperatingSystem.IsLinux())
-        {
-            diagnostics.WriteLine("error: this migration only declares and tests Linux/Bash support");
-            return 1;
-        }
-
-        var forbidden = new[] { "docs/research", "prompt template", "external guide" };
-        var paths = new[] { "AGENTS.md", "docs/ENGINEERING.md", "docs/engineering/command-contract.md" };
-        foreach (var path in paths)
-        {
-            var text = File.ReadAllText(Absolute(path));
-            if (forbidden.Any(value => text.Contains(value, StringComparison.OrdinalIgnoreCase) && !text.Contains("Do not", StringComparison.OrdinalIgnoreCase)))
-            {
-                diagnostics.WriteLine($"error: active engineering document may treat guide material as authority: {path}");
-                return 1;
-            }
-        }
-
-        return 0;
-    }
+    public string Root => root;
 
     private bool HasCurrentReceipt(ValidationSuite suite, string shardId, TextWriter diagnostics)
     {
@@ -962,15 +971,6 @@ public sealed class EngineeringHost
             Shard("post-load", "Post-load transient reconstruction policy.", "./eng/presentation-post-load-smoke.sh", ["artifacts/smoke/m021-resumed/presentation/player-facing-presentation-result.json"], ["integrated"]),
             Shard("review", "Presentation review pack.", "./eng/presentation-review-smoke.sh", ["artifacts/smoke/m021-integrated/review/review-summary.md"], ["integrated"])
         ]),
-        new("m022-smoke", "resumable-sharded",
-        [
-            Shard("engineering-host-tests", "Engineering host plan and receipt tests.", "./eng/test-filter.sh EngineeringHost", ["src/Agentic2D.Engineering/EngineeringHost.cs", "tests/unit/Agentic2D.Tests.Unit/EngineeringHostTests.cs"]),
-            Shard("m019-suite", "Current M019 receipt verification.", "./eng/m019-smoke.sh --verify", ["artifacts/validation/m019-smoke/replay.json"]),
-            Shard("m020-suite", "Current M020 receipt verification.", "./eng/m020-smoke.sh --verify", ["artifacts/validation/m020-smoke/review.json"]),
-            Shard("m021-suite", "Current M021 receipt verification.", "./eng/m021-smoke.sh --verify", ["artifacts/validation/m021-smoke/review.json"]),
-            Shard("review-workflow", "Historical M022 migration review is present.", "./eng/review-check.sh --milestone M022", [".review/records/migration-guide-v050.json"]),
-            Shard("platform-and-leakage", "Declared Linux/Bash support and authority isolation.", "internal:platform-and-leakage", ["AGENTS.md", "docs/ENGINEERING.md"], isInternal: true)
-        ]),
         new("m023-smoke", "resumable-sharded",
         [
             Shard("metrics-contracts", "Finite metric vocabulary and bounded collector tests.", "./eng/test-filter.sh Metrics", ["src/Agentic2D.Metrics/RuntimeMetrics.cs", "tests/unit/Agentic2D.Tests.Unit/MetricsTests.cs"]),
@@ -979,30 +979,6 @@ public sealed class EngineeringHost
             Shard("comparative-workloads", "Reference workload capture.", "./eng/perf-smoke.sh", ["artifacts/performance/smoke/performance-capture.json"]),
             Shard("performance-report", "Advisory comparison and report generation.", "./eng/perf-report-smoke.sh", ["artifacts/performance/m023/performance-report.json", "artifacts/performance/m023/performance-report.md"]),
             Shard("integrated", "Direct build, test, and product integration checks.", "./eng/build.sh && ./eng/test.sh && ./eng/cli-smoke.sh && ./eng/product-validate.sh", ["artifacts/cli/runtime-smoke/result.json", "artifacts/cli/validate/result.json"])
-        ]),
-        new("m024-smoke", "resumable-sharded",
-        [
-            Shard("export-contracts", "Export manifest, inventory, and validation contracts.", "./eng/export-linux-smoke.sh", ["artifacts/smoke/m024-export/validate/export-validation.json"]),
-            Shard("game-host", "Dedicated standalone host builds and exposes bounded options.", "./eng/test-filter.sh GameHost", ["src/Agentic2D.GameHost/Program.cs"]),
-            Shard("export-build", "Self-contained Linux export assembly.", "./eng/export-linux-smoke.sh", ["artifacts/smoke/m024-export/game/agentic2d.export.json", "artifacts/smoke/m024-export/game/export-files.json"]),
-            Shard("isolated-headless-launch", "Direct executable launch outside source tree.", "./eng/export-isolated-launch-smoke.sh", ["artifacts/smoke/m024-isolated-launch/isolated-launch-result.json"]),
-            Shard("semantic-equivalence", "Development/export semantic comparison.", "./eng/export-equivalence-smoke.sh", ["artifacts/smoke/m024-equivalence/development-export-equivalence.json"]),
-            Shard("performance-report", "Same-machine export performance report.", "./eng/export-performance-smoke.sh", ["artifacts/performance/M024/performance-report.json", "artifacts/performance/M024/performance-report.md"]),
-            Shard("graphical-review", "Optional graphical-session review or explicit skip.", "./eng/export-graphical-smoke.sh", ["artifacts/smoke/m024-graphical/graphical-review.json"]),
-            Shard("integrated", "Build and direct export integration.", "./eng/build.sh && ./eng/export-isolated-launch-smoke.sh", ["artifacts/smoke/m024-isolated-launch/isolated-launch-run-manifest.json"])
-        ]),
-        new("m025-smoke", "resumable-sharded",
-        [
-            Shard("workspace-isolation", "Relocated consumer workspace validates, builds, and runs.", "./eng/signal-passage-isolation.sh", ["artifacts/signal-passage/isolation/workspace-validation.json", "artifacts/signal-passage/isolation/run-manifest.json"]),
-            Shard("geometric-presentation", "Consumer geometric visuals project into structural render evidence.", "./eng/signal-passage-smoke.sh", ["consumers/signal-passage/artifacts/runs/geometry/render/render-commands.jsonl"]),
-            Shard("sound-synthesis", "Offline cue definitions validate and regenerate PCM WAV assets.", "./eng/signal-passage-validate.sh", ["consumers/signal-passage/artifacts/sound-validation/sound-synthesis-result.json", "consumers/signal-passage/game-content/generated/sounds/objective-completed.wav"]),
-            Shard("consumer-gameplay", "Consumer-owned objective journey completes.", "./eng/signal-passage-smoke.sh", ["consumers/signal-passage/artifacts/journey/complete-journey.json"]),
-            Shard("save-resume", "Save/resume state contains no replayed transient feedback.", "./eng/signal-passage-smoke.sh", ["consumers/signal-passage/artifacts/journey/save.json"]),
-            Shard("linux-export", "Consumer workspace exports and runs through the standalone Linux host.", "./eng/signal-passage-export.sh", ["artifacts/signal-passage/export/game/agentic2d.export.json", "artifacts/signal-passage/export/run/run-manifest.json"]),
-            Shard("performance-report", "M025 advisory performance report is present.", "./eng/signal-passage-performance.sh", ["artifacts/performance/M025/performance-report.json", "artifacts/performance/M025/performance-report.md"]),
-            Shard("extension-discovery", "Consumer extension classifications are complete.", "test -f consumers/signal-passage/consumer-extension-report.json && test -f consumers/signal-passage/consumer-extension-report.md", ["consumers/signal-passage/consumer-extension-report.json", "consumers/signal-passage/consumer-extension-report.md"]),
-            Shard("human-review", "Historical M025 review is present and approved.", "./eng/review-check.sh --milestone M025", [".review/records/review.m025.signal-passage-playable-vertical-slice.json"]),
-            Shard("integrated", "Provider build and consumer journey integration.", "./eng/build.sh && ./eng/signal-passage-smoke.sh", ["consumers/signal-passage/artifacts/journey/complete-journey.json"])
         ]),
         new("m026-smoke", "resumable-sharded",
         [
@@ -1175,6 +1151,24 @@ public sealed class EngineeringHost
             Shard("readiness-report", "Readiness report and review pack are complete candidate evidence.", "./eng/test-filter.sh ReadinessGate && ./eng/m035-readiness-smoke.sh", ["artifacts/readiness/M035/readiness-report.json", "artifacts/readiness/M035/review-pack/review-manifest.json"]),
             Shard("human-review", "Blocking M035 readiness review is approved by a human.", "./eng/review-check.sh --milestone M035", ["artifacts/readiness/M035/review-pack/review-manifest.json"]),
             Shard("integrated", "M035 structural campaign, build, and readiness evidence.", "./eng/build.sh && ./eng/m035-probe.sh campaign && ./eng/m035-readiness-smoke.sh", ["artifacts/readiness/M035/m035-manifest.json", "artifacts/readiness/M035/readiness-report.json"])
+        ]),
+        new("m036-smoke", "resumable-sharded",
+        [
+            Shard("guide-profile-v072", "Guide profile metadata and effective 0.7.2 values.", "internal:guide-profile-v072", ["artifacts/engineering/M036/guide-profile-migration-report.json"], isInternal: true),
+            Shard("localized-execution-contract", "Localized ready and completion-audit execution semantics.", "internal:localized-execution-contract", ["artifacts/engineering/M036/guide-profile-migration-report.json"], ["guide-profile-v072"], true),
+            Shard("engineering-host-portability", "Platform-neutral host, process, temp, and receipt semantics.", "internal:engineering-host-portability", ["artifacts/engineering/M036/receipt-environment-report.json"], ["localized-execution-contract"], true),
+            Shard("launcher-inventory", "Evidence-backed inventory of every tracked Bash launcher.", "internal:launcher-inventory", ["artifacts/engineering/M036/launcher-inventory.json"], ["engineering-host-portability"], true),
+            Shard("historical-shell-cleanup", "No deleted historical launcher remains referenced by active truth.", "internal:historical-shell-cleanup", ["artifacts/engineering/M036/launcher-cleanup-report.json"], ["launcher-inventory"], true),
+            Shard("git-line-endings-and-paths", "Git normalization and portable durable paths.", "internal:git-line-endings-and-paths", ["artifacts/engineering/M036/git-normalization-report.json", "artifacts/engineering/M036/path-portability-report.json"], ["historical-shell-cleanup"], true),
+            Shard("asset-home-platform-defaults", "Explicit override and native per-user defaults.", "internal:asset-home-platform-defaults", ["artifacts/engineering/M036/asset-home-platform-report.json"], ["git-line-endings-and-paths"], true),
+            Shard("linux-core", "Linux Class A engineering proof.", "internal:linux-core", ["artifacts/engineering/M036/platform/linux/platform-verification.json"], ["asset-home-platform-defaults"], true),
+            Shard("windows-core", "Windows Class A engineering proof under PowerShell 7.", "internal:windows-core", ["artifacts/engineering/M036/platform/windows/platform-verification.json"], ["asset-home-platform-defaults"], true),
+            Shard("linux-graphics", "Linux Raylib development startup proof.", "internal:linux-graphics", ["artifacts/engineering/M036/platform/linux/graphics-development.json"], ["linux-core"], true),
+            Shard("windows-graphics", "Windows Raylib development startup proof.", "internal:windows-graphics", ["artifacts/engineering/M036/platform/windows/graphics-development.json"], ["windows-core"], true),
+            Shard("platform-semantic-comparison", "Cross-platform comparison with declared host differences only.", "internal:platform-semantic-comparison", ["artifacts/engineering/M036/platform-comparison.json"], ["linux-graphics", "windows-graphics"], true),
+            Shard("current-regression", "Current regression and representative headless proof.", "internal:current-regression", ["src/Agentic2D.Engineering/EngineeringHost.cs"], ["platform-semantic-comparison"], true),
+            Shard("documentation", "M036 current authority and launcher surface are indexed.", "internal:documentation", ["docs/engineering/cross-platform-development-and-launcher-policy.md", "docs/engineering/command-contract.md"], ["platform-semantic-comparison"], true),
+            Shard("integrated", "M036 completion audit after all platform evidence.", "internal:integrated", ["artifacts/engineering/M036/m036-completion-audit.json", "artifacts/engineering/M036/diagnostics.json"], ["current-regression", "documentation"], true)
         ])
     ];
 
@@ -1232,7 +1226,31 @@ public static class ReceiptStore
                 stream.Flush(flushToDisk: true);
             }
 
-            File.Move(temporary, path, overwrite: true);
+            IOException? lastIo = null;
+            UnauthorizedAccessException? lastAccess = null;
+            for (var attempt = 0; attempt < 20; attempt++)
+            {
+                try
+                {
+                    File.Move(temporary, path, overwrite: true);
+                    lastIo = null;
+                    lastAccess = null;
+                    break;
+                }
+                catch (IOException exception)
+                {
+                    lastIo = exception;
+                    Thread.Sleep(10);
+                }
+                catch (UnauthorizedAccessException exception)
+                {
+                    lastAccess = exception;
+                    Thread.Sleep(10);
+                }
+            }
+
+            if (lastAccess is not null) throw lastAccess;
+            if (lastIo is not null) throw lastIo;
         }
         finally
         {
@@ -1273,18 +1291,24 @@ public static class ProcessRunner
 {
     public static async Task<int> RunAsync(string workingDirectory, string command, TextWriter stdout, TextWriter stderr)
     {
-        var start = new ProcessStartInfo("bash", ["-lc", command])
-        {
-            WorkingDirectory = workingDirectory,
-            RedirectStandardOutput = true,
-            RedirectStandardError = true,
-            UseShellExecute = false
-        };
+        var start = BuildStartInfo(command, workingDirectory);
         using var process = Process.Start(start) ?? throw new EngineeringException($"unable to start shard command: {command}");
         var outTask = PumpAsync(process.StandardOutput, stdout);
         var errTask = PumpAsync(process.StandardError, stderr);
         await Task.WhenAll(process.WaitForExitAsync(), outTask, errTask);
         return process.ExitCode;
+    }
+
+    public static ProcessStartInfo BuildStartInfo(string command, string workingDirectory)
+    {
+        var start = OperatingSystem.IsWindows()
+            ? new ProcessStartInfo("pwsh", ["-NoLogo", "-NoProfile", "-NonInteractive", "-Command", command])
+            : new ProcessStartInfo("bash", ["-lc", command]);
+        start.WorkingDirectory = workingDirectory;
+        start.RedirectStandardOutput = true;
+        start.RedirectStandardError = true;
+        start.UseShellExecute = false;
+        return start;
     }
 
     private static async Task PumpAsync(StreamReader reader, TextWriter writer)
@@ -1300,7 +1324,7 @@ public sealed record ValidationShard(string Id, string Description, string Comma
 public sealed record ValidationPlan(string Schema, string SuiteId, string ExecutionMode, string SuiteFingerprint, string RepositoryFingerprint, IReadOnlyList<PlanShard> RequiredShards, string VerifierCommand, IReadOnlyList<string> ArtifactPaths);
 public sealed record PlanShard(string Id, string Description, string Command, string ReceiptPath, IReadOnlyList<string> DependsOn, IReadOnlyList<string> Evidence);
 public sealed record ArtifactFingerprint(string Path, string Fingerprint);
-public sealed record CompletionMetadata(DateTimeOffset StartedAtUtc, DateTimeOffset CompletedAtUtc, string Platform);
+public sealed record CompletionMetadata(DateTimeOffset StartedAtUtc, DateTimeOffset CompletedAtUtc, string Platform, EngineeringEnvironment? Environment = null);
 public sealed record ValidationReceipt(string Schema, string SuiteId, string ShardId, string Status, string SuiteFingerprint, string RepositoryFingerprint, string CommandFingerprint, string InputFingerprint, string ResultFingerprint, string Command, IReadOnlyList<string> EvidencePaths, IReadOnlyList<ArtifactFingerprint> Artifacts, CompletionMetadata Completion, IReadOnlyList<string> Diagnostics);
 public sealed record ReviewListOptions(string? Milestone, string? State, string? Status);
 public sealed record ReviewAlias(int Alias, string ReviewId);

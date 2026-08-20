@@ -19,4 +19,4 @@ Milestones and implementation tasks should name the expected validation tier.
 
 Tier names are independent of execution mode: `direct`, `resumable-sharded`, `CI-only`, or `human-review`. A resumable Tier 2 suite has current passing receipts only when its fast `--verify` passes. Tier 5 required/blocking review is established by `./eng/review-check.sh --milestone <id>` for the review's owning milestone; see `docs/engineering/human-review-workflow.md` for the full review command contract. M027 and M028 use direct focused checks plus resumable aggregates.
 
-Linux/Bash is the tested platform baseline for engineering commands. Native Windows/PowerShell is unsupported until implemented and validated.
+M036 establishes Linux/Bash and native Windows/PowerShell 7 as the tested engineering platforms. Support claims remain evidence-based and require the corresponding platform verification report; graphics development is a separate Class B proof.

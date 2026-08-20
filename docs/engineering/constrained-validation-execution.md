@@ -31,6 +31,8 @@ A resumable suite exposes:
 ./eng/<suite>.sh
 ```
 
+On Windows, the native equivalent is `pwsh ./eng/suite.ps1 <suite-id> --plan-json`, `--shard <id>`, or `--verify`. M036 additionally exposes `pwsh ./eng/m036-smoke.ps1` over the same suite definition. Receipts retain structured host metadata; host identity is provenance, not semantic input.
+
 No-argument mode may execute all shards and then verify in an unconstrained local or CI environment. It is not the required agent path.
 
 ## Agent path

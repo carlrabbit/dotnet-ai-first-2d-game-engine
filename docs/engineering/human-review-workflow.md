@@ -88,6 +88,8 @@ Repositories with active required/blocking review expose:
 ./eng/review-check.sh --milestone <id>
 ```
 
+Windows uses the native PowerShell 7 adapters `pwsh ./eng/review-list.ps1`, `review-show.ps1`, `review-record.ps1`, `review-reopen.ps1`, `review-request.ps1`, and `review-check.ps1` with the same arguments and host semantics.
+
 Launchers are thin. Review parsing, schema validation, fingerprinting, and status transitions live in tested .NET engineering code.
 
 `review-list` deterministically displays active and historical reviews and atomically writes its current alias context to ignored `artifacts/review/session/aliases.json`. Every list context assigns numeric aliases. `show`, `record`, and `reopen` accept a canonical ID or an alias only from that latest successful list; a changed review context makes an alias fail safely and requires another list. Aliases never enter review files, milestones, receipts, automation, or cross-references.

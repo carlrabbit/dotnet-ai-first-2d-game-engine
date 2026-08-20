@@ -488,11 +488,20 @@ public static class M035ReadinessArtifactWriter
             await File.WriteAllTextAsync(Path.Combine(bundle, "checkpoint.json"), checkpoint);
             await Json(bundle, "manifest.json", new
             {
-                schema = "agentic2d.m035.reproduction-bundle.v1", version = 1, id = fault.Id, campaign = ScenarioId, seed = "m035-reference-seed",
-                expectedFailureSignature = fault.Signature, observed = fault.Status, checkpoint = "checkpoint.json",
+                schema = "agentic2d.m035.reproduction-bundle.v1",
+                version = 1,
+                id = fault.Id,
+                campaign = ScenarioId,
+                seed = "m035-reference-seed",
+                expectedFailureSignature = fault.Signature,
+                observed = fault.Status,
+                checkpoint = "checkpoint.json",
                 run = "dotnet run --project src/Agentic2D.Tools -- simulation m035-readiness --mode fault --output artifacts/readiness/M035",
-                verify = "./eng/fault-injection-smoke.sh", minimization = "not-required; deterministic one-boundary case", sanitized = true,
-                artifactIndex = new[] { "checkpoint.json", "manifest.json" }, repositoryRelative = true,
+                verify = "./eng/fault-injection-smoke.sh",
+                minimization = "not-required; deterministic one-boundary case",
+                sanitized = true,
+                artifactIndex = new[] { "checkpoint.json", "manifest.json" },
+                repositoryRelative = true,
             });
         }
     }

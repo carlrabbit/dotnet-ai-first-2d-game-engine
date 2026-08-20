@@ -99,3 +99,21 @@ The canonical six-command engineering review family, including positional review
 `./eng/m027-smoke.sh` is resumable-sharded. It has `--list`, `--plan-json`, `--shard <id>`, `--verify`, and no-argument modes. Its human-review shard remains pending until the owning M027 review is approved.
 
 The Bash launchers delegate structured semantics to `src/Agentic2D.Engineering`; they are not product commands.
+
+PowerShell 7 launchers delegate to the same host and are the native Windows surface:
+
+```text
+pwsh ./eng/restore.ps1
+pwsh ./eng/build.ps1
+pwsh ./eng/test.ps1
+pwsh ./eng/test-filter.ps1 <filter>
+pwsh ./eng/format.ps1 --verify
+pwsh ./eng/check.ps1
+pwsh ./eng/review-list.ps1 [filters]
+pwsh ./eng/review-show.ps1 <review-id-or-alias>
+pwsh ./eng/review-check.ps1 --milestone <id>
+pwsh ./eng/suite.ps1 <suite-id> --plan-json|--shard <id>|--verify
+pwsh ./eng/m036-smoke.ps1 --plan-json|--shard <id>|--verify
+```
+
+M036 is the first cross-platform resumable suite. Its aggregate verifier consumes current receipts and both explicit platform reports; one platform, a graphics skip, or partial shard output is not completion.

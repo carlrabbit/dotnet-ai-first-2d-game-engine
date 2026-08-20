@@ -3,7 +3,7 @@
   "Id": "sound-synthesis.tic-tac-toe.win",
   "OutputAssetId": "asset.tic-tac-toe.win",
   "OutputPath": "game-content/generated/sounds/win.wav",
-  "DefinitionFingerprint": "sha256:46cb5e940535ea29e3d89db926d268e373fdd688425bd4e4ac7d11a03837740e",
+  "DefinitionFingerprint": "sha256:3928f044c067a72b93badd563f96df65636b856abfa1cec5ea89d9826197b96f",
   "ImplementationVersion": "m025-offline-pcm-v1",
   "SampleCount": 3528,
   "SampleRate": 22050,

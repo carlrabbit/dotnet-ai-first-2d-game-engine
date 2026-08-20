@@ -3,7 +3,7 @@
   "Id": "sound-synthesis.tic-tac-toe.human-takeover",
   "OutputAssetId": "asset.tic-tac-toe.human-takeover",
   "OutputPath": "game-content/generated/sounds/human-takeover.wav",
-  "DefinitionFingerprint": "sha256:091a0822a23acfb7b187a83bf7dacbe8e51a58098193d794eb1a4ccf8f68e3ee",
+  "DefinitionFingerprint": "sha256:eb2051b699ca2fe001c73f50a7f21971d6415683a39bca634e9058e7a164463b",
   "ImplementationVersion": "m025-offline-pcm-v1",
   "SampleCount": 2646,
   "SampleRate": 22050,

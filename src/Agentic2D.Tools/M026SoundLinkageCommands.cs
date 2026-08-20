@@ -41,21 +41,21 @@ internal static class M026SoundLinkageCommands
         }
         var synthRoot = Path.Combine(project, "game-content", "sound-synthesis");
         if (Directory.Exists(synthRoot)) foreach (var synth in Directory.EnumerateFiles(synthRoot, "*.json", SearchOption.AllDirectories))
+        {
+            using var synthesisDocument = JsonDocument.Parse(File.ReadAllText(synth));
+            var definitions = synthesisDocument.RootElement.ValueKind == JsonValueKind.Array ? synthesisDocument.RootElement.EnumerateArray() : new[] { synthesisDocument.RootElement }.AsEnumerable();
+            foreach (var definition in definitions)
             {
-                using var synthesisDocument = JsonDocument.Parse(File.ReadAllText(synth));
-                var definitions = synthesisDocument.RootElement.ValueKind == JsonValueKind.Array ? synthesisDocument.RootElement.EnumerateArray() : new[] { synthesisDocument.RootElement }.AsEnumerable();
-                foreach (var definition in definitions)
-                {
-                    var id = definition.TryGetProperty("id", out var idElement) ? idElement.GetString() : null;
-                    if (!string.IsNullOrWhiteSpace(id) && !entries.Any(x => x.SynthesisId == id)) diagnostics.Add(new("SNDL004", "warning", "Synthesis definition has no ordinary sound linkage claim.", Relative(project, synth), "id"));
-                }
+                var id = definition.TryGetProperty("id", out var idElement) ? idElement.GetString() : null;
+                if (!string.IsNullOrWhiteSpace(id) && !entries.Any(x => x.SynthesisId == id)) diagnostics.Add(new("SNDL004", "warning", "Synthesis definition has no ordinary sound linkage claim.", Relative(project, synth), "id"));
             }
+        }
         var generatedRoot = Path.Combine(project, "game-content", "generated", "sounds");
         if (Directory.Exists(generatedRoot)) foreach (var generatedWav in Directory.EnumerateFiles(generatedRoot, "*.wav", SearchOption.AllDirectories))
-            {
-                var relative = Path.GetRelativePath(project, generatedWav).Replace('\\', '/');
-                if (!entries.Any(x => string.Equals(x.OutputPath, relative, StringComparison.Ordinal))) diagnostics.Add(new("SNDL004", "error", "Generated output has no ordinary sound definition linkage.", Relative(project, generatedWav), "outputPath"));
-            }
+        {
+            var relative = Path.GetRelativePath(project, generatedWav).Replace('\\', '/');
+            if (!entries.Any(x => string.Equals(x.OutputPath, relative, StringComparison.Ordinal))) diagnostics.Add(new("SNDL004", "error", "Generated output has no ordinary sound definition linkage.", Relative(project, generatedWav), "outputPath"));
+        }
         foreach (var duplicate in entries.GroupBy(x => x.SynthesisId, StringComparer.Ordinal).Where(x => x.Count() > 1)) diagnostics.Add(new("SNDL005", "error", "One synthesis definition has incompatible multiple linkage claims.", Relative(project, source), "links[].synthesisId"));
         foreach (var duplicate in entries.GroupBy(x => x.SoundDefinitionId + "|" + x.VariantId, StringComparer.Ordinal).Where(x => x.Count() > 1)) diagnostics.Add(new("SNDL005", "error", "One ordinary sound variant has incompatible multiple generated-output claims.", Relative(project, source), "links[].soundDefinitionId"));
         var exportDirectory = Option(args, "--export");

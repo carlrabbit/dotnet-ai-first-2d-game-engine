@@ -8,7 +8,7 @@ M035 supports a five-region settlement with 50 workers, at least 1,000 authorita
 
 ## Host and graphics prerequisites
 
-Use Linux, Bash, Git, and the tested .NET SDK. Headless structural checks are supported everywhere on that host. The four-hour graphical soak additionally requires a verified Raylib-capable supervised session that explicitly sets `M035_GRAPHICS_CAPABLE=1`; a display variable alone is not sufficient evidence. It is intentionally not emulated by a headless skip. The graphical adapter displays a live five-region `SimulationWorld` fixture: its simulated instant, world fingerprint, event count, detailed-region ownership, and resource cycle must change while it is running. The supplied M034 operations dashboard is validated as launch input, but is not treated as mutable graphical authority.
+Use a native Linux/Bash or Windows/PowerShell 7 clone with the tested .NET SDK. Headless structural checks are supported on both development platforms. The four-hour graphical soak additionally requires a verified Raylib-capable supervised session that explicitly sets `M035_GRAPHICS_CAPABLE=1`; a display variable alone is not sufficient evidence. It is intentionally not emulated by a headless skip. The graphical adapter displays a live five-region `SimulationWorld` fixture: its simulated instant, world fingerprint, event count, detailed-region ownership, and resource cycle must change while it is running. The supplied M034 operations dashboard is validated as launch input, but is not treated as mutable graphical authority.
 
 ## Start, inspect, and save a reference session
 

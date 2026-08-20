@@ -3,7 +3,7 @@
   "Id": "sound-synthesis.tic-tac-toe.round-start",
   "OutputAssetId": "asset.tic-tac-toe.round-start",
   "OutputPath": "game-content/generated/sounds/round-start.wav",
-  "DefinitionFingerprint": "sha256:404bb1210cfc3b2352b46a6dc2f496e9963e4c47b358c19ce2aada63e9bd66f4",
+  "DefinitionFingerprint": "sha256:61cb017a1773da568afee2cfee51978d68e242d24b9fc4039749f6ded77b78e6",
   "ImplementationVersion": "m025-offline-pcm-v1",
   "SampleCount": 2205,
   "SampleRate": 22050,
