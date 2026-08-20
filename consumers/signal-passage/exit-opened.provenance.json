@@ -3,7 +3,7 @@
   "Id": "sound-synthesis.signal-passage.exit-opened",
   "OutputAssetId": "asset.signal-passage.exit-opened",
   "OutputPath": "game-content/generated/sounds/exit-opened.wav",
-  "DefinitionFingerprint": "sha256:5084aa615a7790cef761c37aa091ef8394f27a7cd50a87a4800005118ca9d556",
+  "DefinitionFingerprint": "sha256:50c968b7fdf85100823be349c39f97e3fb9d59f8d1dbf7ab2b85bb521e49e131",
   "ImplementationVersion": "m025-offline-pcm-v1",
   "SampleCount": 7938,
   "SampleRate": 22050,

@@ -3,7 +3,7 @@
   "Id": "sound-synthesis.tic-tac-toe.invalid-selection",
   "OutputAssetId": "asset.tic-tac-toe.invalid-selection",
   "OutputPath": "game-content/generated/sounds/invalid-selection.wav",
-  "DefinitionFingerprint": "sha256:d1f50ca8cc8cbd94ae416bb1ed463534478aed2a0aa027e746d623ed41c12e4f",
+  "DefinitionFingerprint": "sha256:1213674f3bfaae848a88b65a76940457ec8c126e09440cc8f9290100ad3d37bf",
   "ImplementationVersion": "m025-offline-pcm-v1",
   "SampleCount": 1323,
   "SampleRate": 22050,

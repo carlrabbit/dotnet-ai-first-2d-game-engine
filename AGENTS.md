@@ -85,6 +85,12 @@ Read `docs/HUMAN-REVIEW.md`, applicable contracts, and generated review packs. H
 
 Project-specific operational rules must exist in active repository docs before implementation agents rely on them.
 
+## Guide-system execution semantics
+
+Planning follows `planning -> ready milestone -> implementation`. A milestone is `ready` only when the configured baseline implementation model can execute it without inventing a material decision about architecture, semantics, compatibility, scope, acceptance, or validation policy.
+
+Implementation follows `implement -> validate -> completion audit`. After validation, continue resolving every agent-resolvable gap. Terminate exactly as `COMPLETE`, `AWAITING HUMAN REVIEW`, or `BLOCKED`; passing tests alone is not milestone completion. Completed milestones and reviews remain historical evidence and are not reopened for guide adoption.
+
 ## Hard constraints
 
 - Do not add non-root `README.md` files.

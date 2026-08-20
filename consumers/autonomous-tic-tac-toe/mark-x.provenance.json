@@ -3,7 +3,7 @@
   "Id": "sound-synthesis.tic-tac-toe.mark-x",
   "OutputAssetId": "asset.tic-tac-toe.mark-x",
   "OutputPath": "game-content/generated/sounds/mark-x.wav",
-  "DefinitionFingerprint": "sha256:21de6c2cffcc6086aee9ab5b368e30c84186453776d9c92e37065bdc512733e3",
+  "DefinitionFingerprint": "sha256:53a821f0654e6bceba199761738a7b21216725e1fa516203a7aeffb0703d7e51",
   "ImplementationVersion": "m025-offline-pcm-v1",
   "SampleCount": 1764,
   "SampleRate": 22050,

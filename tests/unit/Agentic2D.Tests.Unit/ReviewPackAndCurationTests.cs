@@ -133,7 +133,7 @@ public sealed class ReviewPackAndCurationTests
     [Test]
     public async Task ReviewPackSmokeWrapperFailsWhenProductCommandFails()
     {
-        var exitCode = await RunWrapperWithFailingDotnetAsync("eng/review-pack-smoke.sh");
+        var exitCode = await RunLauncherWithFailingDotnetAsync("eng/review-pack-smoke.ps1");
 
         await Assert.That(exitCode).IsNotEqualTo(0);
     }
@@ -141,7 +141,7 @@ public sealed class ReviewPackAndCurationTests
     [Test]
     public async Task AssetCurationSmokeWrapperFailsWhenProductCommandFails()
     {
-        var exitCode = await RunWrapperWithFailingDotnetAsync("eng/asset-curation-smoke.sh");
+        var exitCode = await RunLauncherWithFailingDotnetAsync("eng/asset-curation-smoke.ps1");
 
         await Assert.That(exitCode).IsNotEqualTo(0);
     }
@@ -180,31 +180,34 @@ public sealed class ReviewPackAndCurationTests
         return path;
     }
 
-    private static async Task<int> RunWrapperWithFailingDotnetAsync(string scriptPath)
+    private static async Task<int> RunLauncherWithFailingDotnetAsync(string scriptPath)
     {
         var binDirectory = CreateTempDirectory();
-        var fakeDotnetPath = Path.Combine(binDirectory, "dotnet");
-        await File.WriteAllTextAsync(
-            fakeDotnetPath,
-            """
-            #!/usr/bin/env bash
-            exit 42
-            """);
-        using (var chmod = Process.Start("chmod", $"+x {fakeDotnetPath}") ?? throw new InvalidOperationException("Could not chmod fake dotnet."))
-        {
-            await chmod.WaitForExitAsync();
-        }
-
         var repoRoot = ContentTargetResolver.FindRepositoryRoot();
+        var isWindows = OperatingSystem.IsWindows();
+        var fakeDotnetPath = Path.Combine(binDirectory, isWindows ? "dotnet.cmd" : "dotnet");
+        await File.WriteAllTextAsync(fakeDotnetPath, isWindows ? "@echo off\r\nexit /b 42\r\n" : "#!/usr/bin/env bash\nexit 42\n");
         var startInfo = new ProcessStartInfo
         {
-            FileName = "bash",
+            FileName = isWindows ? "pwsh" : "bash",
             WorkingDirectory = repoRoot,
             RedirectStandardOutput = true,
             RedirectStandardError = true,
         };
-        startInfo.ArgumentList.Add(scriptPath);
-        startInfo.Environment["PATH"] = $"{binDirectory}{Path.PathSeparator}{Environment.GetEnvironmentVariable("PATH")}";
+        if (isWindows)
+        {
+            startInfo.ArgumentList.Add("-NoLogo");
+            startInfo.ArgumentList.Add("-NoProfile");
+            startInfo.ArgumentList.Add("-NonInteractive");
+            startInfo.ArgumentList.Add("-File");
+            startInfo.ArgumentList.Add(scriptPath);
+            startInfo.Environment["Path"] = $"{binDirectory}{Path.PathSeparator}{Environment.GetEnvironmentVariable("Path")}";
+        }
+        else
+        {
+            startInfo.ArgumentList.Add(scriptPath);
+            startInfo.Environment["PATH"] = $"{binDirectory}{Path.PathSeparator}{Environment.GetEnvironmentVariable("PATH")}";
+        }
 
         using var process = Process.Start(startInfo) ?? throw new InvalidOperationException("Could not start wrapper process.");
         await process.WaitForExitAsync();

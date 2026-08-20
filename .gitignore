@@ -6,10 +6,12 @@ artifacts/**
 !artifacts/review/
 !artifacts/review/.gitkeep
 artifacts/review/session/
+artifacts/engineering/M036/
 
 # Generated game assets and local previews
 game/assets/generated/**
 !game/assets/generated/.gitkeep
+game/assets/raw/
 
 # IDE/editor
 .vs/

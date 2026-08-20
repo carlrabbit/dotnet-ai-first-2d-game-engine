@@ -3,7 +3,7 @@
   "Id": "sound-synthesis.tic-tac-toe.draw",
   "OutputAssetId": "asset.tic-tac-toe.draw",
   "OutputPath": "game-content/generated/sounds/draw.wav",
-  "DefinitionFingerprint": "sha256:8cba4438700b374f9f171a3380a64d0fa0844fc155f5d41efd8e78575d978eef",
+  "DefinitionFingerprint": "sha256:16be399562c700792755c706fb6b89a5a37ab020b64d5e9bf318eab322f4eb0c",
   "ImplementationVersion": "m025-offline-pcm-v1",
   "SampleCount": 3087,
   "SampleRate": 22050,

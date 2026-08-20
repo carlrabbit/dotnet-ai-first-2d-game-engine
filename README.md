@@ -28,6 +28,8 @@ The engine is headless-first, CLI/API-first, validation-first, and artifact-firs
   - optional standalone discrete-event simulation, coarse abstract travel/activity execution, authoritative one-region detailed fidelity, transactional reconciliation, and bounded multi-region evidence;
   - optional environmental infrastructure and settlement operations capability with construction plans, water/food/comfort infrastructure, maintenance, reserve policies, causal alerts, and bounded three-region evidence.
 
+M036 establishes the supported development baseline as native Linux/Bash and Windows/PowerShell 7. Linux export remains supported; Windows development does not imply Windows export.
+
 ## Current solution shape
 
 ```text
@@ -69,6 +71,13 @@ Do not treat `docs/research/` as operational authority. Do not require ordinary 
 ./eng/test.sh
 ./eng/format.sh --verify
 ./eng/check.sh
+
+# Windows development equivalents
+pwsh ./eng/restore.ps1
+pwsh ./eng/build.ps1
+pwsh ./eng/test.ps1
+pwsh ./eng/format.ps1 --verify
+pwsh ./eng/check.ps1
 ```
 
 Current capability wrappers are indexed in `docs/ENGINEERING.md`.

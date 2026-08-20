@@ -8,6 +8,8 @@ This document indexes build, validation, commands, and project-layout policy.
 
 The repository includes deterministic runtime, product CLI, scenarios, content validation, asset workflows, maps, runtime inspection, behavior/spatial systems, entity/component runtime, definitions and interactions, backend-neutral rendering, and an isolated raylib-cs debug client.
 
+M036 development support is native Linux/Bash and Windows/PowerShell 7. `src/Agentic2D.Engineering` owns suite definitions, process selection, fingerprints, receipts, temporary-file/atomic replacement policy, review operations, and platform evidence. `eng/*.sh` and `eng/*.ps1` are thin adapters. Linux export remains platform-specific; Windows export is deferred to M037 or a later milestone.
+
 ## Indexed documents
 
 | Document | Purpose |
@@ -26,6 +28,8 @@ The repository includes deterministic runtime, product CLI, scenarios, content v
 ./eng/format.sh --verify
 ./eng/check.sh
 ```
+
+PowerShell 7 equivalents are `pwsh ./eng/restore.ps1`, `build.ps1`, `test.ps1`, `format.ps1 --verify`, and `check.ps1`. The shared resumable interface is `pwsh ./eng/suite.ps1 <suite-id> --plan-json|--shard <id>|--verify`; M036 also has the documented convenience wrapper `pwsh ./eng/m036-smoke.ps1`.
 
 ## Current capability wrappers
 

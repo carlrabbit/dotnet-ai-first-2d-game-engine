@@ -194,7 +194,15 @@ public static class M028AssetLibraryCommands
     }
 
     private static object SourceView(SourceRecord s, bool includePath) => new { schema = "agentic2d.asset-source.v1", id = s.Id, displayName = s.DisplayName, kind = s.Kind, availability = s.Available ? "available" : "unavailable", packageFingerprint = s.PackageFingerprint, inventoryFingerprint = s.InventoryFingerprint, currentProfileFingerprint = s.CurrentProfileFingerprint, localPath = includePath ? s.Path : null, diagnostics = s.Diagnostics };
-    private static string HomePath() => Path.GetFullPath(Environment.GetEnvironmentVariable("AGENTIC2D_ASSET_HOME") ?? Path.Combine(Environment.GetEnvironmentVariable("XDG_DATA_HOME") ?? Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".local", "share"), "agentic2d", "assets"));
+    private static string HomePath()
+    {
+        var explicitHome = Environment.GetEnvironmentVariable("AGENTIC2D_ASSET_HOME");
+        if (!string.IsNullOrWhiteSpace(explicitHome)) return Path.GetFullPath(explicitHome);
+        var baseHome = OperatingSystem.IsWindows()
+            ? Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData)
+            : Environment.GetEnvironmentVariable("XDG_DATA_HOME") ?? Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".local", "share");
+        return Path.GetFullPath(Path.Combine(baseHome, "agentic2d", "assets"));
+    }
     private static void EnsureHome(string home) { foreach (var p in new[] { "registry", "sources", "profiles", "annotations", "previews", "sessions", "cache" }) Directory.CreateDirectory(Path.Combine(home, p)); }
     private static Registry LoadRegistry(string home) { EnsureHome(home); var p = Path.Combine(home, "registry", "sources.json"); return File.Exists(p) ? JsonSerializer.Deserialize<Registry>(File.ReadAllText(p), Json) ?? new Registry([]) : new Registry([]); }
     private static void SaveRegistry(string home, Registry value) => Atomic(Path.Combine(home, "registry", "sources.json"), JsonSerializer.Serialize(value, Json));

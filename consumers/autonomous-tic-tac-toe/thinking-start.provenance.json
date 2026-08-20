@@ -3,7 +3,7 @@
   "Id": "sound-synthesis.tic-tac-toe.thinking-start",
   "OutputAssetId": "asset.tic-tac-toe.thinking-start",
   "OutputPath": "game-content/generated/sounds/thinking-start.wav",
-  "DefinitionFingerprint": "sha256:dd5b47ea3ca3806485fa2f1f348ab4a2e254e06124639501c6155c4e048ecb45",
+  "DefinitionFingerprint": "sha256:625ebacbe234529accddd5626dfa3984c563ce67de1b67303fddba4daeb9acd9",
   "ImplementationVersion": "m025-offline-pcm-v1",
   "SampleCount": 2205,
   "SampleRate": 22050,
