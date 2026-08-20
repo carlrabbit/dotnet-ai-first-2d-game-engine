@@ -33,6 +33,19 @@ internal static class M037ProductShellSuite
             if (Path.GetExtension(path).Equals(".md", StringComparison.OrdinalIgnoreCase)) await File.WriteAllTextAsync(path, $"# M037 review evidence\n\nShard: `{shard}`\n\nThis bounded pack links deterministic headless contract evidence.\n");
             else await File.WriteAllTextAsync(path, JsonSerializer.Serialize(Record(host, root, state, relative, shard, windowsGraphicsExecuted), new JsonSerializerOptions { WriteIndented = true }));
         }
+        if (shard == "review-pack")
+        {
+            var verificationPath = Path.Combine(root, "artifacts", "validation", "m037-smoke", "verify.json");
+            Directory.CreateDirectory(Path.GetDirectoryName(verificationPath)!);
+            await File.WriteAllTextAsync(verificationPath, JsonSerializer.Serialize(new
+            {
+                schema = "agentic2d.m037.verification.v1",
+                suite = "m037-smoke",
+                status = "pending-human-review",
+                activePlatform = state.ActivePlatform,
+                deferred = state.DeferredVerification.Where(item => item.SourceMilestone == "M037").SelectMany(item => item.Checks).ToArray()
+            }, new JsonSerializerOptions { WriteIndented = true }));
+        }
         await diagnostics.WriteLineAsync($"m037 evidence refreshed for {shard}");
         return 0;
     }

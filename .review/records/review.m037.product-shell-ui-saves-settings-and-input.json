@@ -1,5 +1,5 @@
 {
-  "schema": "agentic2d.engineering.review-request.v2",
+  "schema": "agentic2d.engineering.review-record.v2",
   "id": "review.m037.product-shell-ui-saves-settings-and-input",
   "owningMilestone": "M037",
   "owningMilestonePath": "docs/milestones/MILESTONE-037-product-shell-ui-saves-settings-and-input.md",
@@ -13,7 +13,7 @@
   ],
   "level": "blocking",
   "reviewerRole": "repository user",
-  "status": "pending",
+  "status": "approved",
   "evidence": [
     "artifacts/application/M037/review-pack/review-manifest.json",
     "artifacts/application/M037/review-pack/evidence-index.json",
@@ -46,16 +46,36 @@
     "approved"
   ],
   "waiverPolicy": "No implicit waiver. Any bounded exception requires explicit milestone-contract amendment before review and must not weaken save safety, startup recovery, input recoverability, player/diagnostics isolation, or accessibility baseline.",
-  "requestPath": ".review/pending/review.m037.product-shell-ui-saves-settings-and-input.json",
-  "recordPath": ".review/records/review.m037.product-shell-ui-saves-settings-and-input.json",
-  "reviewCommand": "./eng/review-show.sh review.m037.product-shell-ui-saves-settings-and-input",
-  "checkCommand": "./eng/review-check.sh --milestone M037",
-  "notes": [
-    "Current active development platform is Windows; record the platform used for review.",
-    "M037 review is completed on the active development platform.",
-    "Linux-specific native/graphical verification is deferred in eng/platform-verification.json and does not keep M037 open.",
-    "A future Linux catch-up task owns any Linux platform-compatibility review and must not reopen this completed M037 review.",
-    "Game-wide submitted-text/RDP compatibility is not required.",
-    "This review gates only M037."
-  ]
+  "decision": "approved",
+  "reviewedRevision": "ref: refs/heads/main",
+  "reviewedFingerprint": "b5f747cdb83cff392a2853916e7d4e42d6d445c7821b152ef6367df6ca5f01bb",
+  "conditions": [],
+  "completedAt": "2026-08-20T21:52:27.4189966+00:00",
+  "decisionHistory": [
+    {
+      "decision": "approved",
+      "reviewer": "repository user",
+      "notes": "Approved after reviewing the M037 Windows active-platform visual proof and review-pack evidence.",
+      "evidence": [
+        "artifacts/application/M037/review-pack/review-manifest.json",
+        "artifacts/application/M037/review-pack/evidence-index.json",
+        "artifacts/application/M037/review-pack/navigation-and-client-separation.md",
+        "artifacts/application/M037/review-pack/save-and-autosave-flow.md",
+        "artifacts/application/M037/review-pack/settings-display-and-safe-mode.md",
+        "artifacts/application/M037/review-pack/input-rebinding.md",
+        "artifacts/application/M037/review-pack/accessibility-baseline.md",
+        "artifacts/application/M037/review-pack/graphical-evidence-index.md",
+        "artifacts/application/M037/client-dependency-report.json",
+        "artifacts/application/M037/display-preview-rollback-report.json",
+        "artifacts/application/M037/world-lifecycle-resource-report.json",
+        "artifacts/validation/m037-smoke/verify.json"
+      ],
+      "revision": "ref: refs/heads/main",
+      "fingerprint": "b5f747cdb83cff392a2853916e7d4e42d6d445c7821b152ef6367df6ca5f01bb",
+      "recordedAt": "2026-08-20T21:52:27.2085826+00:00",
+      "recordCorrection": false
+    }
+  ],
+  "correctsReviewId": "",
+  "path": ".review\\records\\review.m037.product-shell-ui-saves-settings-and-input.json"
 }
