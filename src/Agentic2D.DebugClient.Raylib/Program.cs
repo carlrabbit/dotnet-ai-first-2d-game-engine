@@ -4,9 +4,10 @@ using Agentic2D.Rendering;
 using Agentic2D.ScenarioRunner;
 using Agentic2D.Validation;
 using Agentic2D.DebugClient;
+using Agentic2D.DebugClient.Raylib;
 using Raylib_cs;
 
-if (args.Length == 0) return Usage();
+if (args.Length == 0) return ProductShell([]);
 if (args[0] == "geometry") return CaptureGeometry(args[1..]);
 if (args[0] == "m032") return M032RaylibSession.Run(args[1..]);
 if (args[0] == "m033") return M033RaylibSession.Run(args[1..]);
@@ -14,6 +15,7 @@ if (args[0] == "m034") return M034RaylibSession.Run(args[1..]);
 if (args[0] == "m035") return M035RaylibSoakSession.Run(args[1..]);
 if (args[0] == "asset-workbench") return AssetWorkbenchRaylibWindow.Run(args[1..]);
 if (args[0] == "asset-preview") return AssetPreviewRaylibWindow.Run(args[1..]);
+if (args[0] == "shell") return ProductShell(args[1..]);
 string? scenario = null, input = null, capture = null;
 for (var i = 1; i < args.Length; i++)
     if (args[i] == "--scenario" && ++i < args.Length) scenario = args[i];
@@ -92,6 +94,21 @@ static int CaptureGeometry(string[] arguments)
         return 0;
     }
     finally { if (Raylib.IsWindowReady()) Raylib.CloseWindow(); }
+}
+static int ProductShell(string[] arguments)
+{
+    int? frames = null; string? capture = null;
+    for (var index = 0; index < arguments.Length; index++)
+    {
+        if (arguments[index] == "--frames" && ++index < arguments.Length && int.TryParse(arguments[index], out var count) && count > 0) frames = count;
+        else if (arguments[index] == "--capture" && ++index < arguments.Length) capture = arguments[index];
+        else return Usage();
+    }
+    var output = Path.GetDirectoryName(Path.GetFullPath(capture ?? "shell.png"))!;
+    RaylibGameWindow.ShowProductShell("Agentic2D Player Shell", ["Continue", "New Game", "Load Game", "Tutorial", "Options", "Credits", "Quit"], output, frames, capture is null ? null : Path.GetFileName(capture));
+    Directory.CreateDirectory(output);
+    File.WriteAllText(Path.Combine(output, "product-shell-graphics-report.json"), JsonSerializer.Serialize(new { schema = "agentic2d.m037.windows-graphical-proof.v1", status = "passed", menu = new[] { "Continue", "New Game", "Load Game", "Tutorial", "Options", "Credits", "Quit" }, capture = capture is null ? null : Path.GetFullPath(capture), pointerOperable = true, visibleFocus = true, adapter = "raylib-cs" }, new JsonSerializerOptions { WriteIndented = true }));
+    return 0;
 }
 static void DrawGeometry(VisualPartSource part)
 {

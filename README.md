@@ -27,6 +27,7 @@ The engine is headless-first, CLI/API-first, validation-first, and artifact-firs
   - optional deterministic simulation foundation with one partitioned world, semantic time, activities, reservations, canonical persistence, and a headless wood-workflow proof;
   - optional standalone discrete-event simulation, coarse abstract travel/activity execution, authoritative one-region detailed fidelity, transactional reconciliation, and bounded multi-region evidence;
   - optional environmental infrastructure and settlement operations capability with construction plans, water/food/comfort infrastructure, maintenance, reserve policies, causal alerts, and bounded three-region evidence.
+  - engine-owned retained UI and player application shell foundations with safe saves, settings, display preview, and software-defined input bindings.
 
 M036 establishes the supported development baseline as native Linux/Bash and Windows/PowerShell 7. Linux export remains supported; Windows development does not imply Windows export.
 

@@ -100,6 +100,10 @@ The canonical six-command engineering review family, including positional review
 
 The Bash launchers delegate structured semantics to `src/Agentic2D.Engineering`; they are not product commands.
 
+M037 is dispatched through the generic resumable interface: `pwsh ./eng/suite.ps1 m037-smoke --plan-json|--shard <id>|--verify` (or `./eng/suite.sh m037-smoke ...` on Bash). Its blocking human-review shard remains pending until the repository-user review is approved.
+
+The M037 graphical shell smoke is `dotnet run --project src/Agentic2D.DebugClient.Raylib -- shell --frames <count> --capture <png>` in a graphics-capable environment.
+
 PowerShell 7 launchers delegate to the same host and are the native Windows surface:
 
 ```text

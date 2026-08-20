@@ -106,6 +106,6 @@ For resumable suites, run `--plan-json`, then each required `--shard <id>` in a 
 
 Use `.review/` only through the canonical command family in `docs/engineering/human-review-workflow.md`. Required and blocking review must pass `./eng/review-check.sh --milestone <id>` for its owning milestone.
 
-The canonical launcher platform is Bash on Linux. Native Windows and PowerShell are unsupported until implemented and tested.
+The canonical launcher platforms are Bash on Linux and PowerShell 7 on Windows. Keep implementation semantics platform-neutral and use the native launcher for each host.
 
 `src/Agentic2D.Engineering` is repository engineering infrastructure, not a product runtime API.

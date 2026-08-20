@@ -7,6 +7,7 @@ using Agentic2D.ScenarioRunner;
 using Agentic2D.Validation;
 using Agentic2D.DebugClient.Raylib;
 using Agentic2D.Tools;
+using Agentic2D.UI;
 
 var parsed = HostOptions.Parse(args);
 if (parsed.Error is not null) return Fail(parsed.Error, 2);
@@ -21,6 +22,16 @@ try
     var recordingPath = parsed.Recording is null ? null : Path.GetFullPath(parsed.Recording);
     var output = parsed.Output ?? Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), manifest.GameId, "logs-or-artifacts", "run-" + Guid.NewGuid().ToString("N"));
     Directory.CreateDirectory(output);
+    var userRoot = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), manifest.GameId);
+    using var shell = new ProductShellSession(Path.Combine(userRoot, "saves", "catalog.json"), Path.Combine(userRoot, "settings.json"));
+    var shellStartup = shell.Start(parsed.SafeMode, parsed.ResetUserSettings);
+    await File.WriteAllTextAsync(Path.Combine(output, "product-shell-startup.json"), JsonSerializer.Serialize(new { schema = "agentic2d.product-shell-startup.v1", state = shellStartup.State.ToString(), safeMode = parsed.SafeMode, resetUserSettings = parsed.ResetUserSettings, menu = shellStartup.Menu.Select(item => new { item.Id, item.Label, item.Available }), saveCount = shellStartup.Saves.Count, diagnosticsComposition = false }, ExportManifest.Json));
+    if (parsed.ProductShell && !parsed.Headless)
+    {
+        RaylibGameWindow.ShowProductShell(manifest.DisplayName, shellStartup.Menu.Where(item => item.Available).Select(item => item.Label).ToArray(), output, parsed.AutoCloseAfterFrames, parsed.Capture);
+        await File.WriteAllTextAsync(Path.Combine(output, "product-shell-graphical.json"), JsonSerializer.Serialize(new { schema = "agentic2d.product-shell-graphical.v1", status = "passed", menu = shellStartup.Menu.Select(item => item.Label), pointerOperable = true, visibleFocus = true, diagnosticsComposition = false }, ExportManifest.Json));
+        return 0;
+    }
     Directory.SetCurrentDirectory(root);
     var scenario = parsed.Scenario ?? manifest.StartupScenario;
     var scenarioPath = Directory.EnumerateFiles(Path.Combine(root, manifest.ContentRoot, "scenarios"), "*.json", SearchOption.AllDirectories)
@@ -78,19 +89,22 @@ catch (Exception exception) { return Fail(exception.Message, 1); }
 
 static int Fail(string message, int code) { Console.Error.WriteLine(message); return code; }
 
-file sealed record HostOptions(bool Headless, string? Scenario, string? Recording, string? Ticks, MetricsCollectionMode Metrics, string? Output, int? AutoCloseAfterFrames, string? Capture, bool Help, bool Version, string? Error)
+file sealed record HostOptions(bool Headless, string? Scenario, string? Recording, string? Ticks, MetricsCollectionMode Metrics, string? Output, int? AutoCloseAfterFrames, string? Capture, bool Help, bool Version, bool SafeMode, bool ResetUserSettings, bool ProductShell, string? Error)
 {
-    public const string Usage = "agentic2d-game [--headless] [--scenario <id>] [--recording <path>] [--ticks <count-or-final>] [--metrics off|summary|per-tick] [--output <path>] [--auto-close-after <frames>] [--capture <png>] [--help] [--version]";
+    public const string Usage = "agentic2d-game [--headless] [--product-shell] [--safe-mode] [--reset-user-settings] [--scenario <id>] [--recording <path>] [--ticks <count-or-final>] [--metrics off|summary|per-tick] [--output <path>] [--auto-close-after <frames>] [--capture <png>] [--help] [--version]";
     public static HostOptions Parse(string[] args)
     {
-        var headless = false; string? scenario = null, recording = null, ticks = null, output = null, capture = null; int? autoCloseAfterFrames = null; var metrics = MetricsCollectionMode.Off;
+        var headless = false; var safeMode = false; var resetUserSettings = false; var productShell = false; string? scenario = null, recording = null, ticks = null, output = null, capture = null; int? autoCloseAfterFrames = null; var metrics = MetricsCollectionMode.Off;
         for (var i = 0; i < args.Length; i++)
         {
             switch (args[i])
             {
                 case "--headless": headless = true; break;
-                case "--help": return new(false, null, null, null, metrics, null, null, null, true, false, null);
-                case "--version": return new(false, null, null, null, metrics, null, null, null, false, true, null);
+                case "--safe-mode": safeMode = true; break;
+                case "--reset-user-settings": resetUserSettings = true; break;
+                case "--product-shell": productShell = true; break;
+                case "--help": return new(false, null, null, null, metrics, null, null, null, true, false, false, false, false, null);
+                case "--version": return new(false, null, null, null, metrics, null, null, null, false, true, false, false, false, null);
                 case "--scenario": if (++i >= args.Length) return Invalid("missing value for --scenario"); scenario = args[i]; break;
                 case "--recording": if (++i >= args.Length) return Invalid("missing value for --recording"); recording = args[i]; break;
                 case "--ticks": if (++i >= args.Length || (args[i] != "final" && (!int.TryParse(args[i], out var count) || count < 0))) return Invalid("--ticks must be a non-negative count or final"); ticks = args[i]; break;
@@ -101,9 +115,9 @@ file sealed record HostOptions(bool Headless, string? Scenario, string? Recordin
                 default: return Invalid("unsupported option: " + args[i]);
             }
         }
-        return new(headless, scenario, recording, ticks, metrics, output, autoCloseAfterFrames, capture, false, false, null);
+        return new(headless, scenario, recording, ticks, metrics, output, autoCloseAfterFrames, capture, false, false, safeMode, resetUserSettings, productShell, null);
     }
-    private static HostOptions Invalid(string value) => new(false, null, null, null, MetricsCollectionMode.Off, null, null, null, false, false, value);
+    private static HostOptions Invalid(string value) => new(false, null, null, null, MetricsCollectionMode.Off, null, null, null, false, false, false, false, false, value);
     private static bool TryMetrics(string value, out MetricsCollectionMode mode) { mode = value switch { "off" => MetricsCollectionMode.Off, "summary" => MetricsCollectionMode.Summary, "per-tick" => MetricsCollectionMode.PerTick, _ => MetricsCollectionMode.Off }; return value is "off" or "summary" or "per-tick"; }
 }
 

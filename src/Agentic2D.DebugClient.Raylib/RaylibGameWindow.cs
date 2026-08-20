@@ -7,6 +7,29 @@ namespace Agentic2D.DebugClient.Raylib;
 /// <summary>Minimal product-facing window owned by the isolated raylib adapter.</summary>
 public static class RaylibGameWindow
 {
+    public static void ShowProductShell(string title, IReadOnlyList<string> menu, string output, int? autoCloseAfterFrames = null, string? capturePath = null)
+    {
+        RaylibApi.InitWindow(960, 540, title + " — Main Menu");
+        var selected = 0;
+        try
+        {
+            RaylibApi.SetTargetFPS(60);
+            for (var frame = 0; !RaylibApi.WindowShouldClose() && (!autoCloseAfterFrames.HasValue || frame < autoCloseAfterFrames.Value); frame++)
+            {
+                if (RaylibApi.IsKeyPressed(KeyboardKey.Down)) selected = (selected + 1) % menu.Count;
+                if (RaylibApi.IsKeyPressed(KeyboardKey.Up)) selected = (selected + menu.Count - 1) % menu.Count;
+                var mouse = RaylibApi.GetMousePosition();
+                for (var index = 0; index < menu.Count; index++) if (new System.Numerics.Vector2(320, 130 + index * 48).X <= mouse.X && mouse.X <= 640 && mouse.Y >= 130 + index * 48 && mouse.Y <= 170 + index * 48 && RaylibApi.IsMouseButtonPressed(MouseButton.Left)) selected = index;
+                RaylibApi.BeginDrawing(); RaylibApi.ClearBackground(new Color(17, 24, 39, 255));
+                RaylibApi.DrawText("AGENTIC2D", 320, 44, 34, Color.White); RaylibApi.DrawText("Endless settlement", 364, 84, 18, new Color(177, 190, 209, 255));
+                for (var index = 0; index < menu.Count; index++) { var focused = selected == index; var y = 130 + index * 48; RaylibApi.DrawRectangle(320, y, 320, 40, focused ? new Color(45, 125, 184, 255) : new Color(34, 48, 70, 255)); RaylibApi.DrawRectangleLines(320, y, 320, 40, focused ? Color.White : new Color(86, 104, 130, 255)); RaylibApi.DrawText(menu[index], 344, y + 10, 18, Color.White); }
+                RaylibApi.DrawText("Use pointer or Up/Down; Escape closes", 320, 492, 16, new Color(177, 190, 209, 255)); RaylibApi.EndDrawing();
+                if (capturePath is not null && frame == 1) { Directory.CreateDirectory(output); var screenshotPath = Path.IsPathRooted(capturePath) ? capturePath : Path.Combine(output, capturePath); var raylibScreenshotPath = Path.GetRelativePath(Directory.GetCurrentDirectory(), Path.GetFullPath(screenshotPath)); RaylibApi.TakeScreenshot(raylibScreenshotPath); }
+            }
+        }
+        finally { if (RaylibApi.IsWindowReady()) RaylibApi.CloseWindow(); }
+    }
+
     public static void Show(string title, string scenarioId, int finalTick, int? autoCloseAfterFrames = null)
     {
         RaylibApi.InitWindow(960, 540, title);

@@ -154,7 +154,7 @@ public sealed class EngineeringHost
                 ReceiptPath(suite, shard),
                 shard.DependsOn,
                 shard.Evidence)).ToArray(),
-            $"./eng/{suite.Id}.sh --verify",
+            suite.Id == "m037-smoke" ? "pwsh ./eng/suite.ps1 m037-smoke --verify" : $"./eng/{suite.Id}.sh --verify",
             suite.Shards.SelectMany(shard => shard.Evidence).Distinct(StringComparer.Ordinal).ToArray());
         var serialized = JsonSerializer.Serialize(plan, json);
         if (suite.Id is "m033-smoke" or "m034-smoke" or "m035-smoke")
@@ -641,6 +641,10 @@ public sealed class EngineeringHost
 
     private async Task<int> RunInternalShardAsync(ValidationSuite suite, ValidationShard shard, TextWriter diagnostics)
     {
+        if (suite.Id == "m037-smoke")
+        {
+            return await M037ProductShellSuite.RunAsync(root, shard.Id, diagnostics);
+        }
         if (suite.Id == "m036-smoke")
         {
             return await M036EngineeringSuite.RunAsync(root, shard.Id, diagnostics);
@@ -1151,6 +1155,32 @@ public sealed class EngineeringHost
             Shard("readiness-report", "Readiness report and review pack are complete candidate evidence.", "./eng/test-filter.sh ReadinessGate && ./eng/m035-readiness-smoke.sh", ["artifacts/readiness/M035/readiness-report.json", "artifacts/readiness/M035/review-pack/review-manifest.json"]),
             Shard("human-review", "Blocking M035 readiness review is approved by a human.", "./eng/review-check.sh --milestone M035", ["artifacts/readiness/M035/review-pack/review-manifest.json"]),
             Shard("integrated", "M035 structural campaign, build, and readiness evidence.", "./eng/build.sh && ./eng/m035-probe.sh campaign && ./eng/m035-readiness-smoke.sh", ["artifacts/readiness/M035/m035-manifest.json", "artifacts/readiness/M035/readiness-report.json"])
+        ]),
+        new("m037-smoke", "resumable-sharded",
+        [
+            Shard("authority-normalization", "Active platform authority is consistent.", "internal:m037", ["artifacts/application/M037/authority-normalization-report.json"], isInternal: true),
+            Shard("ui-tree-layout", "Retained controls and deterministic layout projection.", "internal:m037", ["artifacts/application/M037/ui-control-catalog.json", "artifacts/application/M037/ui-layout-cases.json"], isInternal: true),
+            Shard("ui-focus-modal-text", "Focus, modal, pointer, and text-entry isolation.", "internal:m037", ["artifacts/application/M037/ui-focus-input-cases.json"], isInternal: true),
+            Shard("application-foundation", "Explicit application lifecycle states.", "internal:m037", ["artifacts/application/M037/application-state-transitions.json"], isInternal: true),
+            Shard("player-diagnostics-isolation", "Player and diagnostics dependency separation.", "internal:m037", ["artifacts/application/M037/client-dependency-report.json"], isInternal: true),
+            Shard("main-pause-navigation", "Required player menus contain no diagnostics-only entries.", "internal:m037", ["artifacts/application/M037/main-menu-projection.json", "artifacts/application/M037/pause-menu-projection.json"], isInternal: true),
+            Shard("new-game-tutorial-entry", "World configurations, seeds, titles, and tutorial entry.", "internal:m037", ["artifacts/application/M037/new-game-cases.json", "artifacts/application/M037/world-configuration-validation.json"], isInternal: true),
+            Shard("save-catalog-naming", "Catalog metadata and locked autosave/manual naming.", "internal:m037", ["artifacts/application/M037/save-catalog.json", "artifacts/application/M037/save-naming-cases.json"], isInternal: true),
+            Shard("manual-save-lifecycle", "Manual save and browser lifecycle operations.", "internal:m037", ["artifacts/application/M037/save-catalog.json"], isInternal: true),
+            Shard("autosave-scheduling-retention", "Injected wall-clock scheduling and per-world retention.", "internal:m037", ["artifacts/application/M037/autosave-schedule-cases.json", "artifacts/application/M037/autosave-retention-cases.json"], isInternal: true),
+            Shard("settings-validation-recovery", "Versioned settings validation and startup recovery.", "internal:m037", ["artifacts/application/M037/settings-validation-report.json", "artifacts/application/M037/safe-mode-report.json"], isInternal: true),
+            Shard("display-preview-rollback", "Timed display preview and rollback state.", "internal:m037", ["artifacts/application/M037/display-preview-rollback-report.json"], isInternal: true),
+            Shard("input-registry-defaults", "Explicit software-defined action registry.", "internal:m037", ["artifacts/application/M037/input-action-registry.json"], isInternal: true),
+            Shard("input-rebinding-conflicts", "Capture, conflict, reset, and fallback behavior.", "internal:m037", ["artifacts/application/M037/input-binding-cases.json"], isInternal: true),
+            Shard("input-context-isolation", "Context priority and text-entry suppression.", "internal:m037", ["artifacts/application/M037/input-context-cases.json"], isInternal: true),
+            Shard("world-load-unload-resource-lifecycle", "Repeated world replacement disposes ownership.", "internal:m037", ["artifacts/application/M037/world-lifecycle-resource-report.json"], isInternal: true),
+            Shard("headless-structural-proof", "Windows structural product-shell proof.", "internal:m037", ["artifacts/application/M037/platform/windows/structural-report.json"], isInternal: true),
+            Shard("linux-player-shell-graphics", "Linux graphics proof is explicit and honest.", "internal:m037", ["artifacts/application/M037/platform/linux/graphical-report.json"], isInternal: true),
+            Shard("windows-player-shell-graphics", "Windows graphics startup/navigation proof.", "internal:m037", ["artifacts/application/M037/platform/windows/graphical-report.json"], isInternal: true),
+            Shard("affected-current-regression", "Current regression report and preserved M035/M036 boundaries.", "internal:m037", ["artifacts/application/M037/current-regression-report.json"], isInternal: true),
+            Shard("review-pack", "Bounded review pack linked to structural evidence.", "internal:m037", ["artifacts/application/M037/review-pack/review-manifest.json", "artifacts/application/M037/review-pack/evidence-index.json"], isInternal: true),
+            Shard("human-review", "Blocking M037 review is approved by the repository user.", "pwsh ./eng/review-check.ps1 --milestone M037", ["artifacts/application/M037/review-pack/review-manifest.json"]),
+            Shard("integrated", "Integrated structural proof and completion audit candidate.", "internal:m037", ["artifacts/application/M037/m037-completion-audit.json", "artifacts/application/M037/diagnostics.json"], ["review-pack"], true)
         ]),
         new("m036-smoke", "resumable-sharded",
         [
