@@ -81,6 +81,12 @@ This document indexes permanent behavioral authority. Milestones sequence work; 
 | `docs/specs/stress-soak-and-fault-campaign-contract.md` | M035 deterministic campaigns, soaks, and test-only fault injection. |
 | `docs/specs/save-compatibility-and-recovery-contract.md` | M035 save compatibility, migration, corruption diagnostics, and recovery. |
 | `docs/specs/reproduction-and-internal-testing-contract.md` | M035 tester sessions, reproduction bundles, and readiness decisions. |
+| `docs/specs/ui-toolkit-contract.md` | M037 retained backend-neutral UI, focus, modal, text capture, scaling, and lifecycle. |
+| `docs/specs/application-shell-and-client-contract.md` | M037 product lifecycle, player/diagnostics compositions, menus, and world replacement. |
+| `docs/specs/save-catalog-and-autosave-contract.md` | M037 player save metadata, Continue, catalog operations, autosave, and retention. |
+| `docs/specs/user-settings-and-display-safety-contract.md` | M037 versioned user settings, display preview/rollback, and safe mode. |
+| `docs/specs/software-defined-input-binding-contract.md` | M037 explicit bindable actions, contexts, conflicts, and rebinding. |
+| `docs/specs/world-configuration-and-new-game-contract.md` | M037 authored world configurations, seed/title selection, and tutorial entry. |
 
 ## Current invariants
 

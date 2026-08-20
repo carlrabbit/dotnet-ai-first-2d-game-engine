@@ -61,4 +61,7 @@ This document is authoritative for project vocabulary.
 | Fault injection | Explicit deterministic test composition at an approved infrastructure boundary; disabled by default and never gameplay authority. |
 | Reproduction bundle | Portable bounded evidence containing the seed, input/checkpoint, failure signature, environment, and exact run/verify command. |
 | Readiness decision | The M035 evidence-gate decision: `ready`, `ready-with-declared-limitations`, or `not-ready`. |
+| Player composition | The player-facing application/UI client over shared engine-owned foundations; it does not expose diagnostics-only services. |
+| Diagnostics composition | The engineering inspection client over the same shared foundations; it may expose internal health, artifact, and fault concepts. |
+| WorldId | Internal save provenance identity shared by a world and its rotating autosaves; it is not a player-visible world hierarchy. |
 | Blocking defect | A supported-envelope corruption, duplication/loss, ownership leak, deterministic divergence, unreproducible crash, persistent progress failure, failed campaign, or unusable critical diagnosis. |

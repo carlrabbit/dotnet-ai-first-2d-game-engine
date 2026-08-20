@@ -8,7 +8,7 @@ This document indexes build, validation, commands, and project-layout policy.
 
 The repository includes deterministic runtime, product CLI, scenarios, content validation, asset workflows, maps, runtime inspection, behavior/spatial systems, entity/component runtime, definitions and interactions, backend-neutral rendering, and an isolated raylib-cs debug client.
 
-M036 development support is native Linux/Bash and Windows/PowerShell 7. `src/Agentic2D.Engineering` owns suite definitions, process selection, fingerprints, receipts, temporary-file/atomic replacement policy, review operations, and platform evidence. `eng/*.sh` and `eng/*.ps1` are thin adapters. Linux export remains platform-specific; Windows export is deferred to M037 or a later milestone.
+M037 development support is native Linux/Bash and Windows/PowerShell 7. `src/Agentic2D.Engineering` owns suite definitions, process selection, fingerprints, receipts, temporary-file/atomic replacement policy, review operations, and platform evidence. `eng/*.sh` and `eng/*.ps1` are thin adapters. Linux export remains platform-specific; Windows export remains out of scope.
 
 ## Indexed documents
 
@@ -221,8 +221,14 @@ The resumable suites are `./eng/m019-smoke.sh`, `./eng/m020-smoke.sh`, `./eng/m0
 
 Repository-local review state is `.review/pending/`, `.review/records/`, and `.review/closed/`; generated or large evidence belongs under `artifacts/review/`. The full six-command review family, alias behavior, and reopening policy are authoritative in `docs/engineering/human-review-workflow.md`. Completed records are immutable historical evidence and do not stale because later commits change the repository.
 
-The tested engineering baseline is Linux with Bash, Git, .NET SDK 10.0.109, and same-filesystem atomic file replacement. Native Windows and PowerShell are not supported or claimed. Graphics smoke remains conditional on its documented graphics-capable environment.
+The tested engineering baseline is Linux/Bash and native Windows/PowerShell 7 with Git, .NET SDK 10.0.109, and same-filesystem atomic file replacement. Graphics smoke remains conditional on its documented graphics-capable environment.
 
 `./eng/m034-smoke.sh` is resumable-sharded. It has `--list`, `--plan-json`, `--shard <id>`, `--verify`, and no-argument modes. Its verifier requires current receipts, graphics-capable operations proof, and approved M034 blocking review. Focused commands write construction, flow, production, maintenance, operations, persistence, and sustained-settlement evidence under `artifacts/simulation/M034/`.
 
 `./eng/m035-smoke.sh` is resumable-sharded. Its verifier requires current direct and nested campaign receipts, a completed four-hour graphics-capable soak, an allowed readiness decision, and approved M035 blocking review. It writes readiness evidence under `artifacts/readiness/M035/`; `--verify` is the only aggregate-success authority.
+
+M037 uses the shared `suite.ps1` / `suite.sh` interface with `m037-smoke`; its receipt root is `artifacts/validation/m037-smoke/` and its product-shell evidence root is `artifacts/application/M037/`.
+
+The standalone host exposes `agentic2d-game --product-shell` for the player-facing Raylib shell, with `--safe-mode` and `--reset-user-settings` startup recovery options. The shell writes a bounded startup projection before any scenario execution.
+
+The isolated Raylib adapter also exposes `dotnet run --project src/Agentic2D.DebugClient.Raylib -- shell --frames <count> --capture <png>` for bounded graphical shell evidence; it remains adapter-only and does not become runtime authority.

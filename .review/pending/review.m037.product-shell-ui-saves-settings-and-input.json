@@ -1,0 +1,52 @@
+{
+  "schema": "agentic2d.engineering.review-request.v2",
+  "id": "review.m037.product-shell-ui-saves-settings-and-input",
+  "owningMilestone": "M037",
+  "owningMilestonePath": "docs/milestones/MILESTONE-037-product-shell-ui-saves-settings-and-input.md",
+  "subject": "M037 player product shell, UI toolkit, player/diagnostics separation, save/autosave workflow, settings safety, and software-defined input rebinding",
+  "classes": ["UX", "visual", "semantic", "accessibility-baseline", "artifact-quality"],
+  "level": "blocking",
+  "reviewerRole": "repository user",
+  "status": "pending",
+  "evidence": [
+    "artifacts/application/M037/review-pack/review-manifest.json",
+    "artifacts/application/M037/review-pack/evidence-index.json",
+    "artifacts/application/M037/review-pack/navigation-and-client-separation.md",
+    "artifacts/application/M037/review-pack/save-and-autosave-flow.md",
+    "artifacts/application/M037/review-pack/settings-display-and-safe-mode.md",
+    "artifacts/application/M037/review-pack/input-rebinding.md",
+    "artifacts/application/M037/review-pack/accessibility-baseline.md",
+    "artifacts/application/M037/review-pack/graphical-evidence-index.md",
+    "artifacts/application/M037/client-dependency-report.json",
+    "artifacts/application/M037/display-preview-rollback-report.json",
+    "artifacts/application/M037/world-lifecycle-resource-report.json",
+    "artifacts/validation/m037-smoke/verify.json"
+  ],
+  "acceptanceCriteria": [
+    "Main and pause menus are coherent, pointer-operable, and use player-facing terminology.",
+    "Player composition does not expose or require diagnostics-only concepts or services.",
+    "UI layout, focus, modal, text-entry, scaling, and visible-focus behavior are stable and understandable.",
+    "New Game selects a JSON world configuration and seed without exposing a scenario or world-rule editor.",
+    "Tutorial entry is clearly instructional but creates the same endless game.",
+    "Manual save naming is pre-filled, editable, and understandable.",
+    "Save browser, Continue fallback, overwrite/delete confirmation, autosave interval, and retention are safe and clear.",
+    "Display preview, timed confirmation, rollback, and safe mode are credible and recoverable.",
+    "Input rebinding, conflict handling, reset, context isolation, and text-entry capture are understandable and recoverable.",
+    "Accessibility-baseline behavior is adequate for the declared milestone scope.",
+    "Repeated transitions do not visibly retain stale UI/world state.",
+    "Known limitations are explicit and acceptable for M037."
+  ],
+  "acceptableDecisions": ["approved"],
+  "waiverPolicy": "No implicit waiver. Any bounded exception requires explicit milestone-contract amendment before review and must not weaken save safety, startup recovery, input recoverability, player/diagnostics isolation, or accessibility baseline.",
+  "requestPath": ".review/pending/review.m037.product-shell-ui-saves-settings-and-input.json",
+  "recordPath": ".review/records/review.m037.product-shell-ui-saves-settings-and-input.json",
+  "reviewCommand": "./eng/review-show.sh review.m037.product-shell-ui-saves-settings-and-input",
+  "checkCommand": "./eng/review-check.sh --milestone M037",
+  "notes": [
+    "Record the platform used for human review.",
+    "Automated graphical proof remains required on both supported development platforms.",
+    "Game-wide submitted-text/RDP compatibility is not required.",
+    "This review gates only M037.",
+    "Later presentation/tutorial/distribution milestones own their own review."
+  ]
+}

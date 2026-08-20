@@ -7,5 +7,6 @@
     <ProjectReference Include="../Agentic2D.Metrics/Agentic2D.Metrics.csproj" />
     <ProjectReference Include="../Agentic2D.Persistence/Agentic2D.Persistence.csproj" />
     <ProjectReference Include="../Agentic2D.Presentation/Agentic2D.Presentation.csproj" />
+    <ProjectReference Include="../Agentic2D.UI/Agentic2D.UI.csproj" />
   </ItemGroup>
 </Project>
