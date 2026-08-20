@@ -2,9 +2,9 @@
 
 ## Authority
 
-Authoritative for the M036 Linux/Windows engineering surface.
+Authoritative for Linux/Windows development support, native launchers, platform-neutral engineering semantics, platform epochs, and cross-platform portability boundaries.
 
-## Supported development platforms
+## Supported development targets
 
 ```text
 Linux:
@@ -22,11 +22,25 @@ Windows:
   Windows export not implied
 ```
 
-Support is evidence-based. A platform is supported only after its required platform verification passes.
+Both are supported targets.
+
+Fresh platform verification is governed by `docs/engineering/platform-verification.md` and `eng/platform-verification.json`.
+
+A supported target does not need to be executed by every milestone.
+
+## Platform epochs
+
+Exactly one supported development platform is active for normal milestone execution.
+
+Portable validation and active-platform integration evidence gate the milestone.
+
+Inactive-platform-specific validation may be deferred as explicit verification debt.
+
+Deferred evidence must never be labeled as passing platform evidence.
 
 ## Canonical engineering interface
 
-`eng/` remains the stable human/agent interface.
+`eng/` remains the stable human/agent engineering interface.
 
 Substantive semantics live in tested .NET engineering code. Native launchers:
 
@@ -35,7 +49,7 @@ Substantive semantics live in tested .NET engineering code. Native launchers:
 - invoke the same semantic command;
 - return the same exit classification.
 
-Launchers must not duplicate suite definitions, receipt/fingerprint logic, review semantics, artifact schemas, or platform-comparison rules.
+Launchers must not duplicate suite definitions, receipt/fingerprint logic, review semantics, artifact schemas, platform-epoch policy, or platform-comparison rules.
 
 ## Platform-neutral paths
 
@@ -49,11 +63,11 @@ Use host-native temporary directories.
 
 When atomic replacement is required, stage on the same filesystem/volume as the destination.
 
-Interrupted operations cannot leave a valid success receipt.
+Interrupted operations cannot leave valid success evidence.
 
 ## Environment metadata
 
-Validation evidence records:
+Validation evidence records platform provenance such as:
 
 ```text
 os
@@ -61,28 +75,22 @@ architecture
 launcher
 dotnet sdk/runtime
 graphics capability when relevant
+active/deferred platform state when relevant
 ```
 
-Environment identity is provenance metadata unless a contract explicitly makes it a semantic input.
+Environment identity is provenance unless a contract explicitly makes it a semantic input.
+
+## Fingerprints
+
+Platform-neutral semantic fingerprints do not change merely because validation ran on Windows or Linux.
+
+Platform-sensitive receipts include the active-platform state as an input so an epoch switch invalidates stale native-integration evidence.
 
 ## Git boundary
 
-Git synchronizes:
+Git synchronizes source, tests, authored configuration, approved project assets, documentation, and durable review/engineering state.
 
-- source;
-- tests;
-- authored configuration;
-- approved/promoted project assets;
-- documentation;
-- durable review/configuration truth.
-
-Git does not synchronize:
-
-- bin/obj;
-- normal generated artifacts;
-- IDE state;
-- raw shared asset homes;
-- temporary preview files.
+Git does not synchronize bin/obj, ordinary generated artifacts, IDE state, raw shared asset homes, or temporary preview data.
 
 ## Product/platform distinction
 
@@ -92,4 +100,8 @@ Linux-only export proofs remain valid platform-specific commands.
 
 ## Parallel development
 
-Each host uses its own clone/worktree and machine-local generated state. Cross-OS shared working directories are not part of the support contract.
+Each host uses its own clone/worktree and machine-local generated state.
+
+Git is the synchronization boundary.
+
+Cross-OS shared working directories are not part of the support contract.

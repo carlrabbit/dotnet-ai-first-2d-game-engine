@@ -2,84 +2,83 @@
 
 ## Authority
 
-Authoritative for M036 launcher classification, deletion criteria, native shell support, and parallel host workflow.
+Authoritative for native launcher policy, active launcher classification, platform epochs, parallel-host workflow, and inactive-platform verification.
 
-## Native launcher policy
+## Native launchers
 
 ```text
 Linux: Bash
 Windows: PowerShell 7 (`pwsh`)
 ```
 
-The two launcher families expose current engineering capabilities over shared .NET semantics.
+The launcher families expose current engineering capabilities over shared .NET semantics.
+
+## Active platform
+
+Current platform state is authored in:
+
+```text
+eng/platform-verification.json
+```
+
+Current epoch begins at M036 on Windows.
+
+Normal milestone validation uses the native launcher of the active platform.
+
+An inactive supported platform is not required merely for ordinary milestone completion.
 
 ## Launcher inventory classification
 
-Every tracked `eng/*.sh` file receives exactly one M036 classification.
+Tracked `eng/*.sh` / `eng/*.ps1` commands remain classified by current purpose:
 
 ### `active-cross-platform`
 
-Keep the engineering capability and provide native access on both supported platforms.
-
-Typical examples:
-
-- restore;
-- build;
-- test;
-- format;
-- check;
-- review operations;
-- current suite dispatch;
-- current product/headless capability smoke used by ongoing development.
+Current engineering/capability command whose semantics are supported on both targets.
 
 ### `active-platform-specific`
 
-Keep when the capability itself is intentionally platform-specific.
-
-Example:
-
-- Linux export proof.
-
-Do not create a meaningless Windows counterpart.
+Current command intentionally limited to one platform, such as Linux export proof.
 
 ### `thin-compatibility-wrapper`
 
-Keep only when a stable current name is still referenced by current project truth or active regression workflows and the wrapper is thin.
-
-Compatibility with completed milestone prose alone is insufficient.
+Retained because current project truth or active regression workflow still relies on its stable name.
 
 ### `historical-delete`
 
-Delete when all are true:
+Delete when it has no current capability, regression, engineering, documentation, or supported platform purpose.
 
-1. the wrapper is not referenced by active engineering documentation as a current command;
-2. it is not registered by a current suite;
-3. no current test uses it as a supported entry point;
-4. it does not provide a current product/capability/regression proof;
-5. it is not a currently supported platform-specific command;
-6. its only remaining purpose is completed milestone history, superseded workflow, or duplicate legacy orchestration.
+Compatibility with completed milestone prose alone is insufficient.
 
-## Deletion behavior
+## Thin-launcher rule
 
-For every deleted wrapper:
+Prefer generic launchers and shared host commands over mirrored script forests.
 
-- record classification and reason;
-- remove active indexes/references;
-- remove stale suite registration;
-- remove wrapper-only compatibility tests that no longer express current behavior;
-- do not rewrite completed milestone documents solely to erase historical command text.
+Launchers:
 
-## PowerShell surface
+- forward arguments;
+- propagate exit codes;
+- use native shell conventions;
+- do not reimplement suite, fingerprint, receipt, review, or platform-epoch semantics.
 
-Prefer generic launchers and shared host commands over one `.ps1` per historical suite.
+## Platform-sensitive validation
 
-PowerShell scripts:
+Portable tests run on the active platform.
 
-- require PowerShell 7;
-- use ordinary `pwsh` semantics;
-- do not contain Bash emulation;
-- propagate host exit codes;
-- use robust argument forwarding.
+Native/platform-sensitive checks run on the active platform.
+
+For an inactive supported platform:
+
+- record required future checks in `eng/platform-verification.json`;
+- do not fabricate passing reports;
+- do not require the inactive host to finish each milestone.
+
+## Platform catch-up
+
+On an epoch switch, validate the current repository against accumulated obligations for the newly active platform.
+
+Do not replay historical commits or reopen completed milestone reviews.
+
+A catch-up task may create its own platform-compatibility review where subjective native behavior requires it.
 
 ## Git and line endings
 
@@ -87,7 +86,7 @@ PowerShell scripts:
 
 Repository text must not churn between Linux and Windows due solely to local Git line-ending configuration.
 
-Binary assets must be explicitly classified.
+Binary assets are explicitly classified.
 
 ## Parallel machines
 
@@ -102,10 +101,10 @@ Supported workflow:
 
 Do not use a shared Windows/Linux network working tree as the canonical repository.
 
-## Platform evidence transfer
+## Evidence transfer
 
-M036 validation artifacts are generated and normally ignored.
+Generated validation artifacts are normally ignored.
 
-When one host needs the other host's small M036 platform report for final comparison, transfer that report explicitly through a user-controlled file transfer or equivalent local mechanism.
+When a platform catch-up or comparison requires small reports from another host, transfer them explicitly through a user-controlled mechanism.
 
 Do not permanently track transient validation artifacts merely to move them between machines.

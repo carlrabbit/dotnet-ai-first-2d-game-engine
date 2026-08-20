@@ -8,7 +8,7 @@ This document indexes build, validation, commands, and project-layout policy.
 
 The repository includes deterministic runtime, product CLI, scenarios, content validation, asset workflows, maps, runtime inspection, behavior/spatial systems, entity/component runtime, definitions and interactions, backend-neutral rendering, and an isolated raylib-cs debug client.
 
-M037 development support is native Linux/Bash and Windows/PowerShell 7. `src/Agentic2D.Engineering` owns suite definitions, process selection, fingerprints, receipts, temporary-file/atomic replacement policy, review operations, and platform evidence. `eng/*.sh` and `eng/*.ps1` are thin adapters. Linux export remains platform-specific; Windows export remains out of scope.
+M037 development support is native Linux/Bash and Windows/PowerShell 7. The active development epoch is Windows beginning at M036; Linux is supported but inactive. Linux platform-sensitive verification from M036 and M037 is deferred and tracked in `eng/platform-verification.json`; current milestone completion does not claim fresh evidence on both platforms. `src/Agentic2D.Engineering` owns suite definitions, process selection, fingerprints, receipts, temporary-file/atomic replacement policy, review operations, and platform evidence. `eng/*.sh` and `eng/*.ps1` are thin adapters. Linux export remains platform-specific; Windows export remains out of scope.
 
 ## Indexed documents
 
@@ -16,6 +16,7 @@ M037 development support is native Linux/Bash and Windows/PowerShell 7. `src/Age
 |---|---|
 | `docs/engineering/command-contract.md` | Canonical engineering commands. |
 | `docs/engineering/validation-tiers.md` | Validation tiers and graphics-capable distinction. |
+| `docs/engineering/platform-verification.md` | Platform epochs, active-platform proof, and deferred inactive-platform verification. |
 | `docs/engineering/future-dotnet-solution.md` | Current and candidate solution shape. |
 | `docs/engineering/product-cli.md` | Product CLI invocation. |
 

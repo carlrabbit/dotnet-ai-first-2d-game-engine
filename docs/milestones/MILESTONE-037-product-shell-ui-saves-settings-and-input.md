@@ -18,7 +18,7 @@ startup
 
 Primary acceptance question:
 
-> Can a player on both supported development platforms launch the application, create or continue an endless world, navigate the shell, save/load safely, use rotating autosaves, recover from invalid settings/display changes, and remap explicitly registered controls without encountering diagnostics-only concepts or weakening headless simulation authority?
+> Can a player launch the application on the active development platform while the architecture remains portable across both supported targets, create or continue an endless world, navigate the shell, save/load safely, use rotating autosaves, recover from invalid settings/display changes, and remap explicitly registered controls without encountering diagnostics-only concepts or weakening headless simulation authority?
 
 ## 2. Repository role and maturity assumptions
 
@@ -34,7 +34,7 @@ baseline implementation model: GPT-5.6 Luna
 target maturity: player-shell-capable and ready for terrain/map presentation work
 ```
 
-M036 merge evidence records Windows core/graphics success and a Linux/semantic-comparison gap at merge time. M037 does not rewrite M036 history; M037 must produce its own Linux and Windows product-shell evidence before claiming cross-platform completion.
+M036 merge evidence records Windows core/graphics success and unresolved Linux core/graphics/semantic-comparison work. M037 does not rewrite M036 history or reopen M036; those Linux obligations are deferred verification debt in `eng/platform-verification.json`.
 
 Two stale M036-era authority statements currently contradict the newer cross-platform project truth: `AGENTS.md` and a lower section of `docs/ENGINEERING.md` still say Windows/PowerShell is unsupported. Normalize them as supporting authority cleanup before feature work relies on them. Do not rewrite the completed M036 milestone.
 
@@ -49,7 +49,7 @@ Implement as six coherent transformations:
 3. compose separate player and diagnostics clients and implement product navigation;
 4. implement save catalog, naming, Continue, manual save operations, wall-clock autosave scheduling, and configurable retention;
 5. implement versioned user settings, display safety, safe mode, and explicitly registered software-defined input bindings with a basic rebinding UI;
-6. generate structural/graphical evidence on Linux and Windows, complete blocking human review, run the aggregate verifier and v0.7.2 completion audit.
+6. generate portable and active-Windows structural/native evidence, record inactive-Linux debt, complete active-platform human review, run the aggregate verifier and v0.7.2 completion audit.
 
 Focus areas are transformation families, not edit allowlists. Perform supporting repository-local work necessary to satisfy the milestone without adding unrelated product scope.
 
@@ -61,7 +61,7 @@ Before relying on active engineering docs:
 
 - remove the stale native-Windows-unsupported sentence in `AGENTS.md`;
 - remove/correct the stale Linux-only baseline statement in `docs/ENGINEERING.md`;
-- retain M036's current Linux/Bash + Windows/PowerShell-7 model in README, command contract, validation tiers, and cross-platform launcher policy;
+- retain Linux/Bash and Windows/PowerShell-7 as supported development targets, with the Windows epoch beginning at M036, in README, command contract, validation tiers, and cross-platform launcher policy;
 - preserve M036 history unchanged.
 
 M037 validation fails if active project authority remains contradictory.
@@ -332,7 +332,7 @@ Deliver versioned settings, recovery, display rollback, safe mode, explicit acti
 
 ### Focus Area 5 — Cross-platform evidence, review, and completion audit
 
-Deliver structural proof on both platforms, graphical product-shell proof on both platforms, one complete human review pack, affected current regressions, M037 resumable suite, blocking review, and v0.7.2 completion audit.
+Deliver portable validation on the active platform, active-Windows native/graphical product-shell proof, explicit inactive-Linux deferred debt, one complete active-platform human review pack, affected current regressions, M037 resumable suite, blocking review, and v0.7.2 completion audit.
 
 Historical M035/M036 completion evidence is not a mutable current gate.
 
@@ -365,29 +365,31 @@ Read only:
 5. `docs/engineering/validation-tiers.md`;
 6. `docs/engineering/human-review-workflow.md`;
 7. `docs/engineering/cross-platform-development-and-launcher-policy.md`;
-8. `docs/TERMINOLOGY.md`;
-9. `docs/SPECS.md`;
-10. `docs/specs/runtime-principles.md`;
-11. `docs/specs/simulation-world-and-semantic-foundation-contract.md`;
-12. current M032–M034 permanent gameplay/logistics/infrastructure specs resolved through `docs/SPECS.md`;
-13. `docs/specs/save-compatibility-and-recovery-contract.md`;
-14. `docs/specs/reproduction-and-internal-testing-contract.md`;
-15. `docs/specs/render-projection-contract.md`;
-16. `docs/specs/raylib-debug-client-contract.md`;
-17. `docs/specs/sound-definition-and-command-contract.md`;
-18. `docs/specs/input-action-map-contract.md`;
-19. `docs/specs/tick-bound-input-frame-contract.md`;
-20. `docs/specs/semantic-input-recording-and-replay-contract.md`;
-21. `docs/specs/ui-toolkit-contract.md`;
-22. `docs/specs/application-shell-and-client-contract.md`;
-23. `docs/specs/save-catalog-and-autosave-contract.md`;
-24. `docs/specs/user-settings-and-display-safety-contract.md`;
-25. `docs/specs/software-defined-input-binding-contract.md`;
-26. `docs/specs/world-configuration-and-new-game-contract.md`;
-27. `docs/architecture/player-and-diagnostics-application-architecture.md`;
-28. `docs/decisions/ADR-0048-player-and-diagnostics-clients-share-an-engine-owned-ui-and-application-foundation.md`;
-29. `docs/artifacts/product-shell-and-ui-artifact-contract.md`;
-30. this milestone document.
+8. `eng/platform-verification.json`;
+9. `docs/engineering/platform-verification.md`;
+10. `docs/TERMINOLOGY.md`;
+11. `docs/SPECS.md`;
+12. `docs/specs/runtime-principles.md`;
+13. `docs/specs/simulation-world-and-semantic-foundation-contract.md`;
+14. current M032–M034 permanent gameplay/logistics/infrastructure specs resolved through `docs/SPECS.md`;
+15. `docs/specs/save-compatibility-and-recovery-contract.md`;
+16. `docs/specs/reproduction-and-internal-testing-contract.md`;
+17. `docs/specs/render-projection-contract.md`;
+18. `docs/specs/raylib-debug-client-contract.md`;
+19. `docs/specs/sound-definition-and-command-contract.md`;
+20. `docs/specs/input-action-map-contract.md`;
+21. `docs/specs/tick-bound-input-frame-contract.md`;
+22. `docs/specs/semantic-input-recording-and-replay-contract.md`;
+23. `docs/specs/ui-toolkit-contract.md`;
+24. `docs/specs/application-shell-and-client-contract.md`;
+25. `docs/specs/save-catalog-and-autosave-contract.md`;
+26. `docs/specs/user-settings-and-display-safety-contract.md`;
+27. `docs/specs/software-defined-input-binding-contract.md`;
+28. `docs/specs/world-configuration-and-new-game-contract.md`;
+29. `docs/architecture/player-and-diagnostics-application-architecture.md`;
+30. `docs/decisions/ADR-0048-player-and-diagnostics-clients-share-an-engine-owned-ui-and-application-foundation.md`;
+31. `docs/artifacts/product-shell-and-ui-artifact-contract.md`;
+32. this milestone document.
 
 Implementation may inspect current source/tests/solution/projects/current engineering launchers needed to implement/prove these contracts. Do not read the external guide repository, `.guide-profile.json`, `.guide-sync/`, copied guides, prompt templates, or `docs/research/`. Read `.review/` only for M037 review execution.
 
@@ -525,7 +527,7 @@ Linux:
 
 Windows: same operations through the PowerShell review launchers.
 
-One approved review record gates M037. Record the platform used for human graphical review. Automated graphical proof is required on both supported development platforms.
+One approved review record gates M037. Record the active platform used for human graphical review. Automated graphical/native proof is required on the active platform; inactive-platform checks are deferred debt.
 
 ## 11. Validation execution mode
 
@@ -542,7 +544,7 @@ final: completion-audit
 
 Receipt root: `artifacts/validation/m037-smoke/`.
 
-Aggregate verify fails for missing/stale/failed receipts, platform-authority contradiction, missing structural evidence, diagnostics leakage into player composition, failed save/settings/display/input semantics, incomplete lifecycle proof, missing Linux/Windows graphics proof, failed current regressions, unapproved M037 review, incomplete completion audit, or success inferred from partial output.
+Aggregate verify fails for missing/stale/failed receipts, platform-authority contradiction, missing active-platform structural/native evidence, diagnostics leakage into player composition, failed save/settings/display/input semantics, incomplete lifecycle proof, failed current regressions, unapproved M037 review, incomplete completion audit, or success inferred from partial output. Inactive-platform artifacts must be explicit deferred debt, never an unexecuted pass.
 
 ## 12. Acceptance criteria
 
@@ -579,8 +581,8 @@ M037 completes only when:
 29. primary shell operations are pointer-operable;
 30. game-wide workbench RDP compatibility is not required;
 31. repeated world/menu/load cycles do not leak callbacks/stale ownership/native resources within bounded evidence;
-32. structural validation passes on both supported development platforms;
-33. player-shell graphics proof passes on Linux and Windows;
+32. portable structural validation passes on the active Windows platform;
+33. active-Windows player-shell graphics/native proof passes; inactive-Linux platform-specific obligations are recorded as deferred debt;
 34. affected M031–M036 regressions pass;
 35. M037 artifacts satisfy the artifact contract;
 36. blocking review `review.m037.product-shell-ui-saves-settings-and-input` is approved;
@@ -622,7 +624,7 @@ implicit waiver: none
 
 Subject: usability, safety, clarity, and architectural separation of the first player-facing shell, including menus, New Game/Tutorial entry, save naming/browser/autosave, options, display rollback, safe mode, and input rebinding.
 
-Human review may run on one supported graphics-capable platform but must record which. Automated graphics proof remains required on both. Completed M037 review becomes historical and is not reopened by later presentation milestones.
+Human review runs on the active development platform and must record which. Automated native/graphical proof is required on the active platform. Linux compatibility review belongs to a future Linux catch-up task and must not reopen completed M037 review; a missing inactive-platform host is not `BLOCKED`.
 
 Exact checks:
 
@@ -635,7 +637,7 @@ or PowerShell equivalents.
 
 ## 16. Constrained-runtime handling
 
-Use the generic resumable suite. Generate plan, run bounded shards, run Linux/Windows graphical shards on matching hosts, generate review pack, complete review, refresh human-review receipt if necessary, run aggregate verify, generate completion audit, and continue fixing every agent-resolvable gap.
+Use the generic resumable suite. Generate plan, run bounded shards and active-Windows graphics/native proof, record Linux shards as `deferred-inactive-platform`, generate the review pack, complete active-platform review, refresh the completion audit, run aggregate verify, and continue fixing every agent-resolvable gap. An approved review plus explicit Linux debt permits `COMPLETE`.
 
 Partial output, one platform, one graphics proof, passing compilation, or a pending review is not completion.
 

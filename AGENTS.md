@@ -18,6 +18,8 @@ Do not read `.guide-profile.json` or `.guide-sync/` for ordinary implementation 
 
 ### Implementation
 
+For platform-sensitive implementation, read `eng/platform-verification.json` and `docs/engineering/platform-verification.md`. Run portable and platform-specific validation for the active development platform. Record inactive-platform checks as deferred verification debt rather than fabricating evidence or blocking ordinary milestone completion. A platform switch/catch-up task is the authority for resolving accumulated inactive-platform debt.
+
 Read the milestone focus areas and listed authority. Use focused validation first, then the required milestone gate. Do not perform broad documentation synchronization unless explicitly assigned.
 
 Ignore:

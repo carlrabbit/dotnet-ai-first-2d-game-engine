@@ -133,14 +133,20 @@ public sealed class EngineeringHost
         suites = BuildSuites().ToDictionary(suite => suite.Id, StringComparer.Ordinal);
     }
 
+    public string CurrentReviewStatus(string milestone, string reviewId) => ReadReviews()
+        .Where(review => review.OwningMilestone == milestone && review.Id == reviewId)
+        .Select(review => review.Status)
+        .FirstOrDefault() ?? "missing";
+
     public ValidationSuite GetSuite(string id) => suites.TryGetValue(id, out var suite)
         ? suite
         : throw new EngineeringException($"unknown validation suite: {id}");
 
     public string SerializePlan(ValidationSuite suite)
     {
+        EnsurePlatformState(suite);
         var repository = Fingerprints.Repository(root);
-        var suiteFingerprint = Fingerprints.Suite(suite);
+        var suiteFingerprint = Fingerprints.Suite(suite, root);
         var plan = new ValidationPlan(
             PlanSchema,
             suite.Id,
@@ -182,6 +188,7 @@ public sealed class EngineeringHost
 
     public async Task<int> RunShardAsync(ValidationSuite suite, string shardId, TextWriter stdout, TextWriter stderr)
     {
+        EnsurePlatformState(suite);
         var shard = suite.Shards.SingleOrDefault(candidate => candidate.Id == shardId)
             ?? throw new EngineeringException($"unknown shard '{shardId}' for suite '{suite.Id}'");
         var receiptPath = Absolute(ReceiptPath(suite, shard));
@@ -196,7 +203,7 @@ public sealed class EngineeringHost
         }
 
         var repositoryFingerprint = Fingerprints.Repository(root);
-        var suiteFingerprint = Fingerprints.Suite(suite);
+        var suiteFingerprint = Fingerprints.Suite(suite, root);
         var commandFingerprint = Fingerprints.Command(shard);
         var inputFingerprint = Fingerprints.Input(root, shard);
         var started = DateTimeOffset.UtcNow;
@@ -233,7 +240,8 @@ public sealed class EngineeringHost
 
     public bool Verify(ValidationSuite suite, TextWriter diagnostics)
     {
-        var expectedSuite = Fingerprints.Suite(suite);
+        EnsurePlatformState(suite);
+        var expectedSuite = Fingerprints.Suite(suite, root);
         var expectedRepository = Fingerprints.Repository(root);
         var success = true;
         foreach (var shard in suite.Shards)
@@ -292,6 +300,38 @@ public sealed class EngineeringHost
                     diagnostics.WriteLine($"error: m036-smoke: {platform} platform and graphics proofs are not passed");
                     success = false;
                 }
+            }
+        }
+
+        if (suite.Id == "m037-smoke")
+        {
+            var state = PlatformVerificationState.Load(root);
+            foreach (var platform in state.SupportedDevelopmentPlatforms)
+            {
+                var structural = Absolute($"artifacts/application/M037/platform/{platform}/structural-report.json");
+                var graphical = Absolute($"artifacts/application/M037/platform/{platform}/graphical-report.json");
+                var expected = state.IsActive(platform) ? "passed" : "deferred-inactive-platform";
+                foreach (var report in new[] { structural, graphical })
+                {
+                    if (!File.Exists(report) || !File.ReadAllText(report).Contains($"\"status\": \"{expected}\"", StringComparison.Ordinal))
+                    {
+                        diagnostics.WriteLine($"error: m037-smoke: {platform} report is not {expected}");
+                        success = false;
+                    }
+                }
+            }
+            var audit = Absolute("artifacts/application/M037/m037-completion-audit.json");
+            var reviewStatus = CurrentReviewStatus("M037", "review.m037.product-shell-ui-saves-settings-and-input");
+            var expectedOutcome = reviewStatus == "approved" ? "COMPLETE" : "AWAITING HUMAN REVIEW";
+            if (!File.Exists(audit) || !File.ReadAllText(audit).Contains($"\"terminalOutcome\": \"{expectedOutcome}\"", StringComparison.Ordinal))
+            {
+                diagnostics.WriteLine($"error: m037-smoke: completion audit is not {expectedOutcome}");
+                success = false;
+            }
+            if (reviewStatus != "approved")
+            {
+                diagnostics.WriteLine("error: m037-smoke: blocking M037 human review is not approved");
+                success = false;
             }
         }
 
@@ -643,7 +683,7 @@ public sealed class EngineeringHost
     {
         if (suite.Id == "m037-smoke")
         {
-            return await M037ProductShellSuite.RunAsync(root, shard.Id, diagnostics);
+            return await M037ProductShellSuite.RunAsync(this, root, shard.Id, diagnostics);
         }
         if (suite.Id == "m036-smoke")
         {
@@ -666,7 +706,7 @@ public sealed class EngineeringHost
 
         return receipt!.Status == "passed"
             && receipt.RepositoryFingerprint == Fingerprints.Repository(root)
-            && receipt.SuiteFingerprint == Fingerprints.Suite(suite)
+            && receipt.SuiteFingerprint == Fingerprints.Suite(suite, root)
             && receipt.CommandFingerprint == Fingerprints.Command(shard)
             && receipt.InputFingerprint == Fingerprints.Input(root, shard);
     }
@@ -754,6 +794,11 @@ public sealed class EngineeringHost
         ? Path.Combine("artifacts", "validation", suite.Id, "receipts", shard.Id + ".json")
         : Path.Combine("artifacts", "validation", suite.Id, shard.Id + ".json")).Replace('\\', '/');
     private string Absolute(string relative) => Path.Combine(root, relative);
+
+    private void EnsurePlatformState(ValidationSuite suite)
+    {
+        if (suite.Id == "m037-smoke") _ = PlatformVerificationState.Load(root);
+    }
 
     private static IReadOnlyDictionary<string, string> ParseOptions(string[] args)
     {
@@ -1174,13 +1219,15 @@ public sealed class EngineeringHost
             Shard("input-rebinding-conflicts", "Capture, conflict, reset, and fallback behavior.", "internal:m037", ["artifacts/application/M037/input-binding-cases.json"], isInternal: true),
             Shard("input-context-isolation", "Context priority and text-entry suppression.", "internal:m037", ["artifacts/application/M037/input-context-cases.json"], isInternal: true),
             Shard("world-load-unload-resource-lifecycle", "Repeated world replacement disposes ownership.", "internal:m037", ["artifacts/application/M037/world-lifecycle-resource-report.json"], isInternal: true),
+            Shard("linux-player-shell-structural", "Linux structural proof is recorded as inactive-platform debt during the Windows epoch.", "internal:m037", ["artifacts/application/M037/platform/linux/structural-report.json"], isInternal: true),
             Shard("headless-structural-proof", "Windows structural product-shell proof.", "internal:m037", ["artifacts/application/M037/platform/windows/structural-report.json"], isInternal: true),
             Shard("linux-player-shell-graphics", "Linux graphics proof is explicit and honest.", "internal:m037", ["artifacts/application/M037/platform/linux/graphical-report.json"], isInternal: true),
             Shard("windows-player-shell-graphics", "Windows graphics startup/navigation proof.", "internal:m037", ["artifacts/application/M037/platform/windows/graphical-report.json"], isInternal: true),
             Shard("affected-current-regression", "Current regression report and preserved M035/M036 boundaries.", "internal:m037", ["artifacts/application/M037/current-regression-report.json"], isInternal: true),
             Shard("review-pack", "Bounded review pack linked to structural evidence.", "internal:m037", ["artifacts/application/M037/review-pack/review-manifest.json", "artifacts/application/M037/review-pack/evidence-index.json"], isInternal: true),
             Shard("human-review", "Blocking M037 review is approved by the repository user.", "pwsh ./eng/review-check.ps1 --milestone M037", ["artifacts/application/M037/review-pack/review-manifest.json"]),
-            Shard("integrated", "Integrated structural proof and completion audit candidate.", "internal:m037", ["artifacts/application/M037/m037-completion-audit.json", "artifacts/application/M037/diagnostics.json"], ["review-pack"], true)
+            Shard("integrated", "Integrated structural proof and completion audit candidate.", "internal:m037", ["artifacts/application/M037/m037-completion-audit.json", "artifacts/application/M037/diagnostics.json"], ["review-pack"], true),
+            Shard("completion-audit", "Completion audit derives its terminal outcome from current review state and active-platform proof.", "internal:m037", ["artifacts/application/M037/m037-completion-audit.json", "artifacts/application/M037/diagnostics.json"], ["integrated"], true)
         ]),
         new("m036-smoke", "resumable-sharded",
         [
@@ -1210,9 +1257,9 @@ public static class Fingerprints
 {
     public static string Repository(string root) => HashLines(EnumerateRelevantFiles(root, includeReview: false).Select(path => $"{Relative(root, path)}:{Path(path)}"));
     public static string Review(string root) => HashLines(EnumerateRelevantFiles(root, includeReview: false).Select(path => $"{Relative(root, path)}:{Path(path)}"));
-    public static string Suite(ValidationSuite suite) => Hash(JsonSerializer.Serialize(suite));
+    public static string Suite(ValidationSuite suite, string root) => Hash(JsonSerializer.Serialize(suite) + "\nplatform-epoch:" + PlatformEpochFingerprint(root));
     public static string Command(ValidationShard shard) => Hash($"{shard.Id}\n{shard.Command}\n{string.Join("\n", shard.Evidence)}\n{string.Join("\n", shard.DependsOn)}");
-    public static string Input(string root, ValidationShard shard) => HashLines(shard.Evidence.Where(path => !path.StartsWith("artifacts/", StringComparison.Ordinal)).Select(path => $"{path}:{Path(System.IO.Path.Combine(root, path))}"));
+    public static string Input(string root, ValidationShard shard) => HashLines(shard.Evidence.Where(path => !path.StartsWith("artifacts/", StringComparison.Ordinal)).Select(path => $"{path}:{Path(System.IO.Path.Combine(root, path))}").Append("platform-epoch:" + PlatformEpochFingerprint(root)));
     public static string Result(IReadOnlyList<ArtifactFingerprint> artifacts, string root) => HashLines(artifacts.OrderBy(artifact => artifact.Path, StringComparer.Ordinal).Select(artifact => $"{artifact.Path}:{artifact.Fingerprint}"));
     public static string Path(string path)
     {
@@ -1233,7 +1280,9 @@ public static class Fingerprints
     private static string HashLines(IEnumerable<string> lines) => Hash(string.Join("\n", lines));
     private static string Hash(string value) => Hash(Encoding.UTF8.GetBytes(value));
     private static string Hash(byte[] bytes) => Convert.ToHexString(SHA256.HashData(bytes)).ToLowerInvariant();
+    private static string PlatformEpochFingerprint(string root) => Path(System.IO.Path.Combine(root, "eng", "platform-verification.json"));
 }
+
 
 public static class ReceiptStore
 {

@@ -2,7 +2,7 @@
 
 ## Authority
 
-This document is authoritative for repository-local review requests, durable review records, evidence references, status, staleness, and the Tier 5 review gate.
+This document is authoritative for repository-local review requests, durable review records, evidence references, status, staleness, Tier 5 review gates, and review behavior across platform epochs.
 
 ## Applicability
 
@@ -17,19 +17,7 @@ required
 blocking
 ```
 
-Review classes include:
-
-```text
-semantic
-visual
-UX
-creative
-security
-public-api
-release
-migration
-artifact-quality
-```
+Review classes include semantic, visual, UX, creative, security, public-api, release, migration, accessibility-baseline, artifact-quality, and platform-compatibility where declared.
 
 ## Repository state
 
@@ -40,9 +28,9 @@ artifact-quality
   closed/
 ```
 
-Use `artifacts/review/` for generated or large evidence that should not be committed.
+Use `artifacts/review/` for generated or large evidence.
 
-`.review/pending/`, `.review/records/`, and `.review/closed/` contain small durable Markdown or JSON records. Generated evidence remains under `artifacts/review/`.
+Durable review requests/records remain small project truth.
 
 ## Review states
 
@@ -57,27 +45,45 @@ superseded
 
 ## Required fields
 
-A review request or record contains:
+A request or record contains:
 
 - review ID;
-- owning milestone ID and path;
+- owning milestone ID/path;
 - subject;
-- review class and applicability level;
+- review class/applicability;
 - source milestone/task;
 - reviewer role;
 - status;
-- evidence references;
-- decision and conditions;
-- reviewed revision or fingerprint;
-- decision history, provenance revision/fingerprint, and completion time.
+- evidence;
+- decision/conditions;
+- reviewed revision/fingerprint;
+- decision history/provenance/completion time.
 
 ## Staleness
 
-Before completion, active review evidence must be current for its owning milestone. Completed records are immutable historical evidence and do not stale when later commits change the repository. Future milestones create new review requests.
+Before completion, active review evidence must be current for its owning milestone.
+
+Completed records are immutable historical evidence and do not stale when later commits change the repository.
+
+Future milestones/tasks create new review requests.
+
+## Platform epochs
+
+Unless a milestone explicitly requires subjective comparison across multiple platforms, its human review is performed on the **active development platform**.
+
+Approval gates that milestone and becomes historical evidence after completion.
+
+Inactive-platform subjective verification may be deferred to a future platform catch-up task.
+
+That catch-up task owns any new `platform-compatibility` review it requires.
+
+Do not reopen a completed milestone review merely because development later switches platform.
+
+Release gates or explicitly cross-platform milestones may require separate multi-platform review by their own authority.
 
 ## Canonical commands
 
-Repositories with active required/blocking review expose:
+Repositories with active required/blocking review expose the canonical Bash family:
 
 ```text
 ./eng/review-list.sh [--milestone <id>] [--state <active|historical>] [--status <status>]
@@ -88,23 +94,28 @@ Repositories with active required/blocking review expose:
 ./eng/review-check.sh --milestone <id>
 ```
 
-Windows uses the native PowerShell 7 adapters `pwsh ./eng/review-list.ps1`, `review-show.ps1`, `review-record.ps1`, `review-reopen.ps1`, `review-request.ps1`, and `review-check.ps1` with the same arguments and host semantics.
+Windows uses PowerShell 7 adapters with the same host semantics.
 
-Launchers are thin. Review parsing, schema validation, fingerprinting, and status transitions live in tested .NET engineering code.
+Launchers are thin. Review parsing, schema validation, fingerprinting, and transitions live in tested .NET engineering code.
 
-`review-list` deterministically displays active and historical reviews and atomically writes its current alias context to ignored `artifacts/review/session/aliases.json`. Every list context assigns numeric aliases. `show`, `record`, and `reopen` accept a canonical ID or an alias only from that latest successful list; a changed review context makes an alias fail safely and requires another list. Aliases never enter review files, milestones, receipts, automation, or cross-references.
+`review-list` deterministically displays active/historical reviews and maintains ephemeral aliases under ignored review-session artifacts.
 
-`review-show` is read-only and displays the request/record paths, ownership, state, subject, classes, level, reviewer role, evidence, criteria, waiver policy, current decision, history, and provenance. It never compares a historical record to current repository state. `review-record` resolves the owning milestone from the active canonical request, records the decision, reviewer, notes/conditions, evidence, provenance, timestamp, and history, and only final decisions move an active request to an immutable record. `changes-requested` remains active.
+`review-show` is read-only.
 
-`review-reopen` may return a review to pending only while its owning milestone is active. It never reopens a historical record merely because HEAD, source, documentation, or fingerprints changed; later milestones create their own review. An erroneous historical record may be corrected only with `--correct-record --reason <reason>`; the original record remains immutable and the correction is a separately identified active request. `review-check` is the Tier 5 gate for the named milestone only. It ignores aliases and historical milestones as current gates, and fails unresolved, malformed, superseded, missing, or insufficiently evidenced required/blocking reviews.
+`review-record` records the durable human decision.
 
-## M022 migration review
+`review-reopen` may return a review to pending only while its owning milestone is active. It never reopens a historical record merely because HEAD, documentation, platform, or fingerprints changed.
 
-The guide-system v0.5.0 migration requires one migration-class review covering:
+`review-check` is the Tier 5 gate for the named milestone only and ignores historical milestones as current gates.
 
-- shard boundaries and practical runtime limits;
-- receipt/fingerprint trustworthiness;
-- review-state usability;
-- declared platform support;
-- removal of guide leakage;
-- confirmation that ordinary implementation agents remain isolated from guide metadata.
+## Platform-switch review
+
+A future platform catch-up may create a new review such as:
+
+```text
+review.platform.linux.catch-up.<epoch-or-task>
+```
+
+when accumulated deferred native/UX behavior needs human confirmation.
+
+That review belongs to the catch-up task, not to M036/M037 or other completed milestones.

@@ -35,4 +35,5 @@ Create an ADR for durable choices affecting architecture, repository shape, runt
 | `docs/decisions/ADR-0040-shared-local-asset-home-is-authoring-infrastructure-not-game-authority.md` | Proposed for M028 | Shared local discovery and annotations remain outside game/runtime authority. |
 | `docs/decisions/ADR-0041-asset-preview-host-is-a-separate-restartable-client-around-engine-systems.md` | Proposed for M029 | Workbench state survives a separately restartable preview client. |
 | `docs/decisions/ADR-0029-human-review-state-is-repository-local.md` | Accepted | Repository-local required review state. |
+| `docs/decisions/ADR-0049-platform-epochs-defer-inactive-platform-verification.md` | Accepted | Active platform epochs and deferred inactive-platform verification. |
 | `docs/decisions/ADR-0039-m027-combines-authoring-contract-stabilization-with-guide-system-v060-review-migration.md` | Proposed | Stable authoring evidence and milestone-scoped review migration. |

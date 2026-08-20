@@ -6,7 +6,7 @@
 artifacts/application/M037/
 ```
 
-## Required artifacts
+## Required artifact families
 
 ```text
 m037-manifest.json
@@ -32,37 +32,87 @@ input-binding-cases.json
 input-context-cases.json
 world-lifecycle-resource-report.json
 current-regression-report.json
-platform/linux/structural-report.json
-platform/linux/graphical-report.json
-platform/windows/structural-report.json
-platform/windows/graphical-report.json
-review-pack/review-manifest.json
-review-pack/evidence-index.json
-review-pack/navigation-and-client-separation.md
-review-pack/save-and-autosave-flow.md
-review-pack/settings-display-and-safe-mode.md
-review-pack/input-rebinding.md
-review-pack/accessibility-baseline.md
-review-pack/graphical-evidence-index.md
-review-pack/limitations.md
+
+platform/<platform>/structural-report.json
+platform/<platform>/graphical-report.json
+
+review-pack/
+  review-manifest.json
+  evidence-index.json
+  navigation-and-client-separation.md
+  save-and-autosave-flow.md
+  settings-display-and-safe-mode.md
+  input-rebinding.md
+  accessibility-baseline.md
+  graphical-evidence-index.md
+  limitations.md
+
 m037-completion-audit.json
 diagnostics.json
 ```
 
-## Required evidence
+## Platform-state semantics
 
-Supported resolution/UI-scale structural layout cases; modal/focus/text-entry isolation; player/diagnostics dependency isolation; Continue fallback past invalid saves; editable default save naming; per-WorldId autosave rotation/retention; settings corruption/safe-mode recovery; display timeout/next-start rollback; binding capture/conflicts/reset/fallback; repeated world/menu lifecycle/disposal; Linux/Windows structural proof; graphical shell startup/navigation on both platforms; review pack linked to structural identities.
+Platform report status must be one of the declared meaningful states, including:
+
+```text
+passed
+failed
+deferred-inactive-platform
+not-executed-active-platform
+```
+
+An inactive platform may have structural/native reports solely to record deferred state.
+
+Such reports are **not** passing platform evidence.
+
+Portable M037 structural semantics are validated on the active development platform and remain platform-neutral by contract.
+
+The active development platform must have passing native/graphical evidence when required.
+
+## Required evidence for M037 completion
+
+- UI/layout/focus/modal/text-entry structural proof;
+- player/diagnostics dependency isolation;
+- Continue/save/autosave/settings/input semantics;
+- repeated world/menu lifecycle/disposal;
+- active-platform structural/native integration;
+- active-platform graphical shell startup/navigation;
+- explicit inactive-platform debt state;
+- review pack linked to structural identities.
+
+M037 does not require inactive-platform graphical execution during the current Windows epoch.
 
 ## Graphical evidence
 
-Human-review evidence includes main menu, New Game, Tutorial entry, manual save naming, load browser, options, display confirmation, input rebinding, and pause/destructive-transition confirmation.
+Human-review evidence includes main menu, New Game, Tutorial entry, save naming, load browser, options, display confirmation, input rebinding, and pause/destructive-transition confirmation.
+
+Human review occurs on the active platform unless the milestone explicitly says otherwise.
 
 Screenshots/video are review evidence, not semantic authority.
 
 ## Completion audit
 
-`m037-completion-audit.json` enumerates applicable M037 obligations and records satisfied/unsatisfied state with final terminal outcome `COMPLETE`, `AWAITING HUMAN REVIEW`, or `BLOCKED`.
+`m037-completion-audit.json` enumerates applicable M037 obligations.
+
+It may report `COMPLETE` while inactive-platform obligations remain explicitly deferred, provided:
+
+- all portable obligations pass;
+- active-platform native/graphics obligations pass;
+- M037 blocking human review is approved;
+- deferred obligations are recorded in `eng/platform-verification.json`;
+- no other agent-resolvable gap remains.
+
+Terminal outcomes remain:
+
+```text
+COMPLETE
+AWAITING HUMAN REVIEW
+BLOCKED
+```
 
 ## Boundedness/privacy
 
-No unbounded UI event traces, save-catalog logs, or input-capture logs. Do not record usernames, absolute home paths, secrets, or arbitrary user-entered text beyond bounded fixtures.
+No unbounded UI-event traces, save-catalog logs, or input-capture logs.
+
+Do not record usernames, absolute home paths, secrets, or arbitrary user-entered text beyond bounded fixtures.

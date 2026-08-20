@@ -1,0 +1,36 @@
+{
+  "schema": "agentic2d.engineering.platform-verification.v1",
+  "supportedDevelopmentPlatforms": [
+    "linux",
+    "windows"
+  ],
+  "activeEpoch": {
+    "id": "windows-m036",
+    "platform": "windows",
+    "startedAtMilestone": "M036",
+    "reason": "Development switched to the Windows workstation at M036 and remains on Windows for the current milestone epoch."
+  },
+  "deferredVerification": [
+    {
+      "platform": "linux",
+      "sourceMilestone": "M036",
+      "checks": [
+        "m036/linux-core-engineering-parity",
+        "m036/linux-raylib-graphics",
+        "m036/platform-semantic-comparison"
+      ],
+      "review": null
+    },
+    {
+      "platform": "linux",
+      "sourceMilestone": "M037",
+      "checks": [
+        "m037/player-shell-native-startup-and-graphics",
+        "m037/display-preview-and-rollback",
+        "m037/native-input-and-text-entry",
+        "m037/safe-mode-startup"
+      ],
+      "review": "future-linux-platform-compatibility-review-owned-by-catch-up-task"
+    }
+  ]
+}

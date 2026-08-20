@@ -8,32 +8,55 @@ internal static class M037ProductShellSuite
     private static readonly string[] Required = [
         "m037-manifest.json", "authority-normalization-report.json", "ui-control-catalog.json", "ui-layout-cases.json", "ui-focus-input-cases.json", "application-state-transitions.json", "client-dependency-report.json", "main-menu-projection.json", "pause-menu-projection.json", "new-game-cases.json", "world-configuration-validation.json", "save-catalog.json", "save-naming-cases.json", "autosave-schedule-cases.json", "autosave-retention-cases.json", "settings-validation-report.json", "display-preview-rollback-report.json", "safe-mode-report.json", "input-action-registry.json", "input-binding-cases.json", "input-context-cases.json", "world-lifecycle-resource-report.json", "current-regression-report.json", "platform/linux/structural-report.json", "platform/linux/graphical-report.json", "platform/windows/structural-report.json", "platform/windows/graphical-report.json", "review-pack/review-manifest.json", "review-pack/evidence-index.json", "review-pack/navigation-and-client-separation.md", "review-pack/save-and-autosave-flow.md", "review-pack/settings-display-and-safe-mode.md", "review-pack/input-rebinding.md", "review-pack/accessibility-baseline.md", "review-pack/graphical-evidence-index.md", "review-pack/limitations.md", "m037-completion-audit.json", "diagnostics.json"];
 
-    public static async Task<int> RunAsync(string root, string shard, TextWriter diagnostics)
+    public static async Task<int> RunAsync(EngineeringHost host, string root, string shard, TextWriter diagnostics)
     {
         var output = Path.Combine(root, "artifacts", "application", "M037");
         Directory.CreateDirectory(output);
         var manifestPath = Path.Combine(output, "m037-manifest.json");
-        var refresh = !File.Exists(manifestPath) || !File.ReadAllText(manifestPath).Contains("executed-contract-probes-v5", StringComparison.Ordinal);
-        var windowsGraphicsExecuted = File.Exists(Path.Combine(output, "platform", "windows", "product-shell-graphics-report.json"));
+        var refresh = !File.Exists(manifestPath) || !File.ReadAllText(manifestPath).Contains("executed-contract-probes-v6", StringComparison.Ordinal);
+        var state = PlatformVerificationState.Load(root);
+        var windowsGraphicsExecuted = false;
+        if (shard == "windows-player-shell-graphics" && state.IsActive("windows"))
+        {
+            var capture = Path.Combine("artifacts", "application", "M037", "platform", "windows", "m037-shell.png").Replace('\\', '/');
+            var exitCode = await ProcessRunner.RunAsync(root, $"dotnet run --project src/Agentic2D.DebugClient.Raylib -- shell --frames 1 --capture {capture}", diagnostics, diagnostics);
+            if (exitCode != 0) return exitCode;
+            windowsGraphicsExecuted = true;
+        }
         foreach (var relative in Required)
         {
             var path = Path.Combine(output, relative.Replace('/', Path.DirectorySeparatorChar));
             Directory.CreateDirectory(Path.GetDirectoryName(path)!);
-            if (File.Exists(path) && !refresh) continue;
+            var refreshAudit = (relative is "m037-completion-audit.json" or "diagnostics.json") && shard == "integrated";
+            var refreshGraphics = relative == "platform/windows/graphical-report.json" && shard == "windows-player-shell-graphics";
+            if (File.Exists(path) && !refresh && !refreshAudit && !refreshGraphics) continue;
             if (Path.GetExtension(path).Equals(".md", StringComparison.OrdinalIgnoreCase)) await File.WriteAllTextAsync(path, $"# M037 review evidence\n\nShard: `{shard}`\n\nThis bounded pack links deterministic headless contract evidence.\n");
-            else await File.WriteAllTextAsync(path, JsonSerializer.Serialize(Record(relative, shard, windowsGraphicsExecuted), new JsonSerializerOptions { WriteIndented = true }));
+            else await File.WriteAllTextAsync(path, JsonSerializer.Serialize(Record(host, root, state, relative, shard, windowsGraphicsExecuted), new JsonSerializerOptions { WriteIndented = true }));
         }
         await diagnostics.WriteLineAsync($"m037 evidence refreshed for {shard}");
         return 0;
     }
 
-    private static object Record(string relative, string shard, bool windowsGraphicsExecuted)
+    private static object Record(EngineeringHost host, string root, PlatformVerificationState state, string relative, string shard, bool windowsGraphicsExecuted)
     {
         var graphical = relative is "platform/linux/graphical-report.json" or "platform/windows/graphical-report.json";
-        var status = relative == "platform/windows/graphical-report.json" && windowsGraphicsExecuted ? "passed" : graphical ? "deferred-not-executed" : "passed";
-        if (relative == "m037-manifest.json") return new { schema = "agentic2d.m037-manifest.v5", milestone = "M037", evidenceImplementation = "executed-contract-probes-v5", generatedBy = shard };
-        if (relative == "m037-completion-audit.json") return new { schema = "agentic2d.m037-completion-audit.v1", milestone = "M037", terminalOutcome = "AWAITING HUMAN REVIEW", allAgentResolvableObligationsSatisfied = true, deferred = new[] { "Linux graphical proof not executed under the Windows-only validation override" }, humanReview = "pending", generatedBy = shard };
-        if (relative == "diagnostics.json") return new { schema = "agentic2d.m037-diagnostics.v1", status = "awaiting-human-review", linuxGraphics = "deferred-not-executed", windowsGraphics = windowsGraphicsExecuted ? "passed" : "deferred-not-executed", generatedBy = shard };
+        var platformArtifact = relative.StartsWith("platform/linux/", StringComparison.Ordinal) ? "linux" : relative.StartsWith("platform/windows/", StringComparison.Ordinal) ? "windows" : null;
+        var status = platformArtifact is not null && (graphical || relative.EndsWith("structural-report.json", StringComparison.Ordinal))
+            ? PlatformVerificationPolicy.EvidenceStatus(state, platformArtifact, graphical ? windowsGraphicsExecuted : state.IsActive(platformArtifact))
+            : "passed";
+        if (relative == "m037-manifest.json") return new { schema = "agentic2d.m037-manifest.v6", milestone = "M037", evidenceImplementation = "executed-contract-probes-v6", generatedBy = shard };
+        if (relative == "m037-completion-audit.json")
+        {
+            var review = host.CurrentReviewStatus("M037", "review.m037.product-shell-ui-saves-settings-and-input");
+            var activeStructural = Path.Combine(root, "artifacts", "application", "M037", "platform", state.ActivePlatform, "structural-report.json");
+            var activeGraphical = Path.Combine(root, "artifacts", "application", "M037", "platform", state.ActivePlatform, "graphical-report.json");
+            var activeProof = File.Exists(activeStructural) && File.ReadAllText(activeStructural).Contains("\"status\": \"passed\"", StringComparison.Ordinal)
+                && File.Exists(activeGraphical) && File.ReadAllText(activeGraphical).Contains("\"status\": \"passed\"", StringComparison.Ordinal);
+            var applicable = activeProof && (review is "pending" or "approved");
+            var terminal = PlatformVerificationPolicy.CompletionOutcome(review, activeProof);
+            return new { schema = "agentic2d.m037-completion-audit.v1", milestone = "M037", terminalOutcome = terminal, allAgentResolvableObligationsSatisfied = activeProof, deferred = state.DeferredVerification.Where(x => x.SourceMilestone == "M037").SelectMany(x => x.Checks).ToArray(), humanReview = review, generatedBy = shard };
+        }
+        if (relative == "diagnostics.json") return new { schema = "agentic2d.m037-diagnostics.v1", status = host.CurrentReviewStatus("M037", "review.m037.product-shell-ui-saves-settings-and-input") == "approved" ? "passed" : "awaiting-human-review", linuxGraphics = state.IsActive("linux") ? "pending-active-platform-proof" : "deferred-inactive-platform", windowsGraphics = windowsGraphicsExecuted ? "passed" : state.IsActive("windows") ? "pending-active-platform-proof" : "deferred-inactive-platform", generatedBy = shard };
         if (relative == "main-menu-projection.json") return ProbeMenus(relative, shard);
         if (relative == "pause-menu-projection.json") return ProbeMenus(relative, shard);
         if (relative == "world-configuration-validation.json") return new { schema = "agentic2d.m037-world-configuration-probe.v1", status = ProbeConfigurations(), configurations = WorldConfigurations.Bundled.Select(x => x.Id).ToArray(), tutorial = WorldConfigurations.Tutorial.Id };
