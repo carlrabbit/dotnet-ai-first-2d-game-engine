@@ -72,7 +72,7 @@ public static class M038SimpleReviewSuite
         var project = Path.Combine(root, "src", "Agentic2D.DebugClient.Raylib");
         var items = new EngineeringHost(root).GetOpenSimpleReviews("M038", out var readinessError, requireGraphicsPrerequisite: false);
         if (!string.IsNullOrWhiteSpace(readinessError)) return new { schema = "agentic2d.m038.windows-graphics.v1", status = "failed", error = readinessError };
-        var payload = Convert.ToBase64String(System.Text.Encoding.UTF8.GetBytes(JsonSerializer.Serialize(items)));
+        var payload = Convert.ToBase64String(System.Text.Encoding.UTF8.GetBytes(JsonSerializer.Serialize(items, new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase })));
         var psi = new System.Diagnostics.ProcessStartInfo("dotnet", $"run --no-build --project \"{project}\" -- review-workbench --milestone M038 --items-base64 \"{payload}\" --frames 90 --capture \"{capture}\"") { WorkingDirectory = root, UseShellExecute = false, RedirectStandardOutput = true, RedirectStandardError = true, CreateNoWindow = true };
         using var process = System.Diagnostics.Process.Start(psi) ?? throw new EngineeringException("could not start the active-platform Raylib workbench");
         await process.WaitForExitAsync();

@@ -140,7 +140,7 @@ static int ReviewWorkbench(string[] arguments)
         else return Usage();
     }
     IReadOnlyList<RaylibGameWindow.ReviewWorkbenchItem> items;
-    if (!string.IsNullOrWhiteSpace(itemsBase64)) items = JsonSerializer.Deserialize<List<RaylibGameWindow.ReviewWorkbenchItem>>(Convert.FromBase64String(itemsBase64)) ?? [];
+    if (!string.IsNullOrWhiteSpace(itemsBase64)) items = JsonSerializer.Deserialize<List<RaylibGameWindow.ReviewWorkbenchItem>>(Convert.FromBase64String(itemsBase64), new JsonSerializerOptions { PropertyNameCaseInsensitive = true }) ?? [];
     else items = [new(reviewId ?? "review.m038.simple-human-review-boundary-and-workbench", question ?? "Is this review experience clear and understandable?", "pending")];
     return RaylibGameWindow.ShowReviewWorkbench(milestone ?? "M038", items, frames, capture);
 }
