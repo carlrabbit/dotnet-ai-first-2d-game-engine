@@ -6,48 +6,69 @@ Accepted for M038.
 
 ## Context
 
-Repository human review evolved into a broad Tier 5 gate where humans were often asked to inspect JSON, reports, hashes, architecture summaries, persistence results, and other mechanically decidable evidence.
+Repository human review had drifted into manual inspection of mechanically decidable evidence. M037 also demonstrated the opposite problem: legitimate UX/visual questions without an executable experience capable of answering them.
 
-M037 exposed the opposite failure at the same time: its human questions were largely appropriate UX/visual questions, but the graphical review path only provided a bounded main-menu proof rather than live save/settings/rebinding experiences capable of answering those questions.
+The first M038 workbench iteration exposed additional UX problems that are important enough to make architectural constraints:
 
-The repository also contains an M029 asset workbench, but its session, alias, command, consequence, preview-IPC, and promotion semantics are asset-specific and were not established as a general review platform.
+- one review command per question makes normal human review unnecessarily manual;
+- a fresh-process interpretation of Restart is not the reviewer's intended workflow;
+- synchronous `dotnet run`/engineering waits from the Raylib event loop freeze the UI and can expose auxiliary terminal windows;
+- a question sidebar/list would add abbreviated labels, scrolling, and navigation complexity without value.
 
-The intended project loop is planning/human intent -> execution agent -> automated validation -> human subjective checkpoint -> small fixes return to execution, while material contract issues return to planning.
+The reviewer expects one milestone review run containing all open simple items, immediate Accept/Reject progression, visible asynchronous persistence, and a whole-review reset.
 
 ## Decision
 
-Human review is limited to irreducibly perceptual or experiential acceptance. Mechanically decidable acceptance is automated before human review.
+Human review remains limited to irreducibly perceptual or experiential acceptance. Machine-verifiable acceptance is automated first.
 
-Introduce a deliberately small repository-engineering Review Workbench for simple human questions only.
+The Simple Review Workbench is a lightweight **runner over multiple simple repository-local review items**.
 
-A simple workbench review:
+Each item still has one concise question and a bounded actual experience.
 
-- has one concise question;
-- uses actual current content through a scenario or purpose-built review shard;
-- requires at most two deliberate interactions with reviewed content;
-- exposes only `Restart`, `Reject`, and `Accept` as primary controls;
-- never requires reviewer comments/history;
-- never automatically restarts/reloads after changes or Reject;
-- uses a fresh process when the reviewer explicitly chooses Restart;
-- retains the existing minimal repository-local final review record as milestone completion authority.
+Normal milestone review behavior:
 
-Machine suite verification and human review-check remain distinct completion gates.
+```text
+review-run --milestone
+-> one item at a time
+-> left/right arrows
+-> Accept/Reject enqueue durable decision
+-> automatic progression
+-> final persistence/status page
+```
 
-M029 is not generalized or migrated. Reuse from it is limited to optional low-level implementation techniques.
+The workbench has no question list/sidebar.
 
-Complex human reviews are outside the simple workbench. They require an explicit milestone-specific manual/exploratory path or a truthful purpose-built experience that reduces the question to the simple bound.
+Decision persistence uses one in-memory serialized background FIFO queue. The graphical event loop remains responsive and shows visible activity. Normal review interaction must not open an auxiliary terminal/console or synchronously wait for engineering command completion.
+
+`Restart` means reset the entire active milestone review set:
+
+```text
+drain queue
+-> canonical review-reset
+-> clear local/demo state
+-> question 1
+```
+
+Restart does not re-exec the process, rebuild, hot reload, or watch files.
+
+Each item remains durable through existing `.review` authority. No persisted workbench session/queue/comment/history UI is introduced.
 
 ## Relationship to ADR-0029
 
-ADR-0029 remains valid: required/blocking milestone review completion state is repository-local.
+ADR-0029 remains valid: required/blocking review state is repository-local.
 
-This ADR narrows what may qualify as human review and removes reviewer-facing session/history/comment complexity from the normal simple-review workflow. It does not require rewriting historical records or migrating the v2 review format.
+This ADR changes the reviewer-facing orchestration, not the durable authority model.
+
+Active-milestone review-reset may reopen/reset the current milestone's items while preserving compatible audit/provenance. Completed historical milestones remain immutable.
 
 ## Consequences
 
-- Humans no longer duplicate machine validation by reading reports.
-- A missing live experience blocks review readiness instead of producing a command/evidence-reading checklist.
-- Review UX is intentionally too small to become a manual-test framework.
-- The reviewer controls when a changed implementation is restarted.
-- Conversational feedback remains in the planning/execution loop rather than becoming a new issue/comment subsystem.
-- Future milestones must plan complex subjective validation explicitly instead of expanding the generic workbench.
+- A repository user performs one review-run per milestone review pass rather than one command per question.
+- Multiple simple items do not make each item complex.
+- Accept/Reject remain individually durable even though the UI immediately advances.
+- Background persistence latency is visible but does not freeze review interaction.
+- The final page acts as the persistence barrier before normal Close.
+- Restart is a whole-review reset, not an application lifecycle feature.
+- Arrow navigation avoids sidebar/list complexity.
+- The existing `.review` implementation remains useful and no parallel review database is created.
+- M029 remains asset-specific and is not generalized.

@@ -4,30 +4,33 @@
 
 M038 in `carlrabbit/dotnet-ai-first-2d-game-engine`.
 
-## Project conclusion to consider for generic guide authority
+## Project conclusions to consider for generic guide authority
 
-The project found two recurring human-review failure modes:
+The project found recurring human-review failure modes:
 
-1. humans were asked to inspect machine-verifiable JSON/reports instead of automation deciding those predicates;
-2. genuine UX/visual questions could be declared reviewed even when no executable experience existed that allowed the reviewer to answer them.
+1. humans were asked to inspect machine-verifiable reports instead of automation deciding those predicates;
+2. genuine UX/visual questions could exist without an executable experience capable of answering them;
+3. normal human review becomes unnecessarily manual when each question requires a separate command invocation.
 
-Project-local M038 adopts:
+Project-local M038 now adopts:
 
 - machine acceptance before human review;
 - human review only for irreducibly perceptual/experiential criteria;
-- a live experience as human evidence when behavior is interactive;
-- a deliberately small Restart/Reject/Accept review UI;
-- no reviewer comments/history/queue as part of the normal human workflow;
-- machine suite verification independent of pending human approval.
+- one simple question per durable review item;
+- one normal milestone review-run that sequentially presents all currently open simple items;
+- immediate Accept/Reject progression with asynchronous durable persistence;
+- visible persistence/reset activity instead of UI freezing;
+- a whole-review reset operation rather than automatic process restart;
+- no reviewer comments/history or persisted workbench session/queue.
 
 ## Sync scope
 
-A future guide-system documentation pass may update generic planning/execution guidance so it does not encourage humans to manually validate objective evidence and so a required human gate must identify evidence/experience sufficient to answer its subjective question.
+A future guide-system documentation pass may consider the machine-versus-human boundary, missing-live-experience failure mode, and whether generic milestone review guidance should distinguish durable review items from the human-facing review-run UX.
 
-The project-specific two-interaction Review Workbench and Raylib implementation do not need to become generic guide requirements.
+The project's Raylib layout, background queue implementation, reset command names, and per-item interaction bound do not need to become generic guide requirements.
 
 ## Completion
 
-Resolve this hint only when the external guide authority has explicitly considered the machine-versus-human boundary and missing-human-experience failure mode.
+Resolve this hint only when external guide authority has explicitly considered these review-boundary and human-workflow conclusions.
 
-M038 implementation does not depend on this sync.
+M038 implementation does not depend on this synchronization.

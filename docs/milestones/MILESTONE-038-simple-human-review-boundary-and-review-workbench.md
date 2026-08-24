@@ -13,56 +13,62 @@
 | Maturity | implementation-ready; artifact-first |
 | Scope size | medium |
 | Implementation autonomy | high within this contract |
-| Documentation sync | separate/deferred pass except direct authority changes required below |
+| Documentation sync | separate/deferred except direct authority changes required here |
 | Local validation | Tier 1 focused + Tier 2 resumable milestone suite |
-| Integration validation | Tier 2 aggregate verifier; normal Tier 3 repository validation where available |
-| Human review | blocking, active-platform, one simple workbench review |
+| Integration validation | Tier 2 aggregate machine verifier |
+| Human review | blocking, active-platform, milestone review run |
 
-M038 is the next active milestone. Previously contemplated post-M037 product/gameplay expansion is postponed until M038 completes.
+M038 remains the active milestone. Product/gameplay expansion remains postponed until M038 completes.
 
 ## Goal
 
-Correct the repository's human-review boundary and provide a deliberately small engine-powered Review Workbench for simple perceptual/experiential reviews.
+Correct the repository's human-review boundary and provide a deliberately small graphical Review Workbench that lets the repository user review **all currently open simple human-review items for one milestone in one run**.
 
-Human review must stop acting as manual verification of JSON, reports, hashes, architecture, persistence, determinism, or other mechanically decidable claims. Automated validation must establish those claims before human review becomes available.
-
-For the remaining genuinely human question, the reviewer should receive the actual current scenario or purpose-built review shard, one concise question, and exactly three primary controls:
+The workbench must make subjective review cheap:
 
 ```text
-Restart    Reject    Accept
+machine validation
+-> review-run --milestone M038
+-> question 1
+-> Accept / Reject
+-> automatic transition
+-> question 2
+-> ...
+-> final persistence/status page
+-> Close
 ```
 
-The workbench exists to make a small subjective checkpoint cheap. It is not a general manual-testing framework, review database, feedback tracker, or replacement for planning.
+Machine-verifiable claims remain machine-owned. The Review Workbench is not a manual-test framework, feedback tracker, issue system, or persisted review-session product.
 
 ## Target State
 
 When M038 is complete:
 
-1. required/blocking human review is permitted only for irreducibly perceptual or experiential judgment;
-2. machine-verifiable acceptance is owned by automated validation and is complete before a simple human review can launch;
-3. the canonical human entry point can launch a simple Review Workbench for a milestone-owned scenario or review shard;
-4. one workbench invocation presents one review subject/question and the actual current content/demo needed to judge it;
-5. a simple review requires no more than two deliberate interactions with the reviewed content before the reviewer can decide; review-chrome controls do not count toward this limit;
-6. the workbench exposes `Restart`, `Reject`, and `Accept` as its only primary decision controls;
-7. `Restart` is always reviewer-triggered and starts a fresh review process against the current repository/build state; file watching, automatic reload, and in-process reset masquerading as code reload are prohibited;
-8. `Reject` records a non-final changes-requested outcome but neither restarts nor automatically closes the review experience;
-9. `Accept` records the canonical final approval and may close the workbench;
-10. closing the window without approval never fabricates a completed review;
-11. no reviewer comment, rating, defer action, multi-item queue, resumable workbench session, or reviewer-facing decision history is required;
-12. the existing repository-local `.review` completion record remains the minimal durable milestone gate required by current guide/project authority;
-13. historical review records remain unchanged and readable;
-14. automated milestone-suite verification is independent of human approval; human review is a separate completion gate;
-15. M037 is retained as a regression example proving that a screenshot/report or named evidence file cannot substitute for the missing live experience required to answer a genuine human question.
+1. required/blocking human review is limited to irreducibly perceptual or experiential questions;
+2. machine-verifiable acceptance is complete before human review can launch;
+3. `review-run --milestone <id>` is the normal human entry point and presents all currently open simple review items for that milestone in one graphical run;
+4. each review item still contains one concise question and one bounded actual scenario/review-shard experience;
+5. the workbench presents one item at a time with no question sidebar/list;
+6. left/right arrows navigate previous/next items;
+7. `Accept` and `Reject` enqueue durable review operations without blocking the graphical event loop and automatically move to the next undecided item;
+8. the workbench visibly reports the last decision and persistence activity;
+9. review persistence is serialized through one bounded FIFO background queue;
+10. normal review operation never opens an auxiliary terminal/console window and never synchronously waits for an engineering process on the render/UI thread;
+11. after all loaded items have a local decision, the workbench shows a final status page containing the choices and queue activity;
+12. the final `Close` control is enabled only after all queued decision writes complete successfully;
+13. `Restart` means **reset the whole milestone review set**, not restart the application/process;
+14. Restart shows a resetting/progress screen, drains existing queued decisions, invokes canonical milestone review-reset authority, clears workbench/demo state, reloads the reset review set, and returns to question 1;
+15. Restart does not rebuild, reload code, watch files, or relaunch the process; the reviewer may restart the application manually after a rebuild;
+16. `.review/` remains the durable authority for each review item; no durable workbench session, comment stream, queue file, or navigation state is introduced;
+17. historical completed milestones remain immutable; reset is legal only for the active milestone review set;
+18. automated M038 verification remains independent of human approval;
+19. M037 remains a regression proving that a genuine human question is not review-ready without an executable experience capable of answering it.
 
 ## Scope
 
-### Human-versus-machine review boundary
+### Human-versus-machine boundary
 
-Replace the current broad "human reviews evidence" interpretation with this rule:
-
-> A human-review gate is valid only when the acceptance question requires human perception, usability judgment, experiential/gameplay judgment, creative/presentation judgment, audio judgment, or bounded accessibility observation that automation cannot decide reliably.
-
-Allowed human-review classes for new required/blocking reviews are limited to:
+New required/blocking human questions are limited to:
 
 ```text
 visual
@@ -73,329 +79,382 @@ audio
 accessibility-baseline
 ```
 
-A mixed milestone may contain machine and human acceptance, but machine criteria are prerequisites rather than questions delegated to the reviewer.
+Machine-verifiable properties such as schema validity, determinism, persistence correctness, conservation, required-file presence, fingerprints, performance thresholds, architecture constraints, migration completeness, and report consistency are automated prerequisites.
 
-The following are not sufficient reasons for human review and must be decided through planning, automated validation, engineering analysis, or explicit non-human acceptance mechanisms:
+Do not add an LLM or heuristic classifier. Planning declares the human question; deterministic validation enforces the allowed classes and review shape.
+
+### Review item
+
+A simple review item:
+
+- has one concise human question;
+- uses an actual scenario or purpose-built review shard exercising the real implementation;
+- begins at or near the state under judgment;
+- requires at most two deliberate interactions with reviewed content before the reviewer can decide;
+- does not require artifact browsing, command tours, debugger knowledge, or implementation reconstruction.
+
+The complexity bound applies **per item**, not to the number of items in a milestone review run.
+
+### Milestone review run
+
+The normal command is:
 
 ```text
-architecture
-semantic correctness
-determinism
-persistence correctness
-schema validity
-artifact completeness
-migration correctness
-performance budgets
-security properties
-public/API compatibility
-release-readiness bookkeeping
-platform compatibility facts
-hash/fingerprint consistency
-required-file presence
+./eng/review-run.sh --milestone <id>
+pwsh ./eng/review-run.ps1 --milestone <id>
 ```
 
-Do not add an LLM classifier that guesses whether arbitrary prose is subjective. Milestone planning declares the human question. Deterministic validation enforces the allowed boundary.
-
-### Simple Review Workbench
-
-Provide one canonical human entry point:
+A targeted form may remain for engineering/debug use:
 
 ```text
 ./eng/review-run.sh <review-id-or-alias>
 pwsh ./eng/review-run.ps1 <review-id-or-alias>
 ```
 
-The launchers remain thin over tested .NET engineering semantics.
+For milestone mode:
 
-For a simple review, the engineering review authority resolves the canonical review ID to exactly one current milestone-owned review experience. The concrete representation of that binding is implementation-owned; no public product API or generic plugin system is required.
+1. resolve the active milestone;
+2. perform the fast current machine-prerequisite/review-readiness check;
+3. load the currently open required/blocking simple review requests owned by that milestone;
+4. reject launch before graphics if any loaded item is not review-ready;
+5. order the loaded items deterministically by canonical review identity;
+6. launch one Review Workbench containing that in-memory review-run snapshot.
 
-A simple review experience is one of:
+Approved records are not normally included in a new review run. `changes-requested` and undecided active requests are open items.
 
-- a deterministic scenario presented through actual engine rendering/runtime capability; or
-- a purpose-built engineering review shard that places the reviewed implementation directly into the state that needs judgment.
+### Presentation and navigation
 
-M038 does not create a generalized arbitrary-process/provider protocol.
-
-The experience must use current implementation/content. A Markdown description, raw JSON, precomputed pass flag, or unrelated screenshot cannot stand in for an executable experience when the question concerns interactive behavior.
-
-### Simplicity bound
-
-The generic workbench is intentionally inapplicable to complex reviews.
-
-A simple review must:
-
-- have one concise review question/subject;
-- begin at or very near the state being judged;
-- require at most two deliberate interactions with reviewed content before a decision can be made;
-- avoid setup tours, command lists, long workflows, multi-step test scripts, and reviewer reconstruction from artifacts;
-- remain understandable without debugger or implementation knowledge.
-
-If a human question would otherwise exceed this bound, planning or implementation may create a representative purpose-built scenario/shard that truthfully starts closer to the state under judgment. Do not split or stage the experience in a way that changes the property being reviewed.
-
-If the property cannot honestly be reduced to a simple experience, the milestone must declare an explicit separate manual/exploratory human-review path. The generic M038 workbench must not grow to absorb it.
-
-### Workbench interaction
-
-The workbench's reviewer-facing chrome is intentionally small:
+Normal question presentation contains:
 
 ```text
-review title / concise question
-actual content or demo
-Restart    Reject    Accept
+<            Question N / Total            >
+
+one concise question
+
+actual scenario/review-shard content
+
+Current decision: <none|Accepted|Rejected|saving|failed>
+Last decision: <question ordinal + Accepted/Rejected + persistence state>
+
+Restart                         Reject   Accept
 ```
 
-Secondary developer diagnostics may exist outside normal reviewer presentation, but the normal human review must not require them.
+The exact layout is implementation-owned, but these semantics are required.
 
-No normal workbench controls for:
+There is no question sidebar/list and no abbreviated-question navigation surface.
 
-- comments or text notes;
-- approve-with-conditions;
-- ratings;
-- defer/skip/waive;
-- next/previous review queue;
-- evidence-file browsing;
-- aliases/candidate selection unrelated to the reviewed content;
-- promotion or asset semantics.
+Left/right arrows:
 
-### Restart semantics
+- navigate through the loaded review-run snapshot;
+- do not alter durable review state;
+- wraparound behavior is implementation-owned but must be predictable and tested.
 
-`Restart` means a fresh execution, not an in-memory world reset when code or assets may have changed.
+`Accept`/`Reject` automatically transition to the next undecided item. If manual navigation skipped earlier items, automatic transition selects the next undecided item in deterministic order; when all loaded items have a local decision, transition to the final status page.
+
+In-place reversal of an already-decided item is not required by M038. Restart/reset is the canonical way to clear decisions and start the review set again.
+
+### Asynchronous durable decision queue
+
+Accept and Reject persist each item independently through canonical repository-local review authority.
 
 Required behavior:
 
 ```text
-reviewer explicitly chooses Restart
--> current review execution ends/relinquishes native resources
--> canonical review launch path starts a fresh process from current repository/build state
--> same canonical review remains active
+button click
+-> enqueue decision job
+-> update local visual state immediately
+-> advance to next undecided item
+-> background worker serially persists queued jobs
 ```
 
-No source-file watcher or automatic restart is required or allowed by default.
+The queue is:
 
-The workbench must not automatically reload/restart because:
+- in-memory only;
+- FIFO;
+- single-consumer/serialized;
+- bounded by the loaded review-run item count;
+- not a new repository artifact or review-session format.
 
-- a scenario reaches terminal state;
-- a reviewed shard finishes its internal activity;
-- the reviewer presses Reject;
-- files change on disk.
+The graphical event loop must remain responsive while jobs execute.
 
-The reviewer chooses when to restart after an execution-agent change.
+Normal operation must not:
 
-### Reject and Accept semantics
+- call synchronous `WaitForExit` from the render/UI thread;
+- expose a shell/terminal window;
+- block drawing/input for engineering command startup or review persistence.
 
-`Reject` is non-final. It updates the active repository-local review to `changes-requested` (or the equivalent existing non-final state) without requiring a note and without closing/restarting the workbench.
+Implementation may call shared engineering authority directly or invoke existing review commands/processes asynchronously and invisibly. That is a local implementation choice provided the observable contract is satisfied.
 
-The intended development loop is:
+While queue work exists, the UI shows visible activity such as:
 
 ```text
-planning/human intent
--> execution agent
--> automated validation
--> simple human review
-   -> Accept: milestone may complete
-   -> Reject: small correction returns to execution agent
-              reviewer chooses Restart when ready
-   -> material issue: return to planning
+Saving decision…  ◌
+2 pending
 ```
 
-`Accept` records `approved` through the canonical repository-local review authority. No implementation agent may fabricate that action.
+The precise animation is implementation-owned. It must visibly change while work is pending.
 
-M038 does not require removal of historical/internal provenance fields from the existing review-file format. Those fields are compatibility details, not reviewer-facing workflow. No schema migration of historical v2 review records is required.
+A decision failure:
 
-### Machine prerequisite and review readiness
+- is not silently discarded;
+- is visible in the workbench;
+- does not enable final Close;
+- remains retryable without fabricating success.
 
-Machine acceptance and human review must be separate.
+### Decision semantics
 
-A simple review may launch only after a fast current machine-prerequisite check for its owning milestone succeeds. The workbench must not make the reviewer verify those prerequisites manually.
+`Accept` persists the review item's canonical `approved` decision.
 
-The exact registration from a review ID to its fast prerequisite verifier is implementation-owned. It must be deterministic and testable.
+`Reject` persists the existing non-final `changes-requested` decision.
 
-The M038 automated suite verifier itself must not fail merely because the M038 blocking human review is still pending. This intentionally corrects the prior pattern where machine aggregate verification and human approval were entangled.
+No reviewer comment is required.
 
-### Existing M029 asset workbench
+Existing lower-level `.review` provenance/history may remain for compatibility but is not reviewer-facing workflow.
 
-M029 is not treated as a mature generic review framework and is not migrated in M038.
+Implementation agents must never synthesize a human Accept action.
 
-Its asset-specific concepts remain outside the simple-review contract:
+### Final status page
 
-- campaign candidate lists;
-- editable command field;
-- aliases;
-- asset decision vocabulary;
-- consequences;
-- preview IPC/session recovery;
-- promotion planning;
-- durable asset decision history.
+Once every loaded item has a local Accept/Reject choice, show a final status page.
 
-Implementation may reuse small Raylib window/button/event-loop techniques from existing M029 code where that is locally useful. It must not generalize or import the M029 provider/session model merely for reuse.
+The page shows:
+
+- one compact line per loaded item using ordinal plus `Accepted` or `Rejected`; it does not reproduce abbreviated question text;
+- queue activity/pending count while persistence remains;
+- failed persistence operations, if any;
+- a retry action when required;
+- `Close` only after every queued decision operation has completed successfully.
+
+Example:
+
+```text
+Review pass complete
+
+1  Accepted
+2  Rejected
+3  Accepted
+
+Saving decisions…  ◌
+1 pending
+```
+
+Then:
+
+```text
+Review decisions saved
+
+1  Accepted
+2  Rejected
+3  Accepted
+
+[ Close ]
+```
+
+A pass containing rejections may close normally once all decisions are durable. The owning milestone remains incomplete because `review-check` will not pass until every blocking review is approved.
+
+### Restart / review reset
+
+`Restart` resets review state; it does not restart the process.
+
+Canonical reset surface:
+
+```text
+./eng/review-reset.sh --milestone <id>
+pwsh ./eng/review-reset.ps1 --milestone <id>
+```
+
+The underlying engineering authority may expose an equivalent `engineering review reset --milestone <id>` operation.
+
+Restart behavior:
+
+```text
+Restart
+-> stop accepting new review input
+-> show RESETTING REVIEW activity screen
+-> drain already queued decision jobs
+-> execute canonical review-reset for the active milestone
+-> reset all participating active-milestone simple review items to undecided/open state
+-> preserve internal audit/provenance history required by existing review compatibility
+-> clear local decisions/last-decision/navigation/demo state
+-> reload the reset review set
+-> show question 1
+```
+
+Review reset may reopen approval records belonging to the **currently active milestone**. It must not reopen or alter completed historical milestones.
+
+Reset failure leaves the workbench in a visible retryable error state. Local state must not pretend reset succeeded.
+
+Restart explicitly does **not**:
+
+- restart/re-exec the graphical process;
+- rebuild code;
+- reload changed assemblies;
+- watch source/assets;
+- assume a rebuild happened.
+
+If the implementation was rebuilt and the reviewer wants a new executable, the reviewer closes and reruns `review-run`.
+
+### Window close
+
+The normal completed path uses the final status page's `Close`.
+
+No workbench session recovery is required after forced process termination. Already completed durable review operations remain authoritative; in-memory navigation/activity state is disposable.
+
+### M029 boundary
+
+M029 remains asset-specific and is not generalized.
+
+M038 may reuse low-level Raylib/event-loop/button techniques only. Do not import or generalize M029 campaign, alias, text-command, consequence, IPC, or promotion semantics.
 
 ### M037 regression
 
-M038 must encode a bounded regression based on the M037 failure that motivated this work.
+Machine regression must establish that:
 
-The regression must establish at minimum:
-
-- M037 contained genuine UX/visual questions;
-- its one-frame main-menu graphical proof could not provide a live save/load, display rollback, or input-rebinding experience;
-- named Markdown/JSON review-pack artifacts do not close that gap;
-- under the M038 policy such a review definition is not review-ready until an appropriate executable experience exists;
-- M038 does not repair or reopen historical M037.
-
-Use fixed representative regression fixtures/assertions. Do not build a natural-language classifier over historical review records.
-
-### Historical compatibility
-
-- Existing `.review/records/` remain immutable historical evidence.
-- Existing v2 review request/record files remain readable.
-- M038 does not reopen M025–M037.
-- M038 may change validation rules for newly created required/blocking reviews without retroactively invalidating historical records.
-- ADR-0029's repository-local completion authority is retained; M038 narrows what qualifies for human review and how simple interactive review is performed.
-
-### Platform boundary
-
-The active development epoch is Windows.
-
-- Portable review-policy/state semantics must remain platform-neutral.
-- The Raylib workbench must respect the existing isolated-native-adapter boundary.
-- Active-Windows graphical smoke is mandatory for M038.
-- Inactive Linux native/graphical verification may be recorded as deferred platform debt under existing platform-epoch policy; it is not fabricated.
-- M038 human review occurs on the active Windows platform.
+- M037 had genuine UX/visual questions;
+- the existing one-frame main-menu graphical proof could not provide live save/load, display rollback, or input-rebinding experience;
+- Markdown/JSON references did not close that gap;
+- under M038 such questions are not review-ready until an appropriate executable experience exists;
+- M038 does not repair or reopen M037.
 
 ## Non-goals
 
 Do not implement:
 
-- a generic review SDK/package for game consumers;
-- a plugin/provider marketplace or dynamic review loader;
-- a general manual-testing or exploratory-testing application;
-- complex multi-step review orchestration;
-- reviewer comments, issue tracking, ratings, or feedback history UI;
-- review queues, next/previous navigation, resumable workbench sessions, or workbench aliases;
-- AI/LLM classification of review criteria;
-- video recording or screenshot management as a replacement for live experience;
-- automatic source watching, hot reload, or automatic restart after Reject;
-- M029 asset-workbench migration/generalization;
-- M037 product-shell/save/settings/rebinding completion work;
-- historical review-record rewriting;
-- guide-system migration;
-- release-readiness work;
-- unrelated gameplay/product expansion;
-- new TBPs, issue templates, workflows, or copied guide material.
+- a generic review SDK for consumers;
+- plugin/provider marketplace or arbitrary-process review protocol;
+- persisted workbench sessions or queue files;
+- reviewer comments, ratings, issue tracking, or feedback history UI;
+- a question sidebar/list, abbreviated question titles, or list scrolling;
+- a Next button; Accept/Reject provide automatic progression and arrows provide explicit navigation;
+- complex multi-step manual-test orchestration;
+- automatic file watching, hot reload, rebuild, or process restart;
+- M029 migration/generalization;
+- M037 product fixes;
+- historical completed-milestone rewriting;
+- LLM review classification;
+- release-readiness or guide migration work;
+- unrelated product/gameplay expansion.
 
 ## Decisions and Constraints
 
-1. Human review is subjective/perceptual last-mile acceptance, never manual duplication of mechanically decidable validation.
-2. Planning owns material architecture/semantic choices. A `ready` milestone must not defer such choices to a human-review gate.
-3. The simple workbench is deliberately bounded to one question and at most two reviewed-content interactions.
-4. One invocation represents one review. Do not create a generic multi-item review session.
-5. The workbench uses actual current engine/application content through a scenario or purpose-built shard.
-6. The only primary reviewer controls are `Restart`, `Reject`, and `Accept`.
-7. Reject is non-final and does not restart or close. Restart is explicit. Accept is the final approval action.
-8. Restart uses a fresh process/current build state; no hidden in-process code reload claim.
-9. The reviewer is not asked for comments. Conversational feedback to the execution/planning agent remains outside durable review state.
-10. Existing `.review` final completion authority is retained for guide compatibility; M038 does not introduce a new durable review database or v3 session schema.
-11. Machine suite verification and human review-check are distinct gates.
-12. Raylib remains isolated to the graphical adapter. Engineering review authority must not expose raylib types.
-13. Reuse from M029 is opportunistic low-level implementation reuse only, not a requirement to preserve its architecture.
+1. Human review is subjective/experiential last-mile acceptance only.
+2. A milestone review run may contain multiple simple review items.
+3. One review item still owns one concise question.
+4. The normal workbench runs all currently open milestone review items in one graphical invocation.
+5. No question list/sidebar is introduced; arrows navigate.
+6. Accept/Reject enqueue persistence and auto-advance.
+7. Decision persistence is asynchronous from the graphical event loop and visibly active.
+8. A single serialized in-memory FIFO queue is sufficient; no persisted queue/session is allowed.
+9. Final Close waits for successful queue drain.
+10. Restart invokes milestone review-reset in-process/workbench lifecycle; it does not restart the executable.
+11. Reset clears the active milestone review set and reviewer-facing state while preserving compatible internal provenance/history.
+12. Visible terminal windows and synchronous engineering waits during normal button interaction are prohibited.
+13. `.review` remains durable authority for each item.
+14. Machine suite verification and milestone human review-check remain separate gates.
+15. Raylib remains isolated to graphical presentation; durable review semantics stay in repository engineering authority.
+16. M029 reuse is optional low-level implementation reuse only.
 
 ## Baseline Executor Readiness
 
-Readiness is confirmed for GPT-5.6 Luna.
+Ready for GPT-5.6 Luna.
 
-Planning has settled the material decisions affecting:
+Planning has settled:
 
-- human-versus-machine acceptance boundary;
-- review applicability classes;
-- simple-review complexity limit;
-- workbench interaction and restart semantics;
+- review applicability;
+- per-item complexity;
+- multi-item milestone-run semantics;
+- navigation;
+- async persistence semantics;
+- final status/drain behavior;
+- Restart/reset semantics;
 - durable-state boundary;
-- relationship to M029;
+- process/UI responsiveness requirements;
 - historical compatibility;
-- M037 regression expectation;
-- machine/human gate separation;
-- cross-platform policy;
-- scope and non-goals.
+- M029 and M037 boundaries;
+- validation and human-review policy.
 
-The implementation agent owns concrete source layout, types, functions, code reuse/refactoring, test organization, exact review-registration representation, process-restart mechanics, and supporting edits that stay inside this contract.
-
-No stronger implementation model is required to resolve project policy.
+Implementation owns concrete files/types/functions, queue implementation mechanics, exact async invocation/direct-call technique, Raylib layout, tests, process abstraction, retry implementation, and refactoring within this contract.
 
 ## Required Authority
 
-Read these project-truth documents before implementation:
+Read:
 
 1. `AGENTS.md`;
 2. `README.md`;
-3. `docs/TERMINOLOGY.md`;
-4. `docs/SPECS.md`;
-5. `docs/specs/agentic-workflow.md`;
-6. `docs/specs/simple-human-review-workbench-contract.md`;
-7. `docs/ENGINEERING.md`;
-8. `docs/HUMAN-REVIEW.md`;
-9. `docs/engineering/command-contract.md`;
-10. `docs/engineering/validation-tiers.md`;
-11. `docs/engineering/human-review-workflow.md`;
-12. `docs/engineering/platform-verification.md`;
-13. `eng/platform-verification.json`;
-14. `docs/specs/raylib-debug-client-contract.md`;
-15. `docs/decisions/ADR-0029-human-review-state-is-repository-local.md`;
-16. `docs/decisions/ADR-0041-asset-preview-host-is-a-separate-restartable-client-around-engine-systems.md`;
-17. `docs/decisions/ADR-0050-human-review-is-subjective-and-simple-workbench-is-bounded.md`;
-18. `docs/milestones/MILESTONE-029-choice-driven-asset-workbench-persistent-audiovisual-preview-and-deterministic-promotion.md` only for existing M029 behavior/boundary, not as generic workbench authority;
-19. `docs/milestones/MILESTONE-037-product-shell-ui-saves-settings-and-input.md` only as the historical regression source.
+3. this milestone;
+4. `docs/HUMAN-REVIEW.md`;
+5. `docs/specs/simple-human-review-workbench-contract.md`;
+6. `docs/engineering/human-review-workflow.md`;
+7. `docs/engineering/command-contract.md`;
+8. `docs/engineering/validation-tiers.md`;
+9. `docs/specs/raylib-debug-client-contract.md`;
+10. `docs/decisions/ADR-0029-human-review-state-is-repository-local.md`;
+11. `docs/decisions/ADR-0050-human-review-is-subjective-and-simple-workbench-is-bounded.md`;
+12. active platform-verification authority.
 
-Then inspect only the live source/tests needed to implement the change, especially the current engineering review host and Raylib workbench/preview/session code. Do not read the external guide repository or `.guide-profile.json` during ordinary implementation.
+For M038 review-command semantics, this milestone plus the updated human-review workflow and simple-workbench contract are newer authority than any stale M038 command examples remaining elsewhere. Implementation must update directly contradicted command indexes/contracts before completion.
+
+Inspect live source/tests as needed. Do not read the external guide repository during implementation.
 
 ## Acceptance Criteria
 
-### Review-policy outcome
+### Multi-item workflow
 
-- New required/blocking reviews cannot use machine-only criteria as human acceptance.
-- A mixed review separates objective prerequisites from the human question.
-- Human-review readiness fails clearly when a required simple experience is absent, stale, non-executable, or outside the simple-review bound.
-- No LLM classifier is introduced.
+- `review-run --milestone M038` launches one workbench containing every currently open M038 simple human-review item.
+- M038 dogfood contains at least three simultaneously open review items so sequential progression, navigation, background persistence, and reset can be reviewed.
+- One item is presented at a time.
+- No sidebar/question list exists.
+- Left/right arrows navigate.
+- Accept/Reject immediately produce visible feedback and automatically transition without waiting for durable persistence to finish.
 
-### Workbench outcome
+### Async persistence
 
-- The canonical `review-run` command exists on Bash and PowerShell 7 and resolves the same engineering semantics.
-- A scenario-backed simple review launches the current engine-rendered experience with the review question and exactly the three primary controls.
-- A shard-backed simple review can launch directly at a review-relevant state without creating a generic provider/plugin framework.
-- Normal reviewer presentation contains no comment field, rating, defer/skip/waive action, candidate alias UI, next/previous queue, evidence browser, or asset-promotion controls.
-- The reviewed content remains visible when it naturally completes; completion does not auto-close or auto-restart the review.
-- Reject records a non-final changes-requested state without requiring a comment, without restarting, and without auto-closing.
-- Restart is triggered only by the reviewer and starts a fresh review execution against current build/repository state.
-- Accept records the canonical final approval. Closing without Accept cannot complete the review.
+- Decision persistence executes through one serialized background queue.
+- A deliberately delayed persistence test proves the graphical loop continues updating/responding while a job is pending.
+- The UI visibly indicates pending/saving state.
+- Normal Accept/Reject interaction opens no auxiliary terminal/console.
+- No render/UI-thread synchronous process wait is used for durable review operations.
+- Persistence failure is visible and retryable.
+- Decisions that report success are actually durable through canonical `.review` authority.
 
-### Gate separation
+### Final status
 
-- `m038-smoke --verify` can report automated validation success while the M038 human review is still pending.
-- The M038 milestone remains `AWAITING HUMAN REVIEW` until the separate milestone-scoped review-check passes.
-- Automated verification never asks the reviewer to inspect raw JSON/reports as a substitute for an automated assertion.
+- After every loaded item has a choice, the status page shows each ordinal and Accepted/Rejected choice.
+- The status page visibly animates/reports activity until the queue is drained.
+- `Close` is unavailable while queued jobs remain or any decision failed.
+- `Close` becomes available after all decision writes complete successfully.
+- A pass with Reject choices may still close; milestone review-check remains unsatisfied.
 
-### Compatibility and regression
+### Restart/reset
 
-- Existing historical v2 review records remain readable and unchanged.
-- Existing M029 asset-workbench behavior remains operational; M038 does not require M029 migration.
-- Representative future-style versions of M028/M031 machine-only review criteria are rejected as invalid human-review definitions.
-- Representative M032/M034 subjective criteria remain valid candidates for simple human review when supplied with an appropriate bounded experience.
-- The M037 regression proves that its current main-menu-only graphical proof cannot satisfy save/settings/rebinding human questions and would not be review-ready under M038.
+- Restart does not launch a new workbench process.
+- Restart immediately transitions to a responsive resetting/activity screen.
+- Pending decision jobs are drained before reset authority runs.
+- Canonical review-reset returns all participating M038 review items to undecided/open state.
+- Local current/last decision state and demo/navigation state are cleared.
+- After successful reset the workbench returns automatically to question 1.
+- Reset does not rebuild/reload code.
+- Reset cannot alter completed historical milestones.
 
-### Documentation and closure
+### Compatibility/policy
 
-- Directly affected review/validation/project-workflow authority is consistent with the implemented behavior.
-- `docs/SPECS.md`, `docs/DECISIONS.md`, `docs/TERMINOLOGY.md`, `docs/ENGINEERING.md`, and `docs/engineering/command-contract.md` are updated where implementation would otherwise leave them contradictory or fail to index the new permanent authority.
-- Any inactive-Linux M038 native verification debt is recorded through existing platform-verification authority rather than invented success.
-- A completion audit distinguishes machine validation success, pending/approved human review, and final milestone completion.
+- Existing historical v2 review records remain readable.
+- M029 remains operational and un-generalized.
+- M037 regression remains machine-verifiable.
+- Machine `m038-smoke --verify` succeeds independently of pending human decisions.
+- Existing invalid M038 single-review approval from the first implementation iteration is removed; it is not historical completion authority.
+
+### Documentation/closure
+
+- Review command documentation reflects milestone mode and reset.
+- No stale project authority still requires fresh-process Restart or one-review-per-workbench as M038 behavior.
+- Completion audit distinguishes machine complete, human pending, and complete.
 
 ## Validation
 
-### Validation execution mode
+Execution mode: `resumable-sharded`.
 
-`resumable-sharded`
-
-M038 uses the generic suite interface.
-
-On the active Windows development platform:
+Active Windows:
 
 ```text
 pwsh ./eng/suite.ps1 m038-smoke --plan-json
@@ -407,43 +466,27 @@ pwsh ./eng/suite.ps1 m038-smoke --shard review-readiness
 pwsh ./eng/suite.ps1 m038-smoke --verify
 ```
 
-Bash exposes the same suite/shard semantics:
-
-```text
-./eng/suite.sh m038-smoke --plan-json
-./eng/suite.sh m038-smoke --shard <id>
-./eng/suite.sh m038-smoke --verify
-```
-
-Required shard contract:
+Required M038 proof now includes:
 
 | Shard | Required proof |
 |---|---|
-| `policy-and-state` | review applicability rules, existing review-state compatibility, Reject/Accept state transitions, machine/human gate separation |
-| `simple-workbench` | scenario/shard simple-review contract, three-control UI structure, explicit restart lifecycle, no reviewer-comment/session machinery |
-| `historical-regression` | fixed M028/M031 negative cases, M032/M034 subjective positive cases, M037 insufficient-experience regression |
-| `active-platform-graphics` | real Windows Raylib context, current review experience draw, bounded smoke input, cleanup; no graphical skip counts as pass |
-| `review-readiness` | fast machine prerequisite check allows launch only from current validated state and produces machine provenance for the M038 review request |
+| `policy-and-state` | subjective-only policy, multiple active review items, per-item durable state, reset active-milestone compatibility, machine/human gate separation |
+| `simple-workbench` | milestone-run snapshot, arrows/no-list presentation contract, Accept/Reject auto-advance, FIFO decision queue, visible async status, final drain/status semantics, reset lifecycle |
+| `historical-regression` | M028/M031 machine-only negatives, M032/M034 subjective positives, M037 insufficient-live-experience regression |
+| `active-platform-graphics` | real Windows Raylib context, multi-item workbench presentation, navigation/decision input, visible activity state, cleanup; no graphics skip is pass |
+| `review-readiness` | all open M038 dogfood items have current executable experience and current machine prerequisite provenance |
 
-Receipts:
+Add focused tests/evidence proving a delayed decision write does not freeze the graphical update loop and normal review actions do not request a visible terminal window.
 
-```text
-artifacts/validation/m038-smoke/<shard>.json
-```
-
-Fingerprint scope follows existing EngineeringHost suite authority: current repository, suite definition, command, declared inputs, and validated result/evidence. Previous receipts are invalidated before shard execution; only atomic passing receipts count.
-
-Aggregate automated success authority:
+Aggregate machine success authority:
 
 ```text
 pwsh ./eng/suite.ps1 m038-smoke --verify
 ```
 
-or Bash equivalent.
+The verifier MUST NOT require human approval.
 
-The aggregate verifier checks machine receipts only. It MUST NOT require human approval.
-
-Also run the directly affected standard gates:
+Also run:
 
 ```text
 pwsh ./eng/build.ps1
@@ -452,180 +495,111 @@ pwsh ./eng/format.ps1 --verify
 pwsh ./eng/check.ps1
 ```
 
-Use Bash equivalents on Linux.
-
-### Graphics/constrained-runtime rule
-
-The active-platform graphical shard is mandatory. A `skipped-not-graphics-capable` result is not M038 validation success.
-
-If a disconnected execution harness cannot access the active Windows graphical session, it must not fabricate a passing receipt. The shard may be run in a separate foreground invocation by the repository user/authorized environment, then consumed by the fast verifier. Do not use backgrounding, detached processes, or timeout inflation.
+Use Bash equivalents where applicable.
 
 ## Human Review
 
 Applicability: `blocking`
 
-Review class:
+M038 dogfoods the multi-item flow with these canonical review items:
 
 ```text
-UX
-visual
+review.m038.01-presentation-and-navigation
+review.m038.02-decision-feedback-and-persistence
+review.m038.03-reset-flow
 ```
 
-Canonical review ID:
+All three are owned by M038 and must be simultaneously open before the final M038 human review begins.
+
+Normal review command:
 
 ```text
-review.m038.simple-human-review-boundary-and-workbench
+pwsh ./eng/review-run.ps1 --milestone M038
 ```
 
-Owning milestone:
+Human questions:
 
-```text
-M038
-```
+1. **Presentation and navigation** — Is the current question/content immediately understandable, and are left/right navigation plus automatic progression simple without a question list?
+2. **Decision feedback and persistence** — Do Accept/Reject respond immediately, show clear last-decision/saving activity, remain responsive while persistence runs, and avoid auxiliary terminal windows?
+3. **Reset flow** — Does Restart clearly reset the whole review set through a visible resetting state and return to question 1 without restarting the application?
 
-Review subject:
+Reviewer role: `repository user`.
 
-> Is the simple Review Workbench itself clear enough that a reviewer immediately understands what is being judged, sees the actual content/demo, and retains explicit control over restart and the Accept/Reject decision?
+Acceptable final decision for each blocking item: `approved`.
 
-Reviewer role: `repository user`
+No implicit waiver.
 
-Required human evidence:
-
-- the live M038 simple Review Workbench launched through the canonical `review-run` command on the active Windows platform;
-- the M038 review fixture must be a simple bounded experience, not a JSON/report inspection.
-
-Machine provenance referenced by the review request is not reviewer reading material.
-
-The human review should require at most one explicit `Restart` demonstration plus the final decision. Automated validation owns Reject state-transition correctness and all structural assertions.
-
-Canonical review command:
-
-```text
-pwsh ./eng/review-run.ps1 review.m038.simple-human-review-boundary-and-workbench
-```
-
-Bash equivalent:
-
-```text
-./eng/review-run.sh review.m038.simple-human-review-boundary-and-workbench
-```
-
-Acceptable completion decisions:
-
-```text
-approved
-```
-
-Waiver policy:
-
-No implicit waiver. M038 introduces the human-review UI itself, so the blocking UX/visual review cannot be replaced by machine evidence or waived as normal completion.
-
-Milestone review gate:
+Milestone human gate:
 
 ```text
 pwsh ./eng/review-check.ps1 --milestone M038
 ```
 
-or:
-
-```text
-./eng/review-check.sh --milestone M038
-```
-
-The implementation agent must never activate `Accept` or fabricate the approval. When machine work is complete and this decision remains, terminate as `AWAITING HUMAN REVIEW` with the exact command above.
-
-After the repository user approves, rerun review-check and the completion audit. Historical completed reviews remain untouched.
+After machine validation, if any blocking item remains unresolved, execution terminates `AWAITING HUMAN REVIEW`.
 
 ## Completion Audit
 
-The executor must distinguish these states:
+### Continue implementation
 
-### Automated work incomplete
+Any source, direct documentation, machine shard, queue/reset behavior, active-platform graphical proof, or review-readiness requirement remains unsatisfied.
 
-Any required implementation, direct documentation, shard, receipt, graphics proof, or machine verifier is missing/failed.
+### AWAITING HUMAN REVIEW
 
-Result: continue implementation; do not ask for human review.
+Implementation and machine validation are complete, all three M038 review items are open/review-ready, but one or more lack final approval.
 
-### Machine-complete, human pending
+### COMPLETE
 
-All implementation and machine validation pass, the simple review is launchable, but M038 approval is not recorded.
-
-Result:
-
-```text
-AWAITING HUMAN REVIEW
-```
-
-### Complete
-
-All implementation/documentation obligations are satisfied, `m038-smoke --verify` passes, the blocking M038 review is approved, and milestone-scoped `review-check` passes.
-
-Result:
-
-```text
-COMPLETE
-```
-
-If implementation reveals a material conflict with this contract, return to planning rather than broadening the workbench.
+All implementation/documentation obligations are satisfied, `m038-smoke --verify` passes, all M038 blocking review items are approved, and milestone-scoped review-check passes.
 
 ## Direct Documentation Impact
 
-Planning authority supplied with this milestone already establishes the target review policy and workbench contract.
+Implementation must keep directly affected authority consistent, especially:
 
-Implementation must keep directly affected live authority consistent with the realized command surface and exact implementation behavior, including indexes where needed. At minimum inspect/update as applicable:
-
-- `docs/SPECS.md`;
-- `docs/DECISIONS.md`;
-- `docs/TERMINOLOGY.md`;
 - `docs/HUMAN-REVIEW.md`;
-- `docs/specs/agentic-workflow.md`;
 - `docs/specs/simple-human-review-workbench-contract.md`;
 - `docs/engineering/human-review-workflow.md`;
-- `docs/engineering/validation-tiers.md`;
 - `docs/engineering/command-contract.md`;
-- `docs/ENGINEERING.md`;
-- active platform-verification authority if M038 creates inactive-platform debt.
+- `docs/ENGINEERING.md` if it indexes review commands;
+- `docs/decisions/ADR-0050-human-review-is-subjective-and-simple-workbench-is-bounded.md`.
 
-Do not perform broad unrelated documentation cleanup.
+Do not perform broad unrelated documentation synchronization.
 
 ## Deferred Documentation Synchronization
 
-A focused `.guide-sync/pending/` hint is supplied. It records that the external guide system may later want to adopt the machine-versus-human review distinction and the no-manual-JSON principle.
-
-M038 implementation does not depend on that external synchronization. Ordinary implementation agents must not read `.guide-sync/`.
+The existing focused `.guide-sync/pending/` hint is updated by this planning package. M038 implementation does not depend on external guide synchronization.
 
 ## Escalation Boundary
 
-Implementation owns concrete code/test mechanics, source reuse, process-launch details, exact engineering registration shape, and local refactoring within the resolved boundary.
+Return to planning if implementation requires:
 
-Return M038 to planning if implementation discovers that completion requires any of these new material decisions:
+- a question list/sidebar;
+- a persisted review-session/queue model;
+- a generic provider/plugin protocol;
+- complex exploratory/manual-test orchestration;
+- product/public APIs for review;
+- reviewer comments/history as normal UX;
+- automatic rebuild/hot reload/process restart;
+- changing the allowed human-review classes;
+- rewriting completed historical milestones;
+- M037 product repair or M029 generalization.
 
-- expanding the workbench beyond the one-question/two-interaction bound;
-- adding a generic provider/plugin protocol;
-- changing public/product APIs to support review;
-- replacing repository-local final review authority;
-- requiring reviewer comments/history as product behavior;
-- altering historical review records;
-- repairing M037 product functionality as part of M038;
-- changing the active-platform/graphics policy;
-- changing what qualifies as a valid human-review class.
-
-A local implementation difficulty is not a reason to broaden the milestone.
+Local implementation choices inside this contract remain executor-owned.
 
 ## Baseline-Executability Audit
 
-Confirmed before marking `ready`:
+Confirmed:
 
 - architecture: settled;
-- review semantics/behavior: settled;
-- persisted compatibility: historical v2 records retained; no required schema migration;
-- scope/non-goals: settled and intentionally narrow;
-- subsystem boundary: EngineeringHost + isolated Raylib debug client; no product review SDK;
-- acceptance criteria: observable and include regression/compatibility/UX outcome;
-- validation policy: resumable machine suite separated from human gate;
-- human-review policy: subjective-only, simple bounded workbench, blocking M038 dogfood review;
-- constrained execution: explicit plan/shards/receipts/verifier and graphics rule;
-- external dependencies: current .NET/Raylib/project engineering substrate only;
-- baseline model: GPT-5.6 Luna can choose local mechanics without inventing project policy.
+- semantics: settled;
+- durable compatibility: settled;
+- multi-item review flow: settled;
+- async persistence and responsiveness: settled;
+- reset semantics: settled;
+- scope/non-goals: settled;
+- acceptance: observable;
+- validation: resumable and machine/human separated;
+- human-review policy: explicit;
+- active-platform graphical requirement: explicit;
+- baseline model: GPT-5.6 Luna can implement without inventing project policy.
 
 No unresolved material planning issue prevents `ready` status.

@@ -2,11 +2,11 @@
 
 ## Authority
 
-This document is authoritative for repository-local review requests/records, canonical review commands, simple-review launch behavior, milestone-scoped review completion, and historical review compatibility.
+This document is authoritative for repository-local review requests/records, canonical review commands, milestone review-run behavior, asynchronous decision persistence semantics, active-milestone review reset, milestone completion, and historical compatibility.
 
 The project-level applicability rule is in `docs/HUMAN-REVIEW.md`.
 
-The graphical simple-review contract is in `docs/specs/simple-human-review-workbench-contract.md`.
+The graphical contract is in `docs/specs/simple-human-review-workbench-contract.md`.
 
 ## Applicability
 
@@ -19,7 +19,7 @@ required
 blocking
 ```
 
-For new required/blocking human reviews, the human question must belong to at least one allowed subjective class:
+New required/blocking human questions use subjective classes only:
 
 ```text
 visual
@@ -30,15 +30,11 @@ audio
 accessibility-baseline
 ```
 
-Engineering descriptors such as semantic, architecture, migration, artifact-quality, release-readiness, persistence, performance, security, public-api, or platform-compatibility do not by themselves justify a human gate.
-
-Machine-verifiable criteria are automated prerequisites, not reviewer questions.
-
-Do not add an LLM classifier. Planning declares the human question and deterministic tooling enforces the allowed boundary.
+Machine-verifiable criteria are automated prerequisites.
 
 ## Repository state
 
-The existing repository-local completion authority remains:
+Durable authority remains:
 
 ```text
 .review/
@@ -47,13 +43,13 @@ The existing repository-local completion authority remains:
   closed/
 ```
 
-Generated/large machine evidence remains under `artifacts/`.
+Generated machine evidence remains under `artifacts/`.
 
-The simple Review Workbench owns no durable reviewer session, queue, comment history, or resume state.
+The graphical workbench has no durable session, queue, comment history, rating state, or navigation checkpoint.
 
 ## Review states
 
-Existing review states remain compatible:
+Existing compatible states remain:
 
 ```text
 pending
@@ -64,160 +60,152 @@ waived
 superseded
 ```
 
-For the normal simple-workbench path:
+Normal simple-review decisions are:
 
-- `Reject` uses `changes-requested` and remains non-final;
-- `Accept` uses `approved` and is the normal final completion decision;
-- window close does not create a decision;
-- Restart does not change review state.
+- Accept -> `approved`;
+- Reject -> `changes-requested`;
+- Restart -> review-reset, not a decision;
+- window close -> no fabricated decision.
 
-No reviewer comment is required for Reject or Accept.
-
-Historical/internal decision history may remain in the v2 representation for compatibility, but normal reviewer UX must not require or expose it as a workflow.
+No reviewer comment is required.
 
 ## Machine acceptance before human review
 
-Human review is downstream of current machine validation.
+Human review is downstream of fast current machine readiness.
 
-The owning milestone must identify a fast current prerequisite check for its simple review. `review-run` invokes/checks that fast authority before opening graphics.
+Milestone review-run must fail before graphics if any open included review is not current/review-ready.
 
-If prerequisites fail, are stale, or the experience is unavailable, `review-run` fails clearly and records no human decision.
+Do not run long validation in the UI and do not ask the reviewer to inspect machine evidence.
 
-Do not run long validation inside the workbench.
-
-Do not ask the human to inspect machine evidence to compensate for a missing assertion.
-
-Automated suite verification and human review are separate gates. A pending required human review does not make the machine suite verifier fail.
+Machine aggregate verification and human review-check are separate gates.
 
 ## Canonical commands
-
-The canonical family is:
 
 ```text
 ./eng/review-list.sh [--milestone <id>] [--state <active|historical>] [--status <status>]
 ./eng/review-show.sh <review-id-or-alias>
+./eng/review-run.sh --milestone <id>
 ./eng/review-run.sh <review-id-or-alias>
+./eng/review-reset.sh --milestone <id>
 ./eng/review-request.sh --milestone <id> ...
 ./eng/review-record.sh <review-id-or-alias> <decision> ...
 ./eng/review-reopen.sh <review-id-or-alias> --reason <reason> [--correct-record]
 ./eng/review-check.sh --milestone <id>
 ```
 
-Windows uses PowerShell 7 thin adapters with the same engineering-host semantics.
+PowerShell 7 exposes equivalent thin adapters.
 
-### `review-list`
+### review-run --milestone
 
-Lists active/historical review metadata and may maintain ephemeral aliases under ignored session artifacts.
-
-### `review-show`
-
-Read-only metadata inspection. It is not the normal human acceptance UI.
-
-### `review-run`
-
-The normal human entry point for a simple review.
+This is the normal human workflow.
 
 It:
 
-1. resolves the canonical review;
-2. confirms it belongs to an active milestone and is eligible for simple review;
-3. checks the owning milestone's fast current machine prerequisite;
-4. resolves exactly one current scenario/review-shard experience;
-5. launches the simple Raylib Review Workbench;
-6. applies reviewer `Reject`/`Accept` through canonical repository-local review semantics.
+1. verifies the milestone is active;
+2. checks fast machine/review readiness;
+3. resolves every currently open simple required/blocking review request for that milestone;
+4. fails before launch if any included item is not review-ready;
+5. orders items deterministically;
+6. opens one graphical workbench over an in-memory snapshot;
+7. lets Accept/Reject enqueue durable decisions and auto-advance;
+8. keeps the graphical loop responsive while persistence occurs;
+9. presents the final persistence/status page after all loaded items are decided.
 
-It must not fabricate a decision when graphics/experience launch fails.
+Approved records are not normally included in a new run. Pending/changes-requested items are open.
 
-### `review-request`
+### targeted review-run
 
-Creates the durable milestone-owned request. Existing v2 compatibility remains valid for M038; a new persisted session schema is not required.
+The positional review-id/alias form may launch one item for engineering/debug use. It is not the normal repository-user workflow when a milestone has multiple open items.
 
-### `review-record`
+### review-reset
 
-Remains a lower-level/admin compatibility surface. Normal simple human approval/rejection uses `review-run` controls.
+`review-reset --milestone <id>` is legal only for an active milestone.
 
-### `review-reopen`
+It resets the participating simple required/blocking review set to undecided/open state.
 
-Retains existing active-versus-historical restrictions. M038 does not reopen completed historical reviews.
+The operation may reopen approvals belonging to the active milestone and clear pending changes-requested state while preserving compatible audit/provenance history.
 
-### `review-check`
+It must not reopen or mutate completed historical milestones.
 
-The milestone-scoped human completion gate.
+Reset is idempotent from the reviewer perspective: after success, the current milestone's simple review set is open/undecided.
 
-It verifies final review state and required machine provenance/evidence paths. It does not require the human to read those paths.
+### review-record / review-reopen
 
-It ignores historical milestones as current gates.
+These remain lower-level/admin compatibility surfaces.
 
-## Simple workbench behavior
+The Review Workbench may use their underlying semantics directly or through equivalent tested engineering APIs. Reviewer interaction must not require shell commands.
 
-One invocation represents one review question/experience.
+### review-check
 
-Normal chrome:
+This is the milestone-scoped human completion gate.
+
+It passes only when every required/blocking review item for the milestone has an acceptable final decision and required machine provenance/evidence exists.
+
+## Workbench decision queue
+
+The workbench persists each item as it is decided.
+
+It uses one in-memory serialized FIFO queue.
+
+Accept/Reject UI handling:
 
 ```text
-review title / concise question
-actual content/demo
-Restart    Reject    Accept
+click
+-> local acknowledgement
+-> enqueue persistence
+-> auto-advance
 ```
 
-The workbench has no normal comment field, rating, defer/skip/waive button, evidence browser, or multi-review navigation.
+Persistence occurs off the graphical/render event loop.
 
-A simple review requires at most two deliberate interactions with reviewed content before decision.
+A pending operation must produce visible activity. Normal operation must not display an auxiliary terminal window.
 
-If a review exceeds that bound, do not enlarge the workbench. The owning milestone must provide a truthful simpler scenario/shard or an explicit separate manual/exploratory path.
+Failed persistence remains visible and retryable.
+
+## Final status
+
+After every loaded item has a local decision, show the status page.
+
+`Close` becomes available only when the persistence queue is empty and all jobs succeeded.
+
+A rejected review may still be durably recorded and the workbench may close; milestone review-check remains failed until it is later approved.
 
 ## Restart lifecycle
 
-Restart is reviewer-controlled and fresh-process.
+Restart is implemented through milestone review-reset, not process re-execution.
 
 ```text
-Restart click
--> release current review execution/native resources
--> start the same canonical review again from current repository/build state in a fresh process
+Restart
+-> resetting screen
+-> drain decision queue
+-> review-reset --milestone
+-> clear local state
+-> reset/reload review demo state
+-> question 1
 ```
 
-Do not automatically reload because content completes, files change, or Reject is clicked.
+Restart does not rebuild or reload changed code. The reviewer restarts the application manually when desired.
 
-An in-process scenario reset may exist inside reviewed content for its own semantics, but it is not the Review Workbench `Restart` action when changed code/assets must be reloaded.
+## Navigation
 
-## Reject lifecycle
+The workbench uses left/right arrows and question ordinal only.
 
-Reject:
+There is no question list/sidebar.
 
-- records/updates the active request to `changes-requested`;
-- requires no reviewer note;
-- does not close the workbench;
-- does not restart;
-- does not produce final completion.
+Navigation does not change durable review state.
 
-The reviewer may leave the workbench open while a small correction is made, then explicitly choose Restart.
-
-Material issues that change the ready contract return to planning rather than being encoded as review comments.
-
-## Accept lifecycle
-
-Accept:
-
-- records `approved` through canonical review authority;
-- is the final human completion decision;
-- may close the workbench after successful recording.
-
-Implementation agents must not invoke/simulate Accept.
+Accept/Reject automatically advance to the next undecided item.
 
 ## Platform epochs
 
-Unless a milestone explicitly requires multi-platform subjective comparison, human review runs on the active development platform.
+Human review runs on the active development platform unless a milestone explicitly requires cross-platform subjective comparison.
 
-Portable review state/policy remains platform-neutral.
-
-Graphics launch must use the isolated native adapter and follow current platform-verification authority.
-
-Inactive-platform subjective/native verification may be deferred to a future platform catch-up task.
+Portable review state and policy remain platform-neutral. Native graphical proof follows active platform authority.
 
 ## Historical compatibility
 
-Completed records are immutable historical evidence and do not stale because later commits or review-policy changes occur.
+Completed historical milestones remain immutable.
 
-Existing v2 records remain readable.
+Existing v2 requests/records remain readable.
 
-M038 narrows future applicability and interaction behavior; it does not rewrite M022–M037 history.
+Active-milestone reset/reopen does not imply perpetual staleness or re-review after milestone completion.

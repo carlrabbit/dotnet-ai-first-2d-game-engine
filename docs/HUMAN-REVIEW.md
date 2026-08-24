@@ -2,23 +2,23 @@
 
 ## Authority
 
-This document defines the current project-level human-review boundary.
+This document defines the project-level human-review boundary.
 
 Detailed repository mechanics are authoritative in `docs/engineering/human-review-workflow.md`.
 
-The simple graphical experience is authoritative in `docs/specs/simple-human-review-workbench-contract.md`.
+The graphical review contract is `docs/specs/simple-human-review-workbench-contract.md`.
 
 ## Principle
 
-Human review is a milestone-scoped completion gate for acceptance that automation cannot fully decide.
+Human review is milestone-scoped acceptance for questions automation cannot fully decide.
 
 Humans review perception and experience, not machine evidence.
 
-Machine-verifiable claims must be resolved by automated validation, engineering analysis, or planning before the human-review step.
+Machine-verifiable claims are resolved before human review.
 
-## Valid human-review subjects
+## Valid subjects
 
-New required/blocking human reviews are limited to bounded questions in these classes:
+New required/blocking human questions are limited to:
 
 ```text
 visual
@@ -29,73 +29,70 @@ audio
 accessibility-baseline
 ```
 
-Typical valid questions:
+Typical questions concern readability, usability, gameplay feel/comprehensibility, creative/audio quality, or bounded accessibility observation.
 
-- Is the visual state readable?
-- Is the interaction understandable?
-- Does the behavior feel coherent/autonomous?
-- Is the presented creative/audio result acceptable?
-- Is visible focus/scaling/critical-state presentation usable for the declared accessibility baseline?
+Architecture, determinism, persistence, schema validity, artifact completeness, migration correctness, numeric performance, fingerprints, required files, and other mechanically decidable facts are not human-review subjects.
 
-## Not human-review subjects
+## Simple items, milestone review run
 
-Do not ask a human to approve because a report says that:
+Each human-review item stays simple: one concise question and one bounded actual experience.
 
-- schemas/tests passed;
-- state is deterministic;
-- persistence round-tripped;
-- resources conserved;
-- required files exist;
-- hashes/fingerprints match;
-- performance is within a numeric budget;
-- dependencies/architecture follow a machine-checkable rule;
-- migrations/artifacts are structurally complete.
-
-If automation can decide the predicate, automate it.
-
-Material architecture/semantic choices belong in planning before a milestone becomes `ready`.
-
-## Simple review workbench
-
-The normal graphical review path for a simple question is:
+The normal repository-user workflow presents **all currently open simple review items for the active milestone in one workbench run**:
 
 ```text
-machine prerequisites pass
--> review-run
--> one concise question + actual scenario/review shard
--> Restart / Reject / Accept
+machine readiness
+-> review-run --milestone M038
+-> question 1
+-> Accept/Reject
+-> question 2
+-> ...
+-> final save/status page
 ```
 
-A simple review is intentionally bounded to at most two deliberate interactions with reviewed content before the decision.
+There is no question sidebar/list. Left/right arrows navigate.
 
-The reviewer is not asked to enter comments, browse evidence files, navigate a queue, or maintain a review session.
+Accept/Reject automatically progress while durable decisions are written asynchronously in the background.
 
-`Restart` is always explicit. Reject does not automatically reload or close the review. The reviewer chooses Restart after an execution-agent change.
+The reviewer sees last-decision and persistence activity rather than a frozen UI.
 
-Complex exploratory/manual reviews are explicitly milestone-specific and do not expand the generic simple workbench.
+## Restart
+
+Restart means reset the active milestone review set.
+
+It:
+
+- shows a visible resetting state;
+- waits for already queued writes;
+- invokes canonical review-reset;
+- clears workbench/demo state;
+- returns to question 1.
+
+It does not restart/re-exec the application, rebuild, hot reload, or watch files.
+
+The reviewer restarts the application manually when a new build should be loaded.
+
+## Durable state
+
+Each item is persisted through existing repository-local `.review` authority.
+
+The workbench itself has no persisted session, queue, comments, ratings, navigation state, or resume checkpoint.
+
+Completed historical milestones remain immutable.
 
 ## Evidence rule
 
 Machine evidence is consumed by machine validation.
 
-Human evidence is the actual thing the human must perceive or experience.
+Human evidence is the actual scenario/review shard the person perceives or uses.
 
-For interactive UX, a JSON report, Markdown description, screenshot of another screen, or pass flag is not a substitute for a launchable experience.
+For interactive UX, JSON, Markdown, hashes, or an unrelated screenshot are not substitutes for a launchable experience.
 
-M037 remains historical evidence, but its main-menu-only graphical proof is the regression example for why future save/settings/rebinding questions require an appropriate live experience.
+M037 remains the historical regression example for this rule.
 
-## Durable state
+## Completion
 
-Required/blocking final milestone decisions remain repository-local under `.review/` as defined by ADR-0029.
+Machine validation and human approval are separate gates.
 
-The simple workbench itself is not a durable review database. It requires no reviewer comments, workbench session history, ratings, queues, or resume state.
+The machine milestone suite may pass while human reviews remain open.
 
-Completed historical reviews remain immutable and are not reopened by later commits or by M038 policy changes.
-
-## Completion gate
-
-Machine validation and human approval are separate.
-
-Automated milestone suite verification may pass while required human review remains pending.
-
-The milestone completes only when its required machine validation and its milestone-scoped `review-check` both pass.
+The milestone completes only when machine validation passes and milestone-scoped `review-check` passes.

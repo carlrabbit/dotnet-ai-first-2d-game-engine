@@ -1,0 +1,34 @@
+{
+  "schema": "agentic2d.engineering.review-request.v2",
+  "id": "review.m038.03-reset-flow",
+  "owningMilestone": "M038",
+  "owningMilestonePath": "docs/milestones/MILESTONE-038-simple-human-review-boundary-and-review-workbench.md",
+  "subject": "Does Restart clearly reset the whole review set through a visible resetting state and return to question 1 without restarting the application?",
+  "classes": [
+    "UX",
+    "visual"
+  ],
+  "level": "blocking",
+  "reviewerRole": "repository user",
+  "status": "pending",
+  "evidence": [
+    "artifacts/validation/m038-smoke/active-platform-graphics.json",
+    "artifacts/validation/m038-smoke/review-readiness.json"
+  ],
+  "acceptanceCriteria": [
+    "Restart is understood as resetting all M038 review decisions/state rather than restarting or rebuilding the application.",
+    "The resetting state visibly communicates activity while queued writes drain and reset authority executes.",
+    "Successful reset clears reviewer-facing state and returns to question 1."
+  ],
+  "acceptableDecisions": [
+    "approved"
+  ],
+  "waiverPolicy": "No implicit waiver. M038 changes the human-review UI itself, so these blocking UX/visual items require repository-user approval.",
+  "decision": "",
+  "reviewedRevision": "",
+  "reviewedFingerprint": "",
+  "conditions": [],
+  "decisionHistory": [],
+  "correctsReviewId": "",
+  "path": ".review\\pending\\review.m038.03-reset-flow.json"
+}

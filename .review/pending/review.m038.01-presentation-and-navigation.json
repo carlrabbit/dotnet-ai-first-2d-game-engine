@@ -1,0 +1,34 @@
+{
+  "schema": "agentic2d.engineering.review-request.v2",
+  "id": "review.m038.01-presentation-and-navigation",
+  "owningMilestone": "M038",
+  "owningMilestonePath": "docs/milestones/MILESTONE-038-simple-human-review-boundary-and-review-workbench.md",
+  "subject": "Is the current review question and actual content immediately understandable, and are left/right navigation plus automatic progression simple without a question list?",
+  "classes": [
+    "UX",
+    "visual"
+  ],
+  "level": "blocking",
+  "reviewerRole": "repository user",
+  "status": "pending",
+  "evidence": [
+    "artifacts/validation/m038-smoke/active-platform-graphics.json",
+    "artifacts/validation/m038-smoke/review-readiness.json"
+  ],
+  "acceptanceCriteria": [
+    "The current question, ordinal, and actual reviewed content are immediately understandable without inspecting machine evidence.",
+    "Left/right arrow navigation is obvious and usable without a sidebar, abbreviated-question list, or scrolling.",
+    "Accept/Reject progression to the next undecided item is understandable."
+  ],
+  "acceptableDecisions": [
+    "approved"
+  ],
+  "waiverPolicy": "No implicit waiver. M038 changes the human-review UI itself, so these blocking UX/visual items require repository-user approval.",
+  "decision": "",
+  "reviewedRevision": "",
+  "reviewedFingerprint": "",
+  "conditions": [],
+  "decisionHistory": [],
+  "correctsReviewId": "",
+  "path": ".review\\pending\\review.m038.01-presentation-and-navigation.json"
+}

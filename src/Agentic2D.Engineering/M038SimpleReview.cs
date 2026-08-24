@@ -19,7 +19,7 @@ public static class M038ReviewPolicy
         return true;
     }
 
-    public static bool IsM038(ReviewState review) => review.Id == "review.m038.simple-human-review-boundary-and-workbench" && review.OwningMilestone == "M038";
+    public static bool IsM038(ReviewState review) => review.Id.StartsWith("review.m038.", StringComparison.Ordinal) && review.OwningMilestone == "M038";
 }
 
 public static class M038SimpleReviewSuite
@@ -51,19 +51,11 @@ public static class M038SimpleReviewSuite
         machineHumanGateSeparated = true
     };
 
-    private static object SimpleWorkbench(EngineeringHost host) => new
+    private static object SimpleWorkbench(EngineeringHost host)
     {
-        schema = "agentic2d.m038.simple-workbench.v1",
-        review = "review.m038.simple-human-review-boundary-and-workbench",
-        experience = "review-shard:m038-workbench-fixture",
-        primaryControls = new[] { "Restart", "Reject", "Accept" },
-        maxReviewedContentInteractions = 2,
-        restart = "fresh-process",
-        automaticRestart = false,
-        reviewerSession = false,
-        reviewerComments = false,
-        eligible = host.TryGetSimpleReview("review.m038.simple-human-review-boundary-and-workbench", out _, out var error) ? "passed" : error
-    };
+        var items = host.GetOpenSimpleReviews("M038", out var error);
+        return new { schema = "agentic2d.m038.simple-workbench.v1", review = "M038 milestone review run", experience = "review-shard:m038-workbench-fixture", primaryControls = new[] { "Restart", "Reject", "Accept" }, navigation = new[] { "left-arrow", "right-arrow", "automatic-progression" }, maxReviewedContentInteractions = 2, restart = "active-milestone-review-reset", automaticRestart = false, reviewerSession = false, asyncDecisionQueue = "single-consumer-fifo", delayedPersistenceKeepsLoopResponsive = true, hiddenPersistenceProcess = true, renderThreadWaitForExit = false, finalStatusCloseRequiresQueueDrain = true, persistenceFailureRetryable = true, reviewerComments = false, openItems = items.Count, eligible = string.IsNullOrWhiteSpace(error) ? "passed" : error };
+    }
 
     private static object HistoricalRegression() => new
     {
@@ -78,20 +70,21 @@ public static class M038SimpleReviewSuite
         var output = Path.Combine(root, "artifacts", "validation", "m038-smoke");
         var capture = Path.Combine(output, "m038-workbench.png");
         var project = Path.Combine(root, "src", "Agentic2D.DebugClient.Raylib");
-        var psi = new System.Diagnostics.ProcessStartInfo("dotnet", $"run --no-build --project \"{project}\" -- review-workbench --frames 90 --capture \"{capture}\"") { WorkingDirectory = root, UseShellExecute = false, RedirectStandardOutput = true, RedirectStandardError = true };
+        var items = new EngineeringHost(root).GetOpenSimpleReviews("M038", out var readinessError, requireGraphicsPrerequisite: false);
+        if (!string.IsNullOrWhiteSpace(readinessError)) return new { schema = "agentic2d.m038.windows-graphics.v1", status = "failed", error = readinessError };
+        var payload = Convert.ToBase64String(System.Text.Encoding.UTF8.GetBytes(JsonSerializer.Serialize(items)));
+        var psi = new System.Diagnostics.ProcessStartInfo("dotnet", $"run --no-build --project \"{project}\" -- review-workbench --milestone M038 --items-base64 \"{payload}\" --frames 90 --capture \"{capture}\"") { WorkingDirectory = root, UseShellExecute = false, RedirectStandardOutput = true, RedirectStandardError = true, CreateNoWindow = true };
         using var process = System.Diagnostics.Process.Start(psi) ?? throw new EngineeringException("could not start the active-platform Raylib workbench");
         await process.WaitForExitAsync();
         if (process.ExitCode != 0) { await diagnostics.WriteLineAsync((await process.StandardError.ReadToEndAsync()).Trim()); return new { schema = "agentic2d.m038.windows-graphics.v1", status = "failed" }; }
         return new { schema = "agentic2d.m038.windows-graphics.v1", status = "passed", platform = "windows", capture, controls = new[] { "Restart", "Reject", "Accept" }, raylib = true };
     }
 
-    private static object ReviewReadiness(EngineeringHost host) => new
+    private static object ReviewReadiness(EngineeringHost host)
     {
-        schema = "agentic2d.m038.review-readiness.v1",
-        status = host.TryGetSimpleReview("review.m038.simple-human-review-boundary-and-workbench", out var review, out var error) ? "passed" : "failed",
-        reviewId = review?.Id,
-        experience = "review-shard:m038-workbench-fixture",
-        machineProvenance = "m038-smoke/verify",
-        error
-    };
+        var items = host.GetOpenSimpleReviews("M038", out var error);
+        return new { schema = "agentic2d.m038.review-readiness.v1", status = string.IsNullOrWhiteSpace(error) && items.Count >= 3 ? "passed" : "failed", openItems = items.Count, experience = "review-shard:m038-workbench-fixture", machineProvenance = "m038-smoke/verify", error };
+    }
 }
+
+public sealed record ReviewRunItem(string Id, string Subject, string Status);

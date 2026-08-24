@@ -96,6 +96,8 @@ public static class EngineeringCli
             "list" => host.ListReviewsFromArguments(args[1..], stdout),
             "show" when args.Length == 2 => host.ShowReview(args[1], stdout),
             "run" when args.Length == 2 => await host.RunSimpleReviewAsync(args[1], stdout, stderr),
+            "run" when args.Length == 3 && args[1] == "--milestone" => await host.RunMilestoneReviewAsync(args[2], stdout, stderr),
+            "reset" when args.Length == 3 && args[1] == "--milestone" => await host.ResetReviewsAsync(args[2], stdout),
             "check" => host.CheckReviews(ReviewMilestone(args[1..]), stderr) ? 0 : 1,
             "migration-report" => await host.WriteReviewMigrationReportAsync(ReviewMilestone(args[1..]), stdout),
             "request" => await host.CreateReviewRequestAsync(args[1..], stdout),
@@ -107,7 +109,7 @@ public static class EngineeringCli
 
     private static int Usage(TextWriter stderr)
     {
-        stderr.WriteLine("usage: engineering suite <id> [--list|--plan-json|--shard <id>|--verify] | engineering review list [--milestone <id>] [--state <active|historical>] [--status <status>] | engineering review show <review-id-or-alias> | engineering review run <review-id-or-alias> | engineering review request --milestone <id> ... | engineering review record <review-id-or-alias> <decision> ... | engineering review reopen <review-id-or-alias> --reason <reason> [--correct-record] | engineering review check --milestone <id> | engineering performance <smoke|capture|compare|report>");
+        stderr.WriteLine("usage: engineering suite <id> [--list|--plan-json|--shard <id>|--verify] | engineering review list [--milestone <id>] [--state <active|historical>] [--status <status>] | engineering review show <review-id-or-alias> | engineering review run <review-id-or-alias> | engineering review run --milestone <id> | engineering review reset --milestone <id> | engineering review request --milestone <id> ... | engineering review record <review-id-or-alias> <decision> ... | engineering review reopen <review-id-or-alias> --reason <reason> [--correct-record] | engineering review check --milestone <id> | engineering performance <smoke|capture|compare|report>");
         return 2;
     }
 
@@ -140,15 +142,38 @@ public sealed class EngineeringHost
         .FirstOrDefault() ?? "missing";
 
     public bool TryGetSimpleReview(string id, out ReviewState? review, out string error)
+        => TryGetSimpleReview(id, out review, out error, requireGraphicsPrerequisite: true);
+
+    public bool TryGetSimpleReview(string id, out ReviewState? review, out string error, bool requireGraphicsPrerequisite)
     {
         review = ReadReviews().FirstOrDefault(candidate => candidate.Id == id);
         if (review is null) { error = $"review '{id}' is not active"; return false; }
         if (!IsMilestoneActive(review.OwningMilestone)) { error = "review belongs to a completed milestone"; return false; }
         if (!M038ReviewPolicy.IsSimple(review, out error)) return false;
         if (!M038ReviewPolicy.IsM038(review)) { error = "review is not registered to a simple current experience"; return false; }
-        var graphicsPath = Absolute("artifacts/validation/m038-smoke/active-platform-graphics.json");
-        if (!File.Exists(graphicsPath) || !File.ReadAllText(graphicsPath).Contains("\"status\": \"passed\"", StringComparison.Ordinal)) { error = "current active-platform graphics prerequisite is missing or failed"; return false; }
+        if (requireGraphicsPrerequisite)
+        {
+            var graphicsPath = Absolute("artifacts/validation/m038-smoke/active-platform-graphics.json");
+            if (!File.Exists(graphicsPath) || !File.ReadAllText(graphicsPath).Contains("\"status\": \"passed\"", StringComparison.Ordinal)) { error = "current active-platform graphics prerequisite is missing or failed"; return false; }
+        }
         return true;
+    }
+
+    public IReadOnlyList<ReviewRunItem> GetOpenSimpleReviews(string milestone, out string error)
+        => GetOpenSimpleReviews(milestone, out error, requireGraphicsPrerequisite: true);
+
+    public IReadOnlyList<ReviewRunItem> GetOpenSimpleReviews(string milestone, out string error, bool requireGraphicsPrerequisite)
+    {
+        var reviews = ReadReviews().Where(candidate => candidate.OwningMilestone == milestone && (candidate.Level is "required" or "blocking") && (candidate.Status is "pending" or "changes-requested")).OrderBy(candidate => candidate.Id, StringComparer.Ordinal).ToArray();
+        var items = new List<ReviewRunItem>();
+        foreach (var review in reviews)
+        {
+            if (!TryGetSimpleReview(review.Id, out var current, out error, requireGraphicsPrerequisite)) return [];
+            items.Add(new ReviewRunItem(current!.Id, current.Subject, current.Status));
+        }
+
+        error = string.Empty;
+        return items;
     }
 
     public async Task<int> RunSimpleReviewAsync(string idOrAlias, TextWriter stdout, TextWriter stderr)
@@ -159,6 +184,32 @@ public sealed class EngineeringHost
         var arguments = $"run --no-build --project \"{project}\" -- review-workbench --review-id \"{review!.Id}\" --question \"{review.Subject.Replace("\"", "'")}\"";
         var exit = await ProcessRunner.RunAsync(root, "dotnet " + arguments, stdout, stderr);
         return exit;
+    }
+
+    public async Task<int> RunMilestoneReviewAsync(string milestone, TextWriter stdout, TextWriter stderr)
+    {
+        if (!IsMilestoneActive(milestone)) throw new EngineeringException($"review-run: milestone '{milestone}' is not active");
+        var items = GetOpenSimpleReviews(milestone, out var error);
+        if (!string.IsNullOrWhiteSpace(error)) throw new EngineeringException($"review-run: {error}");
+        if (items.Count == 0) throw new EngineeringException($"review-run: milestone '{milestone}' has no open simple blocking reviews");
+        var payload = Convert.ToBase64String(Encoding.UTF8.GetBytes(JsonSerializer.Serialize(items, json)));
+        var project = Path.Combine(root, "src", "Agentic2D.DebugClient.Raylib");
+        var arguments = $"run --no-build --project \"{project}\" -- review-workbench --milestone \"{milestone}\" --items-base64 \"{payload}\"";
+        return await ProcessRunner.RunAsync(root, "dotnet " + arguments, stdout, stderr);
+    }
+
+    public async Task<int> ResetReviewsAsync(string milestone, TextWriter stdout)
+    {
+        if (!IsMilestoneActive(milestone)) throw new EngineeringException($"review reset: milestone '{milestone}' is not active");
+        var reviews = ReadReviews().Where(candidate => candidate.OwningMilestone == milestone && (candidate.Level is "required" or "blocking") && M038ReviewPolicy.IsM038(candidate)).ToArray();
+        foreach (var review in reviews)
+        {
+            var reset = review with { Schema = ReviewRequestSchema, Status = "pending", Decision = string.Empty, Conditions = [], ReviewedRevision = string.Empty, ReviewedFingerprint = string.Empty, CompletedAt = null, Path = Path.Combine(".review", "pending", review.Id + ".json") };
+            WriteReview(reset, reset.Path);
+        }
+
+        await stdout.WriteLineAsync($"review reset: {reviews.Length} active {milestone} review items reopened");
+        return 0;
     }
 
     public ValidationSuite GetSuite(string id) => suites.TryGetValue(id, out var suite)
