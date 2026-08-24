@@ -1,0 +1,62 @@
+{
+  "schema": "agentic2d.engineering.review-record.v2",
+  "id": "review.m038.02-decision-feedback-and-persistence",
+  "owningMilestone": "M038",
+  "owningMilestonePath": "docs/milestones/MILESTONE-038-simple-human-review-boundary-and-review-workbench.md",
+  "subject": "Do Accept and Reject respond immediately, show clear last-decision and saving activity, remain responsive while persistence runs, and avoid auxiliary terminal windows?",
+  "classes": [
+    "UX",
+    "visual"
+  ],
+  "level": "blocking",
+  "reviewerRole": "repository user",
+  "status": "approved",
+  "evidence": [
+    "artifacts/validation/m038-smoke/active-platform-graphics.json",
+    "artifacts/validation/m038-smoke/review-readiness.json"
+  ],
+  "acceptanceCriteria": [
+    "Accept/Reject produce immediate visual feedback and do not freeze the graphical window while durable persistence is pending.",
+    "The workbench visibly communicates last decision and background persistence activity.",
+    "Normal decision persistence does not open an auxiliary terminal or console window."
+  ],
+  "acceptableDecisions": [
+    "approved"
+  ],
+  "waiverPolicy": "No implicit waiver. M038 changes the human-review UI itself, so these blocking UX/visual items require repository-user approval.",
+  "decision": "approved",
+  "reviewedRevision": "ref: refs/heads/m038-review-workbench-iteration",
+  "reviewedFingerprint": "21403cb638b1b75650beb1d139c709b97e22dec9066ead619f1e82c51b1b4b51",
+  "conditions": [],
+  "completedAt": "2026-08-24T20:24:56.8631827+00:00",
+  "decisionHistory": [
+    {
+      "decision": "changes-requested",
+      "reviewer": "repository user",
+      "notes": "",
+      "evidence": [
+        "artifacts/validation/m038-smoke/active-platform-graphics.json",
+        "artifacts/validation/m038-smoke/review-readiness.json"
+      ],
+      "revision": "ref: refs/heads/m038-review-workbench-iteration",
+      "fingerprint": "21403cb638b1b75650beb1d139c709b97e22dec9066ead619f1e82c51b1b4b51",
+      "recordedAt": "2026-08-24T20:24:07.5794286+00:00",
+      "recordCorrection": false
+    },
+    {
+      "decision": "approved",
+      "reviewer": "repository user",
+      "notes": "",
+      "evidence": [
+        "artifacts/validation/m038-smoke/active-platform-graphics.json",
+        "artifacts/validation/m038-smoke/review-readiness.json"
+      ],
+      "revision": "ref: refs/heads/m038-review-workbench-iteration",
+      "fingerprint": "21403cb638b1b75650beb1d139c709b97e22dec9066ead619f1e82c51b1b4b51",
+      "recordedAt": "2026-08-24T20:24:56.5840884+00:00",
+      "recordCorrection": false
+    }
+  ],
+  "correctsReviewId": "",
+  "path": ".review\\records\\review.m038.02-decision-feedback-and-persistence.json"
+}

@@ -2,7 +2,7 @@
 
 ## Authority
 
-This document is authoritative for validation tier names and their interaction with platform epochs.
+This document is authoritative for validation tier names, machine-versus-human gate separation, and their interaction with platform epochs.
 
 | Tier | Name | Intended use |
 |---:|---|---|
@@ -11,9 +11,9 @@ This document is authoritative for validation tier names and their interaction w
 | 2 | Standard local gate | Normal pre-completion local confidence. |
 | 3 | PR integration | Clean repository validation in CI. |
 | 4 | Release gate | Validate public/package/release artifacts. |
-| 5 | Artifact/human review | Validate generated evidence and review-gated outputs. |
+| 5 | Human judgment gate | Milestone-scoped subjective/perceptual acceptance that automation cannot decide. |
 
-Milestones and implementation tasks should name the expected validation tier.
+Milestones and implementation tasks name the expected validation tier.
 
 ## Execution modes
 
@@ -26,9 +26,27 @@ CI-only
 human-review
 ```
 
-A resumable Tier 2 suite has current passing receipts only when its fast verifier passes.
+A resumable machine suite has current passing receipts only when its fast verifier passes.
 
-Tier 5 required/blocking review is established by the canonical review-check command for the owning milestone.
+## Machine and human gate separation
+
+Tier 5 is not a place to delegate machine-verifiable assertions to a human.
+
+Schema validity, tests, determinism, persistence, fingerprints, artifact completeness, performance thresholds, migration correctness, and other mechanically decidable properties remain machine validation even when their outputs support a milestone that also has human review.
+
+Automated suite verification and human approval are separate authorities:
+
+```text
+machine suite --verify
++
+milestone review-check
+=
+completion gates when both apply
+```
+
+A machine verifier MUST NOT fail merely because the milestone's required human decision is still pending.
+
+Required/blocking human review is established by the canonical review-check command for the owning milestone after machine prerequisites pass.
 
 ## Platform epochs
 
@@ -47,10 +65,10 @@ For normal milestone execution:
 - active-platform native/integration validation runs on that platform;
 - inactive-platform-specific validation may be recorded as deferred verification debt;
 - deferred inactive-platform evidence is neither pass nor failure;
-- absence of an inactive platform does not by itself block milestone completion.
+- absence of an inactive platform does not by itself block ordinary milestone completion.
+
+Tier 5 subjective review follows the active-platform rule unless the owning milestone explicitly requires cross-platform subjective comparison.
 
 A platform switch triggers cumulative catch-up validation against the current repository rather than replaying old milestones.
-
-Graphics-capable native proof follows the same active-platform rule unless a milestone or release gate explicitly requires multi-platform evidence.
 
 Release/public distribution gates may impose stricter multi-platform requirements independently of ordinary development milestones.

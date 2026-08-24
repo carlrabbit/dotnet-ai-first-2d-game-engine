@@ -43,15 +43,17 @@ This document is authoritative for project vocabulary.
 | Debug client | Optional graphical adapter for inspection. It is not runtime authority. |
 | Structural render evidence | Backend-neutral JSON render frame, item, command, binding, and diagnostic artifacts. |
 | Screenshot evidence | Explicitly captured PNG review evidence; not cross-platform semantic truth. |
-| Human review gate | Explicit validation for outputs automation cannot fully judge. |
+| Human review gate | Milestone-scoped subjective/perceptual acceptance for an output automation cannot fully judge; never a substitute for machine validation. |
+| Simple review experience | One milestone-owned scenario or review shard that starts near the state under judgment and requires at most two deliberate content interactions before Accept/Reject. |
+| Review Workbench | Small engineering/debug UI presenting one simple review question, the actual content/demo, and `Restart`, `Reject`, `Accept`; it is not a general manual-test framework. |
 | Shared asset home | Machine-local authoring infrastructure for raw sources, reusable discovery, annotations, and disposable generated evidence; never game or runtime authority. |
 | Engineering host | Platform-neutral `Agentic2D.Engineering` authority for suites, receipts, fingerprints, process execution, review state, and platform evidence. |
 | Native launcher | Thin Bash or PowerShell 7 adapter that forwards an `eng/` command to the engineering host. |
 | Platform verification | Evidence-bound report for one supported development host; a compile alone is not support proof. |
 | Discovery profile | Deterministic observed facts and conservative image/audio proposals for one source fingerprint. |
 | Asset campaign | Game-local relevance and presentation proposal overlay that references, but does not mutate, a shared discovery profile. |
-| Workbench session | Provider-side resumable review context containing canonical campaign state, durable decisions, and only operational input/alias references. |
-| Workbench alias | Ephemeral session/list-generation numeric convenience reference; never durable authority. |
+| Workbench session | M029 asset-provider resumable review context containing canonical campaign state, durable asset decisions, and operational input/alias references; not the generic M038 simple review model. |
+| Workbench alias | Ephemeral M029 session/list-generation numeric convenience reference; never durable authority. |
 | Approved asset | Project-local presentation authority materialized from current reviewed decisions with processing and source provenance. |
 | Debug runtime | Development representation optimized for inspection and diagnostics. |
 | Packaged runtime | Future release representation optimized for compactness and performance; not yet implemented. |

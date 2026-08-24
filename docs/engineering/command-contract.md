@@ -102,6 +102,8 @@ The Bash launchers delegate structured semantics to `src/Agentic2D.Engineering`;
 
 M037 is dispatched through the generic resumable interface: `pwsh ./eng/suite.ps1 m037-smoke --plan-json|--shard <id>|--verify` (or `./eng/suite.sh m037-smoke ...` on Bash). Its blocking human-review shard remains pending until the repository-user review is approved.
 
+M038 is dispatched through the generic resumable interface: `pwsh ./eng/suite.ps1 m038-smoke --plan-json`, each required `--shard <id>` in a separate invocation, then `--verify` (or the equivalent `./eng/suite.sh` commands on Bash). The aggregate verifier is machine-only and does not require human approval. The canonical bounded human entry point is `pwsh ./eng/review-run.ps1 <review-id-or-alias>` or `./eng/review-run.sh <review-id-or-alias>`; it requires current M038 machine prerequisites before launching the isolated Raylib workbench.
+
 The M037 graphical shell smoke is `dotnet run --project src/Agentic2D.DebugClient.Raylib -- shell --frames <count> --capture <png>` in a graphics-capable environment.
 
 PowerShell 7 launchers delegate to the same host and are the native Windows surface:
