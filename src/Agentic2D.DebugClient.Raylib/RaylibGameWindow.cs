@@ -7,6 +7,51 @@ namespace Agentic2D.DebugClient.Raylib;
 /// <summary>Minimal product-facing window owned by the isolated raylib adapter.</summary>
 public static class RaylibGameWindow
 {
+    public static int ShowReviewWorkbench(string reviewId, string question, int? autoCloseAfterFrames = null, string? capturePath = null)
+    {
+        RaylibApi.InitWindow(1120, 720, "Agentic2D — Review Workbench");
+        try
+        {
+            RaylibApi.SetTargetFPS(60); var frame = 0; var mouseWasDown = false;
+            while (!RaylibApi.WindowShouldClose() && (!autoCloseAfterFrames.HasValue || frame++ < autoCloseAfterFrames.Value))
+            {
+                var mouse = RaylibApi.GetMousePosition(); var mouseDown = RaylibApi.IsMouseButtonDown(MouseButton.Left); var click = RaylibApi.IsMouseButtonPressed(MouseButton.Left) || (mouseDown && !mouseWasDown); mouseWasDown = mouseDown;
+                var restart = click && Hit(mouse, 40, 600, 300, 90); var reject = click && Hit(mouse, 410, 600, 300, 90); var accept = click && Hit(mouse, 780, 600, 300, 90);
+                RaylibApi.BeginDrawing(); RaylibApi.ClearBackground(new Color(14, 22, 38, 255));
+                RaylibApi.DrawText("SIMPLE REVIEW WORKBENCH", 60, 34, 28, Color.White); RaylibApi.DrawText(reviewId, 60, 72, 16, new Color(155, 173, 198, 255)); RaylibApi.DrawText("Question", 60, 112, 18, new Color(155, 173, 198, 255));
+                DrawWrapped(question, 60, 142, 1000, 22, Color.White);
+                RaylibApi.DrawRectangle(60, 230, 1000, 340, new Color(27, 45, 68, 255)); RaylibApi.DrawRectangleLines(60, 230, 1000, 340, new Color(76, 112, 143, 255));
+                RaylibApi.DrawCircle(560, 380, 72, new Color(54, 217, 232, 255)); RaylibApi.DrawCircleLines(560, 380, 72, Color.White); RaylibApi.DrawText("LIVE REVIEW CONTENT", 410, 485, 22, Color.White); RaylibApi.DrawText("Current engine review fixture — observe, then decide.", 300, 520, 16, new Color(193, 207, 225, 255));
+                DrawButton(40, 600, 300, 72, "Restart", new Color(64, 91, 125, 255), Hit(mouse, 40, 600, 300, 90)); DrawButton(410, 600, 300, 72, "Reject", new Color(156, 82, 76, 255), Hit(mouse, 410, 600, 300, 90)); DrawButton(780, 600, 300, 72, "Accept", new Color(63, 143, 91, 255), Hit(mouse, 780, 600, 300, 90)); RaylibApi.EndDrawing();
+                if (capturePath is not null && frame == 2) RaylibApi.TakeScreenshot(capturePath);
+                if (restart) { FreshProcess(); return 0; }
+                if (reject) Record(reviewId, "changes-requested");
+                if (accept) { Record(reviewId, "approved"); return 0; }
+            }
+            return 0;
+        }
+        finally { if (RaylibApi.IsWindowReady()) RaylibApi.CloseWindow(); }
+
+        static bool Hit(System.Numerics.Vector2 p, int x, int y, int w, int h) => p.X >= x && p.X <= x + w && p.Y >= y && p.Y <= y + h;
+        static void DrawButton(int x, int y, int w, int h, string text, Color color, bool hovered) { var fill = hovered ? new Color(Math.Min(color.R + 25, 255), Math.Min(color.G + 25, 255), Math.Min(color.B + 25, 255), 255) : color; RaylibApi.DrawRectangle(x, y, w, h, fill); RaylibApi.DrawRectangleLinesEx(new Rectangle(x, y, w, h), hovered ? 3 : 1, Color.White); RaylibApi.DrawText(text, x + (w - RaylibApi.MeasureText(text, 26)) / 2, y + 22, 26, Color.White); }
+        static void DrawWrapped(string text, int x, int y, int maxWidth, int fontSize, Color color)
+        {
+            var line = string.Empty; var row = 0;
+            foreach (var word in text.Split(' ', StringSplitOptions.RemoveEmptyEntries))
+            {
+                var candidate = string.IsNullOrEmpty(line) ? word : line + " " + word;
+                if (RaylibApi.MeasureText(candidate, fontSize) > maxWidth && line.Length > 0)
+                {
+                    RaylibApi.DrawText(line, x, y + row++ * (fontSize + 6), fontSize, color); line = word;
+                }
+                else line = candidate;
+            }
+            if (line.Length > 0) RaylibApi.DrawText(line, x, y + row * (fontSize + 6), fontSize, color);
+        }
+        static void FreshProcess() { var args = string.Join(" ", Environment.GetCommandLineArgs().Skip(1).Select(x => "\"" + x.Replace("\"", "\\\"") + "\"")); System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo(Environment.ProcessPath!, args) { WorkingDirectory = Environment.CurrentDirectory, UseShellExecute = true }); }
+        static void Record(string id, string decision) { using var process = System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo("dotnet", $"run --no-build --project src/Agentic2D.Engineering -- review record \"{id}\" {decision}") { WorkingDirectory = Environment.CurrentDirectory, UseShellExecute = true }); process?.WaitForExit(); }
+    }
+
     public static void ShowProductShell(string title, IReadOnlyList<string> menu, string output, int? autoCloseAfterFrames = null, string? capturePath = null)
     {
         RaylibApi.InitWindow(960, 540, title + " — Main Menu");

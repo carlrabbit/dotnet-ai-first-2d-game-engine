@@ -15,6 +15,7 @@ if (args[0] == "m034") return M034RaylibSession.Run(args[1..]);
 if (args[0] == "m035") return M035RaylibSoakSession.Run(args[1..]);
 if (args[0] == "asset-workbench") return AssetWorkbenchRaylibWindow.Run(args[1..]);
 if (args[0] == "asset-preview") return AssetPreviewRaylibWindow.Run(args[1..]);
+if (args[0] == "review-workbench") return ReviewWorkbench(args[1..]);
 if (args[0] == "shell") return ProductShell(args[1..]);
 string? scenario = null, input = null, capture = null;
 for (var i = 1; i < args.Length; i++)
@@ -125,4 +126,17 @@ static void DrawGeometry(VisualPartSource part)
     }
 }
 static Color ToColor(VisualColor color, double opacity) => new(color.R, color.G, color.B, (int)Math.Round(color.A * opacity));
-static int Usage() { Console.Error.WriteLine("usage: scenario --scenario <id> [--capture <png>] | snapshot --input <render-snapshot.json> [--capture <png>] | m032 --input <structural-frame.json> [--commands <designation-input.jsonl>] (--capture <png> | --interactive) | geometry --input <visual-definition.json> --capture <png> | asset-workbench --session <review-session.json> --commands <input-command.jsonl> [--capture <png>] [--frames <count>] | asset-preview --scene <preview-scene.json> [--capture <png>] [--frames <count>]"); return 2; }
+static int ReviewWorkbench(string[] arguments)
+{
+    string? reviewId = null, question = null, capture = null; int? frames = null;
+    for (var i = 0; i < arguments.Length; i++)
+    {
+        if (arguments[i] == "--review-id" && ++i < arguments.Length) reviewId = arguments[i];
+        else if (arguments[i] == "--question" && ++i < arguments.Length) question = arguments[i];
+        else if (arguments[i] == "--capture" && ++i < arguments.Length) capture = arguments[i];
+        else if (arguments[i] == "--frames" && ++i < arguments.Length && int.TryParse(arguments[i], out var count) && count > 0) frames = count;
+        else return Usage();
+    }
+    return RaylibGameWindow.ShowReviewWorkbench(reviewId ?? "review.m038.simple-human-review-boundary-and-workbench", question ?? "Is this review experience clear and understandable?", frames, capture);
+}
+static int Usage() { Console.Error.WriteLine("usage: scenario --scenario <id> [--capture <png>] | snapshot --input <render-snapshot.json> [--capture <png>] | review-workbench [--review-id <id>] [--question <text>] [--frames <count>] [--capture <png>] | m032 --input <structural-frame.json> [--commands <designation-input.jsonl>] (--capture <png> | --interactive) | geometry --input <visual-definition.json> --capture <png> | asset-workbench --session <review-session.json> --commands <input-command.jsonl> [--capture <png>] [--frames <count>] | asset-preview --scene <preview-scene.json> [--capture <png>] [--frames <count>]"); return 2; }

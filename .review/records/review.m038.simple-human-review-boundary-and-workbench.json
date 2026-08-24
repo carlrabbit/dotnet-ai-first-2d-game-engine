@@ -1,0 +1,62 @@
+{
+  "schema": "agentic2d.engineering.review-record.v2",
+  "id": "review.m038.simple-human-review-boundary-and-workbench",
+  "owningMilestone": "M038",
+  "owningMilestonePath": "docs/milestones/MILESTONE-038-simple-human-review-boundary-and-review-workbench.md",
+  "subject": "M038 simple Review Workbench clarity, actual-content presentation, and explicit reviewer control over restart and acceptance",
+  "classes": [
+    "UX",
+    "visual"
+  ],
+  "level": "blocking",
+  "reviewerRole": "repository user",
+  "status": "approved",
+  "evidence": [
+    "artifacts/validation/m038-smoke/active-platform-graphics.json",
+    "artifacts/validation/m038-smoke/review-readiness.json"
+  ],
+  "acceptanceCriteria": [
+    "The workbench makes the single review question and the actual content/demo being judged immediately clear without requiring evidence-file inspection.",
+    "Restart is understandable as an explicit reviewer-controlled fresh review execution and the UI does not imply automatic reload/restart.",
+    "Reject and Accept are visually obvious and sufficient for the simple-review decision without comments, ratings, defer, or review-queue controls."
+  ],
+  "acceptableDecisions": [
+    "approved"
+  ],
+  "waiverPolicy": "No implicit waiver. M038 introduces the human-review UI itself, so this blocking UX/visual review cannot be replaced by machine evidence or waived as normal completion.",
+  "decision": "approved",
+  "reviewedRevision": "ref: refs/heads/main",
+  "reviewedFingerprint": "7731f95b1c393f9819ab22f9a653035aa658e9ddfdffa54d75978d10289b0072",
+  "conditions": [],
+  "completedAt": "2026-08-24T17:19:09.8016411+00:00",
+  "decisionHistory": [
+    {
+      "decision": "changes-requested",
+      "reviewer": "repository user",
+      "notes": "",
+      "evidence": [
+        "artifacts/validation/m038-smoke/active-platform-graphics.json",
+        "artifacts/validation/m038-smoke/review-readiness.json"
+      ],
+      "revision": "ref: refs/heads/main",
+      "fingerprint": "7731f95b1c393f9819ab22f9a653035aa658e9ddfdffa54d75978d10289b0072",
+      "recordedAt": "2026-08-24T17:18:25.0171996+00:00",
+      "recordCorrection": false
+    },
+    {
+      "decision": "approved",
+      "reviewer": "repository user",
+      "notes": "",
+      "evidence": [
+        "artifacts/validation/m038-smoke/active-platform-graphics.json",
+        "artifacts/validation/m038-smoke/review-readiness.json"
+      ],
+      "revision": "ref: refs/heads/main",
+      "fingerprint": "7731f95b1c393f9819ab22f9a653035aa658e9ddfdffa54d75978d10289b0072",
+      "recordedAt": "2026-08-24T17:19:09.5451184+00:00",
+      "recordCorrection": false
+    }
+  ],
+  "correctsReviewId": "",
+  "path": ".review\\records\\review.m038.simple-human-review-boundary-and-workbench.json"
+}
