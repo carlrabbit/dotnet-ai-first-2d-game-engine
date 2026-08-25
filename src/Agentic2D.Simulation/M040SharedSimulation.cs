@@ -41,9 +41,29 @@ public static class M040SharedSemantics
             .Where(x => x.Family == "harvest" && x.BlockingReason is null)
             .OrderByDescending(x => x.Priority).ThenBy(x => x.Key, StringComparer.Ordinal).First();
 
-    public static string SelectWorker(SimulationWorld world, WorkOpportunity opportunity)
-        => world.Entities.Where(x => x.Id.StartsWith("worker.", StringComparison.Ordinal) && x.Lifecycle == SimulationLifecycle.Active)
-            .OrderBy(x => x.Id, StringComparer.Ordinal).Select(x => x.Id).First();
+    public static WorkerDecision SelectWorker(SimulationWorld world, string workerId, IReadOnlyList<WorkOpportunity> opportunities, Func<WorkOpportunity, (bool Reachable, int Cost)> reachability)
+    {
+        var worker = world.Entities.SingleOrDefault(x => x.Id == workerId && x.Lifecycle == SimulationLifecycle.Active);
+        if (worker is null) return new(workerId, null, "worker-unavailable", [], ["WORK-ELIGIBILITY0001"], 0, "not-attempted", "not-applicable", []);
+        if (!world.TryGetComponent<M032WorkerComponent>(workerId, "component.m032.worker", out var workerState) || workerState is null) throw new InvalidOperationException("shared selection requires typed worker state");
+        var evaluations = new List<WorkCandidateEvaluation>();
+        foreach (var opportunity in opportunities.Where(x => x.RegionId == worker.RegionId).OrderBy(x => x.Key, StringComparer.Ordinal))
+        {
+            var factors = new List<string> { "active-worker", "active-region", "capacity=" + workerState.Capacity, "priority=" + opportunity.Priority };
+            var rejections = new List<string>();
+            if (opportunity.BlockingReason is not null) rejections.Add(opportunity.Key + ":" + opportunity.BlockingReason);
+            if (opportunity.Family is "eat" or "drink" or "rest" && !opportunity.Key.EndsWith(workerId, StringComparison.Ordinal)) rejections.Add(opportunity.Key + ":other-worker");
+            if (world.Reservations.Any(x => x.SubjectId == opportunity.TargetId && x.Status == SimulationReservationStatus.Active)) rejections.Add(opportunity.Key + ":reservation-unavailable");
+            var estimate = reachability(opportunity); if (!estimate.Reachable) rejections.Add(opportunity.Key + ":unreachable");
+            factors.Add("reachability-cost=" + estimate.Cost);
+            evaluations.Add(new(opportunity.Key, rejections.Count == 0, factors, rejections, estimate.Cost, rejections.Any(x => x.EndsWith(":reservation-unavailable", StringComparison.Ordinal)) ? "unavailable" : "available"));
+        }
+        var selected = evaluations.Where(x => x.Eligible).Join(opportunities, evaluation => evaluation.OpportunityKey, opportunity => opportunity.Key, (evaluation, opportunity) => (evaluation, opportunity)).OrderByDescending(x => x.opportunity.Priority).ThenBy(x => x.evaluation.PathCost).ThenBy(x => x.opportunity.Key, StringComparer.Ordinal).FirstOrDefault();
+        var rejected = evaluations.SelectMany(x => x.RejectionCodes).Order(StringComparer.Ordinal).ToArray();
+        return selected.opportunity is null
+            ? new(workerId, null, "no-eligible-opportunity", evaluations.Select(x => x.OpportunityKey).ToArray(), rejected, 0, "not-attempted", "not-required", evaluations)
+            : new(workerId, selected.opportunity.Key, "", evaluations.Select(x => x.OpportunityKey).ToArray(), rejected, selected.evaluation.PathCost, "available", selected.opportunity.Family is "eat" or "drink" or "rest" ? "mandatory-need" : "not-required", evaluations);
+    }
 }
 
 /// <summary>
@@ -77,9 +97,11 @@ public static class M040AbstractExecutor
         var scheduler = new DiscreteEventScheduler();
         var graph = Graph();
         var transitions = new List<string>();
+        var opportunities = M032AutonomousDetailedRegion.DeriveOpportunities(world, M032AutonomousDetailedRegion.InspectDesignations(world));
         var opportunity = M040SharedSemantics.SelectHarvest(world);
-        var selectedWorker = M040SharedSemantics.SelectWorker(world, opportunity);
-        Require(selectedWorker == Worker && opportunity.TargetId == Source && opportunity.DestinationId == Storage, "M040 shared selection changed the bounded target");
+        var decision = M040SharedSemantics.SelectWorker(world, Worker, opportunities, candidate => candidate.Family == "harvest" ? (true, PlanRoute(Worker, "housing", "tree", graph, false).Cost) : (true, 0));
+        var selectedWorker = decision.WorkerId;
+        Require(decision.SelectedOpportunityKey == opportunity.Key && selectedWorker == Worker && opportunity.TargetId == Source && opportunity.DestinationId == Storage, "M040 shared selection changed the bounded target");
         var activity = world.CreateActivityWithReservations(new(Activity), selectedWorker, "harvest-and-haul", "travel-to-tree", [opportunity.TargetId, opportunity.DestinationId!],
             [new(new("reservation.m040.source"), opportunity.TargetId, "exclusive.harvest", 1, 1)], new("correlation.m040.abstract"), new("cause.m040.create"));
         Require(activity.Status == "accepted", "M040 activity creation rejected");

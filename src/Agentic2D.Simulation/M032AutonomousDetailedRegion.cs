@@ -159,29 +159,15 @@ public static class M032AutonomousDetailedRegion
     /// <summary>Read-only deterministic worker evaluation; assignment is performed separately by the runtime transaction.</summary>
     public static WorkerDecision EvaluateWorker(SimulationWorld world, string workerId, IReadOnlyList<WorkOpportunity> opportunities)
     {
-        var worker = world.Entities.SingleOrDefault(x => x.Id == workerId && x.Lifecycle == SimulationLifecycle.Active);
-        if (worker is null) return new(workerId, null, "worker-unavailable", [], ["WORK-ELIGIBILITY0001"], 0, "not-attempted", "not-applicable", []);
         var workerState = Component<M032WorkerComponent>(world, workerId, "component.m032.worker");
         var start = Position(workerState);
-        var evaluations = new List<WorkCandidateEvaluation>();
-        foreach (var opportunity in opportunities.Where(x => x.RegionId == worker.RegionId).OrderBy(x => x.Key, StringComparer.Ordinal))
+        return M040SharedSemantics.SelectWorker(world, workerId, opportunities, opportunity =>
         {
-            var factors = new List<string> { "active-worker", "active-region", "capacity=" + workerState.Capacity, "priority=" + opportunity.Priority };
-            var rejections = new List<string>();
-            if (opportunity.BlockingReason is not null) rejections.Add(opportunity.Key + ":" + opportunity.BlockingReason);
-            if (opportunity.Family is "eat" or "drink" or "rest" && !opportunity.Key.EndsWith(workerId, StringComparison.Ordinal)) rejections.Add(opportunity.Key + ":other-worker");
-            if (world.Reservations.Any(x => x.SubjectId == opportunity.TargetId && x.Status == SimulationReservationStatus.Active)) rejections.Add(opportunity.Key + ":reservation-unavailable");
             var target = world.Entities.SingleOrDefault(x => x.Id == opportunity.TargetId);
-            var route = target is null ? new NavigationResult("evaluation:" + workerId + ":" + opportunity.Key, workerId, start, start, [], "invalid-goal", "") : FindRoute("evaluation:" + workerId + ":" + opportunity.Key, workerId, start, TargetPosition(world, target.Id));
-            if (route.Status == "unreachable") rejections.Add(opportunity.Key + ":unreachable");
-            factors.Add("path-cost=" + route.Path.Count);
-            evaluations.Add(new(opportunity.Key, rejections.Count == 0, factors, rejections, route.Path.Count, rejections.Any(x => x.EndsWith(":reservation-unavailable", StringComparison.Ordinal)) ? "unavailable" : "available"));
-        }
-        var selected = evaluations.Where(x => x.Eligible).Join(opportunities, evaluation => evaluation.OpportunityKey, opportunity => opportunity.Key, (evaluation, opportunity) => (evaluation, opportunity)).OrderByDescending(x => x.opportunity.Priority).ThenBy(x => x.evaluation.PathCost).ThenBy(x => x.opportunity.Key, StringComparer.Ordinal).FirstOrDefault();
-        var rejected = evaluations.SelectMany(x => x.RejectionCodes).Order(StringComparer.Ordinal).ToArray();
-        return selected.opportunity is null
-            ? new(workerId, null, "no-eligible-opportunity", evaluations.Select(x => x.OpportunityKey).ToArray(), rejected, 0, "not-attempted", "not-required", evaluations)
-            : new(workerId, selected.opportunity.Key, "", evaluations.Select(x => x.OpportunityKey).ToArray(), rejected, selected.evaluation.PathCost, "available", selected.opportunity.Family is "eat" or "drink" or "rest" ? "mandatory-need" : "not-required", evaluations);
+            if (target is null) return (false, 0);
+            var route = FindRoute("evaluation:" + workerId + ":" + opportunity.Key, workerId, start, TargetPosition(world, target.Id));
+            return (route.Status is not ("unreachable" or "invalid-goal"), route.Path.Count);
+        });
     }
 
     public static IReadOnlyList<WorkDesignation> InspectDesignations(SimulationWorld world) => world.Entities
