@@ -522,6 +522,8 @@ Diagnostics must identify relevant stable IDs and expected/actual revisions with
 
 ## Compatibility and extension
 
+The current canonical SimulationWorld save schema is `agentic2d.simulation-world-save.v2` and v2 is the minimum supported schema. The former `agentic2d.simulation-world-save.v1` shape is incompatible and must be rejected clearly; it is not migrated. Persisted envelopes embedding this state must version their own schema with the same compatibility break.
+
 M031 must preserve current runtime and consumer behavior.
 
 Future milestones may add:

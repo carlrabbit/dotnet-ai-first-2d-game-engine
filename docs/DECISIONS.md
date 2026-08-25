@@ -25,15 +25,17 @@ This document indexes durable project decisions.
 | `docs/decisions/ADR-0015-behaviors-emit-intents-and-spatial-modules-resolve-them.md` | Accepted | Behaviors emit intents; spatial modules resolve. |
 | `docs/decisions/ADR-0016-runtime-owns-entities-components-and-spatial-modules-own-spatial-semantics.md` | Accepted | Runtime/entity/spatial ownership boundary. |
 | `docs/decisions/ADR-0017-authored-definitions-instantiate-runtime-entities-and-interactions-use-explicit-intents.md` | Accepted | Definitions, spawns, and explicit interactions. |
-| `docs/decisions/ADR-0021-workspaces-separate-game-truth-from-engine-acquisition.md` | Accepted | Separate game truth from workspace acquisition. |
 | `docs/decisions/ADR-0018-rendering-is-read-only-and-raylib-is-an-isolated-adapter.md` | Accepted | Read-only rendering and isolated raylib adapter. |
+| `docs/decisions/ADR-0021-workspaces-separate-game-truth-from-engine-acquisition.md` | Accepted | Separate game truth from workspace acquisition. |
+| `docs/decisions/ADR-0028-engineering-validation-uses-resumable-fingerprinted-suites.md` | Accepted | Resumable fingerprinted engineering validation. |
+| `docs/decisions/ADR-0029-human-review-state-is-repository-local.md` | Accepted | Repository-local required review state. |
+| `docs/decisions/ADR-0039-m027-combines-authoring-contract-stabilization-with-guide-system-v060-review-migration.md` | Proposed | Stable authoring evidence and milestone-scoped review migration. |
+| `docs/decisions/ADR-0040-shared-local-asset-home-is-authoring-infrastructure-not-game-authority.md` | Proposed for M028 | Shared local discovery and annotations remain outside game/runtime authority. |
+| `docs/decisions/ADR-0041-asset-preview-host-is-a-separate-restartable-client-around-engine-systems.md` | Proposed for M029 | Asset workbench state survives a separate restartable preview client. |
+| `docs/decisions/ADR-0049-platform-epochs-defer-inactive-platform-verification.md` | Accepted | Active platform epochs and deferred inactive-platform verification. |
+| `docs/decisions/ADR-0050-human-review-is-subjective-and-simple-workbench-is-bounded.md` | Accepted for M038 | Human review is subjective-only; generic Review Workbench remains deliberately simple. |
+| `docs/decisions/ADR-0051-close-m031-with-typed-components-and-atomic-semantic-transactions.md` | Accepted for M039 | M031 closure uses the existing typed component runtime, atomic semantic commands, enforceable persistence classifications, and a deliberate v2 save break. |
 
 ## Decision policy
 
 Create an ADR for durable choices affecting architecture, repository shape, runtime, content, validation, command/artifact contracts, or public APIs. Routine implementation details governed by existing authority do not need separate ADRs.
-| `docs/decisions/ADR-0028-engineering-validation-uses-resumable-fingerprinted-suites.md` | Accepted | Resumable fingerprinted engineering validation. |
-| `docs/decisions/ADR-0040-shared-local-asset-home-is-authoring-infrastructure-not-game-authority.md` | Proposed for M028 | Shared local discovery and annotations remain outside game/runtime authority. |
-| `docs/decisions/ADR-0041-asset-preview-host-is-a-separate-restartable-client-around-engine-systems.md` | Proposed for M029 | Workbench state survives a separately restartable preview client. |
-| `docs/decisions/ADR-0029-human-review-state-is-repository-local.md` | Accepted | Repository-local required review state. |
-| `docs/decisions/ADR-0049-platform-epochs-defer-inactive-platform-verification.md` | Accepted | Active platform epochs and deferred inactive-platform verification. |
-| `docs/decisions/ADR-0039-m027-combines-authoring-contract-stabilization-with-guide-system-v060-review-migration.md` | Proposed | Stable authoring evidence and milestone-scoped review migration. |

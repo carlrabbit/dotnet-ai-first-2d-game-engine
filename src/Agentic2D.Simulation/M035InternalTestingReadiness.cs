@@ -189,6 +189,7 @@ public static class M035ScaleFixture
     public static ScaleFixtureEvidence Execute()
     {
         var world = new SimulationWorld(new WorldId("world.m035.supported-scale"));
+        SimulationFoundationComposition.RegisterM035Policies(world);
         world.RegisterComponent(new("component.m035.fixture", 1, PersistenceClassification.AuthoritativePersistent, "m035.scale-fixture"));
         var regions = Enumerable.Range(1, 5).Select(index => "region.m035." + index.ToString("D2", System.Globalization.CultureInfo.InvariantCulture)).ToArray();
         foreach (var region in regions) Require(world.CreateRegion(new(region), region));
@@ -431,6 +432,7 @@ public static class M035ReadinessArtifactWriter
     private static SimulationWorld CreatePersistenceWorld(string tag)
     {
         var world = new SimulationWorld(new("world.m035.save." + tag));
+        SimulationFoundationComposition.RegisterM035Policies(world);
         foreach (var registration in FaultRegistrations()) world.RegisterComponent(registration);
         Require(world.CreateRegion(new("region.m035.save"), "M035 save region"));
         Require(world.CreateEntityWithComponent("entity.m035.save.worker", SimulationEntityScope.RegionOwned, new("region.m035.save"), "component.m035.persistence", JsonSerializer.SerializeToElement(new { role = "worker", food = tag == "active-shortage" ? 0 : 10, water = tag == "active-shortage" ? 0 : 10 })));
@@ -460,6 +462,7 @@ public static class M035ReadinessArtifactWriter
     private static FaultWorld CreateFaultWorld()
     {
         var world = new SimulationWorld(new("world.m035.fault"));
+        SimulationFoundationComposition.RegisterM035Policies(world);
         foreach (var registration in FaultRegistrations()) world.RegisterComponent(registration);
         Require(world.CreateRegion(new("region.fault.a"), "fault a")); Require(world.CreateRegion(new("region.fault.b"), "fault b"));
         foreach (var id in new[] { "entity.fault.actor", "entity.fault.subject" })
@@ -710,6 +713,7 @@ public static class M035ReadinessArtifactWriter
     private static void MeasureFidelitySwitch()
     {
         var world = new SimulationWorld(new("world.m035.fidelity-measure"));
+        SimulationFoundationComposition.RegisterM035Policies(world);
         Require(world.CreateRegion(new("region.m035.fidelity.a"), "a")); Require(world.CreateRegion(new("region.m035.fidelity.b"), "b"));
         var coordinator = new RegionFidelityCoordinator(world, new DiscreteEventScheduler(), [new("region.m035.fidelity.a", RegionFidelity.Detailed, "detailed", 1, RegionTransitionStatus.Stable, 0), new("region.m035.fidelity.b", RegionFidelity.Abstract, "abstract", 1, RegionTransitionStatus.Stable, 0)]);
         if (coordinator.SwitchDetailed("region.m035.fidelity.b").Status != "committed") throw new InvalidOperationException("M035-PERF-FIDELITY: switch failed");

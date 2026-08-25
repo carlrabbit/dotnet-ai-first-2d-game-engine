@@ -8,6 +8,11 @@ namespace Agentic2D.Simulation;
 /// resource, inventory, need, and event transition.
 /// </summary>
 public readonly record struct DetailedCell(int X, int Y);
+public sealed class M032WorkerComponent { public int X { get; set; } public int Y { get; set; } public int Capacity { get; set; } public int Wood { get; set; } public int Food { get; set; } public int Water { get; set; } public int Comfort { get; set; } }
+public sealed class M032HarvestableComponent { public int X { get; set; } public int Y { get; set; } public int Wood { get; set; } public bool Harvestable { get; set; } }
+public sealed class M032StorageComponent { public int X { get; set; } public int Y { get; set; } public int Wood { get; set; } public int Capacity { get; set; } public string? Accepts { get; set; } public bool Enabled { get; set; } }
+public sealed class M032NeedSourceComponent { public int X { get; set; } public int Y { get; set; } public string? Kind { get; set; } public int Capacity { get; set; } }
+public sealed class M032DormantComponent { public int X { get; set; } public int Y { get; set; } public int Revision { get; set; } }
 public sealed record WorkDesignation(string Id, string Kind, string RegionId, IReadOnlyList<DetailedCell> Cells, int Priority, bool Enabled, int Revision);
 public sealed record WorkOpportunity(string Key, string Family, string RegionId, string TargetId, string? DestinationId, int Quantity, string SourceDesignationId, int Priority, string? BlockingReason, string DerivationFingerprint);
 public sealed record WorkCandidateEvaluation(string OpportunityKey, bool Eligible, IReadOnlyList<string> Factors, IReadOnlyList<string> RejectionCodes, int PathCost, string ReservationStatus);
@@ -31,6 +36,7 @@ public static class M032AutonomousDetailedRegion
         carryingSave = world.Capture();
         var loaded = SimulationWorld.Load(carryingSave, Registrations());
         if (!loaded.Success || loaded.World is null) throw new InvalidOperationException("M032 carrying save did not load: " + string.Join(", ", loaded.Diagnostics.Select(x => x.Code)));
+        RegisterPolicies(loaded.World);
         return Continue(loaded.World, true, prefix, carryingSave);
     }
 
@@ -38,6 +44,7 @@ public static class M032AutonomousDetailedRegion
     {
         var loaded = SimulationWorld.Load(carryingSave, Registrations());
         if (!loaded.Success || loaded.World is null) throw new InvalidOperationException("M032 carrying save did not load: " + string.Join(", ", loaded.Diagnostics.Select(x => x.Code)));
+        RegisterPolicies(loaded.World);
         return Continue(loaded.World, true, [], carryingSave);
     }
 
@@ -79,6 +86,7 @@ public static class M032AutonomousDetailedRegion
     {
         var world = SimulationFoundationComposition.AddSimulationFoundation(new("world.m032.forest-logistics"), new SimulationInstant(8 * 60 * 60 * 1_000_000L));
         foreach (var registration in Registrations()) world.RegisterComponent(registration);
+        RegisterPolicies(world);
         Require(world.CreateRegion(ActiveRegion, "Detailed forest").Status == "accepted");
         Require(world.CreateRegion(DormantRegion, "Persistent dormant region").Status == "accepted");
         Create(world, "worker.001", ActiveRegion, new { x = 1, y = 1, capacity = 3, wood = 0, food = 0, water = 0, comfort = 0 });
@@ -91,6 +99,16 @@ public static class M032AutonomousDetailedRegion
         foreach (var designation in InitialDesignations()) Create(world, designation.Id, ActiveRegion, designation);
         Create(world, "dormant.sentinel", DormantRegion, new { x = 0, y = 0, revision = 0 });
         return world;
+    }
+
+    private static void RegisterPolicies(SimulationWorld world)
+    {
+        world.RegisterActivityKind("harvest-and-haul", (_, next, status) => next.StartsWith("travel", StringComparison.Ordinal) || next is "at-tree" or "harvesting" or "carrying" or "interrupted-for-food" or "carrying-resumed" or "at-storage" or "depositing" or "deposited" || status is SimulationActivityStatus.Completed or SimulationActivityStatus.Interrupted);
+        world.RegisterActivityKind("harvest", (_, _, _) => true);
+        world.RegisterActivityKind("satisfy-food", (_, next, status) => next.StartsWith("travel", StringComparison.Ordinal) || next is "satisfying" or "eating" or "satisfied" || status is SimulationActivityStatus.Completed or SimulationActivityStatus.Interrupted);
+        world.RegisterReservationKind("exclusive.harvest", _ => 1);
+        world.RegisterReservationKind("capacity.wood", _ => 18);
+        world.RegisterReservationKind("capacity.food", _ => 2);
     }
 
     public static IReadOnlyList<SimulationComponentRegistration> Registrations() =>
@@ -176,6 +194,7 @@ public static class M032AutonomousDetailedRegion
     {
         try
         {
+            if (value.ValueKind == JsonValueKind.Object && JsonSerializer.Deserialize<WorkDesignation>(value.GetRawText(), new JsonSerializerOptions { PropertyNameCaseInsensitive = true }) is { } typed) return typed;
             var cells = Property(value, "cells").EnumerateArray().Select(cell => new DetailedCell(Property(cell, "x").GetInt32(), Property(cell, "y").GetInt32())).ToArray();
             return new(Property(value, "id").GetString() ?? entityId, Property(value, "kind").GetString() ?? "", Property(value, "regionId").GetString() ?? "", cells, Property(value, "priority").GetInt32(), Property(value, "enabled").GetBoolean(), Property(value, "revision").GetInt32());
         }
@@ -205,8 +224,7 @@ public static class M032AutonomousDetailedRegion
         var designation = InspectDesignations(world).SingleOrDefault(x => x.Id == designationId);
         if (designation is null) return world.RejectCommand("designation.set-enabled", "WORK-DESIGNATION0002", "designation was not found", [designationId]);
         var updated = designation with { Enabled = enabled, Revision = designation.Revision + 1 };
-        var set = world.SetComponent(designationId, "component.m032.designation", JsonSerializer.SerializeToElement(updated));
-        return set.Status == "accepted" ? world.RecordFact("DesignationEnabledChanged", [designationId], new { designationId, enabled, revision = updated.Revision }) : set;
+        return world.ApplyAtomicComponentFact("DesignationEnabledChanged", [(designationId, "component.m032.designation", JsonSerializer.SerializeToElement(updated))], [designationId], new { designationId, enabled, revision = updated.Revision });
     }
 
     public static SimulationCommandResult SetDesignationPriority(SimulationWorld world, string designationId, int priority)
@@ -214,8 +232,7 @@ public static class M032AutonomousDetailedRegion
         var designation = InspectDesignations(world).SingleOrDefault(x => x.Id == designationId);
         if (designation is null || priority < 0) return world.RejectCommand("designation.set-priority", "WORK-DESIGNATION0003", "designation or priority is invalid", [designationId]);
         var updated = designation with { Priority = priority, Revision = designation.Revision + 1 };
-        var set = world.SetComponent(designationId, "component.m032.designation", JsonSerializer.SerializeToElement(updated));
-        return set.Status == "accepted" ? world.RecordFact("DesignationPriorityChanged", [designationId], new { designationId, priority, revision = updated.Revision }) : set;
+        return world.ApplyAtomicComponentFact("DesignationPriorityChanged", [(designationId, "component.m032.designation", JsonSerializer.SerializeToElement(updated))], [designationId], new { designationId, priority, revision = updated.Revision });
     }
 
     public static NavigationResult FindRoute(string requestId, string actor, DetailedCell start, DetailedCell goal, IReadOnlySet<DetailedCell>? blocked = null)

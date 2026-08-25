@@ -130,7 +130,7 @@ public sealed record MultiFidelitySave(string Schema, SimulationSave World, Disc
 /// <summary>Serialized owner of the optional abstract/detailed bridge. Exactly one region may be detailed.</summary>
 public sealed class RegionFidelityCoordinator
 {
-    public const string SaveSchema = "agentic2d.multi-fidelity-save.v1";
+    public const string SaveSchema = "agentic2d.multi-fidelity-save.v2";
     private readonly SimulationWorld world;
     private readonly DiscreteEventScheduler scheduler;
     private readonly SortedDictionary<string, RegionFidelityState> states;
@@ -207,14 +207,16 @@ public sealed record M033Run(SimulationWorld World, DiscreteEventScheduler Sched
 /// <summary>Bounded three-region dogfood scenario and standalone host substrate.</summary>
 public static class M033MultiFidelitySimulation
 {
+    public sealed class M033WorkerComponent { public int Wood { get; set; } public int Food { get; set; } public int Water { get; set; } public int Comfort { get; set; } public string? Node { get; set; } }
+    public sealed class M033ResourceComponent { public int SourceWood { get; set; } public int StoredWood { get; set; } public int Capacity { get; set; } }
     public const string ScenarioId = "scenario.m033.multi-region-equivalence-and-switching";
     private static readonly string[] RegionIds = ["region.alpha", "region.beta", "region.gamma"];
     private static readonly string[] Families = ["travel", "harvest", "pick-up", "carry", "deposit", "eat", "drink", "rest"];
 
     public static IReadOnlyList<SimulationComponentRegistration> Registrations() =>
     [
-        new("component.m033.worker", 1, PersistenceClassification.AuthoritativePersistent, "m033.abstract-activity"),
-        new("component.m033.resource", 1, PersistenceClassification.AuthoritativePersistent, "m033.logistics"),
+        new("component.m033.worker", 1, PersistenceClassification.AuthoritativePersistent, "m033.abstract-activity", typeof(M033WorkerComponent).AssemblyQualifiedName, "typed-json-codec-v2"),
+        new("component.m033.resource", 1, PersistenceClassification.AuthoritativePersistent, "m033.logistics", typeof(M033ResourceComponent).AssemblyQualifiedName, "typed-json-codec-v2"),
         new("component.m033.fidelity", 1, PersistenceClassification.AuthoritativePersistent, "m033.fidelity"),
     ];
 
@@ -222,6 +224,7 @@ public static class M033MultiFidelitySimulation
     {
         var world = new SimulationWorld(new("world.m033"));
         foreach (var registration in Registrations()) world.RegisterComponent(registration);
+        foreach (var family in Families) world.RegisterActivityKind(family, (_, _, _) => true);
         foreach (var region in RegionIds) Require(world.CreateRegion(new(region), region).Status == "accepted");
         foreach (var region in RegionIds)
         {
@@ -312,8 +315,7 @@ public static class M033MultiFidelitySimulation
             var value = world.Entities.Single(entity => entity.Id == resource).Components["component.m033.resource"];
             var source = value.GetProperty("sourceWood").GetInt32();
             var stored = value.GetProperty("storedWood").GetInt32();
-            if (source > 0) world.SetComponent(resource, "component.m033.resource", JsonSerializer.SerializeToElement(new { sourceWood = source - 1, storedWood = stored + 1, capacity = value.GetProperty("capacity").GetInt32() }));
-            world.RecordFact("AbstractActivityCompleted", [id, actor, resource], new { executor, family, day });
+            if (source > 0) world.ApplyAtomicComponentFact("AbstractActivityCompleted", [(resource, "component.m033.resource", JsonSerializer.SerializeToElement(new { sourceWood = source - 1, storedWood = stored + 1, capacity = value.GetProperty("capacity").GetInt32() }))], [id, actor, resource], new { executor, family, day });
         }
         return complete;
     }

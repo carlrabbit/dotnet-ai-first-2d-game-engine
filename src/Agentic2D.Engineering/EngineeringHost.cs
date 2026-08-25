@@ -160,10 +160,10 @@ public sealed class EngineeringHost
                 ReceiptPath(suite, shard),
                 shard.DependsOn,
                 shard.Evidence)).ToArray(),
-            suite.Id == "m037-smoke" ? "pwsh ./eng/suite.ps1 m037-smoke --verify" : $"./eng/{suite.Id}.sh --verify",
+            suite.Id is "m037-smoke" or "m039-smoke" ? $"pwsh ./eng/suite.ps1 {suite.Id} --verify" : $"./eng/{suite.Id}.sh --verify",
             suite.Shards.SelectMany(shard => shard.Evidence).Distinct(StringComparer.Ordinal).ToArray());
         var serialized = JsonSerializer.Serialize(plan, json);
-        if (suite.Id is "m033-smoke" or "m034-smoke" or "m035-smoke")
+        if (suite.Id is "m033-smoke" or "m034-smoke" or "m035-smoke" or "m039-smoke")
         {
             var planPath = Absolute(Path.Combine("artifacts", "validation", suite.Id, "plan.json"));
             Directory.CreateDirectory(Path.GetDirectoryName(planPath)!);
@@ -333,6 +333,19 @@ public sealed class EngineeringHost
                 diagnostics.WriteLine("error: m037-smoke: blocking M037 human review is not approved");
                 success = false;
             }
+        }
+
+        if (suite.Id == "m039-smoke" && success)
+        {
+            foreach (var shard in suite.Shards)
+            {
+                var evidence = Absolute(shard.Evidence.Single());
+                using var document = JsonDocument.Parse(File.ReadAllText(evidence));
+                if (document.RootElement.GetProperty("status").GetString() != "passed") { diagnostics.WriteLine($"error: m039-smoke/{shard.Id}: observation status is not passed"); success = false; }
+                if (shard.Id == "fresh-process-equivalence" && (!document.RootElement.GetProperty("evidence").GetProperty("separateOsProcesses").GetBoolean() || document.RootElement.GetProperty("evidence").GetProperty("launches").GetArrayLength() != 2)) { diagnostics.WriteLine("error: m039-smoke/fresh-process-equivalence: distinct process provenance missing"); success = false; }
+            }
+            var path = Absolute("artifacts/validation/m039-smoke/verify.json"); Directory.CreateDirectory(Path.GetDirectoryName(path)!);
+            File.WriteAllText(path, JsonSerializer.Serialize(new { schema = "agentic2d.m039.verification.v1", suite = "m039-smoke", status = success ? "passed" : "failed", currentReceipts = suite.Shards.Count, freshProcess = success }, json));
         }
 
         if (suite.Id is "m031-smoke" or "m032-smoke" or "m033-smoke" or "m034-smoke" or "m035-smoke")
@@ -684,6 +697,10 @@ public sealed class EngineeringHost
         if (suite.Id == "m037-smoke")
         {
             return await M037ProductShellSuite.RunAsync(this, root, shard.Id, diagnostics);
+        }
+        if (suite.Id == "m039-smoke")
+        {
+            return await M039SimulationClosureSuite.RunAsync(root, shard.Id, diagnostics);
         }
         if (suite.Id == "m036-smoke")
         {
@@ -1200,6 +1217,16 @@ public sealed class EngineeringHost
             Shard("readiness-report", "Readiness report and review pack are complete candidate evidence.", "./eng/test-filter.sh ReadinessGate && ./eng/m035-readiness-smoke.sh", ["artifacts/readiness/M035/readiness-report.json", "artifacts/readiness/M035/review-pack/review-manifest.json"]),
             Shard("human-review", "Blocking M035 readiness review is approved by a human.", "./eng/review-check.sh --milestone M035", ["artifacts/readiness/M035/review-pack/review-manifest.json"]),
             Shard("integrated", "M035 structural campaign, build, and readiness evidence.", "./eng/build.sh && ./eng/m035-probe.sh campaign && ./eng/m035-readiness-smoke.sh", ["artifacts/readiness/M035/m035-manifest.json", "artifacts/readiness/M035/readiness-report.json"])
+        ]),
+        new("m039-smoke", "resumable-sharded",
+        [
+            Shard("typed-component-authority", "Typed component authority, registration determinism, and lifecycle identity.", "internal:m039", ["artifacts/simulation/M039/typed-component-authority.json"], isInternal: true),
+            Shard("semantic-command-atomicity", "Atomic semantic mutation, rollback observation, and event causality.", "internal:m039", ["artifacts/simulation/M039/semantic-command-atomicity.json"], isInternal: true),
+            Shard("activities-and-reservations", "Activity transition authority and reservation invariants.", "internal:m039", ["artifacts/simulation/M039/activities-and-reservations.json"], isInternal: true),
+            Shard("persistence-classification", "Executable classification policy and v2 compatibility boundary.", "internal:m039", ["artifacts/simulation/M039/persistence-classification.json"], isInternal: true),
+            Shard("fresh-process-equivalence", "Separate producer and consumer OS process provenance.", "internal:m039", ["artifacts/simulation/M039/fresh-process-equivalence.json"], isInternal: true),
+            Shard("current-consumer-regression", "M031, M032, and M033 bounded consumer regression.", "internal:m039", ["artifacts/simulation/M039/current-consumer-regression.json"], isInternal: true),
+            Shard("evidence-integrity", "Observation-derived evidence and current receipt boundary.", "internal:m039", ["artifacts/simulation/M039/evidence-integrity.json"], isInternal: true)
         ]),
         new("m037-smoke", "resumable-sharded",
         [
