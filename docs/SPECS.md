@@ -10,7 +10,8 @@ This document indexes permanent behavioral authority. Milestones sequence work; 
 |---|---|
 | `docs/specs/project-thesis.md` | Engine purpose and project thesis. |
 | `docs/specs/runtime-principles.md` | Deterministic commands, events, queries, and state. |
-| `docs/specs/agentic-workflow.md` | Human-agent workflow. |
+| `docs/specs/agentic-workflow.md` | Human/planning/execution/review workflow. |
+| `docs/specs/simple-human-review-workbench-contract.md` | Subjective-only human-review boundary and bounded Restart/Reject/Accept workbench. |
 | `docs/specs/minimal-deterministic-runtime.md` | Minimal runtime semantics. |
 | `docs/specs/product-cli-contract.md` | `agentic2d` product CLI. |
 | `docs/specs/scenario-runner-contract.md` | Scenario execution. |
@@ -25,10 +26,10 @@ This document indexes permanent behavioral authority. Milestones sequence work; 
 | `docs/specs/reusable-asset-discovery-profile-contract.md` | Reusable PNG/WAV observations and conservative proposals. |
 | `docs/specs/reusable-asset-annotation-and-cleanup-contract.md` | Retained reusable corrections and disposable generated metadata. |
 | `docs/specs/asset-campaign-and-batch-contract.md` | Game-local campaign proposals and bounded batches. |
-| `docs/specs/asset-workbench-session-and-alias-contract.md` | Persistent provider-side workbench sessions and ephemeral aliases. |
-| `docs/specs/asset-workbench-input-contract.md` | Explicit text-stream and mouse/touch workbench input. |
-| `docs/specs/asset-workbench-decision-and-consequence-contract.md` | Review decisions, consequence confirmation, history, and staleness. |
-| `docs/specs/asset-preview-host-ipc-contract.md` | Restartable local preview-host protocol. |
+| `docs/specs/asset-workbench-session-and-alias-contract.md` | Persistent M029 provider-side asset-workbench sessions and ephemeral aliases. |
+| `docs/specs/asset-workbench-input-contract.md` | Explicit text-stream and mouse/touch M029 asset-workbench input. |
+| `docs/specs/asset-workbench-decision-and-consequence-contract.md` | M029 asset review decisions, consequence confirmation, history, and staleness. |
+| `docs/specs/asset-preview-host-ipc-contract.md` | M029 restartable local asset-preview-host protocol. |
 | `docs/specs/approved-asset-and-deterministic-promotion-contract.md` | Project-local approved assets and atomic deterministic promotion. |
 | `docs/specs/map-content-contract.md` | Authored map content. |
 | `docs/specs/runtime-inspection-contract.md` | Structured runtime inspection. |
@@ -97,7 +98,9 @@ This document indexes permanent behavioral authority. Milestones sequence work; 
 - Behavior, spatial, interaction, and rendering code do not directly mutate stores outside their authority.
 - Static map content and runtime entities remain distinct.
 - Rendering is read-only and backend-neutral before adapter translation.
-- Structural artifacts are semantic evidence; screenshots are review evidence.
+- Structural artifacts are semantic evidence; screenshots are review evidence only for what the screenshot can actually show.
+- Machine-verifiable acceptance is machine-owned; human review is reserved for irreducibly subjective/perceptual acceptance.
+- A simple human review uses an actual bounded experience rather than manual reconstruction from machine artifacts.
 - Game/product truth remains independent of engine acquisition and checkout composition.
 - Failures produce stable diagnostics and useful artifacts.
 - The optional simulation foundation uses one authoritative world with explicit regions; rendering and spatial modules do not own or mutate it.

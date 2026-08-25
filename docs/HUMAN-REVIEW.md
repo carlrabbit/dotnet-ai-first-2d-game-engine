@@ -2,70 +2,97 @@
 
 ## Authority
 
-This document defines current human-review boundaries.
+This document defines the project-level human-review boundary.
 
-## Review-pack principle
+Detailed repository mechanics are authoritative in `docs/engineering/human-review-workflow.md`.
 
-Review generated evidence rather than reconstructing behavior from implementation source alone.
+The graphical review contract is `docs/specs/simple-human-review-workbench-contract.md`.
 
-## Current review areas
+## Principle
 
-### M028 shared asset-library foundation
+Human review is milestone-scoped acceptance for questions automation cannot fully decide.
 
-The blocking M028 review is `review.m028.shared-asset-library-discovery-and-campaign-foundation`. It verifies safe generated cleanup, retained reusable annotations, campaign/profile authority separation, and usable headless review evidence. It remains pending until an explicit repository-user approval record exists.
+Humans review perception and experience, not machine evidence.
 
-### M029 choice-driven workbench and promotion
+Machine-verifiable claims are resolved before human review.
 
-The blocking M029 review is `review.m029.choice-driven-workbench-preview-and-promotion`. It reviews editable text-stream and mouse/touch interaction, preview/recovery evidence, consequence-aware decisions, deterministic promotion provenance, and the M030 handoff. It does not approve consumer-game integration.
+## Valid subjects
 
-### Asset semantics and curation
+New required/blocking human questions are limited to:
 
-Verify proposed versus approved semantics, asset provenance, review decisions, generated workbench usefulness, and that high-impact gameplay semantics remain review-gated.
+```text
+visual
+UX
+creative
+gameplay
+audio
+accessibility-baseline
+```
 
-### Maps and runtime evidence
+Typical questions concern readability, usability, gameplay feel/comprehensibility, creative/audio quality, or bounded accessibility observation.
 
-Verify map references, static geometry, authored/runtime separation, runtime inspection completeness, and that diagnostics explain failures.
+Architecture, determinism, persistence, schema validity, artifact completeness, migration correctness, numeric performance, fingerprints, required files, and other mechanically decidable facts are not human-review subjects.
 
-### Behavior and spatial boundaries
+## Simple items, milestone review run
 
-Verify behaviors read immutable snapshots and emit intents; spatial modules do not own entity identity; grid and continuous modules remain replaceable; collision evidence explains accepted, clipped, slid, and blocked outcomes.
+Each human-review item stays simple: one concise question and one bounded actual experience.
 
-### Entity definitions and interactions
+The normal repository-user workflow presents **all currently open simple review items for the active milestone in one workbench run**:
 
-Verify definition, spawn, and runtime entity IDs remain distinct; overrides and transactional instantiation are explainable; provenance is immutable; static objects are not silently converted to entities; trigger state is inspectable; interaction requires explicit intent and deterministic target selection; current interaction stops at `interaction.started`.
+```text
+machine readiness
+-> review-run --milestone M038
+-> question 1
+-> Accept/Reject
+-> question 2
+-> ...
+-> final save/status page
+```
 
-### Rendering
+There is no question sidebar/list. Left/right arrows navigate.
 
-Verify:
+Accept/Reject automatically progress while durable decisions are written asynchronously in the background.
 
-- rendering cannot mutate or advance runtime;
-- raylib types do not leak outside the adapter;
-- the headless CLI works without native graphics;
-- static/entity ownership remains distinct from visual references;
-- PNG, asset, region, and render-item bindings are inspectable;
-- static cache invalidation and ordering are credible;
-- tree base/canopy occlusion is understandable;
-- pause, step, and reset use runtime APIs;
-- live and snapshot modes use one projector;
-- screenshots are explicit review evidence;
-- native resources are cleaned up;
-- future animation, input, or alternate backends can extend projection without changing runtime authority.
+The reviewer sees last-decision and persistence activity rather than a frozen UI.
 
-### Consumer workspace evidence
+## Restart
 
-Verify that workspace acquisition remains separate from game truth, the engine-provider area remains read-only by default, generated wrappers use workspace resolution instead of brittle machine paths, and `run-manifest.json` links the available structural evidence before optional screenshots.
+Restart means reset the active milestone review set.
 
-## Evidence hierarchy
+It:
 
-1. Structured source and contracts.
-2. Deterministic JSON artifacts and diagnostics.
-3. Review-pack summaries and manifests.
-4. Explicit screenshots and graphical inspection where required.
+- shows a visible resetting state;
+- waits for already queued writes;
+- invokes canonical review-reset;
+- clears workbench/demo state;
+- returns to question 1.
 
-Screenshot pixels are not cross-platform semantic truth.
+It does not restart/re-exec the application, rebuild, hot reload, or watch files.
 
-## Repository-local review gate
+The reviewer restarts the application manually when a new build should be loaded.
 
-Required and blocking reviews use `.review/pending/`, `.review/records/`, and `.review/closed/`. Generated or large evidence remains in `artifacts/review/`.
+## Durable state
 
-Use the canonical review command family defined in `docs/engineering/human-review-workflow.md`. `./eng/review-check.sh --milestone <id>` evaluates only required/blocking reviews owned by that milestone and fails unresolved, malformed, superseded, or insufficiently evidenced reviews. Completed records are immutable historical evidence: later commits do not stale M022, M025, or M026. M027 requires `review.m027.authoring-contracts-review-evidence-and-v060-migration` and its durable consumer-authoring review pack.
+Each item is persisted through existing repository-local `.review` authority.
+
+The workbench itself has no persisted session, queue, comments, ratings, navigation state, or resume checkpoint.
+
+Completed historical milestones remain immutable.
+
+## Evidence rule
+
+Machine evidence is consumed by machine validation.
+
+Human evidence is the actual scenario/review shard the person perceives or uses.
+
+For interactive UX, JSON, Markdown, hashes, or an unrelated screenshot are not substitutes for a launchable experience.
+
+M037 remains the historical regression example for this rule.
+
+## Completion
+
+Machine validation and human approval are separate gates.
+
+The machine milestone suite may pass while human reviews remain open.
+
+The milestone completes only when machine validation passes and milestone-scoped `review-check` passes.
