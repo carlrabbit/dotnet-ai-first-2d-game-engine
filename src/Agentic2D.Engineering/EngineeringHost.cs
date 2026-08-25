@@ -234,10 +234,10 @@ public sealed class EngineeringHost
                 ReceiptPath(suite, shard),
                 shard.DependsOn,
                 shard.Evidence)).ToArray(),
-            suite.Id is "m037-smoke" or "m039-smoke" ? $"pwsh ./eng/suite.ps1 {suite.Id} --verify" : $"./eng/{suite.Id}.sh --verify",
+            suite.Id is "m037-smoke" or "m039-smoke" or "m040-smoke" ? $"pwsh ./eng/suite.ps1 {suite.Id} --verify" : $"./eng/{suite.Id}.sh --verify",
             suite.Shards.SelectMany(shard => shard.Evidence).Distinct(StringComparer.Ordinal).ToArray());
         var serialized = JsonSerializer.Serialize(plan, json);
-        if (suite.Id is "m033-smoke" or "m034-smoke" or "m035-smoke" or "m039-smoke")
+        if (suite.Id is "m033-smoke" or "m034-smoke" or "m035-smoke" or "m039-smoke" or "m040-smoke")
         {
             var planPath = Absolute(Path.Combine("artifacts", "validation", suite.Id, "plan.json"));
             Directory.CreateDirectory(Path.GetDirectoryName(planPath)!);
@@ -420,6 +420,19 @@ public sealed class EngineeringHost
             }
             var path = Absolute("artifacts/validation/m039-smoke/verify.json"); Directory.CreateDirectory(Path.GetDirectoryName(path)!);
             File.WriteAllText(path, JsonSerializer.Serialize(new { schema = "agentic2d.m039.verification.v1", suite = "m039-smoke", status = success ? "passed" : "failed", currentReceipts = suite.Shards.Count, freshProcess = success }, json));
+        }
+
+        if (suite.Id == "m040-smoke" && success)
+        {
+            foreach (var shard in suite.Shards)
+            {
+                var evidence = Absolute(shard.Evidence.Single());
+                using var document = JsonDocument.Parse(File.ReadAllText(evidence));
+                if (document.RootElement.GetProperty("status").GetString() != "passed") { diagnostics.WriteLine($"error: m040-smoke/{shard.Id}: observation status is not passed"); success = false; }
+                if (shard.Id == "abstract-persistence-continuation" && (!document.RootElement.GetProperty("evidence").GetProperty("freshProcess").GetProperty("separateOsProcesses").GetBoolean() || !document.RootElement.GetProperty("evidence").GetProperty("freshProcess").GetProperty("advancedBeyondCheckpoint").GetBoolean())) { diagnostics.WriteLine("error: m040-smoke/abstract-persistence-continuation: fresh-process continuation proof missing"); success = false; }
+            }
+            var path = Absolute("artifacts/validation/m040-smoke/verify.json"); Directory.CreateDirectory(Path.GetDirectoryName(path)!);
+            File.WriteAllText(path, JsonSerializer.Serialize(new { schema = "agentic2d.m040.verification.v1", suite = "m040-smoke", status = success ? "passed" : "failed", currentReceipts = suite.Shards.Count, freshProcessContinuation = success }, json));
         }
 
         if (suite.Id == "m038-smoke" && success)
@@ -781,6 +794,10 @@ public sealed class EngineeringHost
         if (suite.Id == "m039-smoke")
         {
             return await M039SimulationClosureSuite.RunAsync(root, shard.Id, diagnostics);
+        }
+        if (suite.Id == "m040-smoke")
+        {
+            return await M040SharedSemanticsSuite.RunAsync(root, shard.Id, diagnostics);
         }
         if (suite.Id == "m038-smoke") return await M038SimpleReviewSuite.RunAsync(this, root, shard.Id, diagnostics);
         if (suite.Id == "m036-smoke")
@@ -1310,6 +1327,17 @@ public sealed class EngineeringHost
             Shard("fresh-process-equivalence", "Separate producer and consumer OS process provenance.", "internal:m039", ["artifacts/simulation/M039/fresh-process-equivalence.json"], isInternal: true),
             Shard("current-consumer-regression", "M031, M032, and M033 bounded consumer regression.", "internal:m039", ["artifacts/simulation/M039/current-consumer-regression.json"], isInternal: true),
             Shard("evidence-integrity", "Observation-derived evidence and current receipt boundary.", "internal:m039", ["artifacts/simulation/M039/evidence-integrity.json"], isInternal: true)
+        ]),
+        new("m040-smoke", "resumable-sharded",
+        [
+            Shard("shared-semantics", "One executor-neutral typed semantic authority is observed by abstract composition.", "internal:m040", ["artifacts/simulation/M040/shared-semantics.json"], isInternal: true),
+            Shard("abstract-scheduler-guards", "Deterministic abstract trigger ordering, cancellation, duplicate, and malformed continuation guards.", "internal:m040", ["artifacts/simulation/M040/abstract-scheduler-guards.json"], isInternal: true),
+            Shard("abstract-work-logistics", "Real staged abstract harvest, haul, deposit, conservation, and terminal cleanup.", "internal:m040", ["artifacts/simulation/M040/abstract-work-logistics.json"], isInternal: true),
+            Shard("abstract-needs", "Lazy mandatory need interruption, satisfaction, and work re-evaluation.", "internal:m040", ["artifacts/simulation/M040/abstract-needs.json"], isInternal: true),
+            Shard("abstract-travel-duration", "Independent multi-edge abstract graph travel and typed due-duration policy.", "internal:m040", ["artifacts/simulation/M040/abstract-travel-duration.json"], isInternal: true),
+            Shard("abstract-persistence-continuation", "Fresh-process abstract checkpoint load and advancement to uninterrupted target.", "internal:m040", ["artifacts/simulation/M040/abstract-persistence-continuation.json"], isInternal: true),
+            Shard("executor-separation", "Detailed and abstract continuation are distinct and share semantic commands.", "internal:m040", ["artifacts/simulation/M040/executor-separation.json"], isInternal: true),
+            Shard("detailed-regression", "M032 remains a real detailed grid/fixed-step semantic executor.", "internal:m040", ["artifacts/simulation/M040/detailed-regression.json"], isInternal: true)
         ]),
         new("m037-smoke", "resumable-sharded",
         [

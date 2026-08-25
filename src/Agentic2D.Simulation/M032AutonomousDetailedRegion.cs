@@ -101,7 +101,7 @@ public static class M032AutonomousDetailedRegion
         return world;
     }
 
-    private static void RegisterPolicies(SimulationWorld world)
+    public static void RegisterPolicies(SimulationWorld world)
     {
         world.RegisterActivityKind("harvest-and-haul", (_, next, status) => next.StartsWith("travel", StringComparison.Ordinal) || next is "at-tree" or "harvesting" or "carrying" or "interrupted-for-food" or "carrying-resumed" or "at-storage" or "depositing" or "deposited" || status is SimulationActivityStatus.Completed or SimulationActivityStatus.Interrupted);
         world.RegisterActivityKind("harvest", (_, _, _) => true);

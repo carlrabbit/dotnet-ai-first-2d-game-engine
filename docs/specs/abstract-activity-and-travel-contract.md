@@ -2,56 +2,88 @@
 
 ## Authority
 
-Authoritative for M033 abstract activity execution, coarse travel, duration models, and threshold scheduling.
+Authoritative for M040 discrete-event abstract execution over the shared semantic contract.
 
-## Shared semantics
+Shared semantics:
 
-Abstract execution uses M031/M032 work selection, activities, reservations, resource/inventory/storage rules, needs, commands, and factual events. No abstract-only gameplay rules.
+```text
+docs/specs/shared-work-logistics-and-needs-semantics-contract.md
+```
 
-## Abstract location graph
+Queue semantics:
 
-Regions define stable nodes and edges. Nodes may represent housing, forest, storage, food, water, rest, and portals. Edges contain stable ID, endpoints, integer cost, access, revision, and declared modifiers.
+```text
+docs/specs/discrete-event-simulation-contract.md
+```
 
-## Abstract position
+Fidelity switching is outside M040.
 
-An entity is at a node or on an edge with origin, destination, departure, and planned arrival.
+## Pipeline
 
-## Travel planning
+```text
+shared semantic state
+→ shared derive/select/assign
+→ abstract continuation planner
+→ one guarded next trigger
+→ due semantic instant
+→ revalidate
+→ shared semantic command
+→ committed state/event
+→ plan next transition
+```
 
-Inputs: actor, origin, destination, movement profile, carrying state, graph revision. Outputs: stable route summary, integer cost, departure/arrival, fingerprint, and diagnostics.
+## Abstract continuation
 
-## Duration models
+Executor-owned state may include:
 
-Typed deterministic models cover travel, harvest, pickup, deposit, eat, drink, and rest. Inputs/constants are inspectable. No wall clock, hidden randomness, personality, or skill.
+- actor/activity reference;
+- abstract node/edge;
+- origin/destination;
+- departure/arrival or due instant;
+- graph revision;
+- duration-policy inputs/version;
+- next-trigger identity.
 
-## One transition at a time
+Gameplay quantities remain in shared typed state.
 
-Schedule only the next meaningful activity transition. Delivery revalidates and issues the shared command before planning the next stage.
+## Travel
 
-## Need integration
+Use a bounded deterministic coarse graph with stable nodes/edges, integer costs, access/revision and explicit modifiers.
 
-Lazily integrate from the last authoritative instant. Schedule next warning/mandatory threshold. Rate or source changes invalidate and rebuild triggers.
+Support multi-edge routes.
 
-## Interruption
+Ordinary abstract travel must not call detailed grid pathfinding.
 
-Mandatory needs may invalidate ordinary triggers and issue shared interruption commands. Carried inventory remains authoritative.
+## Duration
+
+Typed deterministic models drive actual due instants for travel, harvest, pickup, deposit, eat, drink, rest and bounded retry.
+
+No wall clock, hidden randomness, personality, skill or presentation state.
+
+## Stage execution
+
+A work activity progresses through multiple scheduled semantic stages.
+
+One trigger cannot represent a scripted complete workday.
+
+Delivery revalidates applicable activity, lifecycle, target, reservation, graph, need and revision guards.
+
+Stale/cancelled/duplicate delivery cannot mutate factual success state.
+
+## Needs
+
+Integrate fixed needs lazily from semantic time and schedule threshold transitions.
+
+Mandatory need can invalidate/interupt ordinary work through the shared interruption command.
+
+After satisfaction, shared opportunity derivation/selection runs again.
 
 ## Persistence
 
-Persist abstract location/edge progress, ownership, trigger continuation, and duration inputs required for deterministic continuation.
+Persist scheduler and abstract continuation required for deterministic resume.
 
-## Diagnostics
-
-```text
-ABS-LOCATION
-ABS-GRAPH
-ABS-TRAVEL
-ABS-DURATION
-ABS-ACTIVITY
-ABS-NEED
-ABS-INTERRUPTION
-```
+Fresh-process proof must load and then advance beyond the checkpoint to a common semantic target matching uninterrupted abstract execution.
 
 ## Exclusions
 
-No detailed pathfinding, transient individual obstacles, animation, exact congestion, cross-region travel, or infrastructure networks.
+No detailed pathfinding, fidelity switching/materialization, cross-mode equivalence tolerance, observer neutrality, cross-region travel, rendering or environmental infrastructure.

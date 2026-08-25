@@ -84,6 +84,8 @@ Do not create success-only placeholder scripts.
 
 `./eng/m031-smoke.sh` is resumable-sharded. It has `--list`, `--plan-json`, `--shard <id>`, `--verify`, and no-argument modes. Its verifier is the only aggregate-success authority; its human-review shard remains pending until the owning M031 review is approved.
 
+`pwsh ./eng/suite.ps1 m040-smoke --plan-json|--shard <id>|--verify` is the canonical M040 resumable-sharded machine suite. Its verifier is the only aggregate-success authority; M040 has no human-review shard.
+
 `./eng/m032-smoke.sh` is resumable-sharded. It has `--list`, `--plan-json`, `--shard <id>`, `--verify`, and no-argument modes. Its verifier is the only aggregate-success authority; its human-review shard remains pending until the owning M032 review is approved. `m032-detailed-region-graphics-smoke.sh` always records `passed`, `failed`, or `skipped-not-graphics-capable`; a skip does not satisfy the M032 blocking review.
 
 `./eng/m033-smoke.sh` is resumable-sharded. It has `--list`, `--plan-json`, `--shard <id>`, `--verify`, and no-argument modes. Its verifier requires current receipts, graphics-capable switch evidence, and approved M033 blocking review. Focused M033 commands write queue, transition, persistence, equivalence, and standalone evidence under `artifacts/simulation/M033/`.
