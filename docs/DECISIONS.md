@@ -34,6 +34,7 @@ This document indexes durable project decisions.
 | `docs/decisions/ADR-0041-asset-preview-host-is-a-separate-restartable-client-around-engine-systems.md` | Proposed for M029 | Asset workbench state survives a separate restartable preview client. |
 | `docs/decisions/ADR-0049-platform-epochs-defer-inactive-platform-verification.md` | Accepted | Active platform epochs and deferred inactive-platform verification. |
 | `docs/decisions/ADR-0050-human-review-is-subjective-and-simple-workbench-is-bounded.md` | Accepted for M038 | Human review is subjective-only; generic Review Workbench remains deliberately simple. |
+| `docs/decisions/ADR-0051-close-m031-with-typed-components-and-atomic-semantic-transactions.md` | Accepted for M039 | M031 closure uses the existing typed component runtime, atomic semantic commands, enforceable persistence classifications, and a deliberate v2 save break. |
 
 ## Decision policy
 

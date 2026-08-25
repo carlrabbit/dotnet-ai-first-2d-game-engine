@@ -6,6 +6,8 @@ Authoritative for M035 save-version support, migrations, corruption handling, at
 
 ## Compatibility policy
 
+For the current unreleased simulation foundation, `agentic2d.simulation-world-save.v2` is the minimum supported SimulationWorld schema. `agentic2d.simulation-world-save.v1` is explicitly unsupported and must fail validation without mutating the destination; no v1 migration shim is provided.
+
 Declare:
 
 - current schema;

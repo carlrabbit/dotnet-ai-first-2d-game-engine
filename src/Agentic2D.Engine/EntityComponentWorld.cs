@@ -5,110 +5,93 @@ using Agentic2D.Contracts;
 
 namespace Agentic2D.Engine;
 
-/// <summary>A deliberately small registered typed-component world. Storage is private and replaceable.</summary>
+/// <summary>One registered typed-component world. Generic and descriptor APIs share these stores.</summary>
 public sealed class EntityComponentWorld
 {
     private readonly SortedSet<string> entities = new(StringComparer.Ordinal);
-    private readonly Dictionary<Type, ComponentRegistration> registrations = [];
+    private readonly Dictionary<string, ComponentDescriptor> descriptors = new(StringComparer.Ordinal);
+    private readonly Dictionary<Type, string> typeIds = [];
     private readonly Dictionary<string, Dictionary<string, object>> stores = new(StringComparer.Ordinal);
     private readonly List<EntityComponentMutation> mutations = [];
     private readonly List<RuntimeEvent> events = [];
     private readonly Dictionary<string, RuntimeEntityProvenance> provenance = new(StringComparer.Ordinal);
-
     public IReadOnlyList<EntityComponentMutation> Mutations => mutations;
     public IReadOnlyList<RuntimeEvent> Events => events;
     public IReadOnlyList<string> EntityIds => entities.ToArray();
-    public IReadOnlyList<string> RegisteredComponentTypeIds => registrations.Values.Select(x => x.TypeId).Order(StringComparer.Ordinal).ToArray();
+    public IReadOnlyList<string> RegisteredComponentTypeIds => descriptors.Keys.Order(StringComparer.Ordinal).ToArray();
     public IReadOnlyDictionary<string, RuntimeEntityProvenance> Provenance => provenance;
 
-    public void Register<T>(string typeId, string owner, Func<T, bool>? isValid = null) where T : notnull
+    public void Register<T>(string typeId, string owner, Func<T, bool>? isValid = null) where T : notnull => RegisterDescriptor(new(typeId, 1, typeof(T), owner, value => isValid is null || isValid((T)value), value => JsonSerializer.Serialize(value), json => JsonSerializer.Deserialize<T>(json) ?? throw new InvalidOperationException("component decode returned null")));
+    public void RegisterDescriptor(ComponentDescriptor descriptor)
     {
-        if (registrations.ContainsKey(typeof(T))) return;
-        registrations.Add(typeof(T), new ComponentRegistration(typeId, owner, value => isValid is null || isValid((T)value), value => JsonSerializer.Serialize(value)));
-        stores.Add(typeId, new Dictionary<string, object>(StringComparer.Ordinal));
+        if (string.IsNullOrWhiteSpace(descriptor.TypeId) || descriptor.SchemaVersion < 1) throw new ArgumentException("component descriptor requires stable type ID and schema version");
+        if (!descriptors.TryAdd(descriptor.TypeId, descriptor)) throw new InvalidOperationException("duplicate component type ID: " + descriptor.TypeId);
+        typeIds.TryAdd(descriptor.RuntimeType, descriptor.TypeId);
+        stores.Add(descriptor.TypeId, new Dictionary<string, object>(StringComparer.Ordinal));
     }
-
+    public bool TryGetDescriptor(string typeId, out ComponentDescriptor? descriptor) => descriptors.TryGetValue(typeId, out descriptor);
     public EntityComponentResult CreateEntity(string id, int tick = 0)
     {
         if (string.IsNullOrWhiteSpace(id)) return Reject("ENTITY0003", "invalid entity ID", id, null, "create");
         if (!entities.Add(id)) return Reject("ENTITY0001", "duplicate entity ID", id, null, "create");
-        events.Add(new RuntimeEvent("entity.created", tick, id));
-        mutations.Add(new(tick, $"command.entity.create.{id}", id, null, "create", "accepted", null, null, ["entity.created"], []));
-        return new(true, "accepted", null);
+        events.Add(new("entity.created", tick, id)); mutations.Add(new(tick, $"command.entity.create.{id}", id, null, "create", "accepted", null, null, ["entity.created"], [])); return new(true, "accepted", null);
     }
-
     public EntityComponentResult DestroyEntity(string id, int tick = 0)
     {
         if (!entities.Remove(id)) return Reject("ENTITY0002", "entity not found", id, null, "destroy");
-        foreach (var store in stores.Values) store.Remove(id);
-        provenance.Remove(id);
-        events.Add(new RuntimeEvent("entity.destroyed", tick, id));
-        mutations.Add(new(tick, $"command.entity.destroy.{id}", id, null, "destroy", "accepted", null, null, ["entity.destroyed"], []));
-        return new(true, "accepted", null);
+        foreach (var store in stores.Values) store.Remove(id); provenance.Remove(id); events.Add(new("entity.destroyed", tick, id)); mutations.Add(new(tick, $"command.entity.destroy.{id}", id, null, "destroy", "accepted", null, null, ["entity.destroyed"], [])); return new(true, "accepted", null);
     }
-
     public bool Exists(string id) => entities.Contains(id);
     public EntityComponentResult SetProvenance(string id, RuntimeEntityProvenance value, int tick = 0, string? commandId = null)
     {
         if (!entities.Contains(id)) return Reject("ENTITY0002", "entity not found", id, "runtime.provenance", "set-provenance");
         if (provenance.ContainsKey(id)) return Reject("ENTITY0004", "provenance already exists", id, "runtime.provenance", "set-provenance");
-        provenance.Add(id, value);
-        events.Add(new RuntimeEvent("entity.provenance-recorded", tick, id));
-        mutations.Add(new(tick, commandId ?? $"command.entity.provenance.{id}", id, "runtime.provenance", "add", "accepted", null, JsonSerializer.Serialize(value), ["entity.provenance-recorded"], []));
-        return new(true, "accepted", null);
+        provenance.Add(id, value); events.Add(new("entity.provenance-recorded", tick, id)); mutations.Add(new(tick, commandId ?? $"command.entity.provenance.{id}", id, "runtime.provenance", "add", "accepted", null, JsonSerializer.Serialize(value), ["entity.provenance-recorded"], [])); return new(true, "accepted", null);
     }
-    public EntityComponentResult Set<T>(string id, T value, int tick = 0, string? commandId = null) where T : notnull
+    public EntityComponentResult Set<T>(string id, T value, int tick = 0, string? commandId = null) where T : notnull => SetByTypeId(id, TypeId<T>(), value, tick, commandId);
+    public EntityComponentResult SetByTypeId(string id, string typeId, object value, int tick = 0, string? commandId = null)
     {
-        if (!entities.Contains(id)) return Reject("ENTITY0002", "entity not found", id, TypeId<T>(), "set");
-        if (!registrations.TryGetValue(typeof(T), out var registration)) return Reject("COMPONENT0001", "component type not registered", id, null, "set");
-        if (!registration.IsValid(value)) return Reject("COMPONENT0002", "invalid component value", id, registration.TypeId, "set");
-        var store = stores[registration.TypeId]; var had = store.TryGetValue(id, out var old);
-        store[id] = value;
-        var kind = had ? "update" : "add"; var eventType = had ? "entity.component-updated" : "entity.component-added";
-        events.Add(new RuntimeEvent(eventType, tick, id + ":" + registration.TypeId));
-        mutations.Add(new(tick, commandId ?? $"command.component.{kind}.{id}.{registration.TypeId}", id, registration.TypeId, kind, "accepted", old is null ? null : registration.Serialize(old), registration.Serialize(value), [eventType], []));
-        return new(true, "accepted", null);
+        if (!entities.Contains(id)) return Reject("ENTITY0002", "entity not found", id, typeId, "set");
+        if (!descriptors.TryGetValue(typeId, out var descriptor)) return Reject("COMPONENT0001", "component type not registered", id, typeId, "set");
+        if (!descriptor.RuntimeType.IsInstanceOfType(value) || !descriptor.IsValid(value)) return Reject("COMPONENT0002", "invalid component value", id, typeId, "set");
+        var store = stores[typeId]; var had = store.TryGetValue(id, out var old); store[id] = descriptor.Copy(value); var kind = had ? "update" : "add"; var eventType = had ? "entity.component-updated" : "entity.component-added";
+        events.Add(new(eventType, tick, id + ":" + typeId)); mutations.Add(new(tick, commandId ?? $"command.component.{kind}.{id}.{typeId}", id, typeId, kind, "accepted", old is null ? null : descriptor.Serialize(old), descriptor.Serialize(value), [eventType], [])); return new(true, "accepted", null);
     }
-
-    public EntityComponentResult Remove<T>(string id, int tick = 0, string? commandId = null) where T : notnull
+    public EntityComponentResult Remove<T>(string id, int tick = 0, string? commandId = null) where T : notnull => RemoveByTypeId(id, TypeId<T>(), tick, commandId);
+    public EntityComponentResult RemoveByTypeId(string id, string typeId, int tick = 0, string? commandId = null)
     {
-        if (!entities.Contains(id)) return Reject("ENTITY0002", "entity not found", id, TypeId<T>(), "remove");
-        if (!registrations.TryGetValue(typeof(T), out var registration)) return Reject("COMPONENT0001", "component type not registered", id, null, "remove");
-        if (!stores[registration.TypeId].Remove(id, out var old)) return Reject("COMPONENT0004", "component removal target missing", id, registration.TypeId, "remove");
-        events.Add(new RuntimeEvent("entity.component-removed", tick, id + ":" + registration.TypeId));
-        mutations.Add(new(tick, commandId ?? $"command.component.remove.{id}.{registration.TypeId}", id, registration.TypeId, "remove", "accepted", registration.Serialize(old), null, ["entity.component-removed"], []));
-        return new(true, "accepted", null);
+        if (!entities.Contains(id)) return Reject("ENTITY0002", "entity not found", id, typeId, "remove");
+        if (!descriptors.TryGetValue(typeId, out var descriptor)) return Reject("COMPONENT0001", "component type not registered", id, typeId, "remove");
+        if (!stores[typeId].Remove(id, out var old)) return Reject("COMPONENT0004", "component removal target missing", id, typeId, "remove");
+        events.Add(new("entity.component-removed", tick, id + ":" + typeId)); mutations.Add(new(tick, commandId ?? $"command.component.remove.{id}.{typeId}", id, typeId, "remove", "accepted", descriptor.Serialize(old), null, ["entity.component-removed"], [])); return new(true, "accepted", null);
     }
-
-    public bool TryGet<T>(string id, out T? value) where T : notnull
-    {
-        value = default;
-        return registrations.TryGetValue(typeof(T), out var registration) && stores[registration.TypeId].TryGetValue(id, out var raw) && (value = (T)raw) is not null;
-    }
-    public IReadOnlyList<string> Query<T>() where T : notnull => registrations.TryGetValue(typeof(T), out var registration) ? stores[registration.TypeId].Keys.Order(StringComparer.Ordinal).ToArray() : [];
+    public bool TryGet<T>(string id, out T? value) where T : notnull { value = default; var typeId = TypeId<T>(); if (typeId.Length == 0 || !stores[typeId].TryGetValue(id, out var raw)) return false; value = (T)descriptors[typeId].Copy(raw); return true; }
+    public bool TryGetByTypeId(string id, string typeId, out object? value) { value = null; if (!descriptors.ContainsKey(typeId) || !stores[typeId].TryGetValue(id, out var raw)) return false; value = descriptors[typeId].Copy(raw); return true; }
+    public IReadOnlyList<string> Query<T>() where T : notnull => QueryByTypeId(TypeId<T>());
+    public IReadOnlyList<string> QueryByTypeId(string typeId) => stores.TryGetValue(typeId, out var store) ? store.Keys.Order(StringComparer.Ordinal).ToArray() : [];
+    public IReadOnlyList<(string TypeId, object Value)> ComponentsFor(string id) => descriptors.Keys.Order(StringComparer.Ordinal).Where(key => stores[key].ContainsKey(id)).Select(key => (key, descriptors[key].Copy(stores[key][id]))).ToArray();
     public IReadOnlyList<string> Query<T1, T2>() where T1 : notnull where T2 : notnull => Query<T1>().Where(id => TryGet<T2>(id, out _)).ToArray();
-    public EntityComponentSnapshot Snapshot(int tick) => new(tick, entities.ToArray(), registrations.Values.OrderBy(r => r.TypeId, StringComparer.Ordinal).Select(r => new ComponentSnapshotType(r.TypeId, r.Owner, stores[r.TypeId].OrderBy(kv => kv.Key, StringComparer.Ordinal).Select(kv => new ComponentSnapshotValue(kv.Key, r.Serialize(kv.Value))).ToArray())).ToArray());
-    public string TypeId<T>() where T : notnull => registrations.TryGetValue(typeof(T), out var registration) ? registration.TypeId : string.Empty;
-    private EntityComponentResult Reject(string diagnostic, string message, string id, string? typeId, string kind)
+    public EntityComponentBatchResult CommitBatch(IReadOnlyList<EntityComponentBatchMutation> changes, int tick = 0, string? commandId = null)
     {
-        mutations.Add(new(0, $"command.component.{kind}.{id}", id, typeId, kind, "rejected", null, null, [], [diagnostic]));
-        return new(false, "rejected", diagnostic);
+        if (changes.Count == 0 || changes.GroupBy(x => (x.EntityId, x.TypeId)).Any(x => x.Count() != 1)) return new(false, "duplicate-or-empty-batch", []);
+        var staged = new List<(EntityComponentBatchMutation Change, ComponentDescriptor Descriptor, object? Previous)>();
+        foreach (var change in changes) { if (!entities.Contains(change.EntityId) || !descriptors.TryGetValue(change.TypeId, out var descriptor) || !descriptor.RuntimeType.IsInstanceOfType(change.Value) || !descriptor.IsValid(change.Value)) return new(false, "invalid-batch", []); stores[change.TypeId].TryGetValue(change.EntityId, out var previous); staged.Add((change, descriptor, previous is null ? null : descriptor.Copy(previous))); }
+        foreach (var item in staged) stores[item.Change.TypeId][item.Change.EntityId] = item.Descriptor.Copy(item.Change.Value);
+        foreach (var item in staged) { var had = item.Previous is not null; var eventType = had ? "entity.component-updated" : "entity.component-added"; events.Add(new(eventType, tick, item.Change.EntityId + ":" + item.Change.TypeId)); mutations.Add(new(tick, commandId ?? "command.component.batch", item.Change.EntityId, item.Change.TypeId, had ? "update" : "add", "accepted", item.Previous is null ? null : item.Descriptor.Serialize(item.Previous), item.Descriptor.Serialize(item.Change.Value), [eventType], [])); }
+        return new(true, "accepted", staged.Select(x => x.Change.TypeId + ":" + x.Change.EntityId).ToArray());
     }
-    private sealed record ComponentRegistration(string TypeId, string Owner, Func<object, bool> IsValid, Func<object, string> Serialize);
+    public EntityComponentSnapshot Snapshot(int tick) => new(tick, entities.ToArray(), descriptors.Values.OrderBy(r => r.TypeId, StringComparer.Ordinal).Select(r => new ComponentSnapshotType(r.TypeId, r.Owner, stores[r.TypeId].OrderBy(kv => kv.Key, StringComparer.Ordinal).Select(kv => new ComponentSnapshotValue(kv.Key, r.Serialize(kv.Value))).ToArray())).ToArray());
+    public string TypeId<T>() where T : notnull => typeIds.TryGetValue(typeof(T), out var typeId) ? typeId : string.Empty;
+    private EntityComponentResult Reject(string diagnostic, string message, string id, string? typeId, string kind) { mutations.Add(new(0, $"command.component.{kind}.{id}", id, typeId, kind, "rejected", null, null, [], [diagnostic])); return new(false, "rejected", diagnostic); }
 }
-
+public sealed record ComponentDescriptor(string TypeId, int SchemaVersion, Type RuntimeType, string Owner, Func<object, bool> IsValid, Func<object, string> Serialize, Func<string, object> Deserialize) { public object Copy(object value) => Deserialize(Serialize(value)); }
+public sealed record EntityComponentBatchMutation(string EntityId, string TypeId, object Value);
+public sealed record EntityComponentBatchResult(bool Accepted, string Status, IReadOnlyList<string> ChangedKeys);
 public sealed record EntityComponentResult(bool Accepted, string Status, string? Diagnostic);
 public sealed record EntityComponentMutation(int Tick, string CommandId, string EntityId, string? ComponentTypeId, string MutationKind, string Status, string? PreviousValue, string? ResultingValue, IReadOnlyList<string> Events, IReadOnlyList<string> Diagnostics);
 public sealed record ComponentSnapshotType(string TypeId, string Owner, IReadOnlyList<ComponentSnapshotValue> Values);
 public sealed record ComponentSnapshotValue(string EntityId, string Value);
 public sealed record EntityComponentSnapshot(int Tick, IReadOnlyList<string> EntityIds, IReadOnlyList<ComponentSnapshotType> Components)
 {
-    public string Fingerprint
-    {
-        get
-        {
-            var semantic = Tick + "|" + string.Join("|", EntityIds) + "|" + string.Join("|", Components.Select(c => c.TypeId + ":" + string.Join(",", c.Values.Select(v => v.EntityId + "=" + v.Value))));
-            return "sha256:" + Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(semantic))).ToLowerInvariant();
-        }
-    }
+    public string Fingerprint => "sha256:" + Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(Tick + "|" + string.Join("|", EntityIds) + "|" + string.Join("|", Components.Select(c => c.TypeId + ":" + string.Join(",", c.Values.Select(v => v.EntityId + "=" + v.Value))))))).ToLowerInvariant();
 }

@@ -2,7 +2,7 @@
 
 ## Authority
 
-This document is authoritative for runtime entity identity, entity lifecycle, typed component ownership, component queries, immutable snapshots, and command-buffered component mutation.
+This document is authoritative for runtime entity identity, entity lifecycle, typed component ownership, component registration, component queries, immutable/read-only component state, snapshots, and command-buffered/batched component mutation.
 
 It does not define a final ECS storage architecture.
 
@@ -15,149 +15,116 @@ stable EntityId
 + zero or more typed components
 ```
 
-An entity is not required to be a mutable object graph or derive from a universal `GameObject` base class.
+The runtime owns entity existence and lifecycle, every authoritative runtime component instance, component registration descriptors, component validation and mutation, deterministic enumeration, immutable snapshots, and lifecycle/component evidence.
 
-The runtime owns:
+No higher-level subsystem may create a second authoritative component-value store.
 
-- entity existence;
-- entity lifecycle;
-- component instances;
-- component mutation;
-- deterministic entity/component enumeration;
-- snapshot creation;
-- lifecycle and mutation events.
+## Component identity and registration
 
-## Entity lifecycle
+Each component family has a stable type ID.
 
-Required operations:
+Registration is explicit.
+
+The runtime maintains one descriptor per registered component family. A descriptor resolves at least:
 
 ```text
-CreateEntity
-EntityExists
-DestroyEntity
-EnumerateEntities
+stable type ID
+CLR runtime type
+owner
+validator
+canonical serialization/deserialization authority
 ```
 
-Rules:
+Stable type ID is durable semantic identity.
 
-- IDs are stable and unique within one runtime world;
-- duplicate creation is rejected;
-- unknown-entity mutation is rejected;
-- destruction removes all components;
-- destruction is idempotent only if explicitly documented; default behavior should reject destroying an unknown entity;
-- lifecycle operations produce structured command results and factual events.
+CLR type identity is runtime binding information. Assembly-qualified type names, assembly versions, file paths and equivalent deployment metadata are not canonical persisted component identity and do not perturb semantic registration fingerprints.
 
-Recommended diagnostics:
+Dynamic runtime assembly scanning/plugin discovery is not required.
 
-| ID | Meaning |
-|---|---|
-| `ENTITY0001` | Duplicate entity ID. |
-| `ENTITY0002` | Entity not found. |
-| `ENTITY0003` | Invalid entity ID. |
-| `ENTITY0004` | Entity lifecycle command rejected. |
+## Typed domain operations
 
-## Component registration and identity
-
-Each component type has a stable type ID.
-
-Initial IDs:
+Required typed semantics include equivalents of:
 
 ```text
-component.grid-position
-component.continuous-transform-2d
-component.kinematic-motion-2d
-component.collision-aabb-2d
-component.spatial-membership
-```
-
-Registration is explicit. Runtime reflection scanning is not required.
-
-The runtime may map stable type IDs to typed stores through hand-written registration.
-
-## Component operations
-
-Required semantics:
-
-```text
-SetComponent<T>
-TryGetComponent<T>
-RemoveComponent<T>
-QueryEntitiesWith<T>
-QueryEntitiesWith<T1, T2>
+Register<T>
+Set<T>
+TryGet<T>
+Remove<T>
+Query<T>
+Query<T1,T2>
 ```
 
 Rules:
 
 - set requires an existing entity;
-- first set emits component-added;
-- replacement emits component-updated;
-- remove emits component-removed;
-- removing a missing component returns a stable rejected/no-op result according to one documented policy;
-- component queries are deterministic by entity ID;
-- component values are copied or exposed read-only;
-- behavior code cannot receive mutable stores.
+- the component family must be registered;
+- validation occurs before mutation;
+- first set emits component-added evidence;
+- replacement emits component-updated evidence;
+- remove follows one documented missing-value policy;
+- queries are deterministic by entity ID;
+- behavior/domain code does not receive mutable stores.
 
-Recommended diagnostics:
+## Type-erased infrastructure operations
 
-| ID | Meaning |
-|---|---|
-| `COMPONENT0001` | Component type not registered. |
-| `COMPONENT0002` | Invalid component value. |
-| `COMPONENT0003` | Component incompatible with entity/module context. |
-| `COMPONENT0004` | Component removal target missing. |
-| `COMPONENT0005` | Component mutation rejected. |
+The runtime may expose a bounded non-generic/type-erased infrastructure API over the same registration descriptors and stores.
+
+Its permitted purposes are persistence encoding/decoding, inspection/evidence, explicit heterogeneous mutation staging, and descriptor lookup by stable type ID.
+
+It is not a second storage model and is not the preferred game/domain programming surface.
+
+Generic and type-erased operations MUST resolve the same authoritative store and values.
+
+## Immutable/read-only component values
+
+Authoritative component reads cannot provide an uncontrolled mutation path.
+
+Preferred stored forms are immutable records, readonly record structs, or equivalent immutable value objects.
+
+If a mutable CLR object is accepted at a boundary, the runtime must defensively copy it such that mutating caller-held or returned references cannot mutate authoritative stored state without a runtime mutation operation.
+
+A focused test must prove this property for current simulation components.
+
+## Heterogeneous mutation batch
+
+The runtime supports a bounded atomic batch containing mutations of multiple registered component families.
+
+Required behavior:
+
+1. resolve entity and descriptor for every staged mutation;
+2. validate all values and preconditions;
+3. stage without mutating live stores;
+4. reject the full batch if any staged mutation is invalid;
+5. commit all staged component changes as one visible runtime boundary;
+6. produce deterministic mutation/event evidence.
+
+The implementation may use temporary dictionaries, immutable staged state, copy-on-write, or another bounded mechanism.
+
+Sequential live writes followed by compensating rollback do not satisfy atomic batch semantics.
+
+The component batch does not by itself own game/domain events, activities or reservations; higher-level semantic coordinators may compose the component batch into a larger transaction.
 
 ## Storage policy
 
-The initial implementation may use:
+Permitted initial storage includes typed dictionaries, typed arrays, and a small explicit descriptor/store registry.
 
-```text
-typed dictionaries
-typed arrays
-small explicit store registry
-```
+The runtime does not require archetype ECS, sparse-set optimization, reflection discovery, or a third-party ECS framework.
 
-It must not require:
-
-```text
-archetype ECS
-sparse-set optimization
-reflection dispatch
-third-party ECS framework
-```
-
-Semantic contracts must not depend on the chosen storage representation.
+Semantic contracts do not depend on storage representation.
 
 ## Snapshots
 
 A snapshot is immutable and tick-scoped.
 
-It exposes:
-
-- entity existence;
-- stable entity enumeration;
-- typed component lookup;
-- one- and two-component entity queries;
-- current tick;
-- deterministic fingerprint.
-
-All behaviors in one phase receive the same snapshot.
+It exposes entity existence, stable entity enumeration, typed component lookup, deterministic component queries, current tick, and deterministic fingerprint.
 
 A later mutation must not alter an existing snapshot.
 
 ## Snapshot fingerprint
 
-Fingerprint input must include:
+Fingerprint input includes tick, stable entity IDs, stable component type IDs, semantic component values, and deterministic ordering.
 
-- tick;
-- stable entity IDs;
-- stable component type IDs;
-- semantic component values;
-- deterministic ordering.
-
-Volatile process, timestamp, path, and allocation data are excluded.
-
-SHA-256 lowercase hexadecimal is preferred.
+It excludes CLR assembly identity, paths, timestamps, process data, and storage allocation/index details.
 
 ## Mutation boundary
 
@@ -165,18 +132,10 @@ Behavior modules emit intents.
 
 Domain modules resolve intents into accepted typed mutation commands or rejected domain results.
 
-The runtime validates and applies accepted commands.
+The runtime validates and applies accepted component mutation/batches.
 
-No behavior or spatial resolver may directly mutate component stores during intent evaluation.
+No behavior, spatial resolver, simulation coordinator or consumer may directly mutate component stores during evaluation.
 
 ## Determinism
 
-Equivalent initial entity/component state, inputs, tick count, and source revision must produce equivalent:
-
-- entity enumeration;
-- component queries;
-- snapshots;
-- fingerprints;
-- command ordering;
-- lifecycle/component events;
-- final entity/component state.
+Equivalent registered component descriptors, initial state, inputs and command sequence produce equivalent entity enumeration, component queries, snapshots, fingerprints, accepted/rejected mutations, lifecycle/component events, and final component state.

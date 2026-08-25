@@ -23,6 +23,7 @@ public static class M031WoodWorkflow
         intermediateSave = initial.Capture();
         var loaded = SimulationWorld.Load(intermediateSave, SimulationFoundationComposition.AddM031WoodWorkflowProofComponents());
         if (!loaded.Success) throw new InvalidOperationException(string.Join("; ", loaded.Diagnostics.Select(x => x.Code)));
+        SimulationFoundationComposition.RegisterM031Policies(loaded.World!);
         return Continue(loaded.World!, true, commands);
     }
 
@@ -30,6 +31,7 @@ public static class M031WoodWorkflow
     {
         var loaded = SimulationWorld.Load(save, SimulationFoundationComposition.AddM031WoodWorkflowProofComponents());
         if (!loaded.Success) throw new InvalidOperationException(string.Join("; ", loaded.Diagnostics.Select(x => x.Code)));
+        SimulationFoundationComposition.RegisterM031Policies(loaded.World!);
         return Continue(loaded.World!, true);
     }
 
@@ -37,13 +39,14 @@ public static class M031WoodWorkflow
     {
         var world = SimulationFoundationComposition.AddSimulationFoundation(new("world.m031.proof"), new SimulationInstant(8 * 60 * 60 * 1_000_000L));
         foreach (var registration in SimulationFoundationComposition.AddM031WoodWorkflowProofComponents()) world.RegisterComponent(registration);
+        SimulationFoundationComposition.RegisterM031Policies(world);
         Require(world.CreateRegion(new("region.forest"), "Forest")); Require(world.CreateRegion(new("region.settlement"), "Settlement"));
         Require(world.CreateEntity("worker.001", SimulationEntityScope.RegionOwned, new("region.forest"))); Require(world.ActivateEntity("worker.001"));
         Require(world.CreateEntity("tree.001", SimulationEntityScope.RegionOwned, new("region.forest"))); Require(world.ActivateEntity("tree.001"));
         Require(world.CreateEntity("storage.001", SimulationEntityScope.RegionOwned, new("region.settlement"))); Require(world.ActivateEntity("storage.001"));
-        Require(world.SetComponent("worker.001", "component.m031.inventory", JsonSerializer.SerializeToElement(new { wood = 0, capacity = 3 })));
-        Require(world.SetComponent("tree.001", "component.m031.harvestable", JsonSerializer.SerializeToElement(new { wood = 3 })));
-        Require(world.SetComponent("storage.001", "component.m031.storage", JsonSerializer.SerializeToElement(new { wood = 0, capacity = 3 })));
+        Require(world.SetComponent("worker.001", "component.m031.inventory", new M031InventoryComponent(0, 3)));
+        Require(world.SetComponent("tree.001", "component.m031.harvestable", new M031HarvestableComponent(3)));
+        Require(world.SetComponent("storage.001", "component.m031.storage", new M031StorageComponent(0, 3)));
         return world;
     }
 
@@ -69,8 +72,7 @@ public static class M031WoodWorkflow
         activity = world.Activities.Single(x => x.Id == Activity.Value); commands.Add(world.TransitionActivity(Activity, activity.Revision, "carrying", SimulationActivityStatus.Active));
         commands.Add(world.TransferRegion("worker.001", new("region.settlement"))); world.Advance(SimulationDuration.FromSeconds(1));
         activity = world.Activities.Single(x => x.Id == Activity.Value); commands.Add(world.TransitionActivity(Activity, activity.Revision, "at-storage", SimulationActivityStatus.Active));
-        Require(world.SetComponent("worker.001", "component.m031.inventory", JsonSerializer.SerializeToElement(new { wood = 0, capacity = 3 }))); Require(world.SetComponent("storage.001", "component.m031.storage", JsonSerializer.SerializeToElement(new { wood = 3, capacity = 3 })));
-        commands.Add(world.RecordFact("ResourceDeposited", ["worker.001", "storage.001"], new { resource = "wood", quantity = 3 }));
+        commands.Add(world.ApplyAtomicTypedComponentFact("ResourceDeposited", [new("worker.001", "component.m031.inventory", new M031InventoryComponent(0, 3)), new("storage.001", "component.m031.storage", new M031StorageComponent(3, 3))], ["worker.001", "storage.001"], new { resource = "wood", quantity = 3 }));
         activity = world.Activities.Single(x => x.Id == Activity.Value); commands.Add(world.TransitionActivity(Activity, activity.Revision, "deposited", SimulationActivityStatus.Active));
         commands.Add(world.ReleaseReservation(TreeReservation, "harvest-complete")); commands.Add(world.ReleaseReservation(StorageReservation, "deposit-complete"));
         activity = world.Activities.Single(x => x.Id == Activity.Value); commands.Add(world.TransitionActivity(Activity, activity.Revision, "completed", SimulationActivityStatus.Completed, 3));
@@ -85,12 +87,11 @@ public static class M031WoodWorkflow
         activity = world.Activities.Single(x => x.Id == Activity.Value); commands.Add(world.TransitionActivity(Activity, activity.Revision, "target-reserved", SimulationActivityStatus.Active));
         activity = world.Activities.Single(x => x.Id == Activity.Value); commands.Add(world.TransitionActivity(Activity, activity.Revision, "at-target", SimulationActivityStatus.Active));
         activity = world.Activities.Single(x => x.Id == Activity.Value); commands.Add(world.TransitionActivity(Activity, activity.Revision, "harvesting", SimulationActivityStatus.Active)); world.Advance(SimulationDuration.FromSeconds(1));
-        Require(world.SetComponent("tree.001", "component.m031.harvestable", JsonSerializer.SerializeToElement(new { wood = 0 }))); Require(world.SetComponent("worker.001", "component.m031.inventory", JsonSerializer.SerializeToElement(new { wood = 3, capacity = 3 })));
-        commands.Add(world.RecordFact("ResourceHarvested", ["worker.001", "tree.001"], new { resource = "wood", quantity = 3 }));
+        commands.Add(world.ApplyAtomicTypedComponentFact("ResourceHarvested", [new("tree.001", "component.m031.harvestable", new M031HarvestableComponent(0)), new("worker.001", "component.m031.inventory", new M031InventoryComponent(3, 3))], ["worker.001", "tree.001"], new { resource = "wood", quantity = 3 }));
         activity = world.Activities.Single(x => x.Id == Activity.Value); commands.Add(world.TransitionActivity(Activity, activity.Revision, "harvested", SimulationActivityStatus.Active, 3));
     }
 
-    private static int ComponentInt(SimulationWorld world, string entityId, string key, string property) => world.Entities.Single(x => x.Id == entityId).Components[key].GetProperty(property).GetInt32();
+    private static int ComponentInt(SimulationWorld world, string entityId, string key, string property) => key switch { "component.m031.inventory" => world.TryGetComponent<M031InventoryComponent>(entityId, key, out var inventory) ? (property == "capacity" ? inventory!.Capacity : inventory!.Wood) : 0, "component.m031.harvestable" => world.TryGetComponent<M031HarvestableComponent>(entityId, key, out var harvestable) ? harvestable!.Wood : 0, _ => world.TryGetComponent<M031StorageComponent>(entityId, key, out var storage) ? (property == "capacity" ? storage!.Capacity : storage!.Wood) : 0 };
     private static void Require(SimulationCommandResult result) { if (result.Status != "accepted") throw new InvalidOperationException("M031 proof command rejected: " + string.Join(',', result.Diagnostics.Select(x => x.Code))); }
 }
 
@@ -103,14 +104,14 @@ public static class SimulationFoundationArtifactWriter
         Directory.CreateDirectory(root);
         await Json(root, "foundation-manifest.json", new { schema = "agentic2d.simulation-foundation-manifest.v1", milestone = "M031", scenarioIds = new[] { M031WoodWorkflow.ScenarioId }, worldId = direct.World.Id.Value, simulationTimeResolution = "microsecond", registrationFingerprint = direct.World.RegistrationFingerprint, aggregateStatus = comparison ? "passed" : "failed", artifacts = new[] { "world-before.json", "world-after.json", "wood-workflow/comparison.json" } });
         var before = M031WoodWorkflow.CreateInitial(); await Json(root, "world-before.json", InspectWorld(before)); await Json(root, "world-after.json", InspectWorld(direct.World)); await Json(root, "regions.json", new { schema = "agentic2d.simulation-region-inspection.v1", regions = direct.World.Regions }); await Json(root, "entities.json", new { schema = "agentic2d.simulation-entity-inspection.v1", entities = direct.World.Entities }); await Json(root, "activities.json", new { schema = "agentic2d.simulation-activity-inspection.v1", activities = direct.World.Activities }); await Json(root, "reservations.json", new { schema = "agentic2d.simulation-reservation-inspection.v1", reservations = direct.World.Reservations });
-        await Lines(root, "command-results.jsonl", direct.Commands); await Lines(root, "domain-events.jsonl", direct.World.Events); await Json(root, "persistence-report.json", new { schema = "agentic2d.simulation-persistence-report.v1", saveSchema = save.Schema, saveVersion = save.Version, atomicWrite = true, bytes = Encoding.UTF8.GetByteCount(JsonSerializer.Serialize(save, SimulationWorld.JsonOptions)), validationStatus = "passed", loadStatus = "passed", freshProcessProof = true, beforeFingerprint = M031WoodWorkflow.CreateInitial().Fingerprint(), afterFingerprint = roundtrip.Fingerprint, omittedClassifications = new[] { "derived-rebuildable", "active-mode-transient", "presentation-only", "external-handle" } });
+        await Lines(root, "command-results.jsonl", direct.Commands); await Lines(root, "domain-events.jsonl", direct.World.Events); await Json(root, "persistence-report.json", new { schema = "agentic2d.simulation-persistence-report.v1", saveSchema = save.Schema, saveVersion = save.Version, atomicWrite = true, bytes = Encoding.UTF8.GetByteCount(JsonSerializer.Serialize(save, SimulationWorld.JsonOptions)), validationStatus = "passed", loadStatus = "passed", beforeFingerprint = M031WoodWorkflow.CreateInitial().Fingerprint(), afterFingerprint = roundtrip.Fingerprint, omittedClassifications = new[] { "derived-rebuildable", "active-mode-transient", "presentation-only", "external-handle" } });
         await Json(root, "fingerprints.json", new { schema = "agentic2d.simulation-fingerprint-comparison.v1", direct = direct.Fingerprint, roundtrip = roundtrip.Fingerprint, registrationFingerprint = direct.World.RegistrationFingerprint, comparisonStatus = comparison ? "passed" : "failed", excludedNonAuthoritativeFields = new[] { "events", "diagnostic artifacts", "timing" } });
         var failures = NegativeDiagnostics();
         await Json(root, "invariants.json", new { schema = "agentic2d.simulation-invariant-report.v1", status = comparison ? "passed" : "failed", diagnostics = direct.Diagnostics.Concat(roundtrip.Diagnostics).ToArray(), uniqueStableIdentities = true, exactlyOneRegion = true, reservationBounds = true, conservation = true, canonicalOrdering = true, classificationCompleteness = true }); await Json(root, "diagnostics.json", new { schema = "agentic2d.simulation-diagnostics.v1", diagnostics = failures });
         await Json(root, "performance-baseline.json", new { schema = "agentic2d.simulation-performance-baseline.v1", entities = direct.World.Entities.Count, components = direct.World.Entities.Sum(x => x.Components.Count), regions = direct.World.Regions.Count, queries = 2, activities = direct.World.Activities.Count, reservations = direct.World.Reservations.Count, commands = direct.Commands.Count, events = direct.World.Events.Count, saveBytes = Encoding.UTF8.GetByteCount(JsonSerializer.Serialize(save, SimulationWorld.JsonOptions)), elapsedMilliseconds = 0, timingAuthority = "not-captured-in-deterministic-proof", advisory = true });
         await Branch(Path.Combine(root, "wood-workflow", "direct"), direct, null); await Branch(Path.Combine(root, "wood-workflow", "roundtrip"), roundtrip, save); await Json(Path.Combine(root, "wood-workflow"), "comparison.json", new { schema = "agentic2d.simulation-fingerprint-comparison.v1", status = comparison ? "passed" : "failed", directFingerprint = direct.Fingerprint, roundtripFingerprint = roundtrip.Fingerprint, woodConserved = direct.Diagnostics.Count == 0, reservationsReleased = direct.World.Reservations.All(x => x.Status != SimulationReservationStatus.Active) });
         var review = Path.Combine(root, "review-pack"); await Json(review, "review-manifest.json", new { schema = "agentic2d.simulation-foundation-review-pack.v1", status = comparison ? "passed" : "failed", evidence = new[] { "../fingerprints.json", "../invariants.json", "../persistence-report.json", "../wood-workflow/comparison.json" } }); await File.WriteAllTextAsync(Path.Combine(review, "architecture-summary.md"), "# M031 simulation foundation review\n\nOne authoritative world, semantic clock, explicit activities/reservations, and direct/save-load equivalence are demonstrated by the bounded wood workflow. Detailed path and abstract scheduling remain deferred.\n"); await Json(review, "evidence-index.json", new { status = comparison ? "passed" : "failed", files = Directory.EnumerateFiles(root, "*", SearchOption.AllDirectories).Select(x => Path.GetRelativePath(root, x).Replace('\\', '/')).Order(StringComparer.Ordinal).ToArray() });
-        await File.WriteAllTextAsync(Path.Combine(root, "summary.md"), "# M031 simulation foundation\n\nStatus: " + (comparison ? "passed" : "failed") + "\n\nDirect and fresh-process save/load paths have matching canonical fingerprints and conserve three wood.\n");
+        await File.WriteAllTextAsync(Path.Combine(root, "summary.md"), "# M031 simulation foundation\n\nStatus: " + (comparison ? "passed" : "failed") + "\n\nDirect and save/load paths have matching canonical fingerprints and conserve three wood. Fresh-process continuation is validated by the execution command and its separate child-process proof.\n");
     }
 
     private static object InspectWorld(SimulationWorld world) => new { schema = "agentic2d.simulation-world-inspection.v1", worldId = world.Id.Value, simulationInstant = world.Clock.Now.Microseconds, regions = world.Regions, worldScopedEntityCount = world.Entities.Count(x => x.Scope == SimulationEntityScope.WorldScoped), regionOwnedEntityCount = world.Entities.Count(x => x.Scope == SimulationEntityScope.RegionOwned), activityCount = world.Activities.Count, reservationCount = world.Reservations.Count, registrationFingerprint = world.RegistrationFingerprint, canonicalFingerprint = world.Fingerprint(), invariantStatus = M031WoodWorkflow.ValidateInvariants(world).Count == 0 ? "passed" : "failed" };

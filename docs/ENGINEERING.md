@@ -203,6 +203,8 @@ PowerShell 7 equivalents are `pwsh ./eng/restore.ps1`, `build.ps1`, `test.ps1`, 
 ./eng/m035-smoke.sh
 ```
 
+M039 adds the resumable machine-only closure suite through `pwsh ./eng/suite.ps1 m039-smoke`; execute its shards separately and treat only `--verify` as aggregate success.
+
 ## Validation boundary
 
 - Headless structural validation is mandatory in ordinary environments.
