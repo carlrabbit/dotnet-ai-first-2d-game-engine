@@ -51,7 +51,7 @@ This document indexes permanent behavioral authority. Milestones sequence work; 
 | `docs/specs/discrete-event-simulation-contract.md` | M033 standalone deterministic scheduled-trigger execution. |
 | `docs/specs/abstract-activity-and-travel-contract.md` | M040 abstract staged continuation, coarse graph travel, typed durations, and guarded triggers over the M033 scheduler baseline; M041 switching remains outside scope. |
 | `docs/specs/shared-work-logistics-and-needs-semantics-contract.md` | M040 executor-neutral work, logistics, needs, interruption, and semantic command rules. |
-| `docs/specs/region-fidelity-and-reconciliation-contract.md` | M033 authoritative region fidelity and transactional conversion. |
+| `docs/specs/region-fidelity-and-reconciliation-contract.md` | M041 authoritative region fidelity, executor ownership, handoff, materialization, atomic conversion, rollback, and stable persistence. |
 | `docs/specs/multi-fidelity-equivalence-contract.md` | M033 conservation, tolerances, control runs, and observer neutrality. |
 | `docs/specs/construction-and-infrastructure-lifecycle-contract.md` | M034 construction plans, infrastructure condition, maintenance, failure, and repair. |
 | `docs/specs/environmental-resource-and-flow-contract.md` | M034 integer environmental resource production, storage, consumption, and conservation. |

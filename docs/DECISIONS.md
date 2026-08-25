@@ -18,7 +18,7 @@ This document indexes durable project decisions.
 | `docs/decisions/ADR-0008-product-cli-is-the-agent-facing-product-api.md` | Accepted | Product CLI is agent-facing API. |
 | `docs/decisions/ADR-0009-adopt-external-guide-system-v0.2.0.md` | Accepted | External guide-system routing and sync metadata. |
 | `docs/decisions/ADR-0010-scenario-runner-before-asset-workbench.md` | Accepted | Scenario runner before workbench. |
-| `docs/decisions/ADR-0011-content-validation-before-asset-curation.md` | Accepted | Content validation before curation. |
+| `docs/decisions/ADR-0011-content-validation-before-asset-curation.md` | Accepted | Content validation before asset curation. |
 | `docs/decisions/ADR-0012-asset-metadata-before-visual-workbench.md` | Accepted | Asset metadata before visual workbench. |
 | `docs/decisions/ADR-0013-review-pack-before-interactive-curation-editor.md` | Accepted | Review pack before editor. |
 | `docs/decisions/ADR-0014-one-bounded-smoke-journey-for-broad-expansion.md` | Accepted | Bounded smoke journey for broad expansion. |
@@ -35,7 +35,8 @@ This document indexes durable project decisions.
 | `docs/decisions/ADR-0049-platform-epochs-defer-inactive-platform-verification.md` | Accepted | Active platform epochs and deferred inactive-platform verification. |
 | `docs/decisions/ADR-0050-human-review-is-subjective-and-simple-workbench-is-bounded.md` | Accepted for M038 | Human review is subjective-only; generic Review Workbench remains deliberately simple. |
 | `docs/decisions/ADR-0051-close-m031-with-typed-components-and-atomic-semantic-transactions.md` | Accepted for M039 | M031 closure uses the existing typed component runtime, atomic semantic commands, enforceable persistence classifications, and a deliberate v2 save break. |
-| `docs/decisions/ADR-0052-shared-simulation-semantics-are-executor-neutral.md` | Accepted for M040 | Work, logistics, needs, and semantic commands are shared; detailed and abstract executors own continuation mechanics only. |
+| `docs/decisions/ADR-0052-shared-simulation-semantics-are-executor-neutral.md` | Accepted for M040 | Work, logistics, needs and semantic commands are shared; detailed and abstract executors own continuation mechanics only. |
+| `docs/decisions/ADR-0053-fidelity-switches-convert-executor-continuation-transactionally.md` | Accepted for M041 | Fidelity switching transactionally converts executor continuation while gameplay semantics remain unchanged. |
 
 ## Decision policy
 

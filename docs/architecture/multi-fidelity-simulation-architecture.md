@@ -1,67 +1,80 @@
 # Multi-Fidelity Simulation Architecture
 
-## Shape
+## Corrective sequence
 
 ```text
-Game work/logistics/needs semantics
-               │
-               ▼
-M031 authoritative foundation
-               │
-       ┌───────┴────────┐
-       ▼                ▼
-M032 detailed       M033 abstract
-executor            discrete-event executor
-       └───────┬────────┘
-               ▼
-M033 region fidelity and reconciliation
-               ▼
-persistent world orchestration
+M040 — two real executors over shared semantics
+M041 — transactional executor-ownership reconciliation
+M042 — mixed-fidelity equivalence and long-horizon proof
 ```
 
-## Placement
+## Core shape
 
-Conceptual families: discrete events, abstract execution, multi-fidelity reconciliation, and equivalence. Use existing projects where appropriate.
+```text
+                   shared semantic authority
+              work / logistics / needs / facts
+                          │
+              ┌───────────┴───────────┐
+              ▼                       ▼
+      detailed executor        abstract executor
+       grid + fixed-step         DES + durations
+              │                       │
+              └───────┬───────────────┘
+                      ▼
+             M041 transition coordinator
+         handoff + mapping + staged commit
+                      ▼
+             stable target ownership
+```
 
-Discrete-event simulation is standalone-capable. Multi-fidelity integration depends on both executors and remains separate.
+## M041 principle
 
-## Global orchestration
+Gameplay semantics do not move between executors. They already live in shared SimulationWorld/runtime authority.
 
-One world clock and command/event order remain authoritative. Region executors produce inputs to the same command pipeline.
+The transition converts only source executor continuation into target executor continuation.
 
-## Transition ownership
+## Stable ownership
 
-Only the transition coordinator changes executor ownership. It serializes phases and validates a complete reconciled state before commit.
+Exactly one region is detailed in the bounded M041 composition. Every stable active continuation has one current owner. Execution epochs fence old work.
 
-## Trigger lifecycle
+## Transition transaction
 
-Abstract triggers are linked to semantic activity revisions. Activation invalidates/transfers region triggers before detailed ownership begins.
+A switch prepares both directions before commit:
 
-## Materialization
+```text
+old detailed handoff
+→ prepare abstract continuation
 
-Use abstract position/progress, stable mapping metadata, detailed map/occupancy, deterministic valid-cell projection, and detailed route rebuild.
+target abstract handoff
+→ prepare detailed continuation
 
-## Abstraction
++ queue changes
++ route changes
++ owner/epoch changes
+→ validate
+→ atomic commit
+```
 
-Use exact grid position, route goal, semantic progress, stable grid-to-area mapping, remaining duration, and next-trigger planning.
+Failure commits none.
 
-## Persistence
+## Spatial reconciliation
 
-Save stable fidelity and executor continuation state. Rebuild derived queue indexes, pathfinder internals, and presentation.
+Explicit revisioned mapping connects abstract node/edge space with detailed area/cell space.
 
-## Equivalence harness
+Detailed→abstract preserves coherent travel progress.
 
-Runs complete worlds under controlled fidelity schedules and compares semantic ledgers. It is not gameplay authority.
+Abstract→detailed deterministically materializes and rebuilds route.
 
-## Invariants
+Mapping is orchestration/configuration authority, not gameplay state.
 
-1. Shared rules never branch on executor implementation.
-2. One world clock.
-3. One owner per region/activity.
-4. Trigger handlers use commands.
-5. Transitions are transactional.
-6. Position reconciliation is explicit.
-7. Stale triggers cannot mutate.
-8. Detailed pathfinding is not abstract travel.
-9. Standalone host has no graphics dependency.
-10. Divergence is measured, not concealed.
+## Timed interactions
+
+For harvest/pickup/deposit/eat/drink/rest/retry, remaining semantic duration crosses the executor boundary. Conversion does not execute completion.
+
+## M042 boundary
+
+M041 establishes local switch correctness.
+
+M042 owns real mixed-fidelity long runs, distinct execution schedules, bounded timing tolerances, observer neutrality, repeated-switch scale and broad mixed-fidelity fresh-process equivalence.
+
+Do not infer M042 readiness merely from a passing M041 switch.
