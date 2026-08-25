@@ -88,7 +88,7 @@ public static class M040AbstractExecutor
         Require(capacity.Status == "accepted", "M040 capacity reservation rejected");
         transitions.Add("assigned-and-reserved");
         var continuation = NewContinuation(world.Clock.Now.Microseconds, "abstract.travel.source");
-        ScheduleTravel(scheduler, continuation, current.Revision, world.Clock.Now, "housing", "tree", false);
+        ScheduleTravel(world, scheduler, continuation, current.Revision, world.Clock.Now, "housing", "tree", false);
         ScheduleNeedInterrupt(scheduler, current.Revision, world.Clock.Now);
         transitions.Add("planned:abstract.travel.source");
         return new(world, scheduler, continuation, graph, transitions, [], Fingerprint(world, scheduler));
@@ -155,30 +155,42 @@ public static class M040AbstractExecutor
     private static TriggerDelivery Deliver(SimulationWorld world, DiscreteEventScheduler scheduler, IReadOnlyList<AbstractGraphEdge> graph, ScheduledTrigger trigger, List<string> transitions, ref M040AbstractContinuation continuation)
     {
         if (trigger.OwnerRegionId != Region || trigger.ExpectedRegionRevision != continuation.RegionRevision) return new(ScheduledTriggerStatus.Stale, null, "stale-region-revision");
+        if (trigger.ExpectedGraphRevision is not null && trigger.ExpectedGraphRevision != continuation.GraphRevision) return new(ScheduledTriggerStatus.Stale, null, "stale-graph-revision");
+        var guardedWorker = Component<M032WorkerComponent>(world, Worker);
+        if (trigger.ExpectedNeedRevision is not null && trigger.ExpectedNeedRevision != guardedWorker.NeedRevision) return new(ScheduledTriggerStatus.Stale, null, "stale-need-revision");
+        if (trigger.ExpectedSubjectRevision is not null && trigger.ExpectedSubjectRevision != Component<M032HarvestableComponent>(world, Source).Revision) return new(ScheduledTriggerStatus.Stale, null, "stale-subject-revision");
+        if (trigger.ExpectedStorageRevision is not null && trigger.ExpectedStorageRevision != Component<M032StorageComponent>(world, Storage).Revision) return new(ScheduledTriggerStatus.Stale, null, "stale-storage-revision");
+        if (trigger.ExpectedReservationRevision is not null)
+        {
+            var reservationId = trigger.Kind.Contains("storage", StringComparison.Ordinal) || trigger.Kind.Contains("deposit", StringComparison.Ordinal) ? "reservation.m040.storage" : "reservation.m040.source";
+            var reservation = world.Reservations.SingleOrDefault(x => x.Id == reservationId && x.Status == SimulationReservationStatus.Active);
+            if (reservation is null || reservation.Revision != trigger.ExpectedReservationRevision) return new(ScheduledTriggerStatus.Stale, null, "stale-reservation-revision");
+        }
         if (trigger.OwnerActivityId == Activity && (!world.Activities.Any(x => x.Id == Activity && x.Revision == trigger.ExpectedActivityRevision) || trigger.ExpectedActivityRevision is null)) return new(ScheduledTriggerStatus.Stale, null, "stale-activity-revision");
         if (trigger.Kind == "abstract.need-mandatory")
         {
             var worker = Component<M032WorkerComponent>(world, Worker);
-            if (worker.Food < 2) world.SetComponent(Worker, "component.m032.worker", worker with { Food = 2 });
+            if (worker.Food < 2) world.SetComponent(Worker, "component.m032.worker", worker with { Food = 2, NeedRevision = worker.NeedRevision + 1 });
             var current = world.Activities.Single(x => x.Id == Activity);
             var interrupted = world.TransitionActivity(new(Activity), current.Revision, "interrupted-for-food", SimulationActivityStatus.Interrupted, null, "mandatory-food");
             if (interrupted.Status != "accepted") return new(ScheduledTriggerStatus.Stale, interrupted, "need-interruption-rejected");
             transitions.Add("mandatory-need-interrupt");
             var next = world.Activities.Single(x => x.Id == Activity);
-            scheduler.Schedule(new("trigger.m040.need-satisfied", world.Clock.Now + new SimulationDuration(DurationMicroseconds("eat")), 5, Region, Activity, Worker, "abstract.need-satisfaction", next.Revision, continuation.RegionRevision, trigger.CorrelationId, trigger.Id, JsonSerializer.SerializeToElement(new { kind = "food" })));
+            var updatedWorker = Component<M032WorkerComponent>(world, Worker);
+            scheduler.Schedule(new("trigger.m040.need-satisfied", world.Clock.Now + new SimulationDuration(DurationMicroseconds("eat")), 5, Region, Activity, Worker, "abstract.need-satisfaction", next.Revision, continuation.RegionRevision, trigger.CorrelationId, trigger.Id, JsonSerializer.SerializeToElement(new { kind = "food" }), ExpectedGraphRevision: continuation.GraphRevision, ExpectedNeedRevision: updatedWorker.NeedRevision));
             return new(ScheduledTriggerStatus.Completed, interrupted, "need-interrupted");
         }
         if (trigger.Kind == "abstract.need-satisfaction")
         {
             var worker = Component<M032WorkerComponent>(world, Worker);
-            var satisfied = world.ApplyAtomicTypedComponentFact("NeedSatisfied", [new(Worker, "component.m032.worker", worker with { Food = 0 })], [Worker], new { kind = "food", threshold = 2 });
+            var satisfied = world.ApplyAtomicTypedComponentFact("NeedSatisfied", [new(Worker, "component.m032.worker", worker with { Food = 0, NeedRevision = worker.NeedRevision + 1 })], [Worker], new { kind = "food", threshold = 2 });
             if (satisfied.Status != "accepted") return new(ScheduledTriggerStatus.Failed, satisfied, "need-satisfaction-rejected");
             var current = world.Activities.Single(x => x.Id == Activity);
             var resumed = world.TransitionActivity(new(Activity), current.Revision, "travel-to-tree", SimulationActivityStatus.Active, null, "need-satisfied");
             if (resumed.Status != "accepted") return new(ScheduledTriggerStatus.Failed, resumed, "work-resumption-rejected");
             transitions.Add("need-satisfied-and-re-evaluated");
             var next = world.Activities.Single(x => x.Id == Activity);
-            ScheduleTravel(scheduler, continuation, next.Revision, world.Clock.Now, "housing", "tree", false);
+            ScheduleTravel(world, scheduler, continuation, next.Revision, world.Clock.Now, "housing", "tree", false);
             return new(ScheduledTriggerStatus.Completed, satisfied, "need-satisfied");
         }
         var activity = world.Activities.SingleOrDefault(x => x.Id == Activity);
@@ -189,19 +201,19 @@ public static class M040AbstractExecutor
                 return StageTravel(world, scheduler, continuation, trigger, transitions, "at-tree", "abstract.harvest-complete", "harvest", 0, false);
             case "abstract.harvest-complete":
                 var tree = Component<M032HarvestableComponent>(world, Source); var worker = Component<M032WorkerComponent>(world, Worker);
-                var harvested = world.ApplyAtomicTypedComponentFact("ResourceHarvested", [new(Source, "component.m032.harvestable", tree with { Wood = Math.Max(0, tree.Wood - 3), Harvestable = tree.Wood > 3 }), new(Worker, "component.m032.worker", worker with { Wood = worker.Wood + 3 })], [Activity, Source, Worker], new { quantity = 3, executor = "abstract" });
+                var harvested = world.ApplyAtomicTypedComponentFact("ResourceHarvested", [new(Source, "component.m032.harvestable", tree with { Wood = Math.Max(0, tree.Wood - 3), Harvestable = tree.Wood > 3, Revision = tree.Revision + 1 }), new(Worker, "component.m032.worker", worker with { Wood = worker.Wood + 3 })], [Activity, Source, Worker], new { quantity = 3, executor = "abstract" });
                 if (harvested.Status != "accepted") return new(ScheduledTriggerStatus.Failed, harvested, "harvest-rejected");
                 world.ReleaseReservation(new("reservation.m040.source"), "harvest-complete");
                 var afterHarvest = world.Activities.Single(x => x.Id == Activity); var carrying = world.TransitionActivity(new(Activity), afterHarvest.Revision, "carrying", SimulationActivityStatus.Active);
                 if (carrying.Status != "accepted") return new(ScheduledTriggerStatus.Failed, carrying, "carry-transition-rejected");
                 transitions.Add("harvest-complete:source-to-inventory");
-                ScheduleTravel(scheduler, continuation, world.Activities.Single(x => x.Id == Activity).Revision, world.Clock.Now, "tree", "storage", true);
+                ScheduleTravel(world, scheduler, continuation, world.Activities.Single(x => x.Id == Activity).Revision, world.Clock.Now, "tree", "storage", true);
                 return new(ScheduledTriggerStatus.Completed, harvested, "harvest-complete");
             case "abstract.travel.storage":
                 return StageTravel(world, scheduler, continuation, trigger, transitions, "at-storage", "abstract.deposit-complete", "deposit", 0, true);
             case "abstract.deposit-complete":
                 var carried = Component<M032WorkerComponent>(world, Worker); var storage = Component<M032StorageComponent>(world, Storage);
-                var deposited = world.ApplyAtomicTypedComponentFact("ResourceDeposited", [new(Worker, "component.m032.worker", carried with { Wood = 0 }), new(Storage, "component.m032.storage", storage with { Wood = storage.Wood + carried.Wood })], [Activity, Worker, Storage], new { quantity = carried.Wood, executor = "abstract" });
+                var deposited = world.ApplyAtomicTypedComponentFact("ResourceDeposited", [new(Worker, "component.m032.worker", carried with { Wood = 0 }), new(Storage, "component.m032.storage", storage with { Wood = storage.Wood + carried.Wood, Revision = storage.Revision + 1 })], [Activity, Worker, Storage], new { quantity = carried.Wood, executor = "abstract" });
                 if (deposited.Status != "accepted") return new(ScheduledTriggerStatus.Failed, deposited, "deposit-rejected");
                 world.ReleaseReservation(new("reservation.m040.storage"), "deposit-complete");
                 var completed = world.Activities.Single(x => x.Id == Activity); var done = world.TransitionActivity(new(Activity), completed.Revision, "completed", SimulationActivityStatus.Completed, carried.Wood, null);
@@ -219,19 +231,25 @@ public static class M040AbstractExecutor
         transitions.Add("arrival:" + trigger.Kind);
         var next = world.Activities.Single(x => x.Id == Activity);
         var due = world.Clock.Now + new SimulationDuration(DurationMicroseconds(durationKind, carrying ? 2 : 2, carrying));
-        scheduler.Schedule(new("trigger.m040." + nextKind, due, 20, Region, Activity, Worker, nextKind, next.Revision, continuation.RegionRevision, trigger.CorrelationId, trigger.Id, JsonSerializer.SerializeToElement(new { stage })));
+        scheduler.Schedule(new("trigger.m040." + nextKind, due, 20, Region, Activity, Worker, nextKind, next.Revision, continuation.RegionRevision, trigger.CorrelationId, trigger.Id, JsonSerializer.SerializeToElement(new { stage }), ExpectedGraphRevision: continuation.GraphRevision, ExpectedReservationRevision: ReservationRevision(world, nextKind), ExpectedSubjectRevision: nextKind == "abstract.harvest-complete" ? Component<M032HarvestableComponent>(world, Source).Revision : null, ExpectedStorageRevision: nextKind == "abstract.deposit-complete" ? Component<M032StorageComponent>(world, Storage).Revision : null));
         return new(ScheduledTriggerStatus.Completed, transitioned, "arrival-planned");
     }
 
-    private static void ScheduleTravel(DiscreteEventScheduler scheduler, M040AbstractContinuation continuation, int revision, SimulationInstant now, string origin, string destination, bool carrying)
+    private static void ScheduleTravel(SimulationWorld world, DiscreteEventScheduler scheduler, M040AbstractContinuation continuation, int revision, SimulationInstant now, string origin, string destination, bool carrying)
     {
         var route = PlanRoute(Worker, origin, destination, Graph(), carrying);
         var kind = destination == "tree" ? "abstract.travel.source" : "abstract.travel.storage";
-        scheduler.Schedule(new("trigger.m040." + kind + "." + revision.ToString(System.Globalization.CultureInfo.InvariantCulture) + "." + scheduler.PendingCount, now + new SimulationDuration(DurationMicroseconds("travel", route.Cost, carrying)), 10, Region, Activity, Worker, kind, revision, continuation.RegionRevision, "correlation.m040.abstract", "cause.m040.plan", JsonSerializer.SerializeToElement(new { route = route.Fingerprint, route.Cost, carrying })));
+        scheduler.Schedule(new("trigger.m040." + kind + "." + revision.ToString(System.Globalization.CultureInfo.InvariantCulture) + "." + scheduler.PendingCount, now + new SimulationDuration(DurationMicroseconds("travel", route.Cost, carrying)), 10, Region, Activity, Worker, kind, revision, continuation.RegionRevision, "correlation.m040.abstract", "cause.m040.plan", JsonSerializer.SerializeToElement(new { route = route.Fingerprint, route.Cost, carrying }), ExpectedGraphRevision: continuation.GraphRevision, ExpectedNeedRevision: Component<M032WorkerComponent>(world, Worker).NeedRevision, ExpectedReservationRevision: ReservationRevision(world, kind), ExpectedSubjectRevision: kind == "abstract.travel.source" ? Component<M032HarvestableComponent>(world, Source).Revision : null, ExpectedStorageRevision: kind == "abstract.travel.storage" ? Component<M032StorageComponent>(world, Storage).Revision : null));
     }
 
     private static void ScheduleNeedInterrupt(DiscreteEventScheduler scheduler, int revision, SimulationInstant now)
-        => scheduler.Schedule(new("trigger.m040.need-mandatory", now + new SimulationDuration(DurationMicroseconds("retry")), 1, Region, Activity, Worker, "abstract.need-mandatory", revision, 1, "correlation.m040.abstract", "cause.m040.need", JsonSerializer.SerializeToElement(new { kind = "food", expectedLevel = 0, expectedRevision = revision })));
+        => scheduler.Schedule(new("trigger.m040.need-mandatory", now + new SimulationDuration(DurationMicroseconds("retry")), 1, Region, Activity, Worker, "abstract.need-mandatory", revision, 1, "correlation.m040.abstract", "cause.m040.need", JsonSerializer.SerializeToElement(new { kind = "food", expectedLevel = 0, expectedRevision = revision }), ExpectedGraphRevision: GraphRevision, ExpectedNeedRevision: 0));
+
+    private static int? ReservationRevision(SimulationWorld world, string triggerKind)
+    {
+        var id = triggerKind.Contains("storage", StringComparison.Ordinal) || triggerKind.Contains("deposit", StringComparison.Ordinal) ? "reservation.m040.storage" : "reservation.m040.source";
+        return world.Reservations.SingleOrDefault(x => x.Id == id && x.Status == SimulationReservationStatus.Active)?.Revision;
+    }
 
     private static M040AbstractContinuation NewContinuation(long now, string next) => new(ContinuationSchema, "abstract", Region, Activity, Worker, Source, Storage, 1, GraphRevision, next, now, "running");
     private static T Component<T>(SimulationWorld world, string id) where T : notnull => world.TryGetComponent<T>(id, typeof(T) == typeof(M032HarvestableComponent) ? "component.m032.harvestable" : typeof(T) == typeof(M032StorageComponent) ? "component.m032.storage" : "component.m032.worker", out var value) && value is not null ? value : throw new InvalidOperationException("M040 missing typed component");

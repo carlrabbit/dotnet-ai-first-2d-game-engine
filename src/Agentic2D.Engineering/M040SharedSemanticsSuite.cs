@@ -158,10 +158,12 @@ internal static class M040SharedSemanticsSuite
     {
         var abstractSource = File.ReadAllText(Path.Combine(root, "src", "Agentic2D.Simulation", "M040SharedSimulation.cs"));
         var detailedSource = File.ReadAllText(Path.Combine(root, "src", "Agentic2D.Simulation", "M032AutonomousDetailedRegion.cs"));
+        var m033Source = File.ReadAllText(Path.Combine(root, "src", "Agentic2D.Simulation", "M033MultiFidelitySimulation.cs"));
         var commonCommands = abstractSource.Contains("ApplyAtomicTypedComponentFact", StringComparison.Ordinal) && detailedSource.Contains("ApplyAtomicTypedComponentFact", StringComparison.Ordinal);
         var abstractIndependent = !abstractSource.Contains("FindRoute", StringComparison.Ordinal) && !abstractSource.Contains("RegionFidelityCoordinator", StringComparison.Ordinal);
         var detailedPathfinderObserved = detailedSource.Contains("FindRoute", StringComparison.Ordinal);
-        return (commonCommands && abstractIndependent && detailedPathfinderObserved, new { commonSemanticCommandObserved = commonCommands, abstractIndependentContinuation = abstractIndependent, detailedPathfinderObserved, staticModeOnly = !abstractSource.Contains("Switch", StringComparison.Ordinal) });
+        var historicalM033Demoted = m033Source.Contains("M040's active abstract", StringComparison.Ordinal) && m033Source.Contains("RunHistoricalCompatibilityCycle", StringComparison.Ordinal) && !abstractSource.Contains("RunHistoricalCompatibilityCycle", StringComparison.Ordinal);
+        return (commonCommands && abstractIndependent && detailedPathfinderObserved && historicalM033Demoted, new { commonSemanticCommandObserved = commonCommands, abstractIndependentContinuation = abstractIndependent, detailedPathfinderObserved, staticModeOnly = !abstractSource.Contains("Switch", StringComparison.Ordinal), historicalM033Demoted });
     }
 
     private static (bool, object) Detailed()

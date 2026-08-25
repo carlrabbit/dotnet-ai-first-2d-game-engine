@@ -8,9 +8,9 @@ namespace Agentic2D.Simulation;
 /// resource, inventory, need, and event transition.
 /// </summary>
 public readonly record struct DetailedCell(int X, int Y);
-public sealed record M032WorkerComponent { public int X { get; init; } public int Y { get; init; } public int Capacity { get; init; } public int Wood { get; init; } public int Food { get; init; } public int Water { get; init; } public int Comfort { get; init; } }
-public sealed record M032HarvestableComponent { public int X { get; init; } public int Y { get; init; } public int Wood { get; init; } public bool Harvestable { get; init; } }
-public sealed record M032StorageComponent { public int X { get; init; } public int Y { get; init; } public int Wood { get; init; } public int Capacity { get; init; } public string? Accepts { get; init; } public bool Enabled { get; init; } }
+public sealed record M032WorkerComponent { public int X { get; init; } public int Y { get; init; } public int Capacity { get; init; } public int Wood { get; init; } public int Food { get; init; } public int Water { get; init; } public int Comfort { get; init; } public int NeedRevision { get; init; } }
+public sealed record M032HarvestableComponent { public int X { get; init; } public int Y { get; init; } public int Wood { get; init; } public bool Harvestable { get; init; } public int Revision { get; init; } }
+public sealed record M032StorageComponent { public int X { get; init; } public int Y { get; init; } public int Wood { get; init; } public int Capacity { get; init; } public string? Accepts { get; init; } public bool Enabled { get; init; } public int Revision { get; init; } }
 public sealed record M032NeedSourceComponent { public int X { get; init; } public int Y { get; init; } public string? Kind { get; init; } public int Capacity { get; init; } }
 public sealed record M032DormantComponent { public int X { get; init; } public int Y { get; init; } public int Revision { get; init; } }
 public sealed record WorkDesignation(string Id, string Kind, string RegionId, IReadOnlyList<DetailedCell> Cells, int Priority, bool Enabled, int Revision);
@@ -348,8 +348,8 @@ public static class M032AutonomousDetailedRegion
     }
     private static void SetWood(SimulationWorld world, List<SimulationCommandResult> commands, string entity, string component, int wood, int capacity, bool harvestable)
     {
-        if (component == "component.m032.harvestable") { var current = Component<M032HarvestableComponent>(world, entity, component); Add(commands, world.SetComponent(entity, component, current with { Wood = wood, Harvestable = harvestable })); }
-        else if (component == "component.m032.storage") { var current = Component<M032StorageComponent>(world, entity, component); Add(commands, world.SetComponent(entity, component, current with { Wood = wood, Capacity = capacity })); }
+        if (component == "component.m032.harvestable") { var current = Component<M032HarvestableComponent>(world, entity, component); Add(commands, world.SetComponent(entity, component, current with { Wood = wood, Harvestable = harvestable, Revision = current.Revision + 1 })); }
+        else if (component == "component.m032.storage") { var current = Component<M032StorageComponent>(world, entity, component); Add(commands, world.SetComponent(entity, component, current with { Wood = wood, Capacity = capacity, Revision = current.Revision + 1 })); }
         else { var current = Component<M032WorkerComponent>(world, entity, component); Add(commands, world.SetComponent(entity, component, current with { Wood = wood, Capacity = capacity })); }
     }
     private static void SetWorkerPosition(SimulationWorld world, List<SimulationCommandResult> commands, string workerId, DetailedCell cell)
@@ -364,7 +364,7 @@ public static class M032AutonomousDetailedRegion
         var current = Component<M032WorkerComponent>(world, workerId, "component.m032.worker");
         var food = current.Food; var water = current.Water; var comfort = current.Comfort;
         if (kind == "food") food = Math.Max(0, food + delta); else if (kind == "water") water = Math.Max(0, water + delta); else comfort = Math.Max(0, comfort + delta);
-        Add(commands, world.SetComponent(workerId, "component.m032.worker", current with { Food = food, Water = water, Comfort = comfort }));
+        Add(commands, world.SetComponent(workerId, "component.m032.worker", current with { Food = food, Water = water, Comfort = comfort, NeedRevision = current.NeedRevision + 1 }));
         Fact(world, commands, "NeedIntegrated", [workerId], new { workerId, kind, delta, level = kind == "food" ? food : kind == "water" ? water : comfort, warningThreshold = 1, mandatoryThreshold = 2 });
     }
     private static T Component<T>(SimulationWorld world, string id, string key) where T : notnull => world.TryGetComponent<T>(id, key, out var value) && value is not null ? value : throw new InvalidOperationException("missing typed component " + key + " on " + id);

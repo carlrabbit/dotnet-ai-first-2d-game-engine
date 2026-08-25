@@ -13,10 +13,14 @@ public sealed record ScheduledTrigger(
     string Id, SimulationInstant Due, int PriorityClass, long Sequence, string OwnerRegionId,
     string? OwnerActivityId, string? OwnerEntityId, string Kind, int? ExpectedActivityRevision,
     int ExpectedRegionRevision, string CorrelationId, string CausationId, JsonElement Payload,
-    ScheduledTriggerStatus Status = ScheduledTriggerStatus.Scheduled, string? Outcome = null);
+    ScheduledTriggerStatus Status = ScheduledTriggerStatus.Scheduled, string? Outcome = null,
+    int? ExpectedGraphRevision = null, int? ExpectedNeedRevision = null, int? ExpectedReservationRevision = null,
+    int? ExpectedSubjectRevision = null, int? ExpectedStorageRevision = null);
 public sealed record ScheduledTriggerRequest(string Id, SimulationInstant Due, int PriorityClass, string OwnerRegionId,
     string? OwnerActivityId, string? OwnerEntityId, string Kind, int? ExpectedActivityRevision,
-    int ExpectedRegionRevision, string CorrelationId, string CausationId, JsonElement Payload);
+    int ExpectedRegionRevision, string CorrelationId, string CausationId, JsonElement Payload,
+    int? ExpectedGraphRevision = null, int? ExpectedNeedRevision = null, int? ExpectedReservationRevision = null,
+    int? ExpectedSubjectRevision = null, int? ExpectedStorageRevision = null);
 public sealed record TriggerDelivery(ScheduledTriggerStatus Status, SimulationCommandResult? Command, string Outcome);
 public sealed record DiscreteEventLimits(int MaximumEvents = 100_000, int MaximumSameInstantEvents = 10_000)
 {
@@ -45,7 +49,10 @@ public sealed class DiscreteEventScheduler
         if (triggers.ContainsKey(request.Id)) throw new InvalidOperationException("DES-QUEUE: duplicate scheduled trigger " + request.Id);
         var trigger = new ScheduledTrigger(request.Id, request.Due, request.PriorityClass, ++sequence, request.OwnerRegionId,
             request.OwnerActivityId, request.OwnerEntityId, request.Kind, request.ExpectedActivityRevision,
-            request.ExpectedRegionRevision, request.CorrelationId, request.CausationId, request.Payload.Clone());
+            request.ExpectedRegionRevision, request.CorrelationId, request.CausationId, request.Payload.Clone(),
+            ExpectedGraphRevision: request.ExpectedGraphRevision, ExpectedNeedRevision: request.ExpectedNeedRevision,
+            ExpectedReservationRevision: request.ExpectedReservationRevision, ExpectedSubjectRevision: request.ExpectedSubjectRevision,
+            ExpectedStorageRevision: request.ExpectedStorageRevision);
         triggers.Add(trigger.Id, trigger);
         return trigger;
     }
@@ -248,7 +255,7 @@ public static class M033MultiFidelitySimulation
             var advanced = scheduler.AdvanceTo(world, target, trigger => Deliver(world, scheduler, coordinator, trigger));
             diagnostics.AddRange(advanced.Diagnostics);
             var detailed = coordinator.Regions.Single(state => state.Fidelity == RegionFidelity.Detailed);
-            CompleteCycle(world, detailed.RegionId, day, "detailed");
+            RunHistoricalCompatibilityCycle(world, detailed.RegionId, day, "detailed");
             if (switchRegions && day is 2 or 5 or 9 or 14 or 20 or 27)
             {
                 var next = RegionIds[(Array.IndexOf(RegionIds, detailed.RegionId) + 1) % RegionIds.Length];
@@ -294,11 +301,13 @@ public static class M033MultiFidelitySimulation
         if (!coordinator.IsAbstractOwner(trigger)) return new(ScheduledTriggerStatus.Stale, null, "stale-fidelity-or-revision");
         if (trigger.Kind != "abstract-cycle") return new(ScheduledTriggerStatus.Failed, null, "unknown-trigger-kind");
         var day = trigger.Payload.GetProperty("day").GetInt32();
-        var result = CompleteCycle(world, trigger.OwnerRegionId, day, "abstract");
+        var result = RunHistoricalCompatibilityCycle(world, trigger.OwnerRegionId, day, "abstract");
         return new(result.Status == "accepted" ? ScheduledTriggerStatus.Completed : ScheduledTriggerStatus.Stale, result, result.Status);
     }
 
-    private static SimulationCommandResult CompleteCycle(SimulationWorld world, string region, int day, string executor)
+    // M033 compatibility-only proof retained for historical API/tests. M040's active abstract
+    // authority is M040AbstractExecutor and never calls this synthetic family-cycle path.
+    private static SimulationCommandResult RunHistoricalCompatibilityCycle(SimulationWorld world, string region, int day, string executor)
     {
         var actor = world.QueryRegion(new(region)).First(entity => entity.Id.StartsWith("worker.", StringComparison.Ordinal)).Id;
         var resource = "resource." + region.Split('.')[1];
