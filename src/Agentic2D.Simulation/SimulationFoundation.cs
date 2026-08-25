@@ -44,6 +44,7 @@ public sealed record SimulationComponentRegistration(string Key, int SchemaVersi
 public sealed record M031InventoryComponent(int Wood, int Capacity);
 public sealed record M031HarvestableComponent(int Wood);
 public sealed record M031StorageComponent(int Wood, int Capacity);
+public sealed record SimulationBoundaryComponent(JsonElement Value);
 public sealed record SimulationRegion(string Id, string Name, bool Active = true);
 public sealed record SimulationEntity(string Id, SimulationEntityScope Scope, string? RegionId, SimulationLifecycle Lifecycle, SortedDictionary<string, JsonElement> Components);
 public sealed record SimulationActivity(string Id, string ActorEntityId, string Kind, string Stage, IReadOnlyList<string> Targets, SimulationInstant StartedAt, SimulationInstant LastTransitionAt, long Progress, int Revision, SimulationActivityStatus Status, string CorrelationId, string CausationId, string? Reason = null, string? CompletionResult = null);
@@ -83,29 +84,29 @@ public sealed class SimulationWorld
     public IReadOnlyList<SimulationActivity> Activities => activities.Values.ToArray();
     public IReadOnlyList<SimulationReservation> Reservations => reservations.Values.ToArray();
     public IReadOnlyList<SimulationRegion> Regions => regions.Values.ToArray();
-    public string RegistrationFingerprint => Fingerprint(registrations.Values.Select(x => new { x.Key, x.SchemaVersion, classification = x.Classification.ToString(), x.Owner, runtimeType = x.RuntimeType ?? typeof(JsonElement).AssemblyQualifiedName, codec = x.Codec ?? "json-boundary-v2" }).ToArray());
+    public EntityComponentSnapshot Snapshot() => runtimeWorld.Snapshot(checked((int)sequence));
+    public string RegistrationFingerprint => Fingerprint(registrations.Values.Select(x => new { x.Key, x.SchemaVersion, classification = x.Classification.ToString(), x.Owner, codec = x.Codec ?? "json-boundary-v2" }).ToArray());
 
     public void RegisterComponent(SimulationComponentRegistration registration)
     {
         if (string.IsNullOrWhiteSpace(registration.Key) || registration.SchemaVersion < 1) throw new ArgumentException("SIMCOMP0001: component registration requires stable key and schema version.");
         if (!registrations.TryAdd(registration.Key, registration)) throw new InvalidOperationException("SIMCOMP0002: duplicate component key " + registration.Key);
+        var runtimeType = registration.RuntimeType is null ? typeof(JsonElement) : Type.GetType(registration.RuntimeType) ?? throw new InvalidOperationException("SIMCOMP0009: runtime component type could not be resolved: " + registration.Key);
+        if (runtimeType == typeof(JsonElement)) runtimeWorld.RegisterDescriptor(new(registration.Key, registration.SchemaVersion, runtimeType, registration.Owner, value => value is JsonElement, value => ((JsonElement)value).GetRawText(), json => JsonDocument.Parse(json).RootElement.Clone()));
+        else runtimeWorld.RegisterDescriptor(new(registration.Key, registration.SchemaVersion, runtimeType, registration.Owner, _ => true, value => JsonSerializer.Serialize(value, runtimeType, JsonOptions), json => JsonSerializer.Deserialize(json, runtimeType, JsonOptions) ?? throw new InvalidOperationException("component decode returned null")));
     }
 
     public void RegisterComponent<T>(string key, int schemaVersion, PersistenceClassification classification, string owner, Func<T, bool>? validator = null) where T : notnull
         => RegisterComponent(new SimulationComponentRegistration(key, schemaVersion, classification, owner, typeof(T).AssemblyQualifiedName, "typed-json-codec-v2"));
 
     /// <summary>Read-only semantic projection. Authoritative values live in EntityComponentWorld typed stores.</summary>
-    public IReadOnlyDictionary<string, JsonElement> ComponentsFor(string entityId) =>
-        registrations.Keys.Order(StringComparer.Ordinal).Where(key => componentValues.TryGetValue(key, out var values) && values.ContainsKey(entityId))
-            .ToDictionary(key => key, key => ToJson(componentValues[key][entityId]), StringComparer.Ordinal);
+    public IReadOnlyDictionary<string, JsonElement> ComponentsFor(string entityId) => runtimeWorld.ComponentsFor(entityId).ToDictionary(x => x.TypeId, x => JsonDocument.Parse(DescriptorFor(x.TypeId).Serialize(x.Value)).RootElement.Clone(), StringComparer.Ordinal);
 
     public bool TryGetComponent<T>(string entityId, string key, out T? value) where T : notnull
     {
         value = default;
-        return componentValues.TryGetValue(key, out var values) && values.TryGetValue(entityId, out var raw) && raw is T typed && (value = typed) is not null;
+        return runtimeWorld.TryGet(entityId, out value) && runtimeWorld.TypeId<T>() == key;
     }
-
-    private readonly SortedDictionary<string, Dictionary<string, object>> componentValues = new(StringComparer.Ordinal);
 
     public SimulationCommandResult CreateRegion(RegionId id, string name) => Execute("region.create", null, () =>
     {
@@ -132,9 +133,19 @@ public sealed class SimulationWorld
             if (scope == SimulationEntityScope.WorldScoped && region is not null) return Fail("SIMREGION0003", "world-scoped entity cannot have a region", id);
             if (!registrations.ContainsKey(componentKey)) return Fail("SIMCOMP0003", "unknown component key", componentKey);
             var entity = new SimulationEntity(id, scope, region is null ? null : region.Value.Value, SimulationLifecycle.Created, new(StringComparer.Ordinal));
-            runtimeWorld.CreateEntity(id); runtimeWorld.Set(id, entity); StoreComponent(componentKey, id, value); observations.Add(new(++sequence, id, componentKey, "created-with-component")); Emit("EntityCreated", [id], new { id, scope = scope.ToString(), region = entity.RegionId, componentKey });
+            runtimeWorld.CreateEntity(id); runtimeWorld.Set(id, entity); if (!StoreComponent(componentKey, id, value)) return Fail("SIMCOMP0004", "component payload failed validation", componentKey); observations.Add(new(++sequence, id, componentKey, "created-with-component")); Emit("EntityCreated", [id], new { id, scope = scope.ToString(), region = entity.RegionId, componentKey });
             if (!string.IsNullOrWhiteSpace(semanticEventType)) Emit(semanticEventType, [id], semanticPayload ?? new { id });
             return Success();
+        });
+
+    public SimulationCommandResult CreateEntityWithComponent<T>(string id, SimulationEntityScope scope, RegionId? region, string componentKey, T value, string? semanticEventType = null, object? semanticPayload = null) where T : notnull
+        => Execute("entity.create-with-typed-component", null, () =>
+        {
+            if (string.IsNullOrWhiteSpace(id) || runtimeWorld.Exists(id) || tombstones.Contains(id)) return Fail("SIMENTITY0001", "duplicate, destroyed, or invalid entity ID", id);
+            if (scope == SimulationEntityScope.RegionOwned && (region is null || !regions.ContainsKey(region.Value.Value))) return Fail("SIMREGION0002", "region-owned entity requires an existing region", id);
+            var entity = new SimulationEntity(id, scope, region?.Value, SimulationLifecycle.Created, new(StringComparer.Ordinal)); runtimeWorld.CreateEntity(id); runtimeWorld.Set(id, entity);
+            if (!runtimeWorld.SetByTypeId(id, componentKey, value).Accepted) return Fail("SIMCOMP0004", "typed component payload failed validation", componentKey);
+            observations.Add(new(++sequence, id, componentKey, "created-with-typed-component")); Emit("EntityCreated", [id], new { id, scope = scope.ToString(), region = entity.RegionId, componentKey }); if (!string.IsNullOrWhiteSpace(semanticEventType)) Emit(semanticEventType, [id], semanticPayload ?? new { id }); return Success();
         });
 
     public SimulationCommandResult RejectCommand(string type, string diagnosticCode, string message, IReadOnlyList<string> relatedIds) => Execute(type, null, () => Fail(diagnosticCode, message, string.Join(",", relatedIds.Order(StringComparer.Ordinal))));
@@ -146,7 +157,6 @@ public sealed class SimulationWorld
         if (!TryEntity(id, out var entity) || entity.Lifecycle == SimulationLifecycle.Destroyed) return Fail("SIMENTITY0002", "entity not found", id);
         var held = reservations.Values.Where(x => x.Status == SimulationReservationStatus.Active && (x.SubjectId == id || x.ReservingEntityId == id)).ToArray();
         foreach (var reservation in held) reservations[reservation.Id] = reservation with { Status = SimulationReservationStatus.Invalidated, ReleaseReason = "subject-destroyed", Revision = reservation.Revision + 1 };
-        foreach (var values in componentValues.Values) values.Remove(id);
         tombstones.Add(id); runtimeWorld.DestroyEntity(id); observations.Add(new(++sequence, id, null, "destroyed")); Emit("EntityDestroyed", [id], new { id, invalidatedReservations = held.Select(x => x.Id).ToArray() }); return Success();
     });
 
@@ -162,7 +172,7 @@ public sealed class SimulationWorld
     {
         if (!TryEntity(entityId, out var entity) || entity.Lifecycle == SimulationLifecycle.Destroyed) return Fail("SIMENTITY0002", "entity not found", entityId);
         if (!registrations.ContainsKey(key)) return Fail("SIMCOMP0003", "unknown component key", key);
-        StoreComponent(key, entityId, value); observations.Add(new(++sequence, entityId, key, "component-changed")); return Success();
+        if (!StoreComponent(key, entityId, value)) return Fail("SIMCOMP0004", "component payload failed validation", key); observations.Add(new(++sequence, entityId, key, "component-changed")); return Success();
     });
 
     public SimulationCommandResult SetComponent<T>(string entityId, string key, T value) where T : notnull => Execute("component.set.typed", null, () =>
@@ -170,7 +180,13 @@ public sealed class SimulationWorld
         if (!TryEntity(entityId, out var entity) || entity.Lifecycle == SimulationLifecycle.Destroyed) return Fail("SIMENTITY0002", "entity not found", entityId);
         if (!registrations.TryGetValue(key, out var registration)) return Fail("SIMCOMP0003", "unknown component key", key);
         if (registration.RuntimeType is not null && Type.GetType(registration.RuntimeType) is { } expected && !expected.IsAssignableFrom(typeof(T))) return Fail("SIMCOMP0004", "typed component binding mismatch", key);
-        StoreTypedComponent(key, entityId, value); observations.Add(new(++sequence, entityId, key, "typed-component-changed")); return Success();
+        if (!runtimeWorld.SetByTypeId(entityId, key, value).Accepted) return Fail("SIMCOMP0004", "typed component payload failed validation", key); observations.Add(new(++sequence, entityId, key, "typed-component-changed")); return Success();
+    });
+
+    public SimulationCommandResult SetComponentByKey(string entityId, string key, object value) => Execute("component.set.typed-erased", null, () =>
+    {
+        if (!TryEntity(entityId, out var entity) || entity.Lifecycle == SimulationLifecycle.Destroyed) return Fail("SIMENTITY0002", "entity not found", entityId);
+        if (!runtimeWorld.SetByTypeId(entityId, key, value).Accepted) return Fail("SIMCOMP0004", "typed component payload failed validation", key); observations.Add(new(++sequence, entityId, key, "typed-component-changed")); return Success();
     });
 
     public IReadOnlyList<SimulationEntity> QueryRegion(RegionId region, bool includeWorldScoped = false) => Entities.Where(x => x.Lifecycle == SimulationLifecycle.Active && (x.RegionId == region.Value || (includeWorldScoped && x.Scope == SimulationEntityScope.WorldScoped))).ToArray();
@@ -227,6 +243,8 @@ public sealed class SimulationWorld
         if (!derivedRebuilders.TryAdd(componentKey, rebuild)) throw new InvalidOperationException("SIMCOMP0008: duplicate derived rebuild authority");
     }
 
+    public void RebuildDerivedState() { foreach (var rebuilder in derivedRebuilders.Values) rebuilder(this); }
+
     public SimulationCommandResult TransitionActivity(ActivityId id, int expectedRevision, string stage, SimulationActivityStatus status, long? progress = null, string? reason = null) => Execute("activity.transition", expectedRevision, () =>
     {
         if (!activities.TryGetValue(id.Value, out var activity)) return Fail("SIMACTIVITY0002", "unknown activity", id.Value);
@@ -265,9 +283,13 @@ public sealed class SimulationWorld
             if (changes.Count == 0 || changes.GroupBy(x => (x.EntityId, x.ComponentKey)).Any(x => x.Count() != 1)) return Fail("SIMCOMMAND0001", "atomic component command has duplicate or empty changes", type);
             foreach (var change in changes) if (!TryEntity(change.EntityId, out var entity) || entity.Lifecycle == SimulationLifecycle.Destroyed || !registrations.ContainsKey(change.ComponentKey)) return Fail("SIMCOMMAND0002", "atomic component command references invalid state", change.EntityId, null);
             if (injectFailureAfterStaging) return Fail("SIMCOMMAND0003", "deterministic injected staging failure", type);
-            foreach (var change in changes) StoreComponent(change.ComponentKey, change.EntityId, change.Value);
+            var staged = changes.Select(change => new EntityComponentBatchMutation(change.EntityId, change.ComponentKey, DecodeComponent(change.ComponentKey, change.Value))).ToArray();
+            if (!runtimeWorld.CommitBatch(staged).Accepted) return Fail("SIMCOMMAND0004", "typed component batch rejected", type);
             Emit(type, affected, payload); return Success();
         });
+
+    public SimulationCommandResult ApplyAtomicTypedComponentFact(string type, IReadOnlyList<EntityComponentBatchMutation> changes, IReadOnlyList<string> affected, object payload, bool injectFailureAfterStaging = false)
+        => Execute("domain.atomic." + type, null, () => { if (injectFailureAfterStaging) return Fail("SIMCOMMAND0003", "deterministic injected staging failure", type); if (!runtimeWorld.CommitBatch(changes).Accepted) return Fail("SIMCOMMAND0004", "typed component batch rejected", type); Emit(type, affected, payload); return Success(); });
 
     public SimulationSave Capture() => new(SaveSchema, 2, Id.Value, Clock.Now.Microseconds, sequence, Regions, Entities.Where(x => x.Lifecycle != SimulationLifecycle.Destroyed).Select(FilterPersistent).Select(CloneEntity).ToArray(), tombstones.ToArray(), Activities, Reservations, RegistrationFingerprint);
     public string CanonicalJson() => JsonSerializer.Serialize(Capture(), JsonOptions);
@@ -291,7 +313,7 @@ public sealed class SimulationWorld
             var world = new SimulationWorld(new(save.WorldId), new(save.NowMicroseconds)); foreach (var registration in registrations) world.RegisterComponent(registration);
             if (world.RegistrationFingerprint != save.RegistrationFingerprint) return new(false, null, [Diagnostic("SIMPERSIST0006", "registration fingerprint mismatch")]);
             foreach (var region in save.Regions) world.regions.Add(region.Id, region);
-            foreach (var entity in save.Entities) { world.runtimeWorld.CreateEntity(entity.Id); world.runtimeWorld.Set(entity.Id, CloneEntity(entity)); foreach (var component in entity.Components) { var registration = world.registrations[component.Key]; if (registration.RuntimeType is { } runtimeType && Type.GetType(runtimeType) is { } clrType && clrType != typeof(JsonElement)) world.StoreTypedComponent(component.Key, entity.Id, JsonSerializer.Deserialize(component.Value.GetRawText(), clrType, JsonOptions) ?? component.Value); else world.StoreComponent(component.Key, entity.Id, component.Value); } }
+            foreach (var entity in save.Entities) { world.runtimeWorld.CreateEntity(entity.Id); world.runtimeWorld.Set(entity.Id, CloneEntity(entity)); foreach (var component in entity.Components) if (!world.StoreComponent(component.Key, entity.Id, component.Value)) throw new InvalidOperationException("component payload rejected: " + component.Key); }
             foreach (var id in save.Tombstones) world.tombstones.Add(id); foreach (var activity in save.Activities) world.activities.Add(activity.Id, activity); foreach (var reservation in save.Reservations) world.reservations.Add(reservation.Id, reservation); world.sequence = save.Sequence;
             foreach (var rebuilder in world.derivedRebuilders.Values) rebuilder(world);
             return new(true, world, []);
@@ -307,18 +329,13 @@ public sealed class SimulationWorld
     private bool IsActive(string id) => TryEntity(id, out var entity) && entity.Lifecycle == SimulationLifecycle.Active;
     private bool TryEntity(string id, out SimulationEntity entity) { var found = runtimeWorld.TryGet<SimulationEntity>(id, out var value); entity = value!; return found; }
     private void Put(SimulationEntity entity) { if (!runtimeWorld.Set(entity.Id, entity with { Components = new(StringComparer.Ordinal) }).Accepted) throw new InvalidOperationException("Simulation entity mutation rejected: " + entity.Id); }
-    private static JsonElement ToJson(object value) => value is JsonElement element ? element.Clone() : JsonSerializer.SerializeToElement(value, value.GetType(), JsonOptions);
-    private void StoreComponent(string key, string id, JsonElement value)
-    {
-        if (!componentValues.TryGetValue(key, out var values)) componentValues[key] = values = new(StringComparer.Ordinal);
-        if (registrations.TryGetValue(key, out var registration) && registration.RuntimeType is { } runtimeType && Type.GetType(runtimeType) is { } clrType && clrType != typeof(JsonElement)) values[id] = JsonSerializer.Deserialize(value.GetRawText(), clrType, JsonOptions) ?? value.Clone();
-        else values[id] = value.Clone();
-    }
-    private void StoreTypedComponent(string key, string id, object value) { if (!componentValues.TryGetValue(key, out var values)) componentValues[key] = values = new(StringComparer.Ordinal); values[id] = value; }
+    private ComponentDescriptor DescriptorFor(string key) => runtimeWorld.TryGetDescriptor(key, out var descriptor) && descriptor is not null ? descriptor : throw new InvalidOperationException("unknown component descriptor: " + key);
+    private object DecodeComponent(string key, JsonElement value) => DescriptorFor(key).Deserialize(value.GetRawText());
+    private bool StoreComponent(string key, string id, JsonElement value) { try { return runtimeWorld.SetByTypeId(id, key, DecodeComponent(key, value)).Accepted; } catch (JsonException) { return false; } }
     private int SubjectCapacity(string subjectId, string kind)
     {
         var value = ComponentsFor(subjectId).Values.FirstOrDefault(x => x.ValueKind == JsonValueKind.Object && x.TryGetProperty("capacity", out _));
-        if (value.ValueKind == JsonValueKind.Object && value.TryGetProperty("capacity", out var capacity) && capacity.TryGetInt32(out var result)) return result;
+        if (value.ValueKind == JsonValueKind.Object && value.TryGetProperty("capacity", out var capacity) && capacity.TryGetInt32(out var result) && result > 0) return result;
         return reservationPolicies.TryGetValue(kind, out var policy) ? policy(subjectId) : 0;
     }
     private SimulationCommandResult Execute(string type, int? expectedRevision, Func<SimulationCommandResult> action)
@@ -344,7 +361,7 @@ public static class SimulationFoundationComposition
         new("component.m031.inventory", 1, PersistenceClassification.AuthoritativePersistent, "m031.wood-proof", typeof(M031InventoryComponent).AssemblyQualifiedName, "typed-json-codec-v2"),
         new("component.m031.harvestable", 1, PersistenceClassification.AuthoritativePersistent, "m031.wood-proof", typeof(M031HarvestableComponent).AssemblyQualifiedName, "typed-json-codec-v2"),
         new("component.m031.storage", 1, PersistenceClassification.AuthoritativePersistent, "m031.wood-proof", typeof(M031StorageComponent).AssemblyQualifiedName, "typed-json-codec-v2"),
-        new("component.m031.path-preview", 1, PersistenceClassification.ActiveModeTransient, "m031.wood-proof")
+        new("component.m031.path-preview", 1, PersistenceClassification.ActiveModeTransient, "m031.wood-proof", typeof(SimulationBoundaryComponent).AssemblyQualifiedName, "boundary-json-v2")
     ];
 
     public static void RegisterM035Policies(SimulationWorld world)

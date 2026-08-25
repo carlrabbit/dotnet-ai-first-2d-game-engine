@@ -207,8 +207,9 @@ public sealed record M033Run(SimulationWorld World, DiscreteEventScheduler Sched
 /// <summary>Bounded three-region dogfood scenario and standalone host substrate.</summary>
 public static class M033MultiFidelitySimulation
 {
-    public sealed class M033WorkerComponent { public int Wood { get; set; } public int Food { get; set; } public int Water { get; set; } public int Comfort { get; set; } public string? Node { get; set; } }
-    public sealed class M033ResourceComponent { public int SourceWood { get; set; } public int StoredWood { get; set; } public int Capacity { get; set; } }
+    public sealed record M033WorkerComponent { public int Wood { get; init; } public int Food { get; init; } public int Water { get; init; } public int Comfort { get; init; } public string? Node { get; init; } }
+    public sealed record M033ResourceComponent { public int SourceWood { get; init; } public int StoredWood { get; init; } public int Capacity { get; init; } }
+    public sealed record M033FidelityComponent { public string? Mode { get; init; } }
     public const string ScenarioId = "scenario.m033.multi-region-equivalence-and-switching";
     private static readonly string[] RegionIds = ["region.alpha", "region.beta", "region.gamma"];
     private static readonly string[] Families = ["travel", "harvest", "pick-up", "carry", "deposit", "eat", "drink", "rest"];
@@ -217,7 +218,7 @@ public static class M033MultiFidelitySimulation
     [
         new("component.m033.worker", 1, PersistenceClassification.AuthoritativePersistent, "m033.abstract-activity", typeof(M033WorkerComponent).AssemblyQualifiedName, "typed-json-codec-v2"),
         new("component.m033.resource", 1, PersistenceClassification.AuthoritativePersistent, "m033.logistics", typeof(M033ResourceComponent).AssemblyQualifiedName, "typed-json-codec-v2"),
-        new("component.m033.fidelity", 1, PersistenceClassification.AuthoritativePersistent, "m033.fidelity"),
+        new("component.m033.fidelity", 1, PersistenceClassification.AuthoritativePersistent, "m033.fidelity", typeof(M033FidelityComponent).AssemblyQualifiedName, "typed-json-codec-v2"),
     ];
 
     public static M033Run RunThirtyDays(bool switchRegions = true)
@@ -312,10 +313,8 @@ public static class M033MultiFidelitySimulation
         var complete = world.TransitionActivity(new(id), activity.Revision, "completed", SimulationActivityStatus.Completed, day);
         if (complete.Status == "accepted" && family is "harvest" or "deposit" or "carry")
         {
-            var value = world.Entities.Single(entity => entity.Id == resource).Components["component.m033.resource"];
-            var source = value.GetProperty("sourceWood").GetInt32();
-            var stored = value.GetProperty("storedWood").GetInt32();
-            if (source > 0) world.ApplyAtomicComponentFact("AbstractActivityCompleted", [(resource, "component.m033.resource", JsonSerializer.SerializeToElement(new { sourceWood = source - 1, storedWood = stored + 1, capacity = value.GetProperty("capacity").GetInt32() }))], [id, actor, resource], new { executor, family, day });
+            var value = Component<M033ResourceComponent>(world, resource, "component.m033.resource");
+            if (value.SourceWood > 0) world.ApplyAtomicTypedComponentFact("AbstractActivityCompleted", [new(resource, "component.m033.resource", value with { SourceWood = value.SourceWood - 1, StoredWood = value.StoredWood + 1 })], [id, actor, resource], new { executor, family, day });
         }
         return complete;
     }
@@ -334,8 +333,11 @@ public static class M033MultiFidelitySimulation
     {
         Require(world.CreateEntity(id, SimulationEntityScope.RegionOwned, new(region)).Status == "accepted");
         Require(world.ActivateEntity(id).Status == "accepted");
-        Require(world.SetComponent(id, component, JsonSerializer.SerializeToElement(value)).Status == "accepted");
+        object typed = component == "component.m033.worker" ? JsonSerializer.Deserialize<M033WorkerComponent>(JsonSerializer.Serialize(value), SimulationWorld.JsonOptions)! : JsonSerializer.Deserialize<M033ResourceComponent>(JsonSerializer.Serialize(value), SimulationWorld.JsonOptions)!;
+        Require(world.SetComponentByKey(id, component, typed).Status == "accepted");
     }
+
+    private static T Component<T>(SimulationWorld world, string id, string key) where T : notnull => world.TryGetComponent<T>(id, key, out var value) && value is not null ? value : throw new InvalidOperationException("missing typed component " + key + " on " + id);
 
     private static void Require(bool condition) { if (!condition) throw new InvalidOperationException("M033 scenario setup command rejected."); }
     private static string Fingerprint(string value) => Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(value))).ToLowerInvariant();

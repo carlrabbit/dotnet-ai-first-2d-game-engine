@@ -8,11 +8,11 @@ namespace Agentic2D.Simulation;
 /// resource, inventory, need, and event transition.
 /// </summary>
 public readonly record struct DetailedCell(int X, int Y);
-public sealed class M032WorkerComponent { public int X { get; set; } public int Y { get; set; } public int Capacity { get; set; } public int Wood { get; set; } public int Food { get; set; } public int Water { get; set; } public int Comfort { get; set; } }
-public sealed class M032HarvestableComponent { public int X { get; set; } public int Y { get; set; } public int Wood { get; set; } public bool Harvestable { get; set; } }
-public sealed class M032StorageComponent { public int X { get; set; } public int Y { get; set; } public int Wood { get; set; } public int Capacity { get; set; } public string? Accepts { get; set; } public bool Enabled { get; set; } }
-public sealed class M032NeedSourceComponent { public int X { get; set; } public int Y { get; set; } public string? Kind { get; set; } public int Capacity { get; set; } }
-public sealed class M032DormantComponent { public int X { get; set; } public int Y { get; set; } public int Revision { get; set; } }
+public sealed record M032WorkerComponent { public int X { get; init; } public int Y { get; init; } public int Capacity { get; init; } public int Wood { get; init; } public int Food { get; init; } public int Water { get; init; } public int Comfort { get; init; } }
+public sealed record M032HarvestableComponent { public int X { get; init; } public int Y { get; init; } public int Wood { get; init; } public bool Harvestable { get; init; } }
+public sealed record M032StorageComponent { public int X { get; init; } public int Y { get; init; } public int Wood { get; init; } public int Capacity { get; init; } public string? Accepts { get; init; } public bool Enabled { get; init; } }
+public sealed record M032NeedSourceComponent { public int X { get; init; } public int Y { get; init; } public string? Kind { get; init; } public int Capacity { get; init; } }
+public sealed record M032DormantComponent { public int X { get; init; } public int Y { get; init; } public int Revision { get; init; } }
 public sealed record WorkDesignation(string Id, string Kind, string RegionId, IReadOnlyList<DetailedCell> Cells, int Priority, bool Enabled, int Revision);
 public sealed record WorkOpportunity(string Key, string Family, string RegionId, string TargetId, string? DestinationId, int Quantity, string SourceDesignationId, int Priority, string? BlockingReason, string DerivationFingerprint);
 public sealed record WorkCandidateEvaluation(string OpportunityKey, bool Eligible, IReadOnlyList<string> Factors, IReadOnlyList<string> RejectionCodes, int PathCost, string ReservationStatus);
@@ -113,13 +113,13 @@ public static class M032AutonomousDetailedRegion
 
     public static IReadOnlyList<SimulationComponentRegistration> Registrations() =>
     [
-        new("component.m032.worker", 1, PersistenceClassification.AuthoritativePersistent, "m032.autonomous-work"),
-        new("component.m032.harvestable", 1, PersistenceClassification.AuthoritativePersistent, "m032.logistics"),
-        new("component.m032.storage", 1, PersistenceClassification.AuthoritativePersistent, "m032.logistics"),
-        new("component.m032.designation", 1, PersistenceClassification.AuthoritativePersistent, "m032.autonomous-work"),
-        new("component.m032.need-source", 1, PersistenceClassification.AuthoritativePersistent, "m032.needs"),
-        new("component.m032.dormant", 1, PersistenceClassification.AuthoritativePersistent, "m032.proof"),
-        new("component.m032.route", 1, PersistenceClassification.ActiveModeTransient, "m032.detailed-executor")
+        new("component.m032.worker", 1, PersistenceClassification.AuthoritativePersistent, "m032.autonomous-work", typeof(M032WorkerComponent).AssemblyQualifiedName, "typed-json-codec-v2"),
+        new("component.m032.harvestable", 1, PersistenceClassification.AuthoritativePersistent, "m032.logistics", typeof(M032HarvestableComponent).AssemblyQualifiedName, "typed-json-codec-v2"),
+        new("component.m032.storage", 1, PersistenceClassification.AuthoritativePersistent, "m032.logistics", typeof(M032StorageComponent).AssemblyQualifiedName, "typed-json-codec-v2"),
+        new("component.m032.designation", 1, PersistenceClassification.AuthoritativePersistent, "m032.autonomous-work", typeof(WorkDesignation).AssemblyQualifiedName, "typed-json-codec-v2"),
+        new("component.m032.need-source", 1, PersistenceClassification.AuthoritativePersistent, "m032.needs", typeof(M032NeedSourceComponent).AssemblyQualifiedName, "typed-json-codec-v2"),
+        new("component.m032.dormant", 1, PersistenceClassification.AuthoritativePersistent, "m032.proof", typeof(M032DormantComponent).AssemblyQualifiedName, "typed-json-codec-v2"),
+        new("component.m032.route", 1, PersistenceClassification.ActiveModeTransient, "m032.detailed-executor", typeof(SimulationBoundaryComponent).AssemblyQualifiedName, "boundary-json-v2")
     ];
 
     public static IReadOnlyList<WorkOpportunity> DeriveOpportunities(SimulationWorld world, IReadOnlyList<WorkDesignation> designations)
@@ -127,30 +127,30 @@ public static class M032AutonomousDetailedRegion
         var extraction = designations.Where(x => x.Kind == "resource-extraction" && x.RegionId == ActiveRegion.Value).OrderByDescending(x => x.Priority).ThenBy(x => x.Id, StringComparer.Ordinal).ToArray();
         var storage = designations.Where(x => x.Kind == "storage" && x.RegionId == ActiveRegion.Value).OrderByDescending(x => x.Priority).ThenBy(x => x.Id, StringComparer.Ordinal).ToArray();
         var storageEntity = world.Entities.Single(x => x.Id == "storage.wood.001");
-        var storageComponent = storageEntity.Components["component.m032.storage"];
+        var storageComponent = Component<M032StorageComponent>(world, storageEntity.Id, "component.m032.storage");
         var storageCell = Position(storageComponent);
         var usableStorage = storage.FirstOrDefault(x => x.Enabled && x.Cells.Contains(storageCell));
-        var storageEnabled = storageComponent.GetProperty("enabled").GetBoolean();
-        var remainingCapacity = storageComponent.GetProperty("capacity").GetInt32() - storageComponent.GetProperty("wood").GetInt32() - world.Reservations.Where(x => x.SubjectId == storageEntity.Id && x.Status == SimulationReservationStatus.Active).Sum(x => x.Quantity);
+        var storageEnabled = storageComponent.Enabled;
+        var remainingCapacity = storageComponent.Capacity - storageComponent.Wood - world.Reservations.Where(x => x.SubjectId == storageEntity.Id && x.Status == SimulationReservationStatus.Active).Sum(x => x.Quantity);
         var opportunities = new List<WorkOpportunity>();
         foreach (var tree in world.Entities.Where(x => x.Id.StartsWith("tree.", StringComparison.Ordinal)).OrderBy(x => x.Id, StringComparer.Ordinal))
         {
-            var wood = tree.Components["component.m032.harvestable"].GetProperty("wood").GetInt32();
+            var harvestable = Component<M032HarvestableComponent>(world, tree.Id, "component.m032.harvestable"); var wood = harvestable.Wood;
             var key = "harvest:" + tree.Id;
-            var treeCell = Position(tree.Components["component.m032.harvestable"]);
+            var treeCell = Position(harvestable);
             var designation = extraction.FirstOrDefault(x => x.Cells.Contains(treeCell));
             var blocking = designation is null ? "target-not-designated" : !designation.Enabled ? "designation-disabled" : wood == 0 ? "target-depleted" : usableStorage is null ? "storage-not-designated" : !storageEnabled ? "storage-disabled" : remainingCapacity < Math.Min(3, wood) ? "storage-full" : null;
             opportunities.Add(new(key, "harvest", ActiveRegion.Value, tree.Id, storageEntity.Id, Math.Min(3, wood), designation?.Id ?? "", designation?.Priority ?? 0, blocking, Fingerprint(key + ":" + wood + ":" + (designation?.Revision ?? 0) + ":" + remainingCapacity)));
         }
         foreach (var worker in world.Entities.Where(x => x.Id.StartsWith("worker.", StringComparison.Ordinal)).OrderBy(x => x.Id, StringComparer.Ordinal))
         {
-            var state = worker.Components["component.m032.worker"];
+            var state = Component<M032WorkerComponent>(world, worker.Id, "component.m032.worker");
             foreach (var (kind, source, field) in new[] { ("eat", "need.food.001", "food"), ("drink", "need.water.001", "water"), ("rest", "need.rest.001", "comfort") })
             {
-                var level = state.GetProperty(field).GetInt32();
+                var level = field == "food" ? state.Food : field == "water" ? state.Water : state.Comfort;
                 opportunities.Add(new($"{kind}:{worker.Id}", kind, ActiveRegion.Value, source, null, 1, "policy.fixed-needs", 100, level < 2 ? "need-not-mandatory" : null, Fingerprint($"{kind}:{worker.Id}:{level}")));
             }
-            var carried = state.GetProperty("wood").GetInt32();
+            var carried = state.Wood;
             if (carried > 0) opportunities.Add(new($"deposit:{worker.Id}", "deposit", ActiveRegion.Value, worker.Id, storageEntity.Id, carried, usableStorage?.Id ?? "", usableStorage?.Priority ?? 0, usableStorage is null ? "storage-not-designated" : !storageEnabled ? "storage-disabled" : remainingCapacity < carried ? "storage-full" : null, Fingerprint($"deposit:{worker.Id}:{carried}:{remainingCapacity}")));
         }
         return opportunities.OrderBy(x => x.Key, StringComparer.Ordinal).ToArray();
@@ -161,18 +161,18 @@ public static class M032AutonomousDetailedRegion
     {
         var worker = world.Entities.SingleOrDefault(x => x.Id == workerId && x.Lifecycle == SimulationLifecycle.Active);
         if (worker is null) return new(workerId, null, "worker-unavailable", [], ["WORK-ELIGIBILITY0001"], 0, "not-attempted", "not-applicable", []);
-        var workerState = worker.Components["component.m032.worker"];
+        var workerState = Component<M032WorkerComponent>(world, workerId, "component.m032.worker");
         var start = Position(workerState);
         var evaluations = new List<WorkCandidateEvaluation>();
         foreach (var opportunity in opportunities.Where(x => x.RegionId == worker.RegionId).OrderBy(x => x.Key, StringComparer.Ordinal))
         {
-            var factors = new List<string> { "active-worker", "active-region", "capacity=" + workerState.GetProperty("capacity").GetInt32(), "priority=" + opportunity.Priority };
+            var factors = new List<string> { "active-worker", "active-region", "capacity=" + workerState.Capacity, "priority=" + opportunity.Priority };
             var rejections = new List<string>();
             if (opportunity.BlockingReason is not null) rejections.Add(opportunity.Key + ":" + opportunity.BlockingReason);
             if (opportunity.Family is "eat" or "drink" or "rest" && !opportunity.Key.EndsWith(workerId, StringComparison.Ordinal)) rejections.Add(opportunity.Key + ":other-worker");
             if (world.Reservations.Any(x => x.SubjectId == opportunity.TargetId && x.Status == SimulationReservationStatus.Active)) rejections.Add(opportunity.Key + ":reservation-unavailable");
             var target = world.Entities.SingleOrDefault(x => x.Id == opportunity.TargetId);
-            var route = target is null ? new NavigationResult("evaluation:" + workerId + ":" + opportunity.Key, workerId, start, start, [], "invalid-goal", "") : FindRoute("evaluation:" + workerId + ":" + opportunity.Key, workerId, start, Position(target.Components.Values.First()));
+            var route = target is null ? new NavigationResult("evaluation:" + workerId + ":" + opportunity.Key, workerId, start, start, [], "invalid-goal", "") : FindRoute("evaluation:" + workerId + ":" + opportunity.Key, workerId, start, TargetPosition(world, target.Id));
             if (route.Status == "unreachable") rejections.Add(opportunity.Key + ":unreachable");
             factors.Add("path-cost=" + route.Path.Count);
             evaluations.Add(new(opportunity.Key, rejections.Count == 0, factors, rejections, route.Path.Count, rejections.Any(x => x.EndsWith(":reservation-unavailable", StringComparison.Ordinal)) ? "unavailable" : "available"));
@@ -185,30 +185,17 @@ public static class M032AutonomousDetailedRegion
     }
 
     public static IReadOnlyList<WorkDesignation> InspectDesignations(SimulationWorld world) => world.Entities
-        .Where(x => x.Components.ContainsKey("component.m032.designation"))
+        .Where(x => world.TryGetComponent<WorkDesignation>(x.Id, "component.m032.designation", out _))
         .OrderBy(x => x.Id, StringComparer.Ordinal)
-        .Select(x => ReadDesignation(x.Components["component.m032.designation"], x.Id))
+        .Select(x => Component<WorkDesignation>(world, x.Id, "component.m032.designation"))
         .ToArray();
-
-    private static WorkDesignation ReadDesignation(JsonElement value, string entityId)
-    {
-        try
-        {
-            if (value.ValueKind == JsonValueKind.Object && JsonSerializer.Deserialize<WorkDesignation>(value.GetRawText(), new JsonSerializerOptions { PropertyNameCaseInsensitive = true }) is { } typed) return typed;
-            var cells = Property(value, "cells").EnumerateArray().Select(cell => new DetailedCell(Property(cell, "x").GetInt32(), Property(cell, "y").GetInt32())).ToArray();
-            return new(Property(value, "id").GetString() ?? entityId, Property(value, "kind").GetString() ?? "", Property(value, "regionId").GetString() ?? "", cells, Property(value, "priority").GetInt32(), Property(value, "enabled").GetBoolean(), Property(value, "revision").GetInt32());
-        }
-        catch (KeyNotFoundException exception) { throw new InvalidOperationException("invalid persisted designation " + entityId, exception); }
-    }
-
-    private static JsonElement Property(JsonElement value, string name) => value.TryGetProperty(name, out var property) ? property : value.GetProperty(char.ToUpperInvariant(name[0]) + name[1..]);
 
     public static SimulationCommandResult CreateDesignation(SimulationWorld world, WorkDesignation designation)
     {
         var validKinds = new[] { "resource-extraction", "storage", "farmland-definition", "construction-definition" };
         var cells = designation.Cells.Distinct().OrderBy(cell => cell.Y).ThenBy(cell => cell.X).ToArray();
         if (!validKinds.Contains(designation.Kind, StringComparer.Ordinal) || cells.Length == 0 || cells.Any(cell => cell.X < 0 || cell.X > 12 || cell.Y < 0 || cell.Y > 8) || designation.Priority < 0 || world.Entities.Any(entity => entity.Id == designation.Id)) return world.RejectCommand("designation.create", "WORK-DESIGNATION0001", "designation is invalid or already exists", [designation.Id]);
-        var created = world.CreateEntityWithComponent(designation.Id, SimulationEntityScope.RegionOwned, new(designation.RegionId), "component.m032.designation", JsonSerializer.SerializeToElement(designation with { Cells = cells, Revision = Math.Max(1, designation.Revision) }), "DesignationCreated", new { designationId = designation.Id, designation.Kind, cells, designation.Priority });
+        var created = world.CreateEntityWithComponent(designation.Id, SimulationEntityScope.RegionOwned, new(designation.RegionId), "component.m032.designation", designation with { Cells = cells, Revision = Math.Max(1, designation.Revision) }, "DesignationCreated", new { designationId = designation.Id, designation.Kind, cells, designation.Priority });
         return created.Status == "accepted" ? world.ActivateEntity(designation.Id) : created;
     }
 
@@ -224,7 +211,7 @@ public static class M032AutonomousDetailedRegion
         var designation = InspectDesignations(world).SingleOrDefault(x => x.Id == designationId);
         if (designation is null) return world.RejectCommand("designation.set-enabled", "WORK-DESIGNATION0002", "designation was not found", [designationId]);
         var updated = designation with { Enabled = enabled, Revision = designation.Revision + 1 };
-        return world.ApplyAtomicComponentFact("DesignationEnabledChanged", [(designationId, "component.m032.designation", JsonSerializer.SerializeToElement(updated))], [designationId], new { designationId, enabled, revision = updated.Revision });
+        return world.ApplyAtomicTypedComponentFact("DesignationEnabledChanged", [new(designationId, "component.m032.designation", updated)], [designationId], new { designationId, enabled, revision = updated.Revision });
     }
 
     public static SimulationCommandResult SetDesignationPriority(SimulationWorld world, string designationId, int priority)
@@ -232,7 +219,7 @@ public static class M032AutonomousDetailedRegion
         var designation = InspectDesignations(world).SingleOrDefault(x => x.Id == designationId);
         if (designation is null || priority < 0) return world.RejectCommand("designation.set-priority", "WORK-DESIGNATION0003", "designation or priority is invalid", [designationId]);
         var updated = designation with { Priority = priority, Revision = designation.Revision + 1 };
-        return world.ApplyAtomicComponentFact("DesignationPriorityChanged", [(designationId, "component.m032.designation", JsonSerializer.SerializeToElement(updated))], [designationId], new { designationId, priority, revision = updated.Revision });
+        return world.ApplyAtomicTypedComponentFact("DesignationPriorityChanged", [new(designationId, "component.m032.designation", updated)], [designationId], new { designationId, priority, revision = updated.Revision });
     }
 
     public static NavigationResult FindRoute(string requestId, string actor, DetailedCell start, DetailedCell goal, IReadOnlySet<DetailedCell>? blocked = null)
@@ -260,11 +247,11 @@ public static class M032AutonomousDetailedRegion
     {
         var diagnostics = new List<SimulationDiagnostic>();
         var stored = ComponentInt(world, "storage.wood.001", "component.m032.storage", "wood");
-        var sources = world.Entities.Where(x => x.Id.StartsWith("tree.", StringComparison.Ordinal)).Sum(x => x.Components["component.m032.harvestable"].GetProperty("wood").GetInt32());
-        var carried = world.Entities.Where(x => x.Id.StartsWith("worker.", StringComparison.Ordinal)).Sum(x => x.Components["component.m032.worker"].GetProperty("wood").GetInt32());
+        var sources = world.Entities.Where(x => x.Id.StartsWith("tree.", StringComparison.Ordinal)).Sum(x => Component<M032HarvestableComponent>(world, x.Id, "component.m032.harvestable").Wood);
+        var carried = world.Entities.Where(x => x.Id.StartsWith("worker.", StringComparison.Ordinal)).Sum(x => Component<M032WorkerComponent>(world, x.Id, "component.m032.worker").Wood);
         if (sources + carried + stored != 18) diagnostics.Add(new("LOGISTICS-CONSERVATION0001", "error", "wood conservation failed", ["storage.wood.001"]));
         if (world.Reservations.Any(x => x.Status == SimulationReservationStatus.Active)) diagnostics.Add(new("SIMRESERVE-M032-LEAK", "error", "active reservation leaked", world.Reservations.Where(x => x.Status == SimulationReservationStatus.Active).Select(x => x.Id).ToArray()));
-        if (world.Entities.Single(x => x.Id == "dormant.sentinel").Components["component.m032.dormant"].GetProperty("revision").GetInt32() != 0) diagnostics.Add(new("WORK-REGION0001", "error", "dormant region advanced", ["dormant.sentinel"]));
+        if (Component<M032DormantComponent>(world, "dormant.sentinel", "component.m032.dormant").Revision != 0) diagnostics.Add(new("WORK-REGION0001", "error", "dormant region advanced", ["dormant.sentinel"]));
         if (world.Activities.Any(x => x.Status == SimulationActivityStatus.Active)) diagnostics.Add(new("EXECUTOR-BLOCKED0001", "error", "active activity silently stalled", world.Activities.Where(x => x.Status == SimulationActivityStatus.Active).Select(x => x.Id).ToArray()));
         return diagnostics;
     }
@@ -348,41 +335,51 @@ public static class M032AutonomousDetailedRegion
     {
         Require(world.CreateEntity(id, SimulationEntityScope.RegionOwned, region).Status == "accepted"); Require(world.ActivateEntity(id).Status == "accepted");
         var component = id.StartsWith("worker.", StringComparison.Ordinal) ? "component.m032.worker" : id.StartsWith("tree.", StringComparison.Ordinal) ? "component.m032.harvestable" : id.StartsWith("storage.", StringComparison.Ordinal) ? "component.m032.storage" : id.StartsWith("need.", StringComparison.Ordinal) ? "component.m032.need-source" : id.StartsWith("designation.", StringComparison.Ordinal) ? "component.m032.designation" : "component.m032.dormant";
-        Require(world.SetComponent(id, component, JsonSerializer.SerializeToElement(value)).Status == "accepted");
+        object typed = component switch
+        {
+            "component.m032.worker" => JsonSerializer.Deserialize<M032WorkerComponent>(JsonSerializer.Serialize(value), SimulationWorld.JsonOptions)!,
+            "component.m032.harvestable" => JsonSerializer.Deserialize<M032HarvestableComponent>(JsonSerializer.Serialize(value), SimulationWorld.JsonOptions)!,
+            "component.m032.storage" => JsonSerializer.Deserialize<M032StorageComponent>(JsonSerializer.Serialize(value), SimulationWorld.JsonOptions)!,
+            "component.m032.need-source" => JsonSerializer.Deserialize<M032NeedSourceComponent>(JsonSerializer.Serialize(value), SimulationWorld.JsonOptions)!,
+            "component.m032.designation" => value is WorkDesignation designation ? designation : JsonSerializer.Deserialize<WorkDesignation>(JsonSerializer.Serialize(value), SimulationWorld.JsonOptions)!,
+            _ => JsonSerializer.Deserialize<M032DormantComponent>(JsonSerializer.Serialize(value), SimulationWorld.JsonOptions)!
+        };
+        var set = world.SetComponentByKey(id, component, typed); if (set.Status != "accepted") throw new InvalidOperationException("M032 typed component rejected: " + string.Join(',', set.Diagnostics.Select(x => x.Code + ":" + x.Message)));
     }
     private static void SetWood(SimulationWorld world, List<SimulationCommandResult> commands, string entity, string component, int wood, int capacity, bool harvestable)
     {
-        var current = world.Entities.Single(x => x.Id == entity).Components[component];
-        object value = component == "component.m032.harvestable"
-            ? new { x = current.GetProperty("x").GetInt32(), y = current.GetProperty("y").GetInt32(), wood, harvestable }
-            : component == "component.m032.storage"
-                ? new { x = current.GetProperty("x").GetInt32(), y = current.GetProperty("y").GetInt32(), wood, capacity, accepts = "wood", enabled = true }
-                : new { x = current.GetProperty("x").GetInt32(), y = current.GetProperty("y").GetInt32(), capacity, wood, food = current.GetProperty("food").GetInt32(), water = current.GetProperty("water").GetInt32(), comfort = current.GetProperty("comfort").GetInt32() };
-        Add(commands, world.SetComponent(entity, component, JsonSerializer.SerializeToElement(value)));
+        if (component == "component.m032.harvestable") { var current = Component<M032HarvestableComponent>(world, entity, component); Add(commands, world.SetComponent(entity, component, current with { Wood = wood, Harvestable = harvestable })); }
+        else if (component == "component.m032.storage") { var current = Component<M032StorageComponent>(world, entity, component); Add(commands, world.SetComponent(entity, component, current with { Wood = wood, Capacity = capacity })); }
+        else { var current = Component<M032WorkerComponent>(world, entity, component); Add(commands, world.SetComponent(entity, component, current with { Wood = wood, Capacity = capacity })); }
     }
     private static void SetWorkerPosition(SimulationWorld world, List<SimulationCommandResult> commands, string workerId, DetailedCell cell)
     {
-        var current = world.Entities.Single(entity => entity.Id == workerId).Components["component.m032.worker"];
-        Add(commands, world.SetComponent(workerId, "component.m032.worker", JsonSerializer.SerializeToElement(new { x = cell.X, y = cell.Y, capacity = current.GetProperty("capacity").GetInt32(), wood = current.GetProperty("wood").GetInt32(), food = current.GetProperty("food").GetInt32(), water = current.GetProperty("water").GetInt32(), comfort = current.GetProperty("comfort").GetInt32() })));
+        var current = Component<M032WorkerComponent>(world, workerId, "component.m032.worker");
+        Add(commands, world.SetComponent(workerId, "component.m032.worker", current with { X = cell.X, Y = cell.Y }));
         Fact(world, commands, "WorkerMoved", [workerId], new { workerId, x = cell.X, y = cell.Y });
         world.Advance(SimulationDuration.FromSeconds(1));
     }
     private static void IntegrateNeed(SimulationWorld world, List<SimulationCommandResult> commands, string workerId, string kind, int delta)
     {
-        var current = world.Entities.Single(entity => entity.Id == workerId).Components["component.m032.worker"];
-        var food = current.GetProperty("food").GetInt32(); var water = current.GetProperty("water").GetInt32(); var comfort = current.GetProperty("comfort").GetInt32();
+        var current = Component<M032WorkerComponent>(world, workerId, "component.m032.worker");
+        var food = current.Food; var water = current.Water; var comfort = current.Comfort;
         if (kind == "food") food = Math.Max(0, food + delta); else if (kind == "water") water = Math.Max(0, water + delta); else comfort = Math.Max(0, comfort + delta);
-        Add(commands, world.SetComponent(workerId, "component.m032.worker", JsonSerializer.SerializeToElement(new { x = current.GetProperty("x").GetInt32(), y = current.GetProperty("y").GetInt32(), capacity = current.GetProperty("capacity").GetInt32(), wood = current.GetProperty("wood").GetInt32(), food, water, comfort })));
+        Add(commands, world.SetComponent(workerId, "component.m032.worker", current with { Food = food, Water = water, Comfort = comfort }));
         Fact(world, commands, "NeedIntegrated", [workerId], new { workerId, kind, delta, level = kind == "food" ? food : kind == "water" ? water : comfort, warningThreshold = 1, mandatoryThreshold = 2 });
     }
-    private static int ComponentInt(SimulationWorld world, string id, string component, string property) => world.Entities.Single(x => x.Id == id).Components[component].GetProperty(property).GetInt32();
+    private static T Component<T>(SimulationWorld world, string id, string key) where T : notnull => world.TryGetComponent<T>(id, key, out var value) && value is not null ? value : throw new InvalidOperationException("missing typed component " + key + " on " + id);
+    private static int ComponentInt(SimulationWorld world, string id, string component, string property) => component switch { "component.m032.storage" => Component<M032StorageComponent>(world, id, component).Wood, "component.m032.worker" => Component<M032WorkerComponent>(world, id, component).Wood, _ => Component<M032HarvestableComponent>(world, id, component).Wood };
     private static void Transition(SimulationWorld world, List<SimulationCommandResult> commands, string id, string stage, SimulationActivityStatus status, string? reason = null, long? progress = null) { var activity = world.Activities.Single(x => x.Id == id); Add(commands, world.TransitionActivity(new(id), activity.Revision, stage, status, progress, reason)); }
     private static void Release(SimulationWorld world, List<SimulationCommandResult> commands, string id, string reason) => Add(commands, world.ReleaseReservation(new(id), reason));
     private static void ReleaseIfActive(SimulationWorld world, List<SimulationCommandResult> commands, string id, string reason) { if (world.Reservations.Any(x => x.Id == id && x.Status == SimulationReservationStatus.Active)) Release(world, commands, id, reason); }
     private static void Fact(SimulationWorld world, List<SimulationCommandResult> commands, string type, IReadOnlyList<string> ids, object payload) => Add(commands, world.RecordFact(type, ids, payload));
     private static void Add(List<SimulationCommandResult> commands, SimulationCommandResult result) { commands.Add(result); Require(result.Status == "accepted"); }
     private static void Require(bool condition) { if (!condition) throw new InvalidOperationException("M032 proof command rejected"); }
-    private static DetailedCell Position(JsonElement value) => new(Property(value, "x").GetInt32(), Property(value, "y").GetInt32());
+    private static DetailedCell Position(M032WorkerComponent value) => new(value.X, value.Y);
+    private static DetailedCell Position(M032HarvestableComponent value) => new(value.X, value.Y);
+    private static DetailedCell Position(M032StorageComponent value) => new(value.X, value.Y);
+    private static DetailedCell Position(M032NeedSourceComponent value) => new(value.X, value.Y);
+    private static DetailedCell TargetPosition(SimulationWorld world, string id) => id.StartsWith("tree.", StringComparison.Ordinal) ? Position(Component<M032HarvestableComponent>(world, id, "component.m032.harvestable")) : id.StartsWith("worker.", StringComparison.Ordinal) ? Position(Component<M032WorkerComponent>(world, id, "component.m032.worker")) : id.StartsWith("need.", StringComparison.Ordinal) ? Position(Component<M032NeedSourceComponent>(world, id, "component.m032.need-source")) : Position(Component<M032StorageComponent>(world, id, "component.m032.storage"));
     private static M032Run FrameRun(SimulationWorld world, IReadOnlyList<SimulationCommandResult> commands, IReadOnlyList<WorkerDecision> decisions, IReadOnlyList<NavigationResult> navigation, IReadOnlyList<string>? routeEvents = null) => new(world, commands, InspectDesignations(world), DeriveOpportunities(world, InspectDesignations(world)), decisions, navigation, routeEvents ?? [], ValidateInvariants(world), world.Fingerprint());
     private static string Fingerprint(string value) => Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(System.Text.Encoding.UTF8.GetBytes(value))).ToLowerInvariant();
 }

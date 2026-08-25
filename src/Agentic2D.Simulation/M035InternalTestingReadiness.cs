@@ -5,6 +5,9 @@ using System.Text.Json;
 
 namespace Agentic2D.Simulation;
 
+public sealed record M035ScaleFixtureComponent(string? Role = null, int Index = 0);
+public sealed record M035PersistenceComponent(string? Id = null, string? Role = null, string? State = null, int Food = 0, int Water = 0, int Capacity = 0, int Quantity = 0, int Condition = 0, int PendingTriggers = 0);
+
 /// <summary>
 /// M035 health observations are deliberately read-only. They turn the existing
 /// simulation invariants into bounded, stable diagnostic evidence; they never
@@ -190,14 +193,14 @@ public static class M035ScaleFixture
     {
         var world = new SimulationWorld(new WorldId("world.m035.supported-scale"));
         SimulationFoundationComposition.RegisterM035Policies(world);
-        world.RegisterComponent(new("component.m035.fixture", 1, PersistenceClassification.AuthoritativePersistent, "m035.scale-fixture"));
+        world.RegisterComponent(new("component.m035.fixture", 1, PersistenceClassification.AuthoritativePersistent, "m035.scale-fixture", typeof(M035ScaleFixtureComponent).AssemblyQualifiedName, "typed-json-codec-v2"));
         var regions = Enumerable.Range(1, 5).Select(index => "region.m035." + index.ToString("D2", System.Globalization.CultureInfo.InvariantCulture)).ToArray();
         foreach (var region in regions) Require(world.CreateRegion(new(region), region));
         for (var index = 1; index <= 1_000; index++)
         {
             var id = "entity.m035." + index.ToString("D4", System.Globalization.CultureInfo.InvariantCulture);
             var region = new RegionId(regions[(index - 1) % regions.Length]);
-            Require(world.CreateEntityWithComponent(id, SimulationEntityScope.RegionOwned, region, "component.m035.fixture", JsonSerializer.SerializeToElement(new { role = index <= 50 ? "worker" : "infrastructure-or-plan", index })));
+            Require(world.CreateEntityWithComponent(id, SimulationEntityScope.RegionOwned, region, "component.m035.fixture", new M035ScaleFixtureComponent(index <= 50 ? "worker" : "infrastructure-or-plan", index)));
             Require(world.ActivateEntity(id));
         }
         for (var index = 1; index <= 100; index++)
@@ -227,7 +230,7 @@ public static class M035ScaleFixture
         var save = world.Capture();
         for (var cycle = 0; cycle < 250; cycle++)
         {
-            var loaded = SimulationWorld.Load(save, [new("component.m035.fixture", 1, PersistenceClassification.AuthoritativePersistent, "m035.scale-fixture")]);
+            var loaded = SimulationWorld.Load(save, [new("component.m035.fixture", 1, PersistenceClassification.AuthoritativePersistent, "m035.scale-fixture", typeof(M035ScaleFixtureComponent).AssemblyQualifiedName, "typed-json-codec-v2")]);
             if (!loaded.Success || loaded.World is null) throw new InvalidOperationException("M035-SCALE-LOAD: transactional load failed");
         }
         var fixedStepSamples = new List<double>();
@@ -236,7 +239,7 @@ public static class M035ScaleFixture
             var fixedStep = Stopwatch.StartNew(); world.Advance(SimulationDuration.FromSeconds(1)); fixedStep.Stop();
             fixedStepSamples.Add(fixedStep.Elapsed.TotalMilliseconds);
         }
-        return new(world.Entities.Count, world.Entities.Count(entity => entity.Components.ContainsKey("component.m035.fixture") && entity.Components["component.m035.fixture"].GetProperty("role").GetString() == "worker"), world.Activities.Count, world.Reservations.Count, queue.Inspect().Count, coordinator.Transitions.Count(item => item.Status == "committed"), 365, 250, world.Fingerprint(), health, trends, fixedStepSamples);
+        return new(world.Entities.Count, world.Entities.Count(entity => world.TryGetComponent<M035ScaleFixtureComponent>(entity.Id, "component.m035.fixture", out var fixture) && fixture?.Role == "worker"), world.Activities.Count, world.Reservations.Count, queue.Inspect().Count, coordinator.Transitions.Count(item => item.Status == "committed"), 365, 250, world.Fingerprint(), health, trends, fixedStepSamples);
     }
 
     private static void Require(SimulationCommandResult result)
@@ -427,7 +430,7 @@ public static class M035ReadinessArtifactWriter
         await Json(campaign, "verify.json", new { schema = "agentic2d.stress-campaign.v1", campaign = result.Id, status = result.Status, expectedCaseCount = result.ExpectedCases, completedCaseCount = result.CompletedCases, failedCaseCount = result.FailedCases, fingerprint = result.Fingerprint, partial = result.CompletedCases != result.ExpectedCases, reduction = result.Reduction });
     }
 
-    private static IReadOnlyList<SimulationComponentRegistration> FaultRegistrations() => [new("component.m035.persistence", 1, PersistenceClassification.AuthoritativePersistent, "m035.readiness")];
+    private static IReadOnlyList<SimulationComponentRegistration> FaultRegistrations() => [new("component.m035.persistence", 1, PersistenceClassification.AuthoritativePersistent, "m035.readiness", typeof(M035PersistenceComponent).AssemblyQualifiedName, "typed-json-codec-v2")];
 
     private static SimulationWorld CreatePersistenceWorld(string tag)
     {
@@ -435,17 +438,11 @@ public static class M035ReadinessArtifactWriter
         SimulationFoundationComposition.RegisterM035Policies(world);
         foreach (var registration in FaultRegistrations()) world.RegisterComponent(registration);
         Require(world.CreateRegion(new("region.m035.save"), "M035 save region"));
-        Require(world.CreateEntityWithComponent("entity.m035.save.worker", SimulationEntityScope.RegionOwned, new("region.m035.save"), "component.m035.persistence", JsonSerializer.SerializeToElement(new { role = "worker", food = tag == "active-shortage" ? 0 : 10, water = tag == "active-shortage" ? 0 : 10 })));
+        Require(world.CreateEntityWithComponent("entity.m035.save.worker", SimulationEntityScope.RegionOwned, new("region.m035.save"), "component.m035.persistence", new M035PersistenceComponent(Role: "worker", Food: tag == "active-shortage" ? 0 : 10, Water: tag == "active-shortage" ? 0 : 10)));
         Require(world.ActivateEntity("entity.m035.save.worker"));
-        Require(world.CreateEntityWithComponent("entity.m035.save.subject", SimulationEntityScope.RegionOwned, new("region.m035.save"), "component.m035.persistence", JsonSerializer.SerializeToElement(new
-        {
-            role = tag switch { "active-construction" => "construction-plan", "active-carrying" => "carried-resource", "pending-abstract-triggers" => "abstract-trigger-owner", "post-transition" => "fidelity-transition-marker", "active-shortage" => "storage-shortage", "failed-infrastructure" => "infrastructure", _ => "stable-storage" },
-            state = tag switch { "active-construction" => "constructing", "active-carrying" => "carrying", "pending-abstract-triggers" => "pending", "post-transition" => "reconciled", "active-shortage" => "empty", "failed-infrastructure" => "failed", _ => "stable" },
-            capacity = 10,
-            quantity = tag == "active-shortage" ? 0 : 5,
-            condition = tag == "failed-infrastructure" ? 0 : 100,
-            pendingTriggers = tag == "pending-abstract-triggers" ? 3 : 0,
-        })));
+        Require(world.CreateEntityWithComponent("entity.m035.save.subject", SimulationEntityScope.RegionOwned, new("region.m035.save"), "component.m035.persistence", new M035PersistenceComponent(
+            Role: tag switch { "active-construction" => "construction-plan", "active-carrying" => "carried-resource", "pending-abstract-triggers" => "abstract-trigger-owner", "post-transition" => "fidelity-transition-marker", "active-shortage" => "storage-shortage", "failed-infrastructure" => "infrastructure", _ => "stable-storage" },
+            State: tag switch { "active-construction" => "constructing", "active-carrying" => "carrying", "pending-abstract-triggers" => "pending", "post-transition" => "reconciled", "active-shortage" => "empty", "failed-infrastructure" => "failed", _ => "stable" }, Capacity: 10, Quantity: tag == "active-shortage" ? 0 : 5, Condition: tag == "failed-infrastructure" ? 0 : 100, PendingTriggers: tag == "pending-abstract-triggers" ? 3 : 0)));
         Require(world.ActivateEntity("entity.m035.save.subject"));
         if (tag is "active-carrying" or "active-construction")
         {
@@ -467,7 +464,7 @@ public static class M035ReadinessArtifactWriter
         Require(world.CreateRegion(new("region.fault.a"), "fault a")); Require(world.CreateRegion(new("region.fault.b"), "fault b"));
         foreach (var id in new[] { "entity.fault.actor", "entity.fault.subject" })
         {
-            Require(world.CreateEntityWithComponent(id, SimulationEntityScope.RegionOwned, new("region.fault.a"), "component.m035.persistence", JsonSerializer.SerializeToElement(new { id })));
+            Require(world.CreateEntityWithComponent(id, SimulationEntityScope.RegionOwned, new("region.fault.a"), "component.m035.persistence", new M035PersistenceComponent(Id: id)));
             Require(world.ActivateEntity(id));
         }
         Require(world.CreateActivityWithReservations(new("activity.fault"), "entity.fault.actor", "fault", "assigned", ["entity.fault.subject"], [new(new("reservation.fault"), "entity.fault.subject", "delivery", 1, 1)], new("correlation.fault"), new("cause.fault")));

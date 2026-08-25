@@ -44,9 +44,9 @@ public static class M031WoodWorkflow
         Require(world.CreateEntity("worker.001", SimulationEntityScope.RegionOwned, new("region.forest"))); Require(world.ActivateEntity("worker.001"));
         Require(world.CreateEntity("tree.001", SimulationEntityScope.RegionOwned, new("region.forest"))); Require(world.ActivateEntity("tree.001"));
         Require(world.CreateEntity("storage.001", SimulationEntityScope.RegionOwned, new("region.settlement"))); Require(world.ActivateEntity("storage.001"));
-        Require(world.SetComponent("worker.001", "component.m031.inventory", JsonSerializer.SerializeToElement(new { wood = 0, capacity = 3 })));
-        Require(world.SetComponent("tree.001", "component.m031.harvestable", JsonSerializer.SerializeToElement(new { wood = 3 })));
-        Require(world.SetComponent("storage.001", "component.m031.storage", JsonSerializer.SerializeToElement(new { wood = 0, capacity = 3 })));
+        Require(world.SetComponent("worker.001", "component.m031.inventory", new M031InventoryComponent(0, 3)));
+        Require(world.SetComponent("tree.001", "component.m031.harvestable", new M031HarvestableComponent(3)));
+        Require(world.SetComponent("storage.001", "component.m031.storage", new M031StorageComponent(0, 3)));
         return world;
     }
 
@@ -72,7 +72,7 @@ public static class M031WoodWorkflow
         activity = world.Activities.Single(x => x.Id == Activity.Value); commands.Add(world.TransitionActivity(Activity, activity.Revision, "carrying", SimulationActivityStatus.Active));
         commands.Add(world.TransferRegion("worker.001", new("region.settlement"))); world.Advance(SimulationDuration.FromSeconds(1));
         activity = world.Activities.Single(x => x.Id == Activity.Value); commands.Add(world.TransitionActivity(Activity, activity.Revision, "at-storage", SimulationActivityStatus.Active));
-        commands.Add(world.ApplyAtomicComponentFact("ResourceDeposited", [("worker.001", "component.m031.inventory", JsonSerializer.SerializeToElement(new { wood = 0, capacity = 3 })), ("storage.001", "component.m031.storage", JsonSerializer.SerializeToElement(new { wood = 3, capacity = 3 }))], ["worker.001", "storage.001"], new { resource = "wood", quantity = 3 }));
+        commands.Add(world.ApplyAtomicTypedComponentFact("ResourceDeposited", [new("worker.001", "component.m031.inventory", new M031InventoryComponent(0, 3)), new("storage.001", "component.m031.storage", new M031StorageComponent(3, 3))], ["worker.001", "storage.001"], new { resource = "wood", quantity = 3 }));
         activity = world.Activities.Single(x => x.Id == Activity.Value); commands.Add(world.TransitionActivity(Activity, activity.Revision, "deposited", SimulationActivityStatus.Active));
         commands.Add(world.ReleaseReservation(TreeReservation, "harvest-complete")); commands.Add(world.ReleaseReservation(StorageReservation, "deposit-complete"));
         activity = world.Activities.Single(x => x.Id == Activity.Value); commands.Add(world.TransitionActivity(Activity, activity.Revision, "completed", SimulationActivityStatus.Completed, 3));
@@ -87,11 +87,11 @@ public static class M031WoodWorkflow
         activity = world.Activities.Single(x => x.Id == Activity.Value); commands.Add(world.TransitionActivity(Activity, activity.Revision, "target-reserved", SimulationActivityStatus.Active));
         activity = world.Activities.Single(x => x.Id == Activity.Value); commands.Add(world.TransitionActivity(Activity, activity.Revision, "at-target", SimulationActivityStatus.Active));
         activity = world.Activities.Single(x => x.Id == Activity.Value); commands.Add(world.TransitionActivity(Activity, activity.Revision, "harvesting", SimulationActivityStatus.Active)); world.Advance(SimulationDuration.FromSeconds(1));
-        commands.Add(world.ApplyAtomicComponentFact("ResourceHarvested", [("tree.001", "component.m031.harvestable", JsonSerializer.SerializeToElement(new { wood = 0 })), ("worker.001", "component.m031.inventory", JsonSerializer.SerializeToElement(new { wood = 3, capacity = 3 }))], ["worker.001", "tree.001"], new { resource = "wood", quantity = 3 }));
+        commands.Add(world.ApplyAtomicTypedComponentFact("ResourceHarvested", [new("tree.001", "component.m031.harvestable", new M031HarvestableComponent(0)), new("worker.001", "component.m031.inventory", new M031InventoryComponent(3, 3))], ["worker.001", "tree.001"], new { resource = "wood", quantity = 3 }));
         activity = world.Activities.Single(x => x.Id == Activity.Value); commands.Add(world.TransitionActivity(Activity, activity.Revision, "harvested", SimulationActivityStatus.Active, 3));
     }
 
-    private static int ComponentInt(SimulationWorld world, string entityId, string key, string property) => world.Entities.Single(x => x.Id == entityId).Components[key].GetProperty(property).GetInt32();
+    private static int ComponentInt(SimulationWorld world, string entityId, string key, string property) => key switch { "component.m031.inventory" => world.TryGetComponent<M031InventoryComponent>(entityId, key, out var inventory) ? (property == "capacity" ? inventory!.Capacity : inventory!.Wood) : 0, "component.m031.harvestable" => world.TryGetComponent<M031HarvestableComponent>(entityId, key, out var harvestable) ? harvestable!.Wood : 0, _ => world.TryGetComponent<M031StorageComponent>(entityId, key, out var storage) ? (property == "capacity" ? storage!.Capacity : storage!.Wood) : 0 };
     private static void Require(SimulationCommandResult result) { if (result.Status != "accepted") throw new InvalidOperationException("M031 proof command rejected: " + string.Join(',', result.Diagnostics.Select(x => x.Code))); }
 }
 

@@ -1,177 +1,185 @@
-# ADR-0051 — Close M031 with Typed Components and Atomic Semantic Transactions
+# ADR-0051 — Close M031 with One Typed Component Authority and Atomic Semantic Transactions
 
 ## Status
 
 Accepted for M039.
 
+This revision incorporates corrective planning from PR 22. It supersedes any interpretation where `SimulationWorld` may own a private heterogeneous component-value store merely because those values are CLR objects rather than `JsonElement`.
+
 ## Context
 
-M031 introduced the optional partitioned SimulationWorld used by later detailed and abstract simulation work.
+M031 introduced the optional partitioned `SimulationWorld` used by later detailed and abstract simulation work.
 
-The durable project contracts already state that:
+Existing project authority already requires one runtime-owned entity/component universe, typed components, validated mutation, semantic command/event separation, activities and reservations as authoritative semantic state, executable persistence classification, and deterministic save/load continuation.
 
-- runtime owns one entity identity space and typed component instances;
-- game-defined components are typed and explicitly registered;
-- semantic commands validate, stage and atomically commit mutation;
-- factual events are emitted after commit;
-- activities and reservations are authoritative semantic state;
-- persistence classifications control save authority;
-- fresh-process persistence is demonstrated by a real fresh-process continuation.
+The pre-M039 implementation violated those contracts by storing simulation components in a nested JSON bag.
 
-The current implementation diverged from those contracts in several material ways:
+The first PR-22 correction replaced the JSON bag with:
 
-- SimulationWorld stores one `SimulationEntity` runtime component that itself owns a `string -> JsonElement` component dictionary;
-- simulation registration metadata does not bind authoritative game state to the typed runtime stores;
-- multi-component domain changes can be applied as separate live component writes followed by a separate `RecordFact`;
-- activity stage transitions are largely caller-convention strings rather than shared validated policy;
-- reservation capacity is trusted from caller input instead of derived from authoritative subject state;
-- persistence classifications are not enforced by canonical capture;
-- current v1 persistence serializes the nested JSON component bag;
-- M031 evidence can label an in-process object round trip as a fresh-process proof.
+```text
+SimulationWorld.componentValues
+    component-key
+      -> entity-id
+          -> object
+```
 
-These are architectural/semantic contract gaps, not merely missing tests.
+while `EntityComponentWorld` continued to own only the `SimulationEntity` wrapper. That is still a second component universe.
+
+PR 22 also exposed two related risks:
+
+- mutable CLR component classes allow uncontrolled state mutation when returned by reference;
+- assembly-qualified CLR names were beginning to participate in registration/persistence fingerprints even though CLR deployment identity is not durable gameplay identity.
+
+M032's failed typed migration is evidence that the runtime needs a better heterogeneous infrastructure boundary, not evidence that simulation state should remain JSON-shaped or `SimulationWorld`-owned.
 
 ## Decision
 
-### One component authority
+### EntityComponentWorld is the sole component authority
 
-`EntityComponentWorld` remains the sole authoritative runtime owner of entity identities and component instances.
+`EntityComponentWorld` owns every authoritative runtime component instance.
 
-SimulationWorld is a semantic composition layer over that authority.
+`SimulationWorld` owns simulation semantics but no parallel component-value store.
 
-Game-defined simulation components are real typed CLR/runtime components with stable durable keys and explicit registration metadata.
-
-A nested string-keyed JSON component bag is not authoritative simulation state after M039.
-
-JSON may remain a boundary representation for serialization, artifacts, authored data and similar interfaces.
-
-### Entity identity
-
-Simulation code uses the repository's existing stable `EntityId` semantics for authoritative entity references.
-
-Simulation-specific region membership and active/inactive semantics may be represented by typed simulation state and derived indexes without creating a second entity universe.
-
-### Atomic semantic command boundary
-
-One semantic command is one atomic authoritative transition.
-
-A command can stage component, activity, reservation, lifecycle/region, sequence and event changes.
-
-It commits all required authoritative changes and factual events together, or none.
-
-The exact staging/transaction mechanism remains an implementation choice.
-
-A factual event cannot be asserted independently of the semantic mutation that made it true.
-
-### Command/event causality
-
-Command IDs, event IDs, correlation and causation are real deterministic runtime semantics.
-
-A successful command result identifies the events it emitted.
-
-Factual events inherit real command causal context rather than milestone-proof constants.
-
-### Activity and reservation authority
-
-Activity kinds enforce valid transition policy through shared simulation/game authority.
-
-Reservation capacity, availability and subject guards are derived from authoritative typed state through registered policy.
-
-Terminal activities cannot retain active reservations.
-
-Entity destruction cannot leave invalid active semantic references or a save that the same runtime rejects on load.
-
-### Persistence classifications
-
-Persistence classifications are executable save policy.
-
-Authoritative state persists. Derived/transient/presentation/external state is omitted from canonical SimulationWorld authority according to the M031 contract.
-
-Canonical fingerprints cover authoritative semantics rather than omitted execution/presentation state.
-
-### Compatibility break
-
-The corrected SimulationWorld persistence schema is:
+Forbidden:
 
 ```text
-agentic2d.simulation-world-save.v2
+SimulationWorld -> Dictionary<string, JsonElement> authoritative values
+SimulationWorld -> Dictionary<string, object> authoritative values
+any equivalent shadow component store
 ```
 
-and the minimum supported schema is v2.
+### Typed domain surface plus type-erased infrastructure surface
 
-The v1 SimulationWorld save is rejected rather than migrated.
+The runtime supports two views over the same stores:
 
-The current M033 envelope that embeds SimulationWorld persistence becomes:
+1. generic typed domain operations such as registration/get/set/query;
+2. bounded type-erased infrastructure operations needed for persistence, inspection and heterogeneous transaction staging.
+
+Registration remains explicit. No dynamic plugin or assembly scanning is introduced.
+
+A runtime component descriptor resolves stable type ID, CLR type, owner, validator and canonical codec. The concrete descriptor/API is implementation-owned.
+
+### Durable identity is not CLR deployment identity
+
+Stable component key and schema/codec metadata define durable identity.
+
+CLR type is runtime binding metadata.
+
+Assembly-qualified names, assembly versions, paths and similar deployment details are excluded from canonical persistence identity and registration fingerprints.
+
+Load resolves a persisted stable key through the current explicit descriptor registry.
+
+### Authoritative components are immutable/read-only
+
+Runtime component reads cannot provide an uncontrolled mutation path.
+
+Authoritative components are immutable values or are defensively copied so changing a returned object cannot modify stored state.
+
+Mutation occurs only through approved runtime/semantic command boundaries.
+
+### Heterogeneous batch ownership
+
+`EntityComponentWorld` supplies bounded heterogeneous component staging/commit semantics so a semantic command can update multiple component types atomically.
+
+All mutations validate before any become visible.
+
+Sequential live mutation plus best-effort rollback is rejected as the atomicity model.
+
+### Semantic transaction ownership
+
+`SimulationWorld` coordinates domain transactions spanning typed ECS component batches, activities, reservations, lifecycle/region state, sequence/causal state and factual events.
+
+A factual event is published only after the complete semantic transition commits.
+
+### JSON is a boundary projection
+
+JSON is permitted for canonical encoding, inspection/artifacts, authored data and CLI boundaries.
+
+Gameplay logic does not use JSON property lookup as its authoritative component API.
+
+A JSON inspection projection is derived from typed ECS state.
+
+### Consumer migration
+
+M032 and M033 migrate coherently to typed creation, reads, mutation and persistence.
+
+The migration does not redesign component granularity without a separate project-level reason.
+
+Current M032 deterministic behavior remains the semantic target. Regressions from the failed PR-22 typed experiment are fixed, not bypassed by reverting to JSON.
+
+Direct M035 `SimulationWorld` fixtures adapt as needed. M034 remains outside this decision.
+
+### Persistence
+
+The existing M039 compatibility decision remains:
 
 ```text
-agentic2d.multi-fidelity-save.v2
+SimulationWorld v2 is current/minimum.
+SimulationWorld v1 is rejected.
+M033 multi-fidelity v2 embeds SimulationWorld v2.
 ```
 
-and validates nested SimulationWorld v2 state.
-
-This is allowed because the current simulation project is not a published package/release compatibility promise, and v1 directly encodes the architecture being removed.
-
-Generated validation artifacts are regenerated. Historical Git and completed review records are not rewritten.
-
-### Current consumer migration
-
-M039 updates all current in-repository consumers that directly rely on the flawed M031 component/mutation model, including M031, M032, M033 and direct M035 fixtures.
-
-M034's independent settlement-state model is not migrated into SimulationWorld by this decision.
+Persisted component identity is stable component key plus schema/codec metadata and canonical payload. CLR assembly identity is not persisted compatibility authority.
 
 ### Evidence integrity
 
-A capability claim in generated machine evidence must be derived from executed observations.
+M039 evidence must establish claims from observed predicates.
 
-"Fresh process" requires separate process invocations observed by the runner. A scenario writer cannot establish it by emitting a constant boolean.
+The pre-correction PR-22 M039 receipts do not establish milestone completion because `typed-component-authority` still used a shadow store and some evidence fields were constant summaries rather than tested predicates.
+
+All M039 validation receipts are regenerated after the corrected architecture is implemented.
 
 ## Consequences
 
 Positive:
 
-- detailed and abstract execution converge on one real semantic mutation boundary;
-- game-defined state uses the same typed runtime ownership model as the rest of the engine;
-- storage can later be optimized without changing simulation semantics;
-- reservation and activity invariants become enforceable centrally;
-- persistence classifications become meaningful;
-- save/load equivalence evidence becomes trustworthy;
-- later ECS/performance work is no longer coupled to a nested JSON object model.
+- one real component universe;
+- heterogeneous persistence, inspection and transactions no longer require a `SimulationWorld` shadow store;
+- domain code receives typed component APIs;
+- ECS storage may evolve later without changing semantic contracts;
+- save compatibility is stable across CLR assembly renames/version changes;
+- M032/M033 become typed-runtime consumers rather than JSON adapters;
+- evidence can mechanically detect a second component authority.
 
 Costs:
 
-- M031/M032/M033 and direct M035 code must be adapted;
-- unreleased internal simulation APIs may break;
-- current v1 generated saves are incompatible and must be regenerated;
-- transaction/registration support may require bounded changes in the core runtime.
+- `EntityComponentWorld` needs bounded descriptor and heterogeneous-batch infrastructure;
+- M032/M033 migration is broader than replacing registration metadata;
+- mutable proof DTOs must be replaced or safely copied;
+- current PR-22 component implementation must be refactored rather than patched incrementally.
 
-## Rejected alternatives
+## Rejected Alternatives
 
-### Keep the JSON bag but add typed wrappers
+### Keep `SimulationWorld.componentValues`
 
-Rejected because the bag would remain the real authority and the existing typed ECS would still be bypassed.
+Rejected because it is a second component universe and violates ADR-0016/M013 authority regardless of whether values are `JsonElement` or CLR objects.
 
-### Preserve v1 with a compatibility adapter
+### Keep JSON gameplay reads while only storage becomes typed
 
-Rejected because v1 serializes the architecture being removed and no current release promise requires preserving it.
+Rejected because domain logic remains coupled to serialization shape and the migration is not complete.
 
-### Treat the gaps as test-only problems
+### Put assembly-qualified type names in persistence/fingerprints
 
-Rejected because the current source semantics themselves violate the typed-component, atomic-command, reservation and persistence contracts.
+Rejected because deployment identity is not stable gameplay/save identity.
 
-### Replace the ECS while closing M031
+### Make every component tiny/archetype-oriented during M039
 
-Rejected because storage architecture is not the problem being solved and would multiply risk without semantic benefit.
+Rejected because M039 is semantic/authority closure, not an ECS performance redesign.
 
-### Migrate M034 at the same time
+### Sequentially mutate and compensate on failure
 
-Rejected because M034 needs its own integration audit. Folding it into foundation closure would make M039 unbounded.
+Rejected because observers can see partial mutation and rollback itself can fail or emit invalid evidence.
+
+### Replace `EntityComponentWorld` entirely
+
+Rejected because the current storage architecture is sufficient once its heterogeneous infrastructure boundary is completed.
 
 ## Relationship to Existing Authority
 
 ADR-0016 remains authoritative: runtime owns entity identity and typed components.
 
-The M031 simulation-world specification and architecture remain desired semantic authority.
+The entity-component runtime contract defines the underlying typed runtime.
 
-The M035 save-compatibility contract remains the general policy for future compatibility boundaries.
+The simulation-world contract defines higher-level semantic authority.
 
-M039 is a corrective closure milestone, not a repudiation of the one-world, semantic-time, activity/reservation, detailed/abstract convergence model.
+M039 closes the gap between them rather than creating a second runtime.
