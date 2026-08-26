@@ -123,7 +123,7 @@ public static class NewGameFactory
 
 public enum SaveType { Manual, Autosave }
 public enum SaveHealth { Valid, Recoverable, Incompatible, Corrupt }
-public sealed record SaveRecord(string SaveId, string WorldId, string WorldTitle, string SaveTitle, string Seed, string WorldConfigurationId, string WorldConfigurationFingerprint, int SimulationDay, int Population, DateTimeOffset CreatedAt, DateTimeOffset SavedAt, SaveType Type, string GameVersion, int SaveSchema, SaveHealth Health = SaveHealth.Valid)
+public sealed record SaveRecord(string SaveId, string WorldId, string WorldTitle, string SaveTitle, string Seed, string WorldConfigurationId, string WorldConfigurationFingerprint, int SimulationDay, int Population, DateTimeOffset CreatedAt, DateTimeOffset SavedAt, SaveType Type, string GameVersion, int SaveSchema, SaveHealth Health = SaveHealth.Valid, string? CanonicalSavePath = null)
 {
     public static string ManualTitle(string worldTitle, int day) => $"{worldTitle} — Day {day}";
     public static string AutosaveTitle(string worldTitle, int day) => $"Autosave — {worldTitle} — Day {day}";
@@ -139,6 +139,7 @@ public sealed class SaveCatalog
     public SaveRecord AddManual(WorldSession world, int day, int population, DateTimeOffset now, string? title = null) => Add(world, day, population, now, SaveType.Manual, title ?? SaveRecord.ManualTitle(world.WorldTitle, day));
     public SaveRecord AddAutosave(WorldSession world, int day, int population, DateTimeOffset now) => Add(world, day, population, now, SaveType.Autosave, SaveRecord.AutosaveTitle(world.WorldTitle, day));
     public SaveRecord Rename(string saveId, string title) { var index = saves.FindIndex(x => x.SaveId == saveId); if (index < 0 || string.IsNullOrWhiteSpace(title)) throw new InvalidOperationException("SAVE0301: save not found or title is empty"); var result = saves[index] with { SaveTitle = title.Trim() }; saves[index] = result; return result; }
+    public SaveRecord LinkCanonicalSave(string saveId, string canonicalSavePath) { var index = saves.FindIndex(x => x.SaveId == saveId); if (index < 0 || string.IsNullOrWhiteSpace(canonicalSavePath) || Path.IsPathRooted(canonicalSavePath)) throw new InvalidOperationException("SAVE0436: canonical save reference is invalid"); var result = saves[index] with { CanonicalSavePath = canonicalSavePath.Trim() }; saves[index] = result; return result; }
     public void Delete(string saveId) { if (!saves.RemoveAll(x => x.SaveId == saveId).Equals(1)) throw new InvalidOperationException("SAVE0302: save not found"); }
     public ContinueResolution ResolveContinue() { var notices = new List<string>(); foreach (var save in Saves) { if (save.Health == SaveHealth.Valid || save.Health == SaveHealth.Recoverable) return new(save, notices); notices.Add("Skipped " + save.SaveTitle + " (" + save.Health.ToString().ToLowerInvariant() + ")"); } return new(null, notices); }
     public int RetainAutosaves(string worldId, int retention) { if (retention is < 1 or > 10) throw new ArgumentOutOfRangeException(nameof(retention)); var old = saves.Where(x => x.WorldId == worldId && x.Type == SaveType.Autosave).OrderByDescending(x => x.SavedAt).ThenBy(x => x.SaveId, StringComparer.Ordinal).Skip(retention).ToArray(); foreach (var save in old) saves.Remove(save); return old.Length; }

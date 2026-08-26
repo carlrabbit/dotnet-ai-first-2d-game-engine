@@ -4,6 +4,7 @@ using Agentic2D.Engine;
 using Agentic2D.Metrics;
 using Agentic2D.Contracts;
 using Agentic2D.Persistence;
+using Agentic2D.Simulation;
 using Agentic2D.Presentation;
 
 namespace Agentic2D.Engineering;
@@ -106,11 +107,10 @@ public static class PerformanceCli
     }
     private static IReadOnlyDictionary<string, double> PersistentWorld(int ticks)
     {
-        var runtime = PersistentWorldRuntime.CreateInitial();
-        for (var tick = 1; tick <= ticks; tick++) runtime.AdvanceTo(tick);
-        var saves = new CanonicalSaveService(); var identity = CanonicalSaveService.DefaultIdentity("performance.persistent-world"); var rounds = Math.Max(1, ticks / 2000); SaveDocument? save = null;
-        for (var round = 0; round < rounds; round++) { save = saves.Capture(runtime, identity); var loaded = saves.Load(save, identity); if (!loaded.Success) throw new InvalidOperationException("scaled persistent-world workload could not load its own canonical save."); }
-        return new Dictionary<string, double>(StringComparer.Ordinal) { ["performance.persistent-world.ticks"] = ticks, ["performance.persistent-world.entities"] = runtime.Entities.Count, ["performance.persistent-world.contributors"] = save!.Manifest.Contributors.Count, ["performance.persistent-world.roundtrip"] = rounds };
+        var runtime = new SimulationWorld(new("performance.persistent-world")); var registrations = SimulationFoundationComposition.AddM031WoodWorkflowProofComponents(); foreach (var registration in registrations) runtime.RegisterComponent(registration); runtime.CreateRegion(new("region.performance"), "Performance"); runtime.CreateEntityWithComponent("entity.performance.worker", SimulationEntityScope.RegionOwned, new("region.performance"), "component.m031.inventory", new M031InventoryComponent(0, 32)); runtime.Advance(new SimulationDuration(ticks));
+        var saves = new CanonicalRuntimePersistenceService(); var entries = CanonicalRuntimePersistenceService.ResolveSemanticContent(runtime, "project.performance", "world.standard", "config.performance"); var rounds = Math.Max(1, ticks / 2000); CanonicalGameSaveEnvelope? save = null;
+        for (var round = 0; round < rounds; round++) { save = saves.Capture(runtime, "save.performance.persistent-world", "project.performance", "world.standard", "config.performance", entries); var loaded = saves.LoadFreshFromEnvelope(save, registrations, "project.performance", "world.standard", "config.performance", entries); if (!loaded.Success) throw new InvalidOperationException("scaled persistent-world workload could not load its own canonical save."); }
+        return new Dictionary<string, double>(StringComparer.Ordinal) { ["performance.persistent-world.ticks"] = ticks, ["performance.persistent-world.entities"] = runtime.Entities.Count, ["performance.persistent-world.contributors"] = registrations.Count, ["performance.persistent-world.roundtrip"] = rounds };
     }
     private static IReadOnlyDictionary<string, double> Presentation(int ticks)
     {

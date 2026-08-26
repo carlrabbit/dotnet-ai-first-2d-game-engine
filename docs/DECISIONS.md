@@ -38,6 +38,7 @@ This document indexes durable project decisions.
 | `docs/decisions/ADR-0052-shared-simulation-semantics-are-executor-neutral.md` | Accepted for M040 | Work, logistics, needs and semantic commands are shared; detailed and abstract executors own continuation mechanics only. |
 | `docs/decisions/ADR-0053-fidelity-switches-convert-executor-continuation-transactionally.md` | Accepted for M041 | Fidelity switching transactionally converts executor continuation while gameplay semantics remain unchanged. |
 | `docs/decisions/ADR-0054-multi-fidelity-equivalence-uses-distinct-controls-and-switch-count-independent-bounds.md` | Accepted for M042 | Equivalence uses genuinely distinct controls, exact rule invariants, fixed boundary-derived tolerances, and observer-neutrality without switch-count-scaled error. |
+| `docs/decisions/ADR-0055-one-canonical-game-save-wraps-simulation-world-v2.md` | Accepted for M043 | One current durable game-save envelope wraps the actual SimulationWorld v2 payload; historical M020/M035 persistence formats are retired. |
 
 ## Decision policy
 

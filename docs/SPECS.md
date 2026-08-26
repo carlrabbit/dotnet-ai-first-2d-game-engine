@@ -53,6 +53,7 @@ This document indexes permanent behavioral authority. Milestones sequence work; 
 | `docs/specs/shared-work-logistics-and-needs-semantics-contract.md` | M040 executor-neutral work, logistics, needs, interruption, and semantic command rules. |
 | `docs/specs/region-fidelity-and-reconciliation-contract.md` | M041 authoritative region fidelity, executor ownership, handoff, materialization, atomic conversion, rollback, and stable persistence. |
 | `docs/specs/multi-fidelity-equivalence-contract.md` | M042 distinct-control equivalence, zero-tolerance invariants, fixed timing envelopes, observer neutrality, continuation, and long-horizon proof. |
+| `docs/specs/canonical-runtime-persistence-contract.md` | Current durable game-save envelope, real semantic-content compatibility, actual SimulationWorld payload, atomic write/recovery, and catalog boundary. |
 | `docs/specs/construction-and-infrastructure-lifecycle-contract.md` | M034 construction plans, infrastructure condition, maintenance, failure, and repair. |
 | `docs/specs/environmental-resource-and-flow-contract.md` | M034 integer environmental resource production, storage, consumption, and conservation. |
 | `docs/specs/settlement-production-and-needs-infrastructure-contract.md` | M034 farming, food, and finite comfort infrastructure. |

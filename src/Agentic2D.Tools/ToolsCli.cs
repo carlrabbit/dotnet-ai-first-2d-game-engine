@@ -23,6 +23,8 @@ public static class ToolsCli
         if (m041 >= 0) return m041;
         var m042 = await M042SimulationCommands.RunAsync(args, output, error);
         if (m042 >= 0) return m042;
+        var m043 = await M043ProductSaveCommands.RunAsync(args, output, error);
+        if (m043 >= 0) return m043;
         var m034 = await M034SimulationCommands.RunAsync(args, output, error);
         if (m034 >= 0) return m034;
         var m033 = await M033SimulationCommands.RunAsync(args, output, error);
@@ -45,10 +47,6 @@ public static class ToolsCli
         if (m025SoundSynthesis >= 0) return m025SoundSynthesis;
         var export = await ExportCommands.RunAsync(args, output, error);
         if (export >= 0) return export;
-        var m021 = await M021PresentationCommands.RunAsync(args, output, error);
-        if (m021 >= 0) return m021;
-        var m020 = await M020Commands.RunAsync(args, output, error);
-        if (m020 >= 0) return m020;
         var m019Sound = await M019SoundCommands.RunAsync(args, output, error);
         if (m019Sound >= 0) return m019Sound;
         var m019Items = await M019ItemCommands.RunAsync(args, output, error);

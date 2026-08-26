@@ -1,5 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <ItemGroup>
     <ProjectReference Include="../Agentic2D.Gameplay/Agentic2D.Gameplay.csproj" />
+    <ProjectReference Include="../Agentic2D.Simulation/Agentic2D.Simulation.csproj" />
   </ItemGroup>
 </Project>

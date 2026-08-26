@@ -234,10 +234,10 @@ public sealed class EngineeringHost
                 ReceiptPath(suite, shard),
                 shard.DependsOn,
                 shard.Evidence)).ToArray(),
-            suite.Id is "m037-smoke" or "m039-smoke" or "m040-smoke" or "m041-smoke" or "m042-smoke" ? $"pwsh ./eng/suite.ps1 {suite.Id} --verify" : $"./eng/{suite.Id}.sh --verify",
+            suite.Id is "m037-smoke" or "m039-smoke" or "m040-smoke" or "m041-smoke" or "m042-smoke" or "m043-smoke" ? $"pwsh ./eng/suite.ps1 {suite.Id} --verify" : $"./eng/{suite.Id}.sh --verify",
             suite.Shards.SelectMany(shard => shard.Evidence).Distinct(StringComparer.Ordinal).ToArray());
         var serialized = JsonSerializer.Serialize(plan, json);
-        if (suite.Id is "m033-smoke" or "m034-smoke" or "m035-smoke" or "m039-smoke" or "m040-smoke" or "m041-smoke" or "m042-smoke")
+        if (suite.Id is "m033-smoke" or "m034-smoke" or "m035-smoke" or "m039-smoke" or "m040-smoke" or "m041-smoke" or "m042-smoke" or "m043-smoke")
         {
             var planPath = Absolute(Path.Combine("artifacts", "validation", suite.Id, "plan.json"));
             Directory.CreateDirectory(Path.GetDirectoryName(planPath)!);
@@ -471,6 +471,19 @@ public sealed class EngineeringHost
             }
             var verificationPath = Absolute("artifacts/validation/m042-smoke/verify.json"); Directory.CreateDirectory(Path.GetDirectoryName(verificationPath)!);
             File.WriteAllText(verificationPath, JsonSerializer.Serialize(new { schema = "agentic2d.m042.verification.v1", suite = "m042-smoke", status = success ? "passed" : "failed", currentReceipts = suite.Shards.Count, independentComparer = success, predecessorM040 = success, predecessorM041 = success, m042Claims = true }, json));
+        }
+
+        if (suite.Id == "m043-smoke" && success)
+        {
+            foreach (var shard in suite.Shards)
+            {
+                var path = Absolute(shard.Evidence[0]);
+                if (!File.Exists(path)) { diagnostics.WriteLine($"error: m043-smoke/{shard.Id}: observation evidence missing"); success = false; continue; }
+                using var document = JsonDocument.Parse(File.ReadAllText(path));
+                if (document.RootElement.GetProperty("status").GetString() != "passed") { diagnostics.WriteLine($"error: m043-smoke/{shard.Id}: observation status is not passed"); success = false; }
+            }
+            var verificationPath = Absolute("artifacts/validation/m043-smoke/verify.json"); Directory.CreateDirectory(Path.GetDirectoryName(verificationPath)!);
+            File.WriteAllText(verificationPath, JsonSerializer.Serialize(new { schema = "agentic2d.m043.verification.v1", suite = "m043-smoke", status = success ? "passed" : "failed", currentReceipts = suite.Shards.Count, canonicalService = success, independentEvidence = success, historicalCompatibilityExplicitlyRejected = success }, json));
         }
 
         if (suite.Id == "m038-smoke" && success)
@@ -844,6 +857,10 @@ public sealed class EngineeringHost
         if (suite.Id == "m042-smoke")
         {
             return await M042MultiFidelityEquivalenceSuite.RunAsync(root, shard.Id, diagnostics);
+        }
+        if (suite.Id == "m043-smoke")
+        {
+            return await M043CanonicalPersistenceSuite.RunAsync(root, shard.Id, diagnostics);
         }
         if (suite.Id == "m038-smoke") return await M038SimpleReviewSuite.RunAsync(this, root, shard.Id, diagnostics);
         if (suite.Id == "m036-smoke")
@@ -1408,6 +1425,19 @@ public sealed class EngineeringHost
             Shard("long-horizon-transition-stability", "365-day, five-region, 1000-switch stability campaign and rerun.", "internal:m042", ["artifacts/simulation/M042/long-horizon-transition-stability.json"], isInternal: true),
             Shard("evidence-integrity", "Independent raw-observation comparer and stale/tampered evidence boundary.", "internal:m042", ["artifacts/simulation/M042/evidence-integrity.json"], isInternal: true),
             Shard("predecessor-regression", "Current M040/M041 prerequisite and real implementation regression.", "internal:m042", ["artifacts/simulation/M042/predecessor-regression.json"], isInternal: true)
+        ]),
+        new("m043-smoke", "resumable-sharded",
+        [
+            Shard("canonical-authority-and-envelope", "One canonical outer envelope wraps the actual SimulationWorld v2 payload.", "internal:m043", ["artifacts/persistence/M043/canonical-authority-and-envelope.json"], isInternal: true),
+            Shard("real-content-compatibility", "Compatibility derives from resolved semantic content and rejects mismatched identity.", "internal:m043", ["artifacts/persistence/M043/real-content-compatibility.json"], isInternal: true),
+            Shard("simulation-world-roundtrip", "The actual typed SimulationWorld round-trips canonically.", "internal:m043", ["artifacts/persistence/M043/simulation-world-roundtrip.json"], isInternal: true),
+            Shard("persistence-classification-and-rebuild", "Executable persistence classifications retain only authoritative state.", "internal:m043", ["artifacts/persistence/M043/persistence-classification-and-rebuild.json"], isInternal: true),
+            Shard("atomic-write-and-recovery", "Temporary validation and previous-good recovery preserve canonical saves.", "internal:m043", ["artifacts/persistence/M043/atomic-write-and-recovery.json"], isInternal: true),
+            Shard("sequence-and-identity-continuation", "Fresh-world load continues sequence and event identity.", "internal:m043", ["artifacts/persistence/M043/sequence-and-identity-continuation.json"], isInternal: true),
+            Shard("legacy-runtime-retirement", "Current product persistence no longer depends on the historical runtime.", "internal:m043", ["artifacts/persistence/M043/legacy-runtime-retirement.json"], isInternal: true),
+            Shard("product-save-boundary", "M037 catalog metadata references canonical SaveId/file persistence.", "internal:m043", ["artifacts/persistence/M043/product-save-boundary.json"], isInternal: true),
+            Shard("evidence-integrity", "Evidence is derived from the canonical service and source checks.", "internal:m043", ["artifacts/persistence/M043/evidence-integrity.json"], isInternal: true),
+            Shard("current-simulation-regression", "Current simulation structures remain loadable through the unified boundary.", "internal:m043", ["artifacts/persistence/M043/current-simulation-regression.json"], isInternal: true)
         ]),
         new("m037-smoke", "resumable-sharded",
         [
