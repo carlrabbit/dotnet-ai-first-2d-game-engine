@@ -25,6 +25,8 @@ public static class ToolsCli
         if (m042 >= 0) return m042;
         var m043 = await M043ProductSaveCommands.RunAsync(args, output, error);
         if (m043 >= 0) return m043;
+        var m044 = await M044SimulationCommands.RunAsync(args, output, error);
+        if (m044 >= 0) return m044;
         var m034 = await M034SimulationCommands.RunAsync(args, output, error);
         if (m034 >= 0) return m034;
         var m033 = await M033SimulationCommands.RunAsync(args, output, error);

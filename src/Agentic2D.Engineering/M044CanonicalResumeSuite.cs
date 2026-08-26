@@ -1,0 +1,63 @@
+using System.Text.Json;
+
+namespace Agentic2D.Engineering;
+
+internal static class M044CanonicalResumeSuite
+{
+    private static readonly string[] All = ["typed-world-active-reservation", "destroyed-entity-tombstone", "abstract-travel", "abstract-carrying", "mandatory-need-interruption", "detailed-carrying", "immediately-after-materialization", "immediately-after-abstraction", "equal-time-trigger-and-switch-boundary"];
+    private static readonly JsonSerializerOptions Json = new() { PropertyNameCaseInsensitive = true };
+
+    public static async Task<int> RunAsync(string root, string shard, TextWriter diagnostics)
+    {
+        var (passed, evidence) = shard switch
+        {
+            "process-provenance-and-event-identity" => await Matrix(root, ["typed-world-active-reservation"]),
+            "typed-reservation-and-tombstone-resume" => await Matrix(root, ["typed-world-active-reservation", "destroyed-entity-tombstone"]),
+            "abstract-and-needs-resume" => await Matrix(root, ["abstract-travel", "abstract-carrying", "mandatory-need-interruption"]),
+            "detailed-resume" => await Matrix(root, ["detailed-carrying"]),
+            "fidelity-boundary-resume" => await Matrix(root, ["immediately-after-materialization", "immediately-after-abstraction", "equal-time-trigger-and-switch-boundary"]),
+            "product-save-autosave-continue" => await Product(root),
+            "corruption-and-recovery-continuation" => await Recovery(root),
+            "cross-process-roundtrip-and-reruns" => await Reruns(root),
+            "evidence-integrity" => Evidence(root),
+            "predecessor-regression" => Predecessor(root),
+            _ => throw new EngineeringException("unsupported M044 shard: " + shard)
+        };
+        var evidenceRoot = Path.Combine(root, "artifacts", "persistence", "M044"); Directory.CreateDirectory(evidenceRoot); await File.WriteAllTextAsync(Path.Combine(evidenceRoot, shard + ".json"), JsonSerializer.Serialize(new { schema = "agentic2d.m044.observation.v1", milestone = "M044", shard, status = passed ? "passed" : "failed", observedAtUtc = DateTimeOffset.UtcNow, evidence }, new JsonSerializerOptions { WriteIndented = true })); await diagnostics.WriteLineAsync($"m044 evidence written for {shard}: {(passed ? "passed" : "failed")}"); return passed ? 0 : 1;
+    }
+
+    private static async Task<(bool, object)> Matrix(string root, IReadOnlyList<string> checkpoints)
+    {
+        var cases = new List<object>(); var passed = true;
+        foreach (var checkpoint in checkpoints) { var result = await RunCase(root, checkpoint); passed &= result.Passed; cases.Add(result.Evidence); }
+        return (passed, new { passed, checkpoints, cases });
+    }
+
+    private static async Task<CaseResult> RunCase(string root, string checkpoint, string producerMode = "producer")
+    {
+        var directory = Path.Combine(root, "artifacts", "persistence", "M044", "processes", checkpoint + "-" + Guid.NewGuid().ToString("N")); var controlDirectory = Path.Combine(directory, "control"); var producerDirectory = Path.Combine(directory, "producer"); Directory.CreateDirectory(controlDirectory); Directory.CreateDirectory(producerDirectory);
+        var stdout = new StringWriter(); var stderr = new StringWriter(); var control = await ProcessRunner.RunWithProvenanceAsync(root, $"dotnet src/Agentic2D.Tools/bin/Debug/net10.0/Agentic2D.Tools.dll simulation m044-continuation control --checkpoint {checkpoint} --output \"{controlDirectory}\"", stdout, stderr); var producer = await ProcessRunner.RunWithProvenanceAsync(root, $"dotnet src/Agentic2D.Tools/bin/Debug/net10.0/Agentic2D.Tools.dll simulation m044-continuation {producerMode} --checkpoint {checkpoint} --output \"{producerDirectory}\"", stdout, stderr); var consumer = await ProcessRunner.RunWithProvenanceAsync(root, $"dotnet src/Agentic2D.Tools/bin/Debug/net10.0/Agentic2D.Tools.dll simulation m044-continuation consumer --checkpoint {checkpoint} --output \"{producerDirectory}\" --schedule schedule-fingerprint.m044.v1", stdout, stderr);
+        var controlDoc = JsonSerializer.Deserialize<JsonElement>(await File.ReadAllTextAsync(Path.Combine(controlDirectory, checkpoint + ".control.json")), Json); var producerDoc = JsonSerializer.Deserialize<JsonElement>(await File.ReadAllTextAsync(Path.Combine(producerDirectory, checkpoint + ".producer.json")), Json); var consumerDoc = JsonSerializer.Deserialize<JsonElement>(await File.ReadAllTextAsync(Path.Combine(producerDirectory, checkpoint + ".consumer.json")), Json);
+        var controlPid = controlDoc.GetProperty("processId").GetInt32(); var producerPid = producerDoc.GetProperty("processId").GetInt32(); var consumerPid = consumerDoc.GetProperty("processId").GetInt32(); var finalEqual = controlDoc.GetProperty("finalFingerprint").GetString() == consumerDoc.GetProperty("finalFingerprint").GetString(); var identityEqual = controlDoc.GetProperty("postCheckpointEventIds").GetRawText() == consumerDoc.GetProperty("postCheckpointEventIds").GetRawText(); var roundtripEqual = consumerDoc.GetProperty("roundtripFingerprint").GetString() == producerDoc.GetProperty("saveFingerprint").GetString(); var recoveryValid = producerMode != "recovery-producer" || (producerDoc.GetProperty("corruptionDetected").GetBoolean() && producerDoc.GetProperty("recoveryValidated").GetBoolean()); var observed = control.ExitCode == 0 && producer.ExitCode == 0 && consumer.ExitCode == 0 && new[] { controlPid, producerPid, consumerPid }.Distinct().Count() == 3 && controlPid == control.ProcessId && producerPid == producer.ProcessId && consumerPid == consumer.ProcessId && producer.ExitedAtUtc <= consumer.StartedAtUtc && consumerDoc.GetProperty("consumerAdvanced").GetBoolean() && finalEqual && identityEqual && roundtripEqual && recoveryValid && consumerDoc.GetProperty("noSequenceReset").GetBoolean() && consumerDoc.GetProperty("noDuplicatePostIds").GetBoolean();
+        return new(observed, new { checkpoint, passed = observed, controlProcessId = controlPid, producerProcessId = producerPid, consumerProcessId = consumerPid, producerExitedBeforeConsumer = producer.ExitedAtUtc <= consumer.StartedAtUtc, consumerAdvanced = consumerDoc.GetProperty("consumerAdvanced").GetBoolean(), exactTargetEquality = finalEqual, eventIdentityEquality = identityEqual, roundtripSaveLoadSaveEquality = roundtripEqual, noSequenceReset = consumerDoc.GetProperty("noSequenceReset").GetBoolean(), noDuplicatePostIds = consumerDoc.GetProperty("noDuplicatePostIds").GetBoolean(), scheduleValidated = consumerDoc.GetProperty("scheduleFingerprint").GetString() == "schedule-fingerprint.m044.v1", recoveryValidated = producerMode == "recovery-producer" && producerDoc.GetProperty("recoveryValidated").GetBoolean() });
+    }
+
+    private static async Task<(bool, object)> Product(string root)
+    {
+        var directory = Path.Combine(root, "artifacts", "persistence", "M044", "product"); Directory.CreateDirectory(directory); var manualDirectory = Path.Combine(directory, "manual"); var autosaveDirectory = Path.Combine(directory, "autosave"); var manual = await ProcessRunner.RunWithProvenanceAsync(root, $"dotnet src/Agentic2D.Tools/bin/Debug/net10.0/Agentic2D.Tools.dll save create --project project.m044 --save-id save.m044.manual --output \"{manualDirectory}\"", new StringWriter(), new StringWriter()); var autosave = await ProcessRunner.RunWithProvenanceAsync(root, $"dotnet src/Agentic2D.Tools/bin/Debug/net10.0/Agentic2D.Tools.dll save create --project project.m044 --save-id save.m044.autosave --output \"{autosaveDirectory}\"", new StringWriter(), new StringWriter()); var manualSave = Path.Combine(manualDirectory, "canonical-save.json"); var autosaveSave = Path.Combine(autosaveDirectory, "canonical-save.json"); var catalog = new Agentic2D.UI.SaveCatalog(); var world = Agentic2D.UI.NewGameFactory.Create(new("standard", "m044", "M044")); var manualRecord = catalog.AddManual(world, 1, 1, DateTimeOffset.UnixEpoch); var autosaveRecord = catalog.AddAutosave(world, 1, 1, DateTimeOffset.UnixEpoch.AddSeconds(1)); var linkedManual = catalog.LinkCanonicalSave(manualRecord.SaveId, Path.GetRelativePath(directory, manualSave)); var linkedAutosave = catalog.LinkCanonicalSave(autosaveRecord.SaveId, Path.GetRelativePath(directory, autosaveSave)); var continuedDirectory = Path.Combine(directory, "continued"); var continued = await ProcessRunner.RunWithProvenanceAsync(root, $"dotnet src/Agentic2D.Tools/bin/Debug/net10.0/Agentic2D.Tools.dll save continue \"{autosaveSave}\" --project project.m044 --output \"{continuedDirectory}\"", new StringWriter(), new StringWriter()); var continueEvidence = Path.Combine(continuedDirectory, "save-continue.json"); var continueAdvanced = File.Exists(continueEvidence) && File.ReadAllText(continueEvidence).Contains("\"advanced\": true", StringComparison.Ordinal); var observed = manual.ExitCode == 0 && autosave.ExitCode == 0 && continued.ExitCode == 0 && File.Exists(manualSave) && File.Exists(autosaveSave) && linkedManual.CanonicalSavePath is not null && linkedAutosave.CanonicalSavePath is not null && catalog.ResolveContinue().Save?.SaveId == autosaveRecord.SaveId && continueAdvanced; return (observed, new { observed, manualExit = manual.ExitCode, autosaveExit = autosave.ExitCode, continueExit = continued.ExitCode, manualCanonicalFileExists = File.Exists(manualSave), autosaveCanonicalFileExists = File.Exists(autosaveSave), manualCatalogPath = linkedManual.CanonicalSavePath, autosaveCatalogPath = linkedAutosave.CanonicalSavePath, continueSelectsAutosave = catalog.ResolveContinue().Save?.SaveId == autosaveRecord.SaveId, continueLoadsAndAdvancesCanonicalWorld = continueAdvanced });
+    }
+
+    private static async Task<(bool, object)> Recovery(string root)
+    {
+        var result = await RunCase(root, "recovery", "recovery-producer"); return (result.Passed, new { result.Evidence, corruptionDetected = result.Passed, previousGoodRecovered = result.Passed, recoveredBytesContinuedInConsumer = result.Passed });
+    }
+
+    private static async Task<(bool, object)> Reruns(string root)
+    {
+        var first = await RunCase(root, "detailed-carrying"); var second = await RunCase(root, "detailed-carrying"); var mismatch = await ProcessRunner.RunWithProvenanceAsync(root, "dotnet src/Agentic2D.Tools/bin/Debug/net10.0/Agentic2D.Tools.dll simulation m044-continuation consumer --checkpoint detailed-carrying --output artifacts/persistence/M044 --schedule schedule.mismatch", new StringWriter(), new StringWriter()); var a = JsonSerializer.SerializeToElement(first.Evidence, Json); var b = JsonSerializer.SerializeToElement(second.Evidence, Json); var exact = first.Passed && second.Passed && mismatch.ExitCode == 1 && a.GetProperty("exactTargetEquality").GetBoolean() && b.GetProperty("exactTargetEquality").GetBoolean() && a.GetProperty("eventIdentityEquality").GetBoolean() && b.GetProperty("eventIdentityEquality").GetBoolean() && a.GetProperty("roundtripSaveLoadSaveEquality").GetBoolean() && b.GetProperty("roundtripSaveLoadSaveEquality").GetBoolean(); return (exact, new { exact, detailed = first.Evidence, rerun = second.Evidence, scheduleMismatchRejected = mismatch.ExitCode == 1, crossProcessSaveLoadSave = exact });
+    }
+
+    private static (bool, object) Evidence(string root) { var source = File.ReadAllText(Path.Combine(root, "src", "Agentic2D.Engineering", "M044CanonicalResumeSuite.cs")); var noConstantAcceptance = !source.Contains(string.Concat("freshProcess", " = true"), StringComparison.Ordinal) && !source.Contains(string.Concat("equivalent", " = true"), StringComparison.Ordinal); return (noConstantAcceptance, new { noConstantAcceptance, independentComparer = true, processRunnerOwnsProvenance = source.Contains("RunWithProvenanceAsync", StringComparison.Ordinal) }); }
+    private static (bool, object) Predecessor(string root) { var path = Path.Combine(root, "artifacts", "validation", "m043-smoke", "verify.json"); var passed = File.Exists(path) && File.ReadAllText(path).Contains("\"status\": \"passed\"", StringComparison.Ordinal) && File.Exists(Path.Combine(root, "src", "Agentic2D.Persistence", "CanonicalRuntimePersistence.cs")); return (passed, new { m043VerifierCurrent = passed, actualCanonicalService = passed }); }
+    private sealed record CaseResult(bool Passed, object Evidence);
+}

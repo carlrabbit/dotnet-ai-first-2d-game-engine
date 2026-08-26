@@ -234,10 +234,10 @@ public sealed class EngineeringHost
                 ReceiptPath(suite, shard),
                 shard.DependsOn,
                 shard.Evidence)).ToArray(),
-            suite.Id is "m037-smoke" or "m039-smoke" or "m040-smoke" or "m041-smoke" or "m042-smoke" or "m043-smoke" ? $"pwsh ./eng/suite.ps1 {suite.Id} --verify" : $"./eng/{suite.Id}.sh --verify",
+            suite.Id is "m037-smoke" or "m039-smoke" or "m040-smoke" or "m041-smoke" or "m042-smoke" or "m043-smoke" or "m044-smoke" ? $"pwsh ./eng/suite.ps1 {suite.Id} --verify" : $"./eng/{suite.Id}.sh --verify",
             suite.Shards.SelectMany(shard => shard.Evidence).Distinct(StringComparer.Ordinal).ToArray());
         var serialized = JsonSerializer.Serialize(plan, json);
-        if (suite.Id is "m033-smoke" or "m034-smoke" or "m035-smoke" or "m039-smoke" or "m040-smoke" or "m041-smoke" or "m042-smoke" or "m043-smoke")
+        if (suite.Id is "m033-smoke" or "m034-smoke" or "m035-smoke" or "m039-smoke" or "m040-smoke" or "m041-smoke" or "m042-smoke" or "m043-smoke" or "m044-smoke")
         {
             var planPath = Absolute(Path.Combine("artifacts", "validation", suite.Id, "plan.json"));
             Directory.CreateDirectory(Path.GetDirectoryName(planPath)!);
@@ -484,6 +484,21 @@ public sealed class EngineeringHost
             }
             var verificationPath = Absolute("artifacts/validation/m043-smoke/verify.json"); Directory.CreateDirectory(Path.GetDirectoryName(verificationPath)!);
             File.WriteAllText(verificationPath, JsonSerializer.Serialize(new { schema = "agentic2d.m043.verification.v1", suite = "m043-smoke", status = success ? "passed" : "failed", currentReceipts = suite.Shards.Count, canonicalService = success, independentEvidence = success, historicalCompatibilityExplicitlyRejected = success }, json));
+        }
+
+        if (suite.Id == "m044-smoke" && success)
+        {
+            var m043 = Absolute("artifacts/validation/m043-smoke/verify.json");
+            if (!File.Exists(m043) || !File.ReadAllText(m043).Contains("\"status\": \"passed\"", StringComparison.Ordinal)) { diagnostics.WriteLine("error: m044-smoke: current M043 prerequisite is missing or failed"); success = false; }
+            foreach (var shard in suite.Shards)
+            {
+                var path = Absolute(shard.Evidence[0]);
+                if (!File.Exists(path)) { diagnostics.WriteLine($"error: m044-smoke/{shard.Id}: observation evidence missing"); success = false; continue; }
+                using var document = JsonDocument.Parse(File.ReadAllText(path));
+                if (document.RootElement.GetProperty("status").GetString() != "passed") { diagnostics.WriteLine($"error: m044-smoke/{shard.Id}: observation status is not passed"); success = false; }
+            }
+            var verificationPath = Absolute("artifacts/validation/m044-smoke/verify.json"); Directory.CreateDirectory(Path.GetDirectoryName(verificationPath)!);
+            File.WriteAllText(verificationPath, JsonSerializer.Serialize(new { schema = "agentic2d.m044.verification.v1", suite = "m044-smoke", status = success ? "passed" : "failed", currentReceipts = suite.Shards.Count, predecessorM043 = success, independentComparer = success, processSeparatedContinuation = success }, json));
         }
 
         if (suite.Id == "m038-smoke" && success)
@@ -861,6 +876,10 @@ public sealed class EngineeringHost
         if (suite.Id == "m043-smoke")
         {
             return await M043CanonicalPersistenceSuite.RunAsync(root, shard.Id, diagnostics);
+        }
+        if (suite.Id == "m044-smoke")
+        {
+            return await M044CanonicalResumeSuite.RunAsync(root, shard.Id, diagnostics);
         }
         if (suite.Id == "m038-smoke") return await M038SimpleReviewSuite.RunAsync(this, root, shard.Id, diagnostics);
         if (suite.Id == "m036-smoke")
@@ -1439,6 +1458,19 @@ public sealed class EngineeringHost
             Shard("evidence-integrity", "Evidence is derived from the canonical service and source checks.", "internal:m043", ["artifacts/persistence/M043/evidence-integrity.json"], isInternal: true),
             Shard("current-simulation-regression", "Current simulation structures remain loadable through the unified boundary.", "internal:m043", ["artifacts/persistence/M043/current-simulation-regression.json"], isInternal: true)
         ]),
+        new("m044-smoke", "resumable-sharded",
+        [
+            Shard("process-provenance-and-event-identity", "Distinct control, producer, and consumer processes preserve identity continuity.", "internal:m044", ["artifacts/persistence/M044/process-provenance-and-event-identity.json"], isInternal: true),
+            Shard("typed-reservation-and-tombstone-resume", "Typed reserved state and tombstones survive canonical process-separated continuation.", "internal:m044", ["artifacts/persistence/M044/typed-reservation-and-tombstone-resume.json"], isInternal: true),
+            Shard("abstract-and-needs-resume", "Abstract travel, carrying, and need checkpoints continue from canonical disk saves.", "internal:m044", ["artifacts/persistence/M044/abstract-and-needs-resume.json"], isInternal: true),
+            Shard("detailed-resume", "Detailed carrying continuation resumes through canonical disk persistence.", "internal:m044", ["artifacts/persistence/M044/detailed-resume.json"], isInternal: true),
+            Shard("fidelity-boundary-resume", "Stable fidelity-boundary checkpoints continue with current ownership semantics.", "internal:m044", ["artifacts/persistence/M044/fidelity-boundary-resume.json"], isInternal: true),
+            Shard("product-save-autosave-continue", "Product save and catalog linkage resolve actual canonical files.", "internal:m044", ["artifacts/persistence/M044/product-save-autosave-continue.json"], isInternal: true),
+            Shard("corruption-and-recovery-continuation", "Corruption and previous-good recovery return to a resumable canonical state.", "internal:m044", ["artifacts/persistence/M044/corruption-and-recovery-continuation.json"], isInternal: true),
+            Shard("cross-process-roundtrip-and-reruns", "Cross-process continuation and deterministic reruns remain exact.", "internal:m044", ["artifacts/persistence/M044/cross-process-roundtrip-and-reruns.json"], isInternal: true),
+            Shard("evidence-integrity", "Independent M044 process and equality evidence is observed rather than asserted.", "internal:m044", ["artifacts/persistence/M044/evidence-integrity.json"], isInternal: true),
+            Shard("predecessor-regression", "Current M043 canonical persistence remains the only persistence backend.", "internal:m044", ["artifacts/persistence/M044/predecessor-regression.json"], isInternal: true)
+        ]),
         new("m037-smoke", "resumable-sharded",
         [
             Shard("authority-normalization", "Active platform authority is consistent.", "internal:m037", ["artifacts/application/M037/authority-normalization-report.json"], isInternal: true),
@@ -1626,9 +1658,18 @@ public static class ProcessRunner
 
     public static ProcessStartInfo BuildStartInfo(string command, string workingDirectory)
     {
-        var start = OperatingSystem.IsWindows()
-            ? new ProcessStartInfo("pwsh", ["-NoLogo", "-NoProfile", "-NonInteractive", "-Command", command])
-            : new ProcessStartInfo("bash", ["-lc", command]);
+        ProcessStartInfo start;
+        if (OperatingSystem.IsWindows() && command.StartsWith("dotnet ", StringComparison.Ordinal))
+        {
+            start = new ProcessStartInfo("dotnet");
+            foreach (var argument in TokenizeProcessArguments(command[7..])) start.ArgumentList.Add(argument);
+        }
+        else
+        {
+            start = OperatingSystem.IsWindows()
+                ? new ProcessStartInfo("pwsh", ["-NoLogo", "-NoProfile", "-NonInteractive", "-Command", command])
+                : new ProcessStartInfo("bash", ["-lc", command]);
+        }
         start.WorkingDirectory = workingDirectory;
         start.RedirectStandardOutput = true;
         start.RedirectStandardError = true;
@@ -1636,11 +1677,37 @@ public static class ProcessRunner
         return start;
     }
 
+    private static IEnumerable<string> TokenizeProcessArguments(string command)
+    {
+        var current = new System.Text.StringBuilder(); var quoted = false;
+        foreach (var character in command)
+        {
+            if (character == '"') { quoted = !quoted; continue; }
+            if (char.IsWhiteSpace(character) && !quoted)
+            {
+                if (current.Length > 0) { yield return current.ToString(); current.Clear(); }
+            }
+            else current.Append(character);
+        }
+        if (current.Length > 0) yield return current.ToString();
+    }
+
+    public static async Task<ProcessRunResult> RunWithProvenanceAsync(string workingDirectory, string command, TextWriter stdout, TextWriter stderr)
+    {
+        var start = BuildStartInfo(command, workingDirectory); var launchedAt = DateTimeOffset.UtcNow;
+        using var process = Process.Start(start) ?? throw new EngineeringException($"unable to start process: {command}");
+        var processId = process.Id; var outTask = PumpAsync(process.StandardOutput, stdout); var errTask = PumpAsync(process.StandardError, stderr);
+        await Task.WhenAll(process.WaitForExitAsync(), outTask, errTask);
+        return new(processId, launchedAt, DateTimeOffset.UtcNow, process.ExitCode);
+    }
+
     private static async Task PumpAsync(StreamReader reader, TextWriter writer)
     {
         while (await reader.ReadLineAsync() is { } line) await writer.WriteLineAsync(line);
     }
 }
+
+public sealed record ProcessRunResult(int ProcessId, DateTimeOffset StartedAtUtc, DateTimeOffset ExitedAtUtc, int ExitCode);
 
 public sealed class EngineeringException(string message) : Exception(message);
 

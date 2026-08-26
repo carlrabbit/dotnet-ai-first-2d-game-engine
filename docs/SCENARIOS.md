@@ -24,6 +24,7 @@ Scenarios validate behavior that unit tests alone cannot prove, including runtim
 | M031 | `scenario.m031.simulation-foundation.wood-workflow`: deterministic two-region harvest/deposit proof with a fresh-process save/load continuation. |
 | M033 | `scenario.m033.multi-region-equivalence-and-switching`: three persistent regions, one detailed owner, abstract event advancement, repeated switches, and thirty-day controls. |
 | M035 | `campaign.m035.heavy-internal-testing-readiness`: five-region supported-scale, fault, compatibility, transition, save-cycle, 365-day headless-soak, and four-hour graphical-soak readiness campaign. |
+| M044 | `scenario.m044.canonical-save-resume-and-recovery`: process-separated canonical save continuation, identity preservation, product Continue, corruption recovery, and independent comparison. |
 
 ## Current commands
 
