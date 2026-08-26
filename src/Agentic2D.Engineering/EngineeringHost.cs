@@ -234,10 +234,10 @@ public sealed class EngineeringHost
                 ReceiptPath(suite, shard),
                 shard.DependsOn,
                 shard.Evidence)).ToArray(),
-            suite.Id is "m037-smoke" or "m039-smoke" or "m040-smoke" or "m041-smoke" ? $"pwsh ./eng/suite.ps1 {suite.Id} --verify" : $"./eng/{suite.Id}.sh --verify",
+            suite.Id is "m037-smoke" or "m039-smoke" or "m040-smoke" or "m041-smoke" or "m042-smoke" ? $"pwsh ./eng/suite.ps1 {suite.Id} --verify" : $"./eng/{suite.Id}.sh --verify",
             suite.Shards.SelectMany(shard => shard.Evidence).Distinct(StringComparer.Ordinal).ToArray());
         var serialized = JsonSerializer.Serialize(plan, json);
-        if (suite.Id is "m033-smoke" or "m034-smoke" or "m035-smoke" or "m039-smoke" or "m040-smoke" or "m041-smoke")
+        if (suite.Id is "m033-smoke" or "m034-smoke" or "m035-smoke" or "m039-smoke" or "m040-smoke" or "m041-smoke" or "m042-smoke")
         {
             var planPath = Absolute(Path.Combine("artifacts", "validation", suite.Id, "plan.json"));
             Directory.CreateDirectory(Path.GetDirectoryName(planPath)!);
@@ -454,6 +454,23 @@ public sealed class EngineeringHost
             }
             var verificationPath = Absolute("artifacts/validation/m041-smoke/verify.json"); Directory.CreateDirectory(Path.GetDirectoryName(verificationPath)!);
             File.WriteAllText(verificationPath, JsonSerializer.Serialize(new { schema = "agentic2d.m041.verification.v1", suite = "m041-smoke", status = success ? "passed" : "failed", currentReceipts = suite.Shards.Count, freshProcessContinuation = success, m042Claims = false }, json));
+        }
+
+        if (suite.Id == "m042-smoke" && success)
+        {
+            var m040 = Absolute("artifacts/validation/m040-smoke/verify.json");
+            var m041 = Absolute("artifacts/validation/m041-smoke/verify.json");
+            if (!File.Exists(m040) || !File.ReadAllText(m040).Contains("\"status\": \"passed\"", StringComparison.Ordinal)) { diagnostics.WriteLine("error: m042-smoke: current M040 prerequisite is missing or failed"); success = false; }
+            if (!File.Exists(m041) || !File.ReadAllText(m041).Contains("\"status\": \"passed\"", StringComparison.Ordinal)) { diagnostics.WriteLine("error: m042-smoke: current M041 prerequisite is missing or failed"); success = false; }
+            foreach (var shard in suite.Shards)
+            {
+                var path = Absolute(shard.Evidence[0]);
+                if (!File.Exists(path)) { diagnostics.WriteLine($"error: m042-smoke/{shard.Id}: observation evidence missing"); success = false; continue; }
+                using var document = JsonDocument.Parse(File.ReadAllText(path));
+                if (document.RootElement.GetProperty("status").GetString() != "passed") { diagnostics.WriteLine($"error: m042-smoke/{shard.Id}: observation status is not passed"); success = false; }
+            }
+            var verificationPath = Absolute("artifacts/validation/m042-smoke/verify.json"); Directory.CreateDirectory(Path.GetDirectoryName(verificationPath)!);
+            File.WriteAllText(verificationPath, JsonSerializer.Serialize(new { schema = "agentic2d.m042.verification.v1", suite = "m042-smoke", status = success ? "passed" : "failed", currentReceipts = suite.Shards.Count, independentComparer = success, predecessorM040 = success, predecessorM041 = success, m042Claims = true }, json));
         }
 
         if (suite.Id == "m038-smoke" && success)
@@ -823,6 +840,10 @@ public sealed class EngineeringHost
         if (suite.Id == "m041-smoke")
         {
             return await M041FidelityReconciliationSuite.RunAsync(root, shard.Id, diagnostics);
+        }
+        if (suite.Id == "m042-smoke")
+        {
+            return await M042MultiFidelityEquivalenceSuite.RunAsync(root, shard.Id, diagnostics);
         }
         if (suite.Id == "m038-smoke") return await M038SimpleReviewSuite.RunAsync(this, root, shard.Id, diagnostics);
         if (suite.Id == "m036-smoke")
@@ -1375,6 +1396,18 @@ public sealed class EngineeringHost
             Shard("transition-persistence", "Fresh processes continue stable pre- and post-switch checkpoints.", "internal:m041", ["artifacts/simulation/M041/transition-persistence.json"], isInternal: true),
             Shard("stale-and-rapid-switch", "Old continuation is fenced and bounded switching does not leak executable work.", "internal:m041", ["artifacts/simulation/M041/stale-and-rapid-switch.json"], isInternal: true),
             Shard("m040-regression", "M040 verifier and real executor regression remain current.", "internal:m041", ["artifacts/simulation/M041/m040-regression.json"], isInternal: true)
+        ]),
+        new("m042-smoke", "resumable-sharded",
+        [
+            Shard("mixed-orchestrator-and-control-distinctness", "Real mixed orchestration and four distinct canonical controls.", "internal:m042", ["artifacts/simulation/M042/mixed-orchestrator-and-control-distinctness.json"], isInternal: true),
+            Shard("zero-tolerance-invariants", "Independent zero-tolerance invariant comparison.", "internal:m042", ["artifacts/simulation/M042/zero-tolerance-invariants.json"], isInternal: true),
+            Shard("bounded-temporal-equivalence", "Fixed policy-derived timing envelopes and boundary allowances.", "internal:m042", ["artifacts/simulation/M042/bounded-temporal-equivalence.json"], isInternal: true),
+            Shard("observer-neutrality", "Equal-exposure low, medium, and high switching comparisons.", "internal:m042", ["artifacts/simulation/M042/observer-neutrality.json"], isInternal: true),
+            Shard("mixed-fresh-process-continuation", "Seven fresh-process mixed-fidelity checkpoint continuations.", "internal:m042", ["artifacts/simulation/M042/mixed-fresh-process-continuation.json"], isInternal: true),
+            Shard("deterministic-reruns", "Exact same-schedule canonical reruns.", "internal:m042", ["artifacts/simulation/M042/deterministic-reruns.json"], isInternal: true),
+            Shard("long-horizon-transition-stability", "365-day, five-region, 1000-switch stability campaign and rerun.", "internal:m042", ["artifacts/simulation/M042/long-horizon-transition-stability.json"], isInternal: true),
+            Shard("evidence-integrity", "Independent raw-observation comparer and stale/tampered evidence boundary.", "internal:m042", ["artifacts/simulation/M042/evidence-integrity.json"], isInternal: true),
+            Shard("predecessor-regression", "Current M040/M041 prerequisite and real implementation regression.", "internal:m042", ["artifacts/simulation/M042/predecessor-regression.json"], isInternal: true)
         ]),
         new("m037-smoke", "resumable-sharded",
         [

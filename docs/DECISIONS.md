@@ -37,6 +37,7 @@ This document indexes durable project decisions.
 | `docs/decisions/ADR-0051-close-m031-with-typed-components-and-atomic-semantic-transactions.md` | Accepted for M039 | M031 closure uses the existing typed component runtime, atomic semantic commands, enforceable persistence classifications, and a deliberate v2 save break. |
 | `docs/decisions/ADR-0052-shared-simulation-semantics-are-executor-neutral.md` | Accepted for M040 | Work, logistics, needs and semantic commands are shared; detailed and abstract executors own continuation mechanics only. |
 | `docs/decisions/ADR-0053-fidelity-switches-convert-executor-continuation-transactionally.md` | Accepted for M041 | Fidelity switching transactionally converts executor continuation while gameplay semantics remain unchanged. |
+| `docs/decisions/ADR-0054-multi-fidelity-equivalence-uses-distinct-controls-and-switch-count-independent-bounds.md` | Accepted for M042 | Equivalence uses genuinely distinct controls, exact rule invariants, fixed boundary-derived tolerances, and observer-neutrality without switch-count-scaled error. |
 
 ## Decision policy
 

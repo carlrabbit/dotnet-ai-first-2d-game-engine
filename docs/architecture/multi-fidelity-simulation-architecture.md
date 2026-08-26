@@ -1,80 +1,77 @@
 # Multi-Fidelity Simulation Architecture
 
-## Corrective sequence
+## Corrective closure sequence
 
 ```text
-M040 — two real executors over shared semantics
-M041 — transactional executor-ownership reconciliation
-M042 — mixed-fidelity equivalence and long-horizon proof
+M040 — real independent executors over shared semantics
+M041 — transactional fidelity ownership/reconciliation
+M042 — mixed-fidelity orchestration/equivalence/continuation
 ```
 
 ## Core shape
 
 ```text
-                   shared semantic authority
-              work / logistics / needs / facts
-                          │
-              ┌───────────┴───────────┐
-              ▼                       ▼
-      detailed executor        abstract executor
-       grid + fixed-step         DES + durations
-              │                       │
-              └───────┬───────────────┘
-                      ▼
-             M041 transition coordinator
-         handoff + mapping + staged commit
-                      ▼
-             stable target ownership
+                  shared semantic authority
+                work / logistics / needs
+             activities / reservations / facts
+                         │
+             ┌───────────┴───────────┐
+             ▼                       ▼
+     detailed executor        abstract executor
+      grid + fixed-step         DES + durations
+             │                       │
+             └──────────┬────────────┘
+                        ▼
+              M041 transition boundary
+          handoff + mapping + staged commit
+                        │
+                        ▼
+              M042 mixed orchestrator
+          schedule + global boundary ordering
+                        │
+                        ▼
+             independent equivalence comparer
 ```
 
-## M041 principle
+## Mixed orchestrator
 
-Gameplay semantics do not move between executors. They already live in shared SimulationWorld/runtime authority.
+One `SimulationWorld` and one semantic clock.
 
-The transition converts only source executor continuation into target executor continuation.
+At each iteration choose the earliest of authored switch instant, next abstract trigger, next detailed step or target horizon.
 
-## Stable ownership
-
-Exactly one region is detailed in the bounded M041 composition. Every stable active continuation has one current owner. Execution epochs fence old work.
-
-## Transition transaction
-
-A switch prepares both directions before commit:
+Same-instant phase order:
 
 ```text
-old detailed handoff
-→ prepare abstract continuation
-
-target abstract handoff
-→ prepare detailed continuation
-
-+ queue changes
-+ route changes
-+ owner/epoch changes
-→ validate
-→ atomic commit
+switch
+abstract trigger
+detailed step
+inspection
 ```
 
-Failure commits none.
+Execution schedule is deterministic control input, not gameplay authority.
 
-## Spatial reconciliation
+## Controls
 
-Explicit revisioned mapping connects abstract node/edge space with detailed area/cell space.
+M042 compares real distinct controls, not labels around one implementation.
 
-Detailed→abstract preserves coherent travel progress.
+Abstract control uses only abstract execution. Mixed controls use M041 one-detailed-region switching. Detailed reference uses independent detailed controls for each non-interacting canonical region.
 
-Abstract→detailed deterministically materializes and rebuilds route.
+## Equivalence
 
-Mapping is orchestration/configuration authority, not gameplay state.
+Shared rule semantics remain exact. Timing/position approximation uses fixed predeclared execution-granularity bounds. Fixed-horizon completion differences are bounded only by current in-flight semantic work. No tolerance grows with switch count.
 
-## Timed interactions
+## Observer neutrality
 
-For harvest/pickup/deposit/eat/drink/rest/retry, remaining semantic duration crosses the executor boundary. Conversion does not execute completion.
+Switch-frequency experiments hold total detailed exposure per region constant. This isolates segmentation/switching as the independent variable. High-frequency switching receives no larger semantic error budget.
 
-## M042 boundary
+## Persistence
 
-M041 establishes local switch correctness.
+Save authority remains stable gameplay/fidelity/continuation state. The authored execution schedule is re-supplied and fingerprint-validated on continuation. Same-schedule resumed versus uninterrupted results are exact.
 
-M042 owns real mixed-fidelity long runs, distinct execution schedules, bounded timing tolerances, observer neutrality, repeated-switch scale and broad mixed-fidelity fresh-process equivalence.
+## Long horizon
 
-Do not infer M042 readiness merely from a passing M041 switch.
+After the canonical 30-day proof, a separate deterministic 365-day, 5-region, 1000+ switch campaign validates that local M041 correctness does not accumulate global stale-state or semantic drift.
+
+## Closure
+
+M040–M042 together supersede the incomplete functional claims of historical M033 without rewriting its historical milestone/review record.
