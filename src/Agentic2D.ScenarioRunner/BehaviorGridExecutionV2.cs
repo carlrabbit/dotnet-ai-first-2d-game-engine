@@ -41,7 +41,8 @@ internal static class BehaviorGridExecutionV2
 
         for (var tick = 1; tick <= scenario.Runtime.Ticks; tick++)
         {
-            var snapshot = new BehaviorSnapshot(tick, Fingerprint(tick, entityIds, resolver), entityIds);
+            var typedSnapshot = world.TypedSnapshot(tick);
+            var snapshot = new BehaviorSnapshot(typedSnapshot);
             var phaseIntents = new List<MoveIntent>();
             var emitter = new IntentCollector(phaseIntents);
             foreach (var assignment in scenario.Behaviors.OrderBy(item => item.Id, StringComparer.Ordinal))
@@ -67,8 +68,8 @@ internal static class BehaviorGridExecutionV2
             foreach (var intent in phaseIntents.OrderBy(item => item.OrderingKey, StringComparer.Ordinal).ThenBy(item => item.Id, StringComparer.Ordinal))
             {
                 allIntents.Add(intent);
-                var resolution = resolver.ResolveDetailed(intent);
-                resolver.ApplyAccepted(resolution, tick);
+                var resolution = resolver.ResolveDetailed(intent, typedSnapshot);
+                SpatialMutationCommitter.Commit(world, resolver.AcceptedMutation(resolution), tick, resolution.Resolution.CommandId);
                 resolutions.Add(new SpatialResolutionEvidence(intent.Id, resolution.Resolution.ModuleId, resolution.Resolution.Accepted, resolution.Resolution.Reason, resolution.SemanticSource, resolution.SemanticValue, resolution.AssetId, resolution.TileId, resolution.Resolution.CommandId, resolution.Resolution.Events, resolution.Resolution.Diagnostics, resolution.Destination?.X, resolution.Destination?.Y));
                 foreach (var eventType in resolution.Resolution.Events)
                 {
@@ -77,9 +78,10 @@ internal static class BehaviorGridExecutionV2
             }
         }
 
+        var finalSnapshot = world.TypedSnapshot(scenario.Runtime.Ticks);
         var entities = scenario.InitialState.Entities.OrderBy(entity => entity.Id, StringComparer.Ordinal)
-            .Select(entity => new EntitySummary(entity.Id, resolver.QueryPosition(entity.Id)?.X ?? entity.Position)).ToArray();
-        var gridPositions = scenario.InitialState.Entities.OrderBy(entity => entity.Id, StringComparer.Ordinal).Select(entity => new GridPositionEvidence(entity.Id, resolver.QueryPosition(entity.Id)!.X, resolver.QueryPosition(entity.Id)!.Y)).ToArray();
+            .Select(entity => new EntitySummary(entity.Id, resolver.QueryPosition(entity.Id, finalSnapshot)?.X ?? entity.Position)).ToArray();
+        var gridPositions = scenario.InitialState.Entities.OrderBy(entity => entity.Id, StringComparer.Ordinal).Select(entity => new GridPositionEvidence(entity.Id, resolver.QueryPosition(entity.Id, finalSnapshot)!.X, resolver.QueryPosition(entity.Id, finalSnapshot)!.Y)).ToArray();
         return new(assignments, allIntents, resolutions, events, entities, diagnostics, gridPositions);
     }
 

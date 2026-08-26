@@ -16,9 +16,10 @@ public sealed class ContinuousKinematicSpatialResolver
 {
     public const string ModuleId = "spatial.continuous-kinematic-2d";
     private const double Epsilon = 0.000000001;
-    private readonly EntityComponentWorld world;
+    private readonly IRuntimeSnapshotView snapshot;
     private readonly MapContentSource map;
-    public ContinuousKinematicSpatialResolver(EntityComponentWorld world, MapContentSource map) { this.world = world; this.map = map; }
+    public ContinuousKinematicSpatialResolver(EntityComponentWorld world, MapContentSource map) : this(world.TypedSnapshot(0), map) { }
+    public ContinuousKinematicSpatialResolver(IRuntimeSnapshotView snapshot, MapContentSource map) { this.snapshot = snapshot; this.map = map; }
     public static void Register(EntityComponentWorld world)
     {
         world.Register<ContinuousTransform2>("component.continuous-transform-2d", ModuleId, x => Finite(x.X) && Finite(x.Y));
@@ -26,9 +27,10 @@ public sealed class ContinuousKinematicSpatialResolver
         world.Register<CollisionAabb2>("component.collision-aabb-2d", ModuleId, x => Finite(x.HalfWidth) && Finite(x.HalfHeight) && x.HalfWidth > 0 && x.HalfHeight > 0);
         world.Register<SpatialMembership>("component.spatial-membership", "runtime/core", x => !string.IsNullOrWhiteSpace(x.WorldId) && x.SpatialModuleId == ModuleId);
     }
-    public ContinuousResolution Resolve(string intentId, string entityId, double directionX, double directionY)
+    public ContinuousResolution Resolve(string intentId, string entityId, double directionX, double directionY) => Resolve(snapshot, intentId, entityId, directionX, directionY);
+    public ContinuousResolution Resolve(IRuntimeSnapshotView snapshot, string intentId, string entityId, double directionX, double directionY)
     {
-        if (!world.TryGet<ContinuousTransform2>(entityId, out var transform) || !world.TryGet<KinematicMotion2>(entityId, out var motion) || !world.TryGet<CollisionAabb2>(entityId, out var body) || !world.TryGet<SpatialMembership>(entityId, out var membership)) return Fail(intentId, entityId, "CONTINUOUS0001");
+        if (!snapshot.TryGetByTypeId(entityId, "component.continuous-transform-2d", out ContinuousTransform2? transform) || !snapshot.TryGetByTypeId(entityId, "component.kinematic-motion-2d", out KinematicMotion2? motion) || !snapshot.TryGetByTypeId(entityId, "component.collision-aabb-2d", out CollisionAabb2? body) || !snapshot.TryGetByTypeId(entityId, "component.spatial-membership", out SpatialMembership? membership)) return Fail(intentId, entityId, "CONTINUOUS0001");
         if (membership!.SpatialModuleId != ModuleId || membership!.WorldId != map.Id) return Fail(intentId, entityId, "CONTINUOUS0003");
         var length = Math.Sqrt(directionX * directionX + directionY * directionY);
         var requestedX = length > Epsilon ? directionX / length * motion!.MaxSpeed : 0d; var requestedY = length > Epsilon ? directionY / length * motion!.MaxSpeed : 0d;
@@ -43,7 +45,7 @@ public sealed class ContinuousKinematicSpatialResolver
         var commandId = outcome == "blocked" ? null : "command." + intentId;
         return new ContinuousResolution(intentId, entityId, Normalize(requestedX), Normalize(requestedY), Normalize(x), Normalize(y), outcome, result, candidates.Select(c => c.Id).ToArray(), commandId, outcome == "blocked" ? ["spatial.continuous-movement-blocked"] : ["spatial.continuous-movement-" + outcome, "entity.continuous-transform-changed"], []) { InitialTransform = transform, CollisionShape = body, CollisionCandidateDetails = candidates.Select(c => new ContinuousCollisionCandidate(c.Bounds ? "map-bounds" : c.Id.StartsWith("cell:", StringComparison.Ordinal) ? "blocked-map-cell" : "static-map-object", c.Id, map.Id, Normalize(c.MinX), Normalize(c.MinY), Normalize(c.MaxX), Normalize(c.MaxY))).ToArray(), XAxis = new ContinuousAxisResolution(Normalize(requestedX), Normalize(x), xConstrained, xSource), YAxis = new ContinuousAxisResolution(Normalize(requestedY), Normalize(y), yConstrained, ySource) };
     }
-    public EntityComponentResult Apply(ContinuousResolution resolution, int tick) => resolution.CommandId is null ? new(false, "blocked", null) : world.Set(resolution.EntityId, resolution.Result, tick, resolution.CommandId);
+    public EntityComponentBatchMutation? AcceptedMutation(ContinuousResolution resolution) => resolution.CommandId is null ? null : new(resolution.EntityId, "component.continuous-transform-2d", resolution.Result);
     private ContinuousResolution Fail(string intent, string entity, string diagnostic) => new(intent, entity, 0, 0, 0, 0, "blocked", new(0, 0), [], null, ["spatial.continuous-movement-blocked"], [diagnostic]);
     private IEnumerable<Aabb> StaticAabbs()
     {

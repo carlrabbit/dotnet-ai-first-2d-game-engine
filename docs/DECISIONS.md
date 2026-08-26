@@ -40,6 +40,7 @@ This document indexes durable project decisions.
 | `docs/decisions/ADR-0054-multi-fidelity-equivalence-uses-distinct-controls-and-switch-count-independent-bounds.md` | Accepted for M042 | Equivalence uses genuinely distinct controls, exact rule invariants, fixed boundary-derived tolerances, and observer-neutrality without switch-count-scaled error. |
 | `docs/decisions/ADR-0055-one-canonical-game-save-wraps-simulation-world-v2.md` | Accepted for M043 | One current durable game-save envelope wraps the actual SimulationWorld v2 payload; historical M020/M035 persistence formats are retired. |
 | `docs/decisions/ADR-0056-resume-equivalence-requires-process-separated-continuation.md` | Accepted for M044 | Canonical resume/recovery proof uses distinct producer/consumer processes, exact continuation identity, and independently derived equivalence. |
+| `docs/decisions/ADR-0057-evaluation-reads-immutable-runtime-snapshots-and-mutation-commits-transactionally.md` | Accepted for M045 | Evaluation reads one immutable typed runtime snapshot; lifecycle and component mutations commit through a staged transaction. |
 
 ## Decision policy
 

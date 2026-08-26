@@ -69,7 +69,8 @@ public sealed class ContinuousResolverOutcomeTests
         world.Set("entity.player", new SpatialMembership(map.Id, ContinuousKinematicSpatialResolver.ModuleId));
         var resolver = new ContinuousKinematicSpatialResolver(world, map);
         var resolution = resolver.Resolve("intent.outcome-test", "entity.player", directionX, directionY) with { BehaviorAssignmentId = "assignment.outcome-test" };
-        return new Execution(world, resolution, resolver.Apply(resolution, 1));
+        var commit = SpatialMutationCommitter.Commit(world, resolver.AcceptedMutation(resolution), 1, resolution.CommandId);
+        return new Execution(world, resolution, new EntityComponentResult(commit.Accepted, commit.Status, resolution.CommandId));
     }
 
     private sealed record Execution(EntityComponentWorld World, ContinuousResolution Resolution, EntityComponentResult ApplyResult);

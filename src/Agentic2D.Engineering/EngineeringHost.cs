@@ -234,10 +234,10 @@ public sealed class EngineeringHost
                 ReceiptPath(suite, shard),
                 shard.DependsOn,
                 shard.Evidence)).ToArray(),
-            suite.Id is "m037-smoke" or "m039-smoke" or "m040-smoke" or "m041-smoke" or "m042-smoke" or "m043-smoke" or "m044-smoke" ? $"pwsh ./eng/suite.ps1 {suite.Id} --verify" : $"./eng/{suite.Id}.sh --verify",
+            suite.Id is "m037-smoke" or "m039-smoke" or "m040-smoke" or "m041-smoke" or "m042-smoke" or "m043-smoke" or "m044-smoke" or "m045-smoke" ? $"pwsh ./eng/suite.ps1 {suite.Id} --verify" : $"./eng/{suite.Id}.sh --verify",
             suite.Shards.SelectMany(shard => shard.Evidence).Distinct(StringComparer.Ordinal).ToArray());
         var serialized = JsonSerializer.Serialize(plan, json);
-        if (suite.Id is "m033-smoke" or "m034-smoke" or "m035-smoke" or "m039-smoke" or "m040-smoke" or "m041-smoke" or "m042-smoke" or "m043-smoke" or "m044-smoke")
+        if (suite.Id is "m033-smoke" or "m034-smoke" or "m035-smoke" or "m039-smoke" or "m040-smoke" or "m041-smoke" or "m042-smoke" or "m043-smoke" or "m044-smoke" or "m045-smoke")
         {
             var planPath = Absolute(Path.Combine("artifacts", "validation", suite.Id, "plan.json"));
             Directory.CreateDirectory(Path.GetDirectoryName(planPath)!);
@@ -509,6 +509,22 @@ public sealed class EngineeringHost
             }
             var verificationPath = Absolute("artifacts/validation/m044-smoke/verify.json"); Directory.CreateDirectory(Path.GetDirectoryName(verificationPath)!);
             File.WriteAllText(verificationPath, JsonSerializer.Serialize(new { schema = "agentic2d.m044.verification.v1", suite = "m044-smoke", status = success ? "passed" : "failed", currentReceipts = suite.Shards.Count, predecessorM043 = success, independentComparer = success, processSeparatedContinuation = success }, json));
+        }
+
+        if (suite.Id == "m045-smoke" && success)
+        {
+            foreach (var shard in suite.Shards)
+            {
+                var path = Absolute(shard.Evidence[0]);
+                if (!File.Exists(path)) { diagnostics.WriteLine($"error: m045-smoke/{shard.Id}: observation evidence missing"); success = false; continue; }
+                using var document = JsonDocument.Parse(File.ReadAllText(path));
+                var evidence = document.RootElement.GetProperty("evidence");
+                var observed = evidence.GetProperty("observed");
+                var valid = document.RootElement.GetProperty("status").GetString() == "passed" && evidence.GetProperty("passed").GetBoolean() && observed.EnumerateObject().All(x => x.Value.ValueKind == JsonValueKind.True);
+                if (!valid) { diagnostics.WriteLine($"error: m045-smoke/{shard.Id}: observed predicates are not all true"); success = false; }
+            }
+            var verificationPath = Absolute("artifacts/validation/m045-smoke/verify.json"); Directory.CreateDirectory(Path.GetDirectoryName(verificationPath)!);
+            File.WriteAllText(verificationPath, JsonSerializer.Serialize(new { schema = "agentic2d.m045.verification.v1", suite = "m045-smoke", status = success ? "passed" : "failed", currentReceipts = suite.Shards.Count, independentObservedPredicates = success, typedSnapshotAuthority = success, stagedMutationAuthority = success }, json));
         }
 
         if (suite.Id == "m038-smoke" && success)
@@ -890,6 +906,10 @@ public sealed class EngineeringHost
         if (suite.Id == "m044-smoke")
         {
             return await M044CanonicalResumeSuite.RunAsync(root, shard.Id, diagnostics);
+        }
+        if (suite.Id == "m045-smoke")
+        {
+            return await M045SnapshotAuthoritySuite.RunAsync(root, shard.Id, diagnostics);
         }
         if (suite.Id == "m038-smoke") return await M038SimpleReviewSuite.RunAsync(this, root, shard.Id, diagnostics);
         if (suite.Id == "m036-smoke")
@@ -1480,6 +1500,19 @@ public sealed class EngineeringHost
             Shard("cross-process-roundtrip-and-reruns", "Cross-process continuation and deterministic reruns remain exact.", "internal:m044", ["artifacts/persistence/M044/cross-process-roundtrip-and-reruns.json"], isInternal: true),
             Shard("evidence-integrity", "Independent M044 process and equality evidence is observed rather than asserted.", "internal:m044", ["artifacts/persistence/M044/evidence-integrity.json"], isInternal: true),
             Shard("predecessor-regression", "Current M043 canonical persistence remains the only persistence backend.", "internal:m044", ["artifacts/persistence/M044/predecessor-regression.json"], isInternal: true)
+        ]),
+        new("m045-smoke", "resumable-sharded",
+        [
+            Shard("descriptor-identity-and-canonical-encoding", "Stable descriptor identity and canonical snapshot encoding.", "internal:m045", ["artifacts/runtime/M045/descriptor-identity-and-canonical-encoding.json"], isInternal: true),
+            Shard("immutable-typed-snapshot", "Detached immutable typed runtime snapshot.", "internal:m045", ["artifacts/runtime/M045/immutable-typed-snapshot.json"], isInternal: true),
+            Shard("behavior-phase-snapshot", "Behavior phase receives the same typed snapshot.", "internal:m045", ["artifacts/runtime/M045/behavior-phase-snapshot.json"], isInternal: true),
+            Shard("lifecycle-component-transaction", "Lifecycle and component changes commit in one staged transaction.", "internal:m045", ["artifacts/runtime/M045/lifecycle-component-transaction.json"], isInternal: true),
+            Shard("spatial-command-boundary", "Spatial resolvers produce proposals without live mutation.", "internal:m045", ["artifacts/runtime/M045/spatial-command-boundary.json"], isInternal: true),
+            Shard("rejected-mutation-evidence", "Rejected transactions preserve caller identity and tick.", "internal:m045", ["artifacts/runtime/M045/rejected-mutation-evidence.json"], isInternal: true),
+            Shard("snapshot-determinism", "Equivalent typed stores produce the same canonical fingerprint.", "internal:m045", ["artifacts/runtime/M045/snapshot-determinism.json"], isInternal: true),
+            Shard("simulation-integration-regression", "Simulation construction uses the runtime authority.", "internal:m045", ["artifacts/runtime/M045/simulation-integration-regression.json"], isInternal: true),
+            Shard("evidence-integrity", "M045 evidence contains observed predicates.", "internal:m045", ["artifacts/runtime/M045/evidence-integrity.json"], isInternal: true),
+            Shard("predecessor-regression", "M044 predecessor remains current.", "internal:m045", ["artifacts/runtime/M045/predecessor-regression.json"], isInternal: true)
         ]),
         new("m037-smoke", "resumable-sharded",
         [

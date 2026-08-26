@@ -1,7 +1,24 @@
 namespace Agentic2D.Contracts;
 
+/// <summary>Read-only typed view exposed to evaluators for one phase.</summary>
+public interface IRuntimeSnapshotView
+{
+    int Tick { get; }
+    string Fingerprint { get; }
+    IReadOnlyList<string> EntityIds { get; }
+    bool Exists(string entityId);
+    bool TryGet<T>(string entityId, out T? value) where T : notnull;
+    bool TryGetByTypeId<T>(string entityId, string typeId, out T? value) where T : notnull;
+    IReadOnlyList<string> Query<T>() where T : notnull;
+    IReadOnlyList<string> QueryByTypeId(string typeId);
+}
+
 /// <summary>Read-only, phase-scoped world data. Spatial representations remain module-owned.</summary>
-public sealed record BehaviorSnapshot(int Tick, string Fingerprint, IReadOnlySet<string> EntityIds);
+public sealed record BehaviorSnapshot(int Tick, string Fingerprint, IReadOnlySet<string> EntityIds)
+{
+    public IRuntimeSnapshotView? Runtime { get; init; }
+    public BehaviorSnapshot(IRuntimeSnapshotView runtime) : this(runtime.Tick, runtime.Fingerprint, runtime.EntityIds.ToHashSet(StringComparer.Ordinal)) => Runtime = runtime;
+}
 
 public sealed record MoveIntent(string Id, string AssignmentId, string BehaviorId, string EntityId, string Direction, string OrderingKey);
 public sealed record ContinuousMoveIntent(string Id, string AssignmentId, string BehaviorId, string EntityId, double DirectionX, double DirectionY, string OrderingKey);

@@ -121,7 +121,9 @@ public sealed class SimulationWorld
             if (scope == SimulationEntityScope.RegionOwned && (region is null || !regions.ContainsKey(region.Value.Value))) return Fail("SIMREGION0002", "region-owned entity requires an existing region", id);
             if (scope == SimulationEntityScope.WorldScoped && region is not null) return Fail("SIMREGION0003", "world-scoped entity cannot have a region", id);
             var entity = new SimulationEntity(id, scope, region is null ? null : region.Value.Value, SimulationLifecycle.Created, new(StringComparer.Ordinal));
-            runtimeWorld.CreateEntity(id); runtimeWorld.Set(id, entity); observations.Add(new(++sequence, id, null, "created")); Emit("EntityCreated", [id], new { id, scope = scope.ToString(), region = entity.RegionId }); return Success();
+            var tx = runtimeWorld.BeginTransaction(checked((int)sequence + 1), "command.entity.create." + id).CreateEntity(id).SetComponent(id, "component.simulation-entity", entity);
+            if (!tx.Commit().Accepted) return Fail("SIMENTITY0004", "runtime entity construction rejected", id);
+            observations.Add(new(++sequence, id, null, "created")); Emit("EntityCreated", [id], new { id, scope = scope.ToString(), region = entity.RegionId }); return Success();
         });
 
     /// <summary>Atomically creates an entity with its first persistent component.</summary>
@@ -133,7 +135,10 @@ public sealed class SimulationWorld
             if (scope == SimulationEntityScope.WorldScoped && region is not null) return Fail("SIMREGION0003", "world-scoped entity cannot have a region", id);
             if (!registrations.ContainsKey(componentKey)) return Fail("SIMCOMP0003", "unknown component key", componentKey);
             var entity = new SimulationEntity(id, scope, region is null ? null : region.Value.Value, SimulationLifecycle.Created, new(StringComparer.Ordinal));
-            runtimeWorld.CreateEntity(id); runtimeWorld.Set(id, entity); if (!StoreComponent(componentKey, id, value)) return Fail("SIMCOMP0004", "component payload failed validation", componentKey); observations.Add(new(++sequence, id, componentKey, "created-with-component")); Emit("EntityCreated", [id], new { id, scope = scope.ToString(), region = entity.RegionId, componentKey });
+            object component; try { component = DecodeComponent(componentKey, value); } catch (JsonException) { return Fail("SIMCOMP0004", "component payload failed validation", componentKey); }
+            var tx = runtimeWorld.BeginTransaction(checked((int)sequence + 1), "command.entity.create-with-component." + id).CreateEntity(id).SetComponent(id, "component.simulation-entity", entity).SetComponent(id, componentKey, component);
+            if (!tx.Commit().Accepted) return Fail("SIMCOMP0004", "component payload failed validation", componentKey);
+            observations.Add(new(++sequence, id, componentKey, "created-with-component")); Emit("EntityCreated", [id], new { id, scope = scope.ToString(), region = entity.RegionId, componentKey });
             if (!string.IsNullOrWhiteSpace(semanticEventType)) Emit(semanticEventType, [id], semanticPayload ?? new { id });
             return Success();
         });
@@ -143,8 +148,9 @@ public sealed class SimulationWorld
         {
             if (string.IsNullOrWhiteSpace(id) || runtimeWorld.Exists(id) || tombstones.Contains(id)) return Fail("SIMENTITY0001", "duplicate, destroyed, or invalid entity ID", id);
             if (scope == SimulationEntityScope.RegionOwned && (region is null || !regions.ContainsKey(region.Value.Value))) return Fail("SIMREGION0002", "region-owned entity requires an existing region", id);
-            var entity = new SimulationEntity(id, scope, region?.Value, SimulationLifecycle.Created, new(StringComparer.Ordinal)); runtimeWorld.CreateEntity(id); runtimeWorld.Set(id, entity);
-            if (!runtimeWorld.SetByTypeId(id, componentKey, value).Accepted) return Fail("SIMCOMP0004", "typed component payload failed validation", componentKey);
+            var entity = new SimulationEntity(id, scope, region?.Value, SimulationLifecycle.Created, new(StringComparer.Ordinal));
+            var tx = runtimeWorld.BeginTransaction(checked((int)sequence + 1), "command.entity.create-with-typed-component." + id).CreateEntity(id).SetComponent(id, "component.simulation-entity", entity).SetComponent(id, componentKey, value);
+            if (!tx.Commit().Accepted) return Fail("SIMCOMP0004", "typed component payload failed validation", componentKey);
             observations.Add(new(++sequence, id, componentKey, "created-with-typed-component")); Emit("EntityCreated", [id], new { id, scope = scope.ToString(), region = entity.RegionId, componentKey }); if (!string.IsNullOrWhiteSpace(semanticEventType)) Emit(semanticEventType, [id], semanticPayload ?? new { id }); return Success();
         });
 
@@ -313,7 +319,14 @@ public sealed class SimulationWorld
             var world = new SimulationWorld(new(save.WorldId), new(save.NowMicroseconds)); foreach (var registration in registrations) world.RegisterComponent(registration);
             if (world.RegistrationFingerprint != save.RegistrationFingerprint) return new(false, null, [Diagnostic("SIMPERSIST0006", "registration fingerprint mismatch")]);
             foreach (var region in save.Regions) world.regions.Add(region.Id, region);
-            foreach (var entity in save.Entities) { world.runtimeWorld.CreateEntity(entity.Id); world.runtimeWorld.Set(entity.Id, CloneEntity(entity)); foreach (var component in entity.Components) if (!world.StoreComponent(component.Key, entity.Id, component.Value)) throw new InvalidOperationException("component payload rejected: " + component.Key); }
+            foreach (var entity in save.Entities)
+            {
+                var transaction = world.runtimeWorld.BeginTransaction(checked((int)save.Sequence), "command.persistence.load." + entity.Id)
+                    .CreateEntity(entity.Id)
+                    .SetComponent(entity.Id, "component.simulation-entity", CloneEntity(entity));
+                foreach (var component in entity.Components) transaction.SetComponent(entity.Id, component.Key, world.DecodeComponent(component.Key, component.Value));
+                if (!transaction.Commit().Accepted) throw new InvalidOperationException("transactional entity reconstruction rejected: " + entity.Id);
+            }
             foreach (var id in save.Tombstones) world.tombstones.Add(id); foreach (var activity in save.Activities) world.activities.Add(activity.Id, activity); foreach (var reservation in save.Reservations) world.reservations.Add(reservation.Id, reservation); world.sequence = save.Sequence;
             foreach (var rebuilder in world.derivedRebuilders.Values) rebuilder(world);
             return new(true, world, []);

@@ -54,7 +54,7 @@ internal static class BehaviorGridScenarioExecutor
 
         var world = new EntityComponentWorld(); world.Register<GridPosition>("component.grid-position", "spatial.grid"); foreach (var entity in scenario.InitialState!.Entities) { world.CreateEntity(entity.Id); world.Set(entity.Id, new GridPosition(entity.GridPosition?.X ?? entity.Position, entity.GridPosition?.Y ?? 0)); }
         var entityIds = world.EntityIds.ToHashSet(StringComparer.Ordinal);
-        var snapshot = new BehaviorSnapshot(1, Fingerprint(entityIds), entityIds);
+        var snapshot = new BehaviorSnapshot(world.TypedSnapshot(1));
         var resolver = new GridSpatialResolver(mapItem.Map, world);
         var registry = new BehaviorRegistry();
         var intents = new List<MoveIntent>();
@@ -78,8 +78,8 @@ internal static class BehaviorGridScenarioExecutor
         var resolutionEvidence = new List<SpatialResolutionEvidence>();
         foreach (var intent in intents.OrderBy(item => item.OrderingKey, StringComparer.Ordinal).ThenBy(item => item.Id, StringComparer.Ordinal))
         {
-            var resolution = resolver.ResolveDetailed(intent);
-            resolver.ApplyAccepted(resolution, 1);
+            var resolution = resolver.ResolveDetailed(intent, world.TypedSnapshot(1));
+            SpatialMutationCommitter.Commit(world, resolver.AcceptedMutation(resolution), 1, resolution.Resolution.CommandId);
             resolutionEvidence.Add(new SpatialResolutionEvidence(intent.Id, resolution.Resolution.ModuleId, resolution.Resolution.Accepted, resolution.Resolution.Reason, resolution.SemanticSource, resolution.SemanticValue, resolution.AssetId, resolution.TileId, resolution.Resolution.CommandId, resolution.Resolution.Events, resolution.Resolution.Diagnostics, resolution.Destination?.X, resolution.Destination?.Y));
             foreach (var eventType in resolution.Resolution.Events) events.Add(new ScenarioEvent(events.Count + 1, 1, eventType, intent.Id));
         }
