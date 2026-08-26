@@ -495,7 +495,17 @@ public sealed class EngineeringHost
                 var path = Absolute(shard.Evidence[0]);
                 if (!File.Exists(path)) { diagnostics.WriteLine($"error: m044-smoke/{shard.Id}: observation evidence missing"); success = false; continue; }
                 using var document = JsonDocument.Parse(File.ReadAllText(path));
-                if (document.RootElement.GetProperty("status").GetString() != "passed") { diagnostics.WriteLine($"error: m044-smoke/{shard.Id}: observation status is not passed"); success = false; }
+                var valid = document.RootElement.GetProperty("status").GetString() == "passed";
+                if (valid && document.RootElement.TryGetProperty("evidence", out var evidence))
+                {
+                    if (shard.Id is "process-provenance-and-event-identity" or "typed-reservation-and-tombstone-resume" or "abstract-and-needs-resume" or "detailed-resume" or "fidelity-boundary-resume")
+                        valid = evidence.GetProperty("cases").EnumerateArray().All(@case => @case.GetProperty("passed").GetBoolean() && @case.GetProperty("exactTargetEquality").GetBoolean() && @case.GetProperty("eventIdentityEquality").GetBoolean() && @case.GetProperty("fixturePreserved").GetBoolean() && @case.GetProperty("fixtureExpected").GetBoolean());
+                    else if (shard.Id == "product-save-autosave-continue") valid = evidence.GetProperty("observed").GetBoolean() && evidence.GetProperty("continueLoadsAndAdvancesCanonicalWorld").GetBoolean();
+                    else if (shard.Id == "corruption-and-recovery-continuation") valid = evidence.GetProperty("Evidence").GetProperty("passed").GetBoolean() && evidence.GetProperty("corruptionDetected").GetBoolean() && evidence.GetProperty("previousGoodRecovered").GetBoolean() && evidence.GetProperty("recoveredBytesContinuedInConsumer").GetBoolean();
+                    else if (shard.Id == "cross-process-roundtrip-and-reruns") valid = evidence.GetProperty("exact").GetBoolean() && evidence.GetProperty("scheduleMismatchRejected").GetBoolean() && evidence.GetProperty("crossProcessSaveLoadSave").GetBoolean();
+                    else if (shard.Id == "evidence-integrity") valid = evidence.GetProperty("noConstantAcceptance").GetBoolean() && evidence.GetProperty("independentComparer").GetBoolean() && evidence.GetProperty("processRunnerOwnsProvenance").GetBoolean();
+                }
+                if (!valid) { diagnostics.WriteLine($"error: m044-smoke/{shard.Id}: observation evidence predicates are not passed"); success = false; }
             }
             var verificationPath = Absolute("artifacts/validation/m044-smoke/verify.json"); Directory.CreateDirectory(Path.GetDirectoryName(verificationPath)!);
             File.WriteAllText(verificationPath, JsonSerializer.Serialize(new { schema = "agentic2d.m044.verification.v1", suite = "m044-smoke", status = success ? "passed" : "failed", currentReceipts = suite.Shards.Count, predecessorM043 = success, independentComparer = success, processSeparatedContinuation = success }, json));
