@@ -81,7 +81,11 @@ public sealed record M042RawObservation(
     int RegionCount,
     bool StableBoundary,
     int ExecutableTriggerCount,
-    int ObsoleteRouteCount);
+    int ObsoleteRouteCount)
+{
+    public bool SharedExecutorWorld { get; init; }
+    public bool SharedExecutorScheduler { get; init; }
+}
 
 public sealed record M042Comparison(
     string Schema,
@@ -122,6 +126,8 @@ public static class M042MultiFidelityHarness
         var fingerprint = Hash(schedule.Fingerprint);
         var totals = new M032ResourceTotals(0, 0, 0, 0);
         var eventTypes = new List<string>();
+        var sharedWorld = false;
+        var sharedScheduler = false;
         var initialTotals = M032AutonomousDetailedRegion.InspectResourceTotals(M032AutonomousDetailedRegion.CreateInitial());
         var regionMultiplier = control == "detailed-reference" ? 1 : 3;
 
@@ -150,7 +156,8 @@ public static class M042MultiFidelityHarness
         }
         else
         {
-            var coordinator = CreateCanonicalCoordinator();
+            var abstractRun = M040AbstractExecutor.Create();
+            var coordinator = CreateCanonicalCoordinator(3, abstractRun.World, abstractRun.Scheduler);
             var owner = "region.alpha";
             var startClock = coordinator.World.Clock.Now.Microseconds;
             var semanticNow = startClock;
@@ -161,14 +168,25 @@ public static class M042MultiFidelityHarness
                 var elapsed = boundary - semanticNow;
                 if (elapsed > 0)
                 {
-                    coordinator.World.Advance(new SimulationDuration(elapsed));
-                    if (owner == "region.alpha") detailedSteps += elapsed / DetailedQuantumMicroseconds;
-                    else abstractTriggers += elapsed / AbstractQuantumMicroseconds;
+                    if (owner == "region.alpha")
+                    {
+                        var interval = M032AutonomousDetailedRegion.ExecuteSharedDetailedInterval(coordinator.World, elapsed);
+                        detailedSteps += interval.FixedStepCount;
+                        facts.Add($"detailed:{interval.OpportunityKey}:{interval.RouteFingerprint}");
+                    }
+                    else
+                    {
+                        var priorTransitions = abstractRun.Transitions.Count;
+                        abstractRun = M040AbstractExecutor.Advance(abstractRun, new SimulationInstant(coordinator.World.Clock.Now.Microseconds + elapsed));
+                        abstractTriggers += Math.Max(0, abstractRun.Transitions.Count - priorTransitions);
+                        facts.Add("abstract:" + abstractRun.Continuation.NextTriggerId);
+                    }
                 }
                 semanticNow = boundary;
                 if (target == owner) continue;
                 var result = coordinator.SwitchDetailed(target);
                 if (result.Status != "committed") { facts.Add("invalid:switch:" + result.Diagnostic); return InvalidObservation(schedule, transitionCount, detailedSteps, abstractTriggers, exposure, abstractExposure, facts, fingerprint, successfulSwitches, executable, routes); }
+                abstractRun = abstractRun with { Scheduler = coordinator.Scheduler };
                 transitionCount++; successfulSwitches++; owner = target; routes++;
                 facts.Add($"switch:{at}:{target}:{result.SourceEpoch}->{result.TargetEpoch}");
             }
@@ -176,17 +194,27 @@ public static class M042MultiFidelityHarness
             if (remaining < 0) { facts.Add("invalid:remaining"); return InvalidObservation(schedule, transitionCount, detailedSteps, abstractTriggers, exposure, abstractExposure, facts, fingerprint, successfulSwitches, executable, routes); }
             if (remaining > 0)
             {
-                coordinator.World.Advance(new SimulationDuration(remaining));
-                if (owner == "region.alpha") detailedSteps += remaining / DetailedQuantumMicroseconds;
-                else abstractTriggers += remaining / AbstractQuantumMicroseconds;
+                if (owner == "region.alpha")
+                {
+                    var interval = M032AutonomousDetailedRegion.ExecuteSharedDetailedInterval(coordinator.World, remaining);
+                    detailedSteps += interval.FixedStepCount;
+                    facts.Add($"detailed:{interval.OpportunityKey}:{interval.RouteFingerprint}");
+                }
+                else
+                {
+                    var priorTransitions = abstractRun.Transitions.Count;
+                    abstractRun = M040AbstractExecutor.Advance(abstractRun, new SimulationInstant(coordinator.World.Clock.Now.Microseconds + remaining));
+                    abstractTriggers += Math.Max(0, abstractRun.Transitions.Count - priorTransitions);
+                    facts.Add("abstract:" + abstractRun.Continuation.NextTriggerId);
+                }
             }
             if (coordinator.World.Clock.Now.Microseconds != startClock + schedule.HorizonMicroseconds) { facts.Add($"invalid:horizon:{coordinator.World.Clock.Now.Microseconds}"); return InvalidObservation(schedule, transitionCount, detailedSteps, abstractTriggers, exposure, abstractExposure, facts, fingerprint, successfulSwitches, executable, routes); }
             executable = coordinator.Scheduler.Inspect().Count(x => x.Status == ScheduledTriggerStatus.Scheduled);
-            var run = M041ExecutorBridge.ExecuteRealDetailedStage();
-            detailedSteps += Math.Max(1, run.Navigation.Count);
-            totals = M032AutonomousDetailedRegion.InspectResourceTotals(run.World);
-            eventTypes.AddRange(run.World.Events.Select(x => x.Type));
+            totals = M032AutonomousDetailedRegion.InspectResourceTotals(coordinator.World);
+            eventTypes.AddRange(coordinator.World.Events.Select(x => x.Type));
             fingerprint = Hash(fingerprint + M041FidelityCoordinator.Fingerprint(coordinator) + string.Join("|", facts));
+            sharedWorld = ReferenceEquals(coordinator.World, abstractRun.World);
+            sharedScheduler = ReferenceEquals(coordinator.Scheduler, abstractRun.Scheduler);
         }
 
         var metrics = new Dictionary<string, long>(StringComparer.Ordinal)
@@ -205,7 +233,11 @@ public static class M042MultiFidelityHarness
             ["staleCancelledTriggers"] = transitionCount,
             ["transitionCount"] = transitionCount
         };
-        return new("agentic2d.m042.raw-observation.v1", ScenarioId, control, schedule.Fingerprint, schedule.HorizonMicroseconds, transitionCount, detailedSteps, abstractTriggers, exposure, abstractExposure, metrics, facts, fingerprint, metrics["resourceTotal"] > 0, metrics["resourceTotal"] == metrics["expectedResourceTotal"] && metrics["resourceStored"] <= metrics["resourceCapacity"], successfulSwitches, 3, true, executable, routes);
+        return new M042RawObservation("agentic2d.m042.raw-observation.v1", ScenarioId, control, schedule.Fingerprint, schedule.HorizonMicroseconds, transitionCount, detailedSteps, abstractTriggers, exposure, abstractExposure, metrics, facts, fingerprint, metrics["resourceTotal"] > 0, metrics["resourceTotal"] == metrics["expectedResourceTotal"] && metrics["resourceStored"] <= metrics["resourceCapacity"], successfulSwitches, 3, true, executable, routes)
+        {
+            SharedExecutorWorld = sharedWorld,
+            SharedExecutorScheduler = sharedScheduler
+        };
     }
 
     public static M042RawObservation RunLongCampaign()
@@ -238,8 +270,9 @@ public static class M042MultiFidelityHarness
         var timing = controls.Values.All(x => x.HorizonMicroseconds > 0 && x.DetailedExposureMicroseconds.Values.All(value => value >= 0) && x.AbstractExposureMicroseconds.Values.All(value => value >= 0));
         var boundary = controls.Values.All(x => x.WorkloadAvailable && x.Metrics["resourceTotal"] == x.Metrics["expectedResourceTotal"] && x.Metrics["resourceStored"] <= x.Metrics["resourceCapacity"]);
         var observer = CompareObserver(out var observerEvidence);
-        var independent = distinct && zero && timing && boundary && observer;
-        var controlEvidence = controls.ToDictionary(x => x.Key, x => (object)new { x.Value.ScheduleFingerprint, x.Value.TransitionCount, x.Value.DetailedStepCount, x.Value.AbstractTriggerDeliveryCount, x.Value.DetailedExposureMicroseconds, x.Value.AbstractExposureMicroseconds }, StringComparer.Ordinal);
+        var shared = controls.Values.Where(x => x.Control is not ("abstract-control" or "detailed-reference")).All(x => x.SharedExecutorWorld && x.SharedExecutorScheduler);
+        var independent = distinct && zero && timing && boundary && observer && shared;
+        var controlEvidence = controls.ToDictionary(x => x.Key, x => (object)new { x.Value.ScheduleFingerprint, x.Value.TransitionCount, x.Value.DetailedStepCount, x.Value.AbstractTriggerDeliveryCount, x.Value.DetailedExposureMicroseconds, x.Value.AbstractExposureMicroseconds, x.Value.SharedExecutorWorld, x.Value.SharedExecutorScheduler }, StringComparer.Ordinal);
         return new("agentic2d.m042.comparison.v1", independent, distinct, zero, timing, boundary, observer, independent, tBase, RetryQuantumMicroseconds, NeedQuantumMicroseconds, controlEvidence, observerEvidence);
     }
 
@@ -259,7 +292,7 @@ public static class M042MultiFidelityHarness
         return equalExposure && runs.All(x => x.WorkloadAvailable && x.Metrics["resourceTotal"] == x.Metrics["expectedResourceTotal"] && x.Metrics["resourceStored"] <= x.Metrics["resourceCapacity"]);
     }
 
-    private static M041FidelityCoordinator CreateCanonicalCoordinator(int regionCount = 3)
+    private static M041FidelityCoordinator CreateCanonicalCoordinator(int regionCount = 3, SimulationWorld? sharedWorld = null, DiscreteEventScheduler? sharedScheduler = null)
     {
         var baseRun = M041FidelityCoordinator.CreateFixture();
         var detailed = baseRun.Regions.Single(x => x.Fidelity == RegionFidelity.Detailed);
@@ -268,7 +301,7 @@ public static class M042MultiFidelityHarness
         var regions = new List<M041RegionRuntime> { alpha };
         foreach (var suffix in new[] { "beta", "gamma", "delta", "epsilon" }.Take(Math.Max(0, regionCount - 1)))
             regions.Add(abstractRegion with { RegionId = "region." + suffix, Abstract = abstractRegion.Abstract! with { RegionId = "region." + suffix } });
-        return new(baseRun.World, baseRun.Scheduler, regions);
+        return new(sharedWorld ?? baseRun.World, sharedScheduler ?? baseRun.Scheduler, regions);
     }
 
     private static M042RawObservation InvalidObservation(M042Schedule schedule, int transitions, long steps, long triggers, IReadOnlyDictionary<string, long> detailed, IReadOnlyDictionary<string, long> abstractExposure, IReadOnlyList<string> facts, string fingerprint, int switches, int executable, int routes)

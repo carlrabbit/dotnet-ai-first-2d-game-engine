@@ -91,10 +91,11 @@ public static class M040AbstractExecutor
         new("edge.food.housing", "food", "housing", 1),
     ];
 
-    public static M040AbstractRun Create()
+    public static M040AbstractRun Create() => Create(M032AutonomousDetailedRegion.CreateInitial(), null);
+
+    public static M040AbstractRun Create(SimulationWorld world, DiscreteEventScheduler? existingScheduler)
     {
-        var world = M032AutonomousDetailedRegion.CreateInitial();
-        var scheduler = new DiscreteEventScheduler();
+        var scheduler = existingScheduler ?? new DiscreteEventScheduler();
         var graph = Graph();
         var transitions = new List<string>();
         var opportunities = M032AutonomousDetailedRegion.DeriveOpportunities(world, M032AutonomousDetailedRegion.InspectDesignations(world));

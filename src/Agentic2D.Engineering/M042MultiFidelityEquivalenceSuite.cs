@@ -36,7 +36,7 @@ internal static class M042MultiFidelityEquivalenceSuite
         var runs = new[] { "abstract-control", "periodically-switched", "mostly-detailed", "detailed-reference" }.Select(control => M042MultiFidelityHarness.Run(control)).ToArray();
         var comparison = M042MultiFidelityHarness.Compare(runs);
         var distinct = runs.Select(x => x.ScheduleFingerprint).Distinct(StringComparer.Ordinal).Count() == 4 && runs.Select(x => x.DetailedStepCount).Distinct().Count() > 1 && runs.Select(x => x.AbstractTriggerDeliveryCount).Distinct().Count() > 1;
-        return (distinct && comparison.ControlsDistinct, new { distinct, comparison, controls = runs.Select(x => new { x.Control, x.ScheduleFingerprint, x.TransitionCount, x.DetailedStepCount, x.AbstractTriggerDeliveryCount, x.DetailedExposureMicroseconds, x.AbstractExposureMicroseconds }) });
+        return (distinct && comparison.ControlsDistinct, new { distinct, comparison, controls = runs.Select(x => new { x.Control, x.ScheduleFingerprint, x.TransitionCount, x.DetailedStepCount, x.AbstractTriggerDeliveryCount, x.DetailedExposureMicroseconds, x.AbstractExposureMicroseconds, x.SharedExecutorWorld, x.SharedExecutorScheduler }) });
     }
 
     private static (bool, object) ZeroTolerance()

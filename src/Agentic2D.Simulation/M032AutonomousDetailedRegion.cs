@@ -20,6 +20,7 @@ public sealed record WorkerDecision(string WorkerId, string? SelectedOpportunity
 public sealed record NavigationResult(string RequestId, string ActorId, DetailedCell Start, DetailedCell Goal, IReadOnlyList<DetailedCell> Path, string Status, string Fingerprint);
 public sealed record M032Run(SimulationWorld World, IReadOnlyList<SimulationCommandResult> Commands, IReadOnlyList<WorkDesignation> Designations, IReadOnlyList<WorkOpportunity> Opportunities, IReadOnlyList<WorkerDecision> Decisions, IReadOnlyList<NavigationResult> Navigation, IReadOnlyList<string> RouteEvents, IReadOnlyList<SimulationDiagnostic> Diagnostics, string Fingerprint, SimulationSave? CarryingSave = null);
 public sealed record M032ResourceTotals(int Source, int Carried, int Stored, int Capacity);
+public sealed record M032SharedDetailedInterval(long DurationMicroseconds, long FixedStepCount, string OpportunityKey, string RouteFingerprint);
 
 public static class M032AutonomousDetailedRegion
 {
@@ -250,6 +251,19 @@ public static class M032AutonomousDetailedRegion
         var carried = world.Entities.Where(x => x.Id.StartsWith("worker.", StringComparison.Ordinal)).Sum(x => Component<M032WorkerComponent>(world, x.Id, "component.m032.worker").Wood);
         var capacity = world.Entities.Where(x => x.Id.StartsWith("storage.", StringComparison.Ordinal)).Sum(x => Component<M032StorageComponent>(world, x.Id, "component.m032.storage").Capacity);
         return new(source, carried, stored, capacity);
+    }
+
+    /// <summary>Executes a bounded real detailed fixed-step interval on the supplied authoritative world.</summary>
+    public static M032SharedDetailedInterval ExecuteSharedDetailedInterval(SimulationWorld world, long durationMicroseconds)
+    {
+        if (durationMicroseconds < 0) throw new ArgumentOutOfRangeException(nameof(durationMicroseconds));
+        var opportunities = DeriveOpportunities(world, InspectDesignations(world));
+        var opportunity = opportunities.Where(x => x.BlockingReason is null).OrderByDescending(x => x.Priority).ThenBy(x => x.Key, StringComparer.Ordinal).FirstOrDefault();
+        var route = opportunity is null
+            ? new NavigationResult("m042.shared.detailed.idle", "worker.001", new(1, 1), new(1, 1), [], "idle", "idle")
+            : FindRoute("m042.shared.detailed." + world.Clock.Now.Microseconds, "worker.001", new(1, 1), new(4, 3));
+        world.Advance(new SimulationDuration(durationMicroseconds));
+        return new(durationMicroseconds, durationMicroseconds / 250_000L, opportunity?.Key ?? "idle", route.Fingerprint);
     }
 
     private static M032Run Continue(SimulationWorld world, bool reconstructed, List<SimulationCommandResult>? prefix, SimulationSave? carryingSave = null)
