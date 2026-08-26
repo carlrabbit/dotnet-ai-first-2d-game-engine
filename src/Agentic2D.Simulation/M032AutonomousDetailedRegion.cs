@@ -19,6 +19,7 @@ public sealed record WorkCandidateEvaluation(string OpportunityKey, bool Eligibl
 public sealed record WorkerDecision(string WorkerId, string? SelectedOpportunityKey, string IdleReason, IReadOnlyList<string> Candidates, IReadOnlyList<string> Rejections, int PathCost, string ReservationResult, string Interruption, IReadOnlyList<WorkCandidateEvaluation>? Evaluations = null);
 public sealed record NavigationResult(string RequestId, string ActorId, DetailedCell Start, DetailedCell Goal, IReadOnlyList<DetailedCell> Path, string Status, string Fingerprint);
 public sealed record M032Run(SimulationWorld World, IReadOnlyList<SimulationCommandResult> Commands, IReadOnlyList<WorkDesignation> Designations, IReadOnlyList<WorkOpportunity> Opportunities, IReadOnlyList<WorkerDecision> Decisions, IReadOnlyList<NavigationResult> Navigation, IReadOnlyList<string> RouteEvents, IReadOnlyList<SimulationDiagnostic> Diagnostics, string Fingerprint, SimulationSave? CarryingSave = null);
+public sealed record M032ResourceTotals(int Source, int Carried, int Stored, int Capacity);
 
 public static class M032AutonomousDetailedRegion
 {
@@ -240,6 +241,15 @@ public static class M032AutonomousDetailedRegion
         if (Component<M032DormantComponent>(world, "dormant.sentinel", "component.m032.dormant").Revision != 0) diagnostics.Add(new("WORK-REGION0001", "error", "dormant region advanced", ["dormant.sentinel"]));
         if (world.Activities.Any(x => x.Status == SimulationActivityStatus.Active)) diagnostics.Add(new("EXECUTOR-BLOCKED0001", "error", "active activity silently stalled", world.Activities.Where(x => x.Status == SimulationActivityStatus.Active).Select(x => x.Id).ToArray()));
         return diagnostics;
+    }
+
+    public static M032ResourceTotals InspectResourceTotals(SimulationWorld world)
+    {
+        var stored = ComponentInt(world, "storage.wood.001", "component.m032.storage", "wood");
+        var source = world.Entities.Where(x => x.Id.StartsWith("tree.", StringComparison.Ordinal)).Sum(x => Component<M032HarvestableComponent>(world, x.Id, "component.m032.harvestable").Wood);
+        var carried = world.Entities.Where(x => x.Id.StartsWith("worker.", StringComparison.Ordinal)).Sum(x => Component<M032WorkerComponent>(world, x.Id, "component.m032.worker").Wood);
+        var capacity = world.Entities.Where(x => x.Id.StartsWith("storage.", StringComparison.Ordinal)).Sum(x => Component<M032StorageComponent>(world, x.Id, "component.m032.storage").Capacity);
+        return new(source, carried, stored, capacity);
     }
 
     private static M032Run Continue(SimulationWorld world, bool reconstructed, List<SimulationCommandResult>? prefix, SimulationSave? carryingSave = null)

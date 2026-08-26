@@ -43,8 +43,8 @@ internal static class M042MultiFidelityEquivalenceSuite
     {
         var runs = new[] { "abstract-control", "periodically-switched", "mostly-detailed", "detailed-reference" }.Select(control => M042MultiFidelityHarness.Run(control)).ToArray();
         var comparison = M042MultiFidelityHarness.Compare(runs);
-        var observed = runs.All(x => x.ZeroToleranceValid && x.StableBoundary && x.Metrics["resourceSource"] == x.Metrics["resourceStored"] && x.Metrics["failures"] == 0 && x.ExecutableTriggerCount < 100);
-        return (observed && comparison.ZeroTolerancePassed, new { observed, comparison.ZeroTolerancePassed, invariants = runs.Select(x => new { x.Control, x.ZeroToleranceValid, x.StableBoundary, conservation = x.Metrics["resourceSource"] == x.Metrics["resourceStored"], capacity = x.Metrics["failures"] == 0, x.ExecutableTriggerCount }) });
+        var observed = runs.All(x => x.ZeroToleranceValid && x.StableBoundary && x.Metrics["resourceTotal"] == x.Metrics["expectedResourceTotal"] && x.Metrics["resourceStored"] <= x.Metrics["resourceCapacity"] && x.Metrics["failures"] == 0 && x.ExecutableTriggerCount < 100);
+        return (observed && comparison.ZeroTolerancePassed, new { observed, comparison.ZeroTolerancePassed, invariants = runs.Select(x => new { x.Control, x.ZeroToleranceValid, x.StableBoundary, conservation = x.Metrics["resourceTotal"] == x.Metrics["expectedResourceTotal"], capacity = x.Metrics["resourceStored"] <= x.Metrics["resourceCapacity"], x.ExecutableTriggerCount, x.OrderedFacts }) });
     }
 
     private static (bool, object) Temporal()
@@ -59,7 +59,7 @@ internal static class M042MultiFidelityEquivalenceSuite
         var runs = new[] { M042MultiFidelityHarness.Run("observer-low"), M042MultiFidelityHarness.Run("observer-medium"), M042MultiFidelityHarness.Run("observer-high") };
         var comparison = M042MultiFidelityHarness.Compare(runs);
         var exposure = runs.SelectMany(x => x.DetailedExposureMicroseconds.Values).All(x => x == 10 * 86_400_000_000L);
-        return (exposure && comparison.ObserverNeutralityPassed, new { exposure, comparison.ObserverNeutralityPassed, values = runs.Select(x => new { x.Control, x.Metrics, x.DetailedExposureMicroseconds, x.TransitionCount }), pairwiseDeltas = new { lowMedium = Math.Abs(runs[0].Metrics["resourceStored"] - runs[1].Metrics["resourceStored"]), mediumHigh = Math.Abs(runs[1].Metrics["resourceStored"] - runs[2].Metrics["resourceStored"]) }, fixedEnvelope = comparison.TBaseMicroseconds, workloadNonExhausted = runs.All(x => x.WorkloadAvailable) });
+        return (exposure && comparison.ObserverNeutralityPassed, new { exposure, comparison.ObserverNeutralityPassed, values = runs.Select(x => new { x.Control, x.Metrics, x.DetailedExposureMicroseconds, x.TransitionCount, x.OrderedFacts }), pairwiseDeltas = new { lowMedium = Math.Abs(runs[0].Metrics["resourceStored"] - runs[1].Metrics["resourceStored"]), mediumHigh = Math.Abs(runs[1].Metrics["resourceStored"] - runs[2].Metrics["resourceStored"]) }, fixedEnvelope = comparison.TBaseMicroseconds, workloadNonExhausted = runs.All(x => x.WorkloadAvailable) });
     }
 
     private static async Task<(bool, object)> FreshProcessAsync(string root)
