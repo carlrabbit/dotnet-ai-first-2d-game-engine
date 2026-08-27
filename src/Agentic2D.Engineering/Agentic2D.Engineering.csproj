@@ -9,5 +9,7 @@
     <ProjectReference Include="../Agentic2D.Presentation/Agentic2D.Presentation.csproj" />
     <ProjectReference Include="../Agentic2D.UI/Agentic2D.UI.csproj" />
     <ProjectReference Include="../Agentic2D.Simulation/Agentic2D.Simulation.csproj" />
+    <ProjectReference Include="../Agentic2D.Spatial.Continuous/Agentic2D.Spatial.Continuous.csproj" />
+    <ProjectReference Include="../Agentic2D.Validation/Agentic2D.Validation.csproj" />
   </ItemGroup>
 </Project>

@@ -64,7 +64,7 @@ public sealed class ContinuousResolverOutcomeTests
         ContinuousKinematicSpatialResolver.Register(world);
         world.CreateEntity("entity.player");
         world.Set("entity.player", new ContinuousTransform2(0.5d, 0.5d));
-        world.Set("entity.player", new KinematicMotion2(0d, 0d, speed));
+        world.Set("entity.player", new KinematicMotion2(speed));
         world.Set("entity.player", new CollisionAabb2(0.25d, 0.25d));
         world.Set("entity.player", new SpatialMembership(map.Id, ContinuousKinematicSpatialResolver.ModuleId));
         var resolver = new ContinuousKinematicSpatialResolver(world, map);

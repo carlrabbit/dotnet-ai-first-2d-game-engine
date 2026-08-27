@@ -12,7 +12,15 @@ public static class ContinuousScenarioExecutor
     public static bool IsContinuous(ScenarioSource source) => source.Runtime?.SpatialModule == ContinuousKinematicSpatialResolver.ModuleId;
     public static ScenarioRunResult Run(ScenarioSource scenario, string sourcePath)
     {
-        var execution = Execute(scenario); var assertions = scenario.Assertions.Select(a => a.Type == "eventOccurred" ? new ScenarioAssertion(a.Id, execution.Events.Any(e => e.Type == a.EventType), a.EventType + " event exists") : a.Type == "entityPositionEquals" ? new ScenarioAssertion(a.Id, execution.Entities.FirstOrDefault(e => e.Id == a.EntityId)?.Position == a.Position, "entity position equals") : new ScenarioAssertion(a.Id, true, "final tick equals requested")).ToArray();
+        var execution = Execute(scenario); var assertions = scenario.Assertions.Select(a => a.Type switch
+        {
+            "eventOccurred" => new ScenarioAssertion(a.Id, execution.Events.Any(e => e.Type == a.EventType), a.EventType + " event exists"),
+            "entityPositionEquals" => new ScenarioAssertion(a.Id, execution.Entities.FirstOrDefault(e => e.Id == a.EntityId)?.Position == a.Position, "entity position equals"),
+            "finalTickEqualsRequested" => new ScenarioAssertion(a.Id, true, "final tick equals requested"),
+            "continuousOutcome" => new ScenarioAssertion(a.Id, execution.Resolutions.Any(r => r.EntityId == a.EntityId && r.Outcome == a.EventType), "continuous outcome equals", a.EventType, execution.Resolutions.FirstOrDefault(r => r.EntityId == a.EntityId)?.Outcome),
+            "continuousConstraintSource" => new ScenarioAssertion(a.Id, execution.Resolutions.Any(r => r.EntityId == a.EntityId && (r.XAxis.ConstraintSourceId == a.EventType || r.YAxis.ConstraintSourceId == a.EventType)), "continuous constraint source exists", a.EventType, "observed"),
+            _ => new ScenarioAssertion(a.Id, false, "Unsupported assertion type: " + a.Type)
+        }).ToArray();
         var status = execution.Diagnostics.Any(x => x.Severity == "error") || assertions.Any(x => !x.Passed) ? RuntimeStatus.Failed : RuntimeStatus.Passed;
         return new ScenarioRunResult(ScenarioResultDocument.FromExecution(new ScenarioSummary(scenario.Id, scenario.Category, ContentTargetResolver.ToRepositoryRelativePath(sourcePath)), status, status == RuntimeStatus.Passed ? 0 : 1, scenario.Runtime!.Ticks, scenario.Runtime.Ticks, execution.Events, execution.Entities, assertions, execution.Diagnostics), execution.Events, execution.Diagnostics);
     }
@@ -37,7 +45,7 @@ public static class ContinuousScenarioExecutor
                 if (!registry.TryGet(assignment.BehaviorId, out var behavior) || behavior is null || !world.Exists(assignment.EntityId)) { diagnostics.Add(new("BEHAVIOR0001", "error", "invalid continuous behavior assignment")); continue; }
                 events.Add(new(events.Count + 1, tick, "behavior.started", assignment.Id)); behavior.Execute(new(behaviorSnapshot, assignment.Id, assignment.EntityId, new ScenarioRandomSource(scenario.Runtime.RandomSeed ?? 0), collector)); events.Add(new(events.Count + 1, tick, "behavior.intent-emitted", assignment.Id)); events.Add(new(events.Count + 1, tick, "behavior.completed", assignment.Id));
             }
-            foreach (var intent in intents.Where(x => x.Id.EndsWith("tick-" + tick, StringComparison.Ordinal)).OrderBy(x => x.OrderingKey, StringComparer.Ordinal)) { var resolution = resolver.Resolve(snapshot, intent.Id, intent.EntityId, intent.DirectionX, intent.DirectionY) with { BehaviorAssignmentId = intent.AssignmentId }; SpatialMutationCommitter.Commit(world, resolver.AcceptedMutation(resolution), tick, resolution.CommandId); resolutions.Add(resolution); foreach (var type in resolution.Events) events.Add(new(events.Count + 1, tick, type, intent.Id)); }
+            foreach (var intent in intents.Where(x => x.Id.EndsWith("tick-" + tick, StringComparison.Ordinal)).OrderBy(x => x.OrderingKey, StringComparer.Ordinal)) { var resolution = resolver.Resolve(snapshot, intent.Id, intent.EntityId, intent.DirectionX, intent.DirectionY) with { BehaviorAssignmentId = intent.AssignmentId }; var commit = SpatialMutationCommitter.Commit(world, resolver.AcceptedMutation(resolution), tick, resolution.CommandId); resolutions.Add(resolution); foreach (var type in resolution.Events.Where(type => type != "entity.continuous-transform-changed" || commit.Accepted)) events.Add(new(events.Count + 1, tick, type, intent.Id)); }
         }
         events.AddRange(world.Events.Select((x, i) => new ScenarioEvent(events.Count + i + 1, x.Tick, x.Type, x.Message)));
         return new(world.EntityIds.Select(id => new EntitySummary(id, world.TryGet<ContinuousTransform2>(id, out var t) ? (int)Math.Round(t!.X) : 0)).ToArray(), intents, resolutions, events.OrderBy(x => x.Sequence).ToArray(), diagnostics, world);

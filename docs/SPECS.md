@@ -39,6 +39,7 @@ This document indexes permanent behavioral authority. Milestones sequence work; 
 | `docs/specs/grid-spatial-module-contract.md` | `spatial.grid`. |
 | `docs/specs/entity-component-runtime-contract.md` | Runtime entities, components, snapshots, and mutations. |
 | `docs/specs/runtime-snapshot-and-mutation-authority-contract.md` | Immutable typed runtime snapshots, canonical fingerprints, evaluator boundaries, and staged runtime mutation transactions. |
+| `docs/specs/continuous-kinematic-spatial-correctness-contract.md` | Deterministic continuous AABB movement, finite input, truthful outcome classification, constraint-source evidence, and M045 mutation linkage. |
 | `docs/specs/mixed-world-projection-contract.md` | Separation of map static content and runtime entity state. |
 | `docs/specs/continuous-kinematic-spatial-module-contract.md` | Continuous AABB movement and collision. |
 | `docs/specs/entity-definition-and-instantiation-contract.md` | Entity definitions, spawns, overrides, transactional instantiation, and provenance. |

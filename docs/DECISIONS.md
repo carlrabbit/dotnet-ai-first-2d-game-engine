@@ -41,6 +41,7 @@ This document indexes durable project decisions.
 | `docs/decisions/ADR-0055-one-canonical-game-save-wraps-simulation-world-v2.md` | Accepted for M043 | One current durable game-save envelope wraps the actual SimulationWorld v2 payload; historical M020/M035 persistence formats are retired. |
 | `docs/decisions/ADR-0056-resume-equivalence-requires-process-separated-continuation.md` | Accepted for M044 | Canonical resume/recovery proof uses distinct producer/consumer processes, exact continuation identity, and independently derived equivalence. |
 | `docs/decisions/ADR-0057-evaluation-reads-immutable-runtime-snapshots-and-mutation-commits-transactionally.md` | Accepted for M045 | Evaluation reads one immutable typed runtime snapshot; lifecycle and component mutations commit through a staged transaction. |
+| `docs/decisions/ADR-0058-continuous-kinematic-resolution-classifies-safe-displacement-truthfully.md` | Accepted for M046 | Continuous kinematic resolution validates finite input, tracks actual limiting geometry, and classifies every nonzero safe displacement as accepted/slid/clipped rather than blocked. |
 
 ## Decision policy
 
