@@ -6,6 +6,8 @@ This document indexes durable project decisions.
 
 ## Current decisions
 
+| `docs/decisions/ADR-0059-promotion-authority-is-exact-candidate-bound-and-generation-published.md` | Accepted for M047 | Promotion binds exact canonical candidates and deterministic recipes, publishing only independently validated immutable generations through atomic current authority. |
+
 | Decision | Status | Topic |
 |---|---|---|
 | `docs/decisions/ADR-0001-agentic-engine-not-editor-plugin.md` | Accepted | Agentic engine rather than editor plugin. |

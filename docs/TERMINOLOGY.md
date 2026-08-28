@@ -8,6 +8,11 @@ This document is authoritative for project vocabulary.
 
 | Term | Meaning |
 |---|---|
+| Canonical asset candidate | Game-local structured promotion subject binding a stable candidate ID to exact source-relative bytes/hash, typed media selection, promotion-relevant proposal data, variants, and a deterministic fingerprint. |
+| Promoted asset generation | Immutable fully validated project-local set of approved definitions, derivatives, recipes, provenance, and hashes selected by one atomic current-generation record. |
+
+| Term | Meaning |
+|---|---|
 | Agentic engine | A game engine designed so AI agents can implement, validate, inspect, and iterate through structured interfaces and evidence. |
 | Headless-first | Core engine capability operates through CLI/API workflows without requiring a graphical client. |
 | Artifact-first | Commands produce machine-readable and reviewable evidence. |

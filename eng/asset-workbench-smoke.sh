@@ -71,7 +71,12 @@ case "$mode" in
     run asset batch promotion-plan campaign.m029 --output "$root/promotion/plan" >/dev/null
     run asset batch promote campaign.m029 --target "$root/promotion/workspace" --output "$root/promotion" >/dev/null
     run asset approved validate "$root/promotion/workspace" --output "$root/promotion/validate" >/dev/null
+    set +e
     run asset rebuild --affected candidate.static --target "$root/promotion/workspace" --output "$root/promotion/rebuild" >/dev/null
+    rebuild_code=$?
+    set -e
+    test "$rebuild_code" -eq 2
+    grep -q '"status": "unsupported"' "$root/promotion/rebuild/affected-rebuild.json"
     ;;
   review-pack)
     input_root="$tmp_root/review-input"

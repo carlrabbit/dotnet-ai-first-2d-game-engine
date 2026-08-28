@@ -11,5 +11,6 @@
     <ProjectReference Include="../Agentic2D.Simulation/Agentic2D.Simulation.csproj" />
     <ProjectReference Include="../Agentic2D.Spatial.Continuous/Agentic2D.Spatial.Continuous.csproj" />
     <ProjectReference Include="../Agentic2D.Validation/Agentic2D.Validation.csproj" />
+    <ProjectReference Include="../Agentic2D.Tools/Agentic2D.Tools.csproj" />
   </ItemGroup>
 </Project>

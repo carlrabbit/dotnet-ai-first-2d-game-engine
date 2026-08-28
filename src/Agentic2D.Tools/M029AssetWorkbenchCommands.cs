@@ -75,9 +75,9 @@ public static class M029AssetWorkbenchCommands
             var campaignId = Get(root, "id") ?? "campaign.unnamed";
             var sourceId = Get(root, "sourceId") ?? "asset-source.unknown";
             var profile = Get(root, "profileFingerprint") ?? "profile.unknown";
-            var candidates = root.TryGetProperty("candidates", out var raw) && raw.ValueKind == JsonValueKind.Array ? raw.EnumerateArray().Select(x => x.GetString() ?? "candidate.unknown").Distinct(StringComparer.Ordinal).ToArray() : ["candidate.unresolved"];
+            var candidates = root.TryGetProperty("candidates", out var raw) && raw.ValueKind == JsonValueKind.Array ? raw.EnumerateArray().Select(x => (x.ValueKind == JsonValueKind.String ? x.GetString() : Get(x, "candidateId")) ?? "candidate.unknown").Where(x => !string.IsNullOrWhiteSpace(x)).Distinct(StringComparer.Ordinal).ToArray() : ["candidate.unresolved"];
             sessionId = "workbench-session." + Short(campaignId + "\n" + sourceId + "\n" + profile);
-            session = new("agentic2d.asset-workbench-session.v1", sessionId, campaignId, sourceId, profile, candidates, candidates[0], null, 1, "active", DateTimeOffset.UtcNow.ToString("O"), new("agentic2d.asset-preview-ipc.hello.v1", PreviewIpcHost.EndpointForSession(home, sessionId), "connected", 0, "Agentic2D.DebugClient.Raylib", new[] { "render-projection", "animation", "sound-projection", "raylib-adapter", "no-auto-play" }), "review-decisions.jsonl", "promotion-plan.json", []);
+            session = new Session("agentic2d.asset-workbench-session.v1", sessionId, campaignId, sourceId, profile, candidates, candidates[0], null, 1, "active", DateTimeOffset.UtcNow.ToString("O"), new("agentic2d.asset-preview-ipc.hello.v1", PreviewIpcHost.EndpointForSession(home, sessionId), "connected", 0, "Agentic2D.DebugClient.Raylib", new[] { "render-projection", "animation", "sound-projection", "raylib-adapter", "no-auto-play" }), "review-decisions.jsonl", "promotion-plan.json", []) with { CampaignPath = campaignPath };
         }
         SaveSession(home, session); var input = LoadInput(home, session.Id) with { MenuGeneration = session.AliasGeneration, ValidationMessage = null }; SaveInput(home, session.Id, input);
         if (args.Any(arg => arg is "--text" or "--paste" or "--composition" or "--backspace" or "--delete" or "--focus" or "--clear" or "--cancel" or "--select" or "--submit" or "--enter" or "--command" or "--input-command-file" or "--decision" or "--preview-restart"))
@@ -169,12 +169,12 @@ public static class M029AssetWorkbenchCommands
             else
             {
                 input = input with { ValidationMessage = null, LastSubmittedCanonicalCommand = action.Command, TextBuffer = command.Source is "submit-button" or "enter" ? "" : input.TextBuffer, CompositionActive = false };
-                if (action.Kind.StartsWith("decision", StringComparison.Ordinal)) await RecordDecision(home, session, action.Target!, action.Kind == "decision-presentation-only" ? "presentation-only" : action.Kind == "decision-confirm" ? "confirm" : null, null, null);
+                if (action.Kind.StartsWith("decision", StringComparison.Ordinal)) await RecordDecision(home, session, action.Target!, action.Kind == "decision-presentation-only" ? "presentation-only" : action.Kind == "decision-confirm" ? "confirm" : null, null, null, null);
                 else { session = ApplyNavigation(session, action); SaveSession(home, session); }
             }
         }
         SaveInput(home, session.Id, input);
-        if (Option(args, "--decision") is { } decision && (command is null || action is not null) && action?.Kind.StartsWith("decision", StringComparison.Ordinal) != true) await RecordDecision(home, session, decision, Option(args, "--consequence"), Option(args, "--reason"), Option(args, "--alternative"));
+        if (Option(args, "--decision") is { } decision && (command is null || action is not null) && action?.Kind.StartsWith("decision", StringComparison.Ordinal) != true) await RecordDecision(home, session, decision, Option(args, "--consequence"), Option(args, "--reason"), Option(args, "--alternative"), Option(args, "--correction"));
         if (args.Contains("--preview-restart", StringComparer.Ordinal)) { session = LoadSession(home, session.Id) with { Preview = session.Preview with { Status = "reconnected", RestartCount = session.Preview.RestartCount + 1 } }; SaveSession(home, session); }
         await Emit(output, LoadSession(home, session.Id), LoadInput(home, session.Id), AliasMap(LoadSession(home, session.Id)), action is null ? "input-updated" : "action-executed", command, action);
         return 0;
@@ -211,7 +211,7 @@ public static class M029AssetWorkbenchCommands
         _ => session
     };
 
-    private static async Task RecordDecision(string home, Session session, string action, string? consequence, string? reason, string? alternative)
+    private static async Task RecordDecision(string home, Session session, string action, string? consequence, string? reason, string? alternative, string? correctionJson)
     {
         if (!Decisions.Contains(action)) throw new ArgumentException("unsupported workbench decision: " + action);
         if (!string.IsNullOrWhiteSpace(consequence) && consequence != "presentation-only" && consequence != "cancel" && consequence != "change" && consequence != "confirm") throw new ArgumentException("consequence response must be confirm, change, presentation-only, or cancel");
@@ -226,7 +226,23 @@ public static class M029AssetWorkbenchCommands
         foreach (var target in targets)
         {
             var sequence = ++existing; var prior = LastDecision(path, target);
-            var record = new { schema = "agentic2d.asset-review-decision.v1", id = "asset-review-decision." + Short(session.Id + "\n" + target + "\n" + sequence), sessionId = session.Id, campaignId = session.CampaignId, batchId = session.CampaignId, candidateId = target, sourceId = session.SourceId, profileFingerprint = session.ProfileFingerprint, action, selectedAlternative = alternative, corrections = action == "approve-with-corrections" ? new[] { reason ?? "bounded correction" } : Array.Empty<string>(), consequencesShown = impactful ? new[] { consequenceKind ?? "consequence" } : Array.Empty<string>(), consequenceResponse = consequence ?? "not-applicable", presentationOnly = consequence == "presentation-only", gameplayBindingsApplied = Array.Empty<string>(), reason = reason ?? "", sequence, supersedes = prior, status = "current", provenance = new { inputAuthority = "canonical-workbench-action", previewAuthority = "temporary-only" } };
+            var canonical = TryResolveCanonicalCandidate(home, session, target);
+            object record;
+            if (canonical is null)
+                record = new { schema = "agentic2d.asset-review-decision.v1", id = "asset-review-decision." + Short(session.Id + "\n" + target + "\n" + sequence), sessionId = session.Id, campaignId = session.CampaignId, batchId = session.CampaignId, candidateId = target, sourceId = session.SourceId, profileFingerprint = session.ProfileFingerprint, candidateFingerprint = (string?)null, action, selectedAlternative = alternative, corrections = action == "approve-with-corrections" ? new[] { reason ?? "bounded correction" } : Array.Empty<string>(), consequencesShown = impactful ? new[] { consequenceKind ?? "consequence" } : Array.Empty<string>(), consequenceResponse = consequence ?? "not-applicable", presentationOnly = consequence == "presentation-only", gameplayBindingsApplied = Array.Empty<string>(), reason = reason ?? "", sequence, supersedes = prior, status = "current", provenance = new { inputAuthority = "canonical-workbench-action", previewAuthority = "temporary-only" } };
+            else
+            {
+                object[] corrections = [];
+                if (!string.IsNullOrWhiteSpace(correctionJson))
+                {
+                    using var correction = JsonDocument.Parse(correctionJson);
+                    if (!correction.RootElement.TryGetProperty("type", out _)) throw new ArgumentException("--correction requires a typed correction object with a type");
+                    corrections = [correction.RootElement.Clone()];
+                }
+                var selectedVariant = alternative is null ? null : canonical.Variants.FirstOrDefault(x => x.Id == alternative);
+                if (action == "choose-alternative" && selectedVariant is null) throw new ArgumentException("choose-alternative requires a current typed variant");
+                record = new { schema = M047CanonicalAssetPromotion.DecisionSchema, id = "asset-review-decision." + Short(session.Id + "\n" + target + "\n" + sequence), sessionId = session.Id, campaignId = session.CampaignId, batchId = session.CampaignId, candidateId = target, sourceId = session.SourceId, profileFingerprint = session.ProfileFingerprint, candidateFingerprint = canonical.Fingerprint, action, selectedAlternative = alternative, selectedVariantFingerprint = selectedVariant?.Fingerprint, corrections, consequencesShown = impactful ? new[] { consequenceKind ?? "consequence" } : Array.Empty<string>(), consequenceResponse = consequence ?? "not-applicable", presentationOnly = consequence == "presentation-only", gameplayBindingsApplied = Array.Empty<string>(), reason = reason ?? "", sequence, supersedes = prior, status = "current", provenance = new { inputAuthority = "canonical-workbench-action", previewAuthority = "temporary-only" } };
+            }
             await File.AppendAllTextAsync(path, JsonSerializer.Serialize(record, new JsonSerializerOptions(Json) { WriteIndented = false }) + "\n");
         }
         await WriteSummary(home, session);
@@ -313,13 +329,27 @@ public static class M029AssetWorkbenchCommands
 
     private static async Task<int> PromotionPlan(string batch, string output)
     {
-        var session = FindByCampaign(Home(), batch); var decisions = EffectiveDecisions(ReadDecisions(Home(), session.Id)); var plan = new { schema = "agentic2d.asset-promotion-plan.v1", batchId = batch, sessionId = session.Id, sourceId = session.SourceId, profileFingerprint = session.ProfileFingerprint, approved = decisions.Where(d => d.Action is "accept-proposal" or "choose-alternative" or "approve-with-corrections" or "approve-group").Select(d => new { candidateId = d.CandidateId, approvedId = "approved-asset." + Short(session.CampaignId + "\n" + d.CandidateId), recipe = "copy-preserve" }).Distinct().OrderBy(x => x.approvedId).ToArray(), excludesOperationalState = true }; Directory.CreateDirectory(output); await File.WriteAllTextAsync(Path.Combine(output, "promotion-plan.json"), JsonSerializer.Serialize(plan, Json)); return 0;
+        var session = FindByCampaign(Home(), batch); var decisions = EffectiveDecisions(ReadDecisions(Home(), session.Id));
+        using var campaign = session.CampaignPath is not null && File.Exists(session.CampaignPath) ? JsonDocument.Parse(File.ReadAllText(session.CampaignPath)) : null;
+        var approved = decisions.Where(d => d.Schema == M047CanonicalAssetPromotion.DecisionSchema && d.CandidateFingerprint is not null && d.Action is ("accept-proposal" or "choose-alternative" or "approve-with-corrections" or "approve-group") && d.Corrections.All(x => x.ValueKind == JsonValueKind.Object && x.TryGetProperty("type", out var type) && M047CanonicalAssetPromotion.SupportedCorrections.Contains(type.GetString() ?? ""))).Select(d =>
+        {
+            var candidate = TryResolveCanonicalCandidate(Home(), session, d.CandidateId!);
+            var selectedVariant = d.SelectedAlternative is null ? null : candidate?.Variants.FirstOrDefault(x => x.Id == d.SelectedAlternative);
+            if (candidate is null || candidate.Fingerprint != d.CandidateFingerprint || (d.SelectedAlternative is not null && (selectedVariant is null || selectedVariant.Fingerprint != d.SelectedVariantFingerprint))) return null;
+            var approvedId = M047CanonicalAssetPromotion.StableApprovedId(session.CampaignId, candidate.CandidateId, candidate.MediaKind, candidate.PresentationRole);
+            var operations = d.Corrections.Select(x => new { type = x.GetProperty("type").GetString()!, parameters = x }).ToArray();
+            var sourceRelativePath = selectedVariant?.SourceRelativePath ?? candidate.SourceRelativePath;
+            var sourceFingerprint = selectedVariant?.SourceRelativePath is null ? candidate.SourceFingerprint : Hash(File.ReadAllBytes(ResolveRegisteredSource(Home(), session.SourceId, selectedVariant.SourceRelativePath)));
+            var recipeFingerprint = M047CanonicalAssetPromotion.RecipeFingerprint(candidate.Fingerprint, d.SelectedAlternative, d.Corrections.Select(x => new M047CanonicalAssetPromotion.Correction(x.GetProperty("type").GetString()!, x.Clone())).ToArray(), [sourceFingerprint]);
+            return new { candidateId = candidate.CandidateId, approvedId, mediaKind = candidate.MediaKind, sourceRelativePath, sourceFingerprint, candidateFingerprint = candidate.Fingerprint, selectedAlternative = d.SelectedAlternative, selection = selectedVariant?.Selection ?? candidate.Selection, corrections = operations, recipe = "bounded-deterministic", recipeFingerprint, decisionId = d.Id };
+        }).Where(x => x is not null).Distinct().OrderBy(x => x!.approvedId).ToArray();
+        var plan = new { schema = "agentic2d.asset-promotion-plan.v2", batchId = batch, sessionId = session.Id, sourceId = session.SourceId, profileFingerprint = session.ProfileFingerprint, approved, excludesOperationalState = true };
+        Directory.CreateDirectory(output); await File.WriteAllTextAsync(Path.Combine(output, "promotion-plan.json"), JsonSerializer.Serialize(plan, Json)); return 0;
     }
 
     private static async Task<int> Promote(string batch, string target, string output)
     {
         var session = FindByCampaign(Home(), batch);
-        if (ProfileHasChanged(Home(), session)) throw new ArgumentException("promotion is blocked because the source/profile fingerprint changed; refresh and explicitly review current candidates");
         await PromotionPlan(batch, output); var planPath = Path.Combine(output, "promotion-plan.json"); using var doc = JsonDocument.Parse(await File.ReadAllTextAsync(planPath)); var approved = doc.RootElement.GetProperty("approved").EnumerateArray().ToArray(); if (approved.Length == 0) throw new ArgumentException("promotion requires at least one current approved decision");
         var targetFull = Path.GetFullPath(target); var staging = targetFull + ".staging." + Guid.NewGuid().ToString("N"); Directory.CreateDirectory(staging); var assets = Path.Combine(staging, "approved-assets"); Directory.CreateDirectory(assets);
         var prior = targetFull + ".previous." + Guid.NewGuid().ToString("N"); var priorMoved = false;
@@ -328,10 +358,13 @@ public static class M029AssetWorkbenchCommands
             var entries = new List<object>();
             foreach (var item in approved)
             {
-                var id = item.GetProperty("approvedId").GetString()!; var candidate = item.GetProperty("candidateId").GetString() ?? "candidate.unresolved"; var source = FindSample(candidate); var extension = Path.GetExtension(source); var kind = candidate.Contains("audio", StringComparison.OrdinalIgnoreCase) ? "approved-audio" : candidate.Contains("animation", StringComparison.OrdinalIgnoreCase) ? "approved-animation" : "approved-image-region"; var relative = "approved-assets/" + id + extension; File.Copy(source, Path.Combine(staging, relative), true); entries.Add(new { schema = "agentic2d." + kind + ".v1", id, kind, displayName = id, sourceFingerprint = "sha256:" + Hash(File.ReadAllBytes(source)), derivative = relative, recipe = new { schema = "agentic2d.asset-processing-recipe.v1", kind = "copy-preserve", deterministic = true }, provenance = new { schema = "agentic2d.asset-provenance.v1", sourceId = doc.RootElement.GetProperty("sourceId").GetString(), profileFingerprint = doc.RootElement.GetProperty("profileFingerprint").GetString(), candidateId = candidate, decisionAuthority = "review-decisions.jsonl" }, futureBindingSuggestion = new { schema = "agentic2d.asset-future-binding-suggestion.v1", authority = "suggestion-only", gameplayBindingCreated = false } });
+                var id = item.GetProperty("approvedId").GetString()!; var candidate = item.GetProperty("candidateId").GetString()!; var sourceRelative = item.GetProperty("sourceRelativePath").GetString()!; var source = ResolveRegisteredSource(Home(), session.SourceId, sourceRelative); var bytes = File.ReadAllBytes(source); var sourceHash = Hash(bytes); if (sourceHash != item.GetProperty("sourceFingerprint").GetString()) throw new ArgumentException("candidate source changed after plan creation; promotion is stale"); var kind = item.GetProperty("mediaKind").GetString()!; var selection = JsonSerializer.Deserialize<M047CanonicalAssetPromotion.Selection>(item.GetProperty("selection").GetRawText(), Json)!; var corrections = item.GetProperty("corrections").EnumerateArray().Select(x => new M047CanonicalAssetPromotion.Correction(x.GetProperty("type").GetString()!, x.TryGetProperty("parameters", out var parameters) ? parameters.GetProperty("type").ValueKind == JsonValueKind.String ? parameters : x : x)).ToArray(); var derivativeBytes = M047CanonicalAssetPromotion.Materialize(bytes, kind, selection, corrections); var extension = Path.GetExtension(source); var relative = "approved-assets/" + id + extension; await File.WriteAllBytesAsync(Path.Combine(staging, relative), derivativeBytes); var outputHash = "sha256:" + Hash(derivativeBytes); var selectedVariant = item.GetProperty("selectedAlternative").GetString(); var recipeFingerprint = M047CanonicalAssetPromotion.RecipeFingerprint(item.GetProperty("candidateFingerprint").GetString()!, selectedVariant, corrections, [sourceHash]); entries.Add(new { schema = "agentic2d.approved-asset.v2", id, candidateId = candidate, kind, displayName = id, inputFingerprint = "sha256:" + sourceHash, outputFingerprint = outputHash, candidateFingerprint = item.GetProperty("candidateFingerprint").GetString(), derivative = relative, recipe = new { schema = M047CanonicalAssetPromotion.RecipeSchema, kind = "bounded-deterministic", deterministic = true, candidateFingerprint = item.GetProperty("candidateFingerprint").GetString(), selectedVariant, operations = corrections.Select(x => new { type = x.Type, parameters = x.Parameters }).ToArray(), inputFingerprints = new[] { sourceHash }, expectedOutputFingerprint = Hash(derivativeBytes), fingerprint = recipeFingerprint }, provenance = new { schema = "agentic2d.asset-provenance.v2", sourceId = doc.RootElement.GetProperty("sourceId").GetString(), profileFingerprint = doc.RootElement.GetProperty("profileFingerprint").GetString(), candidateId = candidate, sourceRelativePath = sourceRelative, candidateFingerprint = item.GetProperty("candidateFingerprint").GetString(), sourceFingerprint = "sha256:" + sourceHash, selectedVariant, decisionId = item.GetProperty("decisionId").GetString(), decisionAuthority = "agentic2d.asset-review-decision.v2", inputHash = "sha256:" + sourceHash, outputHash }, futureBindingSuggestion = new { schema = "agentic2d.asset-future-binding-suggestion.v1", authority = "suggestion-only", gameplayBindingCreated = false } });
             }
-            await File.WriteAllTextAsync(Path.Combine(staging, "approved-definitions.json"), JsonSerializer.Serialize(entries.OrderBy(x => x.ToString(), StringComparer.Ordinal), Json)); await File.WriteAllTextAsync(Path.Combine(staging, "promotion-manifest.json"), JsonSerializer.Serialize(new { schema = "agentic2d.asset-promotion-manifest.v1", batchId = batch, entries, containsAbsoluteAssetHomePath = false, containsAliases = false, containsOperationalInput = false }, Json));
-            if (File.Exists(Path.Combine(staging, "promotion-manifest.json")) == false) throw new IOException("staging validation failed");
+            await File.WriteAllTextAsync(Path.Combine(staging, "approved-definitions.json"), JsonSerializer.Serialize(entries.OrderBy(x => x.ToString(), StringComparer.Ordinal), Json)); await File.WriteAllTextAsync(Path.Combine(staging, "promotion-manifest.json"), JsonSerializer.Serialize(new { schema = M047CanonicalAssetPromotion.ManifestSchema, batchId = batch, entries, generation = "generation." + Hash(Encoding.UTF8.GetBytes(JsonSerializer.Serialize(entries))), containsAbsoluteAssetHomePath = false, containsAliases = false, containsOperationalInput = false }, Json));
+            var generationFingerprint = Hash(Encoding.UTF8.GetBytes(File.ReadAllText(Path.Combine(staging, "promotion-manifest.json"))));
+            Atomic(Path.Combine(staging, "current-generation.json"), JsonSerializer.Serialize(new { schema = "agentic2d.asset-current-generation.v1", generation = generationFingerprint, manifest = "promotion-manifest.json" }, Json));
+            if (!M047CanonicalAssetPromotion.ValidatePublishedGeneration(staging, Path.Combine(Home(), "registry", "sources.json"))) throw new IOException("independent staging generation validation failed: " + (File.Exists(Path.Combine(staging, "validation-error.txt")) ? File.ReadAllText(Path.Combine(staging, "validation-error.txt")) : "unknown"));
+            if (string.Equals(Environment.GetEnvironmentVariable("AGENTIC2D_M047_FAIL_BEFORE_PUBLICATION"), "1", StringComparison.Ordinal)) throw new IOException("injected publication failure before commit");
             if (Directory.Exists(targetFull)) { Directory.Move(targetFull, prior); priorMoved = true; }
             try { Directory.Move(staging, targetFull); }
             catch
@@ -340,11 +373,13 @@ public static class M029AssetWorkbenchCommands
                 throw;
             }
             if (priorMoved && Directory.Exists(prior)) Directory.Delete(prior, true);
+            using (var readback = JsonDocument.Parse(File.ReadAllText(Path.Combine(targetFull, "current-generation.json"))))
+                if (readback.RootElement.GetProperty("generation").GetString() != generationFingerprint) throw new IOException("current generation readback failed");
             await File.WriteAllTextAsync(Path.Combine(output, "promotion-result.json"), JsonSerializer.Serialize(new { schema = "agentic2d.asset-promotion-result.v1", status = "passed", target = "project-local", count = entries.Count, atomic = true }, Json)); return 0;
         }
         catch
         {
-            if (Directory.Exists(staging)) Directory.Delete(staging, true);
+            if (Directory.Exists(staging) && !string.Equals(Environment.GetEnvironmentVariable("AGENTIC2D_M047_KEEP_FAILED_STAGING"), "1", StringComparison.Ordinal)) Directory.Delete(staging, true);
             if (priorMoved && Directory.Exists(prior) && !Directory.Exists(targetFull)) Directory.Move(prior, targetFull);
             throw;
         }
@@ -352,13 +387,17 @@ public static class M029AssetWorkbenchCommands
 
     private static async Task<int> Approved(string[] args, TextWriter output)
     {
-        if (args.Length < 1) throw new ArgumentException("asset approved requires validate, inspect, list, or show"); var workspace = Option(args, "--workspace") ?? First(args[1..]); var root = Path.GetFullPath(workspace); var manifest = Path.Combine(root, "promotion-manifest.json"); if (args[0] == "validate") { var valid = File.Exists(manifest) && !File.ReadAllText(manifest).Contains("/home/", StringComparison.Ordinal); Directory.CreateDirectory(RequiredOutput(args)); await File.WriteAllTextAsync(Path.Combine(RequiredOutput(args), "approved-validation.json"), JsonSerializer.Serialize(new { schema = "agentic2d.approved-assets-validation.v1", status = valid ? "passed" : "failed" }, Json)); return valid ? 0 : 1; }
+        if (args.Length < 1) throw new ArgumentException("asset approved requires validate, inspect, list, or show"); var workspace = Option(args, "--workspace") ?? First(args[1..]); var root = Path.GetFullPath(workspace); var manifest = Path.Combine(root, "promotion-manifest.json"); if (args[0] == "validate") { var valid = M047CanonicalAssetPromotion.ValidatePublishedGeneration(root, Path.Combine(Home(), "registry", "sources.json")); Directory.CreateDirectory(RequiredOutput(args)); await File.WriteAllTextAsync(Path.Combine(RequiredOutput(args), "approved-validation.json"), JsonSerializer.Serialize(new { schema = "agentic2d.asset-approved-validation.v2", status = valid ? "passed" : "failed", independentlyObserved = valid }, Json)); return valid ? 0 : 1; }
         Directory.CreateDirectory(RequiredOutput(args)); await File.WriteAllTextAsync(Path.Combine(RequiredOutput(args), "approved-assets.json"), File.Exists(manifest) ? File.ReadAllText(manifest) : "{}"); return 0;
     }
 
     private static async Task<int> Rebuild(string[] args, TextWriter output)
     {
-        var affected = Option(args, "--affected") ?? throw new ArgumentException("asset rebuild requires --affected <source-or-approved-id>"); var target = Option(args, "--target") ?? throw new ArgumentException("asset rebuild requires --target <workspace>"); Directory.CreateDirectory(RequiredOutput(args)); await File.WriteAllTextAsync(Path.Combine(RequiredOutput(args), "affected-rebuild.json"), JsonSerializer.Serialize(new { schema = "agentic2d.asset-affected-rebuild.v1", affected, target = "project-local", changedDependenciesOnly = true, unchangedUnrelatedAssets = true }, Json)); return 0;
+        var affected = Option(args, "--affected") ?? throw new ArgumentException("asset rebuild requires --affected <source-or-approved-id>");
+        _ = Option(args, "--target") ?? throw new ArgumentException("asset rebuild requires --target <workspace>");
+        Directory.CreateDirectory(RequiredOutput(args));
+        await File.WriteAllTextAsync(Path.Combine(RequiredOutput(args), "affected-rebuild.json"), JsonSerializer.Serialize(new { schema = "agentic2d.asset-affected-rebuild.v2", status = "unsupported", diagnostic = "M049_REAL_AFFECTED_REBUILD_REQUIRED", affected, capability = "deferred-to-M049" }, Json));
+        return 2;
     }
 
     private static async Task Emit(string output, Session session, InputState input, object aliases, string status, InputCommand? command = null, CanonicalAction? action = null)
@@ -389,12 +428,6 @@ public static class M029AssetWorkbenchCommands
         }
         return null;
     }
-    private static string FindSample(string? candidate = null)
-    {
-        var root = Path.Combine(ContentTargetResolver.FindRepositoryRoot(), "game", "assets", "raw", "samples");
-        var pattern = candidate?.Contains("audio", StringComparison.OrdinalIgnoreCase) == true ? "*.wav" : "*.png";
-        return Directory.EnumerateFiles(root, pattern).OrderBy(path => path, StringComparer.Ordinal).First();
-    }
     private static string RequiredOutput(string[] args) => Option(args, "--output") ?? throw new ArgumentException("missing required --output <directory>");
     private static string First(string[] args)
     {
@@ -417,6 +450,32 @@ public static class M029AssetWorkbenchCommands
     private static string? Get(JsonElement e, string name) => e.TryGetProperty(name, out var value) ? value.GetString() : null;
     private static string? OptionFromReason(string? reason, string name) => reason?.Contains(name, StringComparison.OrdinalIgnoreCase) == true ? name : null;
     private static string? ConsequenceKind(string? candidate) => candidate?.Contains("collision", StringComparison.OrdinalIgnoreCase) == true ? "collision" : candidate?.Contains("audio", StringComparison.OrdinalIgnoreCase) == true ? "sound-cue" : candidate?.Contains("animation", StringComparison.OrdinalIgnoreCase) == true ? "animation-event" : candidate?.Contains("render", StringComparison.OrdinalIgnoreCase) == true ? "rendering" : null;
+    private static string ResolveRegisteredSource(string home, string sourceId, string relative)
+    {
+        var registryPath = Path.Combine(home, "registry", "sources.json");
+        if (!File.Exists(registryPath)) throw new ArgumentException("source registry is unavailable");
+        using var registry = JsonDocument.Parse(File.ReadAllText(registryPath));
+        var source = registry.RootElement.GetProperty("sources").EnumerateArray().FirstOrDefault(x => Get(x, "id") == sourceId);
+        var root = source.ValueKind == JsonValueKind.Object ? Get(source, "path") : null;
+        if (root is null) throw new ArgumentException("candidate source is unavailable: " + sourceId);
+        var full = Path.GetFullPath(Path.Combine(root, relative.Replace('/', Path.DirectorySeparatorChar)));
+        if (!full.StartsWith(Path.GetFullPath(root).TrimEnd(Path.DirectorySeparatorChar) + Path.DirectorySeparatorChar, StringComparison.OrdinalIgnoreCase) || !File.Exists(full)) throw new ArgumentException("candidate source file is unavailable: " + relative);
+        return full;
+    }
+    private static M047CanonicalAssetPromotion.Candidate? TryResolveCanonicalCandidate(string home, Session session, string candidateId)
+    {
+        if (session.CampaignPath is null || !File.Exists(session.CampaignPath)) return null;
+        try
+        {
+            using var campaign = JsonDocument.Parse(File.ReadAllText(session.CampaignPath));
+            if (!campaign.RootElement.TryGetProperty("candidates", out var candidates) || candidates.EnumerateArray().All(x => x.ValueKind != JsonValueKind.Object)) return null;
+            using var registry = File.Exists(Path.Combine(home, "registry", "sources.json")) ? JsonDocument.Parse(File.ReadAllText(Path.Combine(home, "registry", "sources.json"))) : null;
+            var sourceRoot = registry is null ? default : registry.RootElement.GetProperty("sources").EnumerateArray().FirstOrDefault(x => Get(x, "id") == session.SourceId);
+            var sourcePath = sourceRoot.ValueKind == JsonValueKind.Object ? Get(sourceRoot, "path") : null;
+            return sourcePath is null ? null : M047CanonicalAssetPromotion.Resolve(campaign.RootElement, candidateId, sourcePath);
+        }
+        catch (Exception) { return null; }
+    }
     private static void Atomic(string path, string content) { Directory.CreateDirectory(Path.GetDirectoryName(path)!); var temp = path + ".tmp." + Guid.NewGuid().ToString("N"); File.WriteAllText(temp, content); File.Move(temp, path, true); }
     private static bool ProfileHasChanged(string home, Session session)
     {
@@ -434,10 +493,11 @@ public static class M029AssetWorkbenchCommands
         return false;
     }
     private static string Short(string value) => Hash(Encoding.UTF8.GetBytes(value))[..16]; private static string Hash(byte[] value) => Convert.ToHexString(SHA256.HashData(value)).ToLowerInvariant();
-    private sealed record Session(string Schema, string Id, string CampaignId, string SourceId, string ProfileFingerprint, string[] Candidates, string? ActiveCandidate, string? ActiveBatch, int AliasGeneration, string Status, string CreatedAt, PreviewState Preview, string DecisionLogPath, string PromotionPlanPath, string[] RecoveryDiagnostics);
+    private sealed record Session(string Schema, string Id, string CampaignId, string SourceId, string ProfileFingerprint, string[] Candidates, string? ActiveCandidate, string? ActiveBatch, int AliasGeneration, string Status, string CreatedAt, PreviewState Preview, string DecisionLogPath, string PromotionPlanPath, string[] RecoveryDiagnostics)
+    { public string? CampaignPath { get; init; } }
     private sealed record PreviewState(string Schema, string Endpoint, string Status, int RestartCount, string Implementation, string[] Capabilities);
     private sealed record InputState(string Schema, string TextBuffer, string? ValidationMessage, int MenuGeneration, string Focus, bool CompositionActive, string? LastSubmittedCanonicalCommand);
     private sealed record InputCommand(string Schema, string Source, string Value, int Generation);
     private sealed record CanonicalAction(string Kind, string? Target, string Command);
-    private sealed record Decision(string Schema, string Id, string SessionId, string CampaignId, string BatchId, string? CandidateId, string SourceId, string ProfileFingerprint, string Action, string? SelectedAlternative, string[] Corrections, string[] ConsequencesShown, string ConsequenceResponse, bool PresentationOnly, string[] GameplayBindingsApplied, string Reason, int Sequence, string? Supersedes, string Status);
+    private sealed record Decision(string Schema, string Id, string SessionId, string CampaignId, string BatchId, string? CandidateId, string SourceId, string ProfileFingerprint, string? CandidateFingerprint, string Action, string? SelectedAlternative, string? SelectedVariantFingerprint, JsonElement[] Corrections, string[] ConsequencesShown, string ConsequenceResponse, bool PresentationOnly, string[] GameplayBindingsApplied, string Reason, int Sequence, string? Supersedes, string Status);
 }

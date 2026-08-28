@@ -234,10 +234,10 @@ public sealed class EngineeringHost
                 ReceiptPath(suite, shard),
                 shard.DependsOn,
                 shard.Evidence)).ToArray(),
-            suite.Id is "m037-smoke" or "m039-smoke" or "m040-smoke" or "m041-smoke" or "m042-smoke" or "m043-smoke" or "m044-smoke" or "m045-smoke" or "m046-smoke" ? $"pwsh ./eng/suite.ps1 {suite.Id} --verify" : $"./eng/{suite.Id}.sh --verify",
+            suite.Id is "m037-smoke" or "m039-smoke" or "m040-smoke" or "m041-smoke" or "m042-smoke" or "m043-smoke" or "m044-smoke" or "m045-smoke" or "m046-smoke" or "m047-smoke" ? $"pwsh ./eng/suite.ps1 {suite.Id} --verify" : $"./eng/{suite.Id}.sh --verify",
             suite.Shards.SelectMany(shard => shard.Evidence).Distinct(StringComparer.Ordinal).ToArray());
         var serialized = JsonSerializer.Serialize(plan, json);
-        if (suite.Id is "m033-smoke" or "m034-smoke" or "m035-smoke" or "m039-smoke" or "m040-smoke" or "m041-smoke" or "m042-smoke" or "m043-smoke" or "m044-smoke" or "m045-smoke" or "m046-smoke")
+        if (suite.Id is "m033-smoke" or "m034-smoke" or "m035-smoke" or "m039-smoke" or "m040-smoke" or "m041-smoke" or "m042-smoke" or "m043-smoke" or "m044-smoke" or "m045-smoke" or "m046-smoke" or "m047-smoke")
         {
             var planPath = Absolute(Path.Combine("artifacts", "validation", suite.Id, "plan.json"));
             Directory.CreateDirectory(Path.GetDirectoryName(planPath)!);
@@ -542,6 +542,23 @@ public sealed class EngineeringHost
             }
             var verificationPath = Absolute("artifacts/validation/m046-smoke/verify.json"); Directory.CreateDirectory(Path.GetDirectoryName(verificationPath)!);
             File.WriteAllText(verificationPath, JsonSerializer.Serialize(new { schema = "agentic2d.m046.verification.v1", suite = "m046-smoke", status = success ? "passed" : "failed", currentReceipts = suite.Shards.Count, independentObservedPredicates = success, predecessorM045 = success }, json));
+        }
+
+        if (suite.Id == "m047-smoke" && success)
+        {
+            var m046 = Absolute("artifacts/validation/m046-smoke/verify.json");
+            if (!File.Exists(m046) || !File.ReadAllText(m046).Contains("\"status\": \"passed\"", StringComparison.Ordinal)) { diagnostics.WriteLine("error: m047-smoke: current M046 prerequisite is missing or failed"); success = false; }
+            foreach (var shard in suite.Shards)
+            {
+                var path = Absolute(shard.Evidence[0]);
+                if (!File.Exists(path)) { diagnostics.WriteLine($"error: m047-smoke/{shard.Id}: observation evidence missing"); success = false; continue; }
+                using var document = JsonDocument.Parse(File.ReadAllText(path));
+                var evidence = document.RootElement.GetProperty("evidence");
+                var observed = evidence.GetProperty("observed");
+                if (document.RootElement.GetProperty("status").GetString() != "passed" || !observed.EnumerateObject().All(x => x.Value.ValueKind == JsonValueKind.True)) { diagnostics.WriteLine($"error: m047-smoke/{shard.Id}: independent observed predicates are not all true"); success = false; }
+            }
+            var verificationPath = Absolute("artifacts/validation/m047-smoke/verify.json"); Directory.CreateDirectory(Path.GetDirectoryName(verificationPath)!);
+            File.WriteAllText(verificationPath, JsonSerializer.Serialize(new { schema = "agentic2d.m047.verification.v1", suite = "m047-smoke", status = success ? "passed" : "failed", currentReceipts = suite.Shards.Count, predecessorM046 = success, independentValidation = success, immutableGenerationPublication = success }, json));
         }
 
         if (suite.Id == "m038-smoke" && success)
@@ -931,6 +948,10 @@ public sealed class EngineeringHost
         if (suite.Id == "m046-smoke")
         {
             return await M046ContinuousSpatialSuite.RunAsync(root, shard.Id, diagnostics);
+        }
+        if (suite.Id == "m047-smoke")
+        {
+            return await M047CanonicalAssetSuite.RunAsync(root, shard.Id, diagnostics);
         }
         if (suite.Id == "m038-smoke") return await M038SimpleReviewSuite.RunAsync(this, root, shard.Id, diagnostics);
         if (suite.Id == "m036-smoke")
@@ -1547,6 +1568,21 @@ public sealed class EngineeringHost
             Shard("deterministic-evidence", "Equivalent continuous cases produce deterministic evidence.", "internal:m046", ["artifacts/spatial/M046/deterministic-evidence.json"], isInternal: true),
             Shard("evidence-integrity", "Continuous evidence predicates are observation-derived.", "internal:m046", ["artifacts/spatial/M046/evidence-integrity.json"], isInternal: true),
             Shard("predecessor-regression", "Current M045 runtime validation remains passing.", "internal:m046", ["artifacts/spatial/M046/predecessor-regression.json"], isInternal: true)
+        ]),
+        new("m047-smoke", "resumable-sharded",
+        [
+            Shard("candidate-identity-resolution", "Structured candidates resolve exact source bytes, kinds, selections, and fingerprints.", "internal:m047", ["artifacts/assets/M047/candidate-identity-resolution.json"], isInternal: true),
+            Shard("decision-binding-and-staleness", "Candidate and source fingerprints bind current decision authority.", "internal:m047", ["artifacts/assets/M047/decision-binding-and-staleness.json"], isInternal: true),
+            Shard("alternatives-and-corrections", "Typed alternatives and supported corrections affect recipes.", "internal:m047", ["artifacts/assets/M047/alternatives-and-corrections.json"], isInternal: true),
+            Shard("recipe-materialization", "Versioned recipes and provenance link exact input and output bytes.", "internal:m047", ["artifacts/assets/M047/recipe-materialization.json"], isInternal: true),
+            Shard("promoted-generation-validation", "Generated content is independently hash and reference validated.", "internal:m047", ["artifacts/assets/M047/promoted-generation-validation.json"], isInternal: true),
+            Shard("atomic-publication-recovery", "Failed publication preserves the previous current generation.", "internal:m047", ["artifacts/assets/M047/atomic-publication-recovery.json"], isInternal: true),
+            Shard("repeatability-and-path-independence", "Equivalent semantic inputs are path-independent and repeatable.", "internal:m047", ["artifacts/assets/M047/repeatability-and-path-independence.json"], isInternal: true),
+            Shard("stable-id-collision", "Stable identity is full-digest and distinct identities cannot alias.", "internal:m047", ["artifacts/assets/M047/stable-id-collision.json"], isInternal: true),
+            Shard("legacy-and-fake-capability-cleanup", "Legacy v1 and deferred rebuild authority are non-promotable.", "internal:m047", ["artifacts/assets/M047/legacy-and-fake-capability-cleanup.json"], isInternal: true),
+            Shard("m028-m029-operational-regression", "Current discovery and workbench authoring surfaces remain available.", "internal:m047", ["artifacts/assets/M047/m028-m029-operational-regression.json"], isInternal: true),
+            Shard("evidence-integrity", "Evidence predicates are derived from observed candidate and generation state.", "internal:m047", ["artifacts/assets/M047/evidence-integrity.json"], isInternal: true),
+            Shard("predecessor-regression", "Current M046 validation remains the explicit predecessor.", "internal:m047", ["artifacts/assets/M047/predecessor-regression.json"], isInternal: true)
         ]),
         new("m037-smoke", "resumable-sharded",
         [
