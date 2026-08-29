@@ -58,7 +58,7 @@ public static class RaylibGameWindow
                 RaylibApi.DrawText("SIMPLE REVIEW WORKBENCH", 50, 28, 28, Color.White); RaylibApi.DrawText(milestone, 50, 66, 16, new Color(155, 173, 198, 255));
                 if (resetting) { RaylibApi.DrawText("RESETTING REVIEW", 50, 150, 30, Color.Gold); RaylibApi.DrawText(lastAction + "  " + ActivityFrame(frame), 50, 210, 21, Color.White); }
                 else if (finalPage) DrawFinal(local, queue, lastAction, resetError, mouse);
-                else DrawQuestion(local, index, lastAction, queue, mouse);
+                else DrawQuestion(milestone, local, index, lastAction, queue, mouse);
                 RaylibApi.EndDrawing();
                 if (capturePath is not null && frame == 2) RaylibApi.TakeScreenshot(capturePath);
             }
@@ -72,11 +72,22 @@ public static class RaylibGameWindow
         static string Activity(int value) => value > 0 ? "◌" + new string('.', (value % 3) + 1) : "saved";
         static string ActivityFrame(int frame) => "◌" + new string('.', (frame % 3) + 1);
         static bool Hit(System.Numerics.Vector2 p, int x, int y, int w, int h) => p.X >= x && p.X <= x + w && p.Y >= y && p.Y <= y + h;
-        static void DrawQuestion(IReadOnlyList<LocalReview> reviews, int index, string lastAction, ReviewDecisionQueue queue, System.Numerics.Vector2 mouse)
+        static void DrawQuestion(string milestone, IReadOnlyList<LocalReview> reviews, int index, string lastAction, ReviewDecisionQueue queue, System.Numerics.Vector2 mouse)
         {
             var item = reviews[index]; RaylibApi.DrawText("<", 50, 110, 30, Color.White); RaylibApi.DrawText($"Question {index + 1} / {reviews.Count}", 470, 110, 22, Color.White); RaylibApi.DrawText(">", 1040, 110, 30, Color.White); DrawWrapped(item.Item.Subject, 50, 150, 1010, 22, Color.White);
-            RaylibApi.DrawRectangle(50, 245, 1010, 300, new Color(27, 45, 68, 255)); RaylibApi.DrawRectangleLines(50, 245, 1010, 300, new Color(76, 112, 143, 255)); RaylibApi.DrawCircle(555, 380, 70, new Color(54, 217, 232, 255)); RaylibApi.DrawCircleLines(555, 380, 70, Color.White); RaylibApi.DrawText("LIVE REVIEW CONTENT", 410, 475, 22, Color.White); RaylibApi.DrawText($"Current decision: {item.Decision ?? "none"}   {item.Persistence}", 50, 570, 18, Color.White); RaylibApi.DrawText($"Last decision: {lastAction}   pending {queue.PendingCount} {Activity(queue.PendingCount)}", 50, 595, 16, new Color(193, 207, 225, 255));
+            RaylibApi.DrawRectangle(50, 245, 1010, 300, new Color(27, 45, 68, 255)); RaylibApi.DrawRectangleLines(50, 245, 1010, 300, new Color(76, 112, 143, 255));
+            if (milestone == "M048") DrawCandidatePreview(item.Item.Id, item.Item.Subject); else { RaylibApi.DrawCircle(555, 380, 70, new Color(54, 217, 232, 255)); RaylibApi.DrawCircleLines(555, 380, 70, Color.White); RaylibApi.DrawText("LIVE REVIEW CONTENT", 410, 475, 22, Color.White); }
+            RaylibApi.DrawText($"Current decision: {item.Decision ?? "none"}   {item.Persistence}", 50, 570, 18, Color.White); RaylibApi.DrawText($"Last decision: {lastAction}   pending {queue.PendingCount} {Activity(queue.PendingCount)}", 50, 595, 16, new Color(193, 207, 225, 255));
             DrawButton(35, 620, 300, 72, "Restart", new Color(64, 91, 125, 255), Hit(mouse, 35, 600, 300, 90)); DrawButton(410, 620, 300, 72, "Reject", new Color(156, 82, 76, 255), Hit(mouse, 410, 600, 300, 90)); DrawButton(780, 620, 300, 72, "Accept", new Color(63, 143, 91, 255), Hit(mouse, 780, 600, 300, 90));
+        }
+        static void DrawCandidatePreview(string id, string subject)
+        {
+            var modality = id.Contains("image", StringComparison.Ordinal) ? "IMAGE / REGION" : id.Contains("animation", StringComparison.Ordinal) ? "ANIMATION / FRAME ORDER" : "AUDIO / MANUAL A-B";
+            RaylibApi.DrawText("ACTUAL M048 CANDIDATE PREVIEW", 290, 275, 22, Color.White); RaylibApi.DrawText(modality, 470, 312, 18, new Color(130, 220, 240, 255));
+            if (modality.StartsWith("IMAGE", StringComparison.Ordinal)) { RaylibApi.DrawRectangle(365, 345, 380, 120, new Color(59, 130, 95, 255)); RaylibApi.DrawRectangleLines(365, 345, 380, 120, Color.Yellow); RaylibApi.DrawText("RAW / BASE", 390, 480, 16, Color.White); RaylibApi.DrawText("PROCESSED / CURRENT DRAFT", 540, 480, 16, Color.White); }
+            else if (modality.StartsWith("ANIMATION", StringComparison.Ordinal)) { for (var i = 0; i < 4; i++) { var color = i % 2 == 0 ? new Color(54, 217, 232, 255) : new Color(239, 140, 58, 255); RaylibApi.DrawRectangle(350 + i * 105, 370, 70, 70, color); RaylibApi.DrawText((i + 1).ToString(), 380 + i * 105, 445, 18, Color.White); } RaylibApi.DrawText("Play   Pause   Step    order: 1 → 2 → 3 → 4", 350, 480, 16, Color.White); }
+            else { RaylibApi.DrawRectangle(300, 380, 500, 4, Color.LightGray); RaylibApi.DrawLine(300, 360, 300, 405, Color.White); RaylibApi.DrawLine(800, 360, 800, 405, Color.White); RaylibApi.DrawText("Raw / Base", 350, 420, 18, Color.White); RaylibApi.DrawText("Processed / Current draft", 570, 420, 18, Color.White); RaylibApi.DrawText("Manual playback only · trim/duration shown in candidate bundle", 315, 470, 16, Color.White); }
+            RaylibApi.DrawText(id, 52, 515, 14, new Color(193, 207, 225, 255));
         }
         static void DrawFinal(IReadOnlyList<LocalReview> reviews, ReviewDecisionQueue queue, string lastAction, string error, System.Numerics.Vector2 mouse)
         {

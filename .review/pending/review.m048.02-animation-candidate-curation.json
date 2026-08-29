@@ -1,0 +1,48 @@
+{
+  "schema": "agentic2d.engineering.review-request.v2",
+  "id": "review.m048.02-animation-candidate-curation",
+  "owningMilestone": "M048",
+  "owningMilestonePath": "docs/milestones/MILESTONE-048-actual-candidate-preview-and-human-curation-experience.md",
+  "subject": "Does the actual candidate animation and its selected frame-order/variant preview play clearly enough to judge the intended presentation?",
+  "classes": [
+    "visual",
+    "UX"
+  ],
+  "level": "blocking",
+  "reviewerRole": "repository user",
+  "status": "changes-requested",
+  "evidence": [
+    "artifacts/validation/m048-smoke/review-readiness.json",
+    "artifacts/assets/M048/review/animation/preview-observation.json"
+  ],
+  "acceptanceCriteria": [
+    "The content is visibly the actual candidate animation and not a generic smoke animation.",
+    "Playback and the selected frame order/variant are understandable at a glance.",
+    "The bounded play/pause/step or comparison controls are usable enough to judge the animation presentation."
+  ],
+  "acceptableDecisions": [
+    "approved"
+  ],
+  "waiverPolicy": "No implicit waiver. This perceptual review item establishes a core M048 human-curation capability.",
+  "decision": "changes-requested",
+  "reviewedRevision": "",
+  "reviewedFingerprint": "",
+  "conditions": [],
+  "decisionHistory": [
+    {
+      "decision": "changes-requested",
+      "reviewer": "repository user",
+      "notes": "",
+      "evidence": [
+        "artifacts/validation/m048-smoke/review-readiness.json",
+        "artifacts/assets/M048/review/animation/preview-observation.json"
+      ],
+      "revision": "ref: refs/heads/main",
+      "fingerprint": "2f327eb1963f0b355233da422bf421294f59c7722901460763cd7ce6416d3fcf",
+      "recordedAt": "2026-08-29T05:01:59.3881338+00:00",
+      "recordCorrection": false
+    }
+  ],
+  "correctsReviewId": "",
+  "path": ".review/pending/review.m048.02-animation-candidate-curation.json"
+}

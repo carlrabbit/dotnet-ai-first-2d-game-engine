@@ -30,7 +30,8 @@ This document indexes permanent behavioral authority. Milestones sequence work; 
 | `docs/specs/asset-workbench-input-contract.md` | Explicit text-stream and mouse/touch M029 asset-workbench input. |
 | `docs/specs/asset-workbench-decision-and-consequence-contract.md` | Exact v2 candidate/variant-bound asset decisions, typed corrections, history, groups, consequences, and candidate-scoped staleness. |
 | `docs/specs/canonical-asset-candidate-contract.md` | Exact game-local candidate/source/selection/variant identity and fingerprint bridging discovery/campaign authority to v2 decisions and promotion. |
-| `docs/specs/asset-preview-host-ipc-contract.md` | M029 restartable local asset-preview-host protocol. |
+| `docs/specs/asset-preview-host-ipc-contract.md` | M048 v2 restartable preview-host protocol with exact materialization-subject acknowledgement and actual-engine image/animation/audio preview. |
+| `docs/specs/actual-candidate-preview-and-curation-contract.md` | Exact candidate/variant/correction preview subject, operational curation draft, preview-backed interactive approval, and modality-specific actual-engine preview. |
 | `docs/specs/approved-asset-and-deterministic-promotion-contract.md` | V2 approved assets, deterministic recipes/provenance, immutable promoted generations, atomic publication, and independent validation; real affected rebuild deferred to M049. |
 | `docs/specs/map-content-contract.md` | Authored map content. |
 | `docs/specs/runtime-inspection-contract.md` | Structured runtime inspection. |
