@@ -22,18 +22,31 @@ public static class AssetPreviewRaylibWindow
         using var scene = JsonDocument.Parse(File.ReadAllText(scenePath));
         var candidate = scene.RootElement.TryGetProperty("candidateId", out var candidateId) ? candidateId.GetString() ?? "candidate.unresolved" : "candidate.unresolved";
         var projection = new RenderProjectionService().ProjectScenario("game/scenarios/smoke/runtime-smoke.json", sourceMode: "workbench-preview-ui");
-        Texture2D atlas = default; Sound rawSound = default; var atlasLoaded = false; var audioDevice = false; var soundLoaded = false; var captured = false;
+        Texture2D atlas = default; Texture2D candidateTexture = default; Raylib_cs.Sound rawSound = default; Raylib_cs.Sound processedSound = default; var rawAudioPath = Path.Combine(FindRepositoryRoot(), "game", "assets", "raw", "samples", "footstep-a.wav"); var processedAudioPath = rawAudioPath; var atlasLoaded = false; var candidateLoaded = false; var audioDevice = false; var soundLoaded = false; var processedSoundLoaded = false; var captured = false;
         var highContrast = false; var overlays = true; var comparison = "side-by-side"; var filtering = "nearest"; var playback = "paused"; var speed = 1d; var audio = "stopped (no device)";
         try
         {
-            global::Raylib_cs.Raylib.InitWindow(1120, 680, "Agentic2D Asset Preview"); global::Raylib_cs.Raylib.SetTargetFPS(60);
-            atlas = global::Raylib_cs.Raylib.LoadTexture("game/assets/raw/samples/render-atlas-smoke.png");
-            if (atlas.Id == 0) throw new InvalidOperationException("preview could not load the checked-in render atlas");
-            atlasLoaded = true;
+            global::Raylib_cs.Raylib.InitWindow(1120, 680, "Agentic2D Asset Preview");
+            if (!global::Raylib_cs.Raylib.IsWindowReady()) { Console.Error.WriteLine("asset-preview could not initialize the Raylib window"); return 1; }
+            global::Raylib_cs.Raylib.SetTargetFPS(60);
+            atlas = global::Raylib_cs.Raylib.LoadTexture(Path.Combine(FindRepositoryRoot(), "game", "assets", "raw", "samples", "render-atlas-smoke.png"));
+            atlasLoaded = atlas.Id != 0;
+            if (scene.RootElement.TryGetProperty("bundlePath", out var bundlePathElement) && bundlePathElement.ValueKind == JsonValueKind.String)
+            {
+                var bundlePath = Path.GetFullPath(bundlePathElement.GetString()!);
+                if (File.Exists(bundlePath))
+                {
+                    using var bundle = JsonDocument.Parse(File.ReadAllText(bundlePath));
+                    var processed = bundle.RootElement.GetProperty("processedMediaPath").GetString();
+                    var processedPath = Path.GetFullPath(Path.Combine(Path.GetDirectoryName(bundlePath)!, processed!));
+                    if (File.Exists(processedPath) && bundle.RootElement.GetProperty("mediaKind").GetString() != "audio") { candidateTexture = global::Raylib_cs.Raylib.LoadTexture(processedPath); candidateLoaded = candidateTexture.Id != 0; }
+                    if (bundle.RootElement.GetProperty("mediaKind").GetString() == "audio") { rawAudioPath = Path.GetFullPath(Path.Combine(Path.GetDirectoryName(bundlePath)!, bundle.RootElement.GetProperty("baseMediaPath").GetString()!)); processedAudioPath = processedPath; }
+                }
+            }
             try
             {
                 global::Raylib_cs.Raylib.InitAudioDevice(); audioDevice = global::Raylib_cs.Raylib.IsAudioDeviceReady();
-                if (audioDevice) { rawSound = global::Raylib_cs.Raylib.LoadSound("game/assets/raw/samples/footstep-a.wav"); soundLoaded = true; }
+                if (audioDevice) { rawSound = global::Raylib_cs.Raylib.LoadSound(rawAudioPath); soundLoaded = rawSound.FrameCount > 0; if (File.Exists(processedAudioPath)) { processedSound = global::Raylib_cs.Raylib.LoadSound(processedAudioPath); processedSoundLoaded = processedSound.FrameCount > 0; } }
             }
             catch { audio = "audio device unavailable"; }
             for (var frame = 0; !global::Raylib_cs.Raylib.WindowShouldClose() && (frames <= 0 || frame < frames); frame++)
@@ -55,7 +68,7 @@ public static class AssetPreviewRaylibWindow
                 }
                 if (Clicked(processed, mouse))
                 {
-                    if (soundLoaded) { global::Raylib_cs.Raylib.SetSoundVolume(rawSound, .6f); global::Raylib_cs.Raylib.PlaySound(rawSound); audio = "processed gain preview playing (explicit request)"; }
+                    if (processedSoundLoaded) { global::Raylib_cs.Raylib.SetSoundVolume(processedSound, 1); global::Raylib_cs.Raylib.PlaySound(processedSound); audio = "processed playing (explicit request)"; }
                     else audio = "processed selected (no device)";
                 }
                 if (Clicked(stop, mouse)) { if (soundLoaded) global::Raylib_cs.Raylib.StopSound(rawSound); audio = soundLoaded ? "stopped" : "stopped (no device)"; }
@@ -63,7 +76,7 @@ public static class AssetPreviewRaylibWindow
                 global::Raylib_cs.Raylib.BeginDrawing(); global::Raylib_cs.Raylib.ClearBackground(highContrast ? Color.White : new Color(18, 27, 42, 255));
                 var text = highContrast ? Color.Black : Color.RayWhite; var panel = highContrast ? new Color(224, 230, 237, 255) : new Color(37, 54, 79, 255);
                 global::Raylib_cs.Raylib.DrawText("ASSET PREVIEW", 28, 24, 28, text); global::Raylib_cs.Raylib.DrawText(candidate, 28, 58, 17, highContrast ? Color.DarkGray : Color.LightGray);
-                global::Raylib_cs.Raylib.DrawRectangle(28, 92, 620, 510, panel); DrawProjection(projection.Frame.Items, atlas, comparison, filtering);
+                global::Raylib_cs.Raylib.DrawRectangle(28, 92, 620, 510, panel); if (candidateLoaded) { global::Raylib_cs.Raylib.SetTextureFilter(candidateTexture, filtering == "smooth" ? TextureFilter.Bilinear : TextureFilter.Point); global::Raylib_cs.Raylib.DrawTexturePro(candidateTexture, new Rectangle(0, 0, candidateTexture.Width, -candidateTexture.Height), new Rectangle(110, 180, 460, 330), Vector2.Zero, 0, Color.White); } else if (atlasLoaded) DrawProjection(projection.Frame.Items, atlas, comparison, filtering); else { global::Raylib_cs.Raylib.DrawRectangle(110, 180, 460, 330, new Color(62, 103, 123, 255)); global::Raylib_cs.Raylib.DrawText("Candidate bundle loaded; texture adapter unavailable", 135, 330, 18, Color.White); }
                 if (overlays) { global::Raylib_cs.Raylib.DrawRectangleLines(28, 92, 620, 510, Color.Magenta); global::Raylib_cs.Raylib.DrawLine(338, 92, 338, 602, Color.SkyBlue); global::Raylib_cs.Raylib.DrawLine(28, 347, 648, 347, Color.SkyBlue); global::Raylib_cs.Raylib.DrawText("pivot / bounds / grid / padding", 42, 574, 14, Color.Magenta); }
                 global::Raylib_cs.Raylib.DrawText("Comparison and overlays", 680, 62, 20, text); Button(source, "Source", comparison == "source"); Button(isolate, "Isolated", comparison == "isolated-region"); Button(nearest, "Nearest", filtering == "nearest"); Button(smooth, "Smooth", filtering == "smooth"); Button(neutral, "Neutral", !highContrast); Button(contrast, "High contrast", highContrast); Button(overlay, overlays ? "Overlays on" : "Overlays off", overlays);
                 global::Raylib_cs.Raylib.DrawText("Animation", 680, 276, 18, text); Button(play, "Play", playback == "playing"); Button(pause, "Pause", playback == "paused"); Button(step, "Step", playback == "stepped"); Button(slow, "0.5x", speed == .5); Button(normal, "1x", speed == 1); Button(fast, "2x", speed == 2);
@@ -76,8 +89,9 @@ public static class AssetPreviewRaylibWindow
         finally
         {
             if (soundLoaded) { global::Raylib_cs.Raylib.StopSound(rawSound); global::Raylib_cs.Raylib.UnloadSound(rawSound); }
+            if (processedSoundLoaded) { global::Raylib_cs.Raylib.StopSound(processedSound); global::Raylib_cs.Raylib.UnloadSound(processedSound); }
             if (audioDevice && global::Raylib_cs.Raylib.IsAudioDeviceReady()) global::Raylib_cs.Raylib.CloseAudioDevice();
-            if (atlasLoaded) global::Raylib_cs.Raylib.UnloadTexture(atlas); if (global::Raylib_cs.Raylib.IsWindowReady()) global::Raylib_cs.Raylib.CloseWindow();
+            if (candidateLoaded) global::Raylib_cs.Raylib.UnloadTexture(candidateTexture); if (atlasLoaded) global::Raylib_cs.Raylib.UnloadTexture(atlas); if (global::Raylib_cs.Raylib.IsWindowReady()) global::Raylib_cs.Raylib.CloseWindow();
         }
     }
 
@@ -95,5 +109,11 @@ public static class AssetPreviewRaylibWindow
 
     private static bool Clicked(Rectangle rectangle, Vector2 mouse) => global::Raylib_cs.Raylib.IsMouseButtonPressed(MouseButton.Left) && global::Raylib_cs.Raylib.CheckCollisionPointRec(mouse, rectangle);
     private static void Button(Rectangle rectangle, string text, bool active) { var color = active ? new Color(60, 152, 93, 255) : new Color(72, 104, 158, 255); global::Raylib_cs.Raylib.DrawRectangleRec(rectangle, color); global::Raylib_cs.Raylib.DrawRectangleLinesEx(rectangle, 2, Color.RayWhite); global::Raylib_cs.Raylib.DrawText(text, (int)rectangle.X + 12, (int)rectangle.Y + 11, 16, Color.RayWhite); }
+    private static string FindRepositoryRoot()
+    {
+        var directory = AppContext.BaseDirectory;
+        while (!string.IsNullOrWhiteSpace(directory)) { if (File.Exists(Path.Combine(directory, "dotnet-ai-first-2d-game-engine.slnx"))) return directory; directory = Directory.GetParent(directory)?.FullName; }
+        return Directory.GetCurrentDirectory();
+    }
     private static int Usage() { Console.Error.WriteLine("asset-preview requires --scene <preview-scene.json> [--capture <png>] [--frames <count>]"); return 2; }
 }

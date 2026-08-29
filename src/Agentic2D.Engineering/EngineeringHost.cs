@@ -150,10 +150,10 @@ public sealed class EngineeringHost
         if (review is null) { error = $"review '{id}' is not active"; return false; }
         if (!IsMilestoneActive(review.OwningMilestone)) { error = "review belongs to a completed milestone"; return false; }
         if (!M038ReviewPolicy.IsSimple(review, out error)) return false;
-        if (!M038ReviewPolicy.IsM038(review)) { error = "review is not registered to a simple current experience"; return false; }
+        if (!M038ReviewPolicy.IsRegistered(review)) { error = "review is not registered to a simple current experience"; return false; }
         if (requireGraphicsPrerequisite)
         {
-            var graphicsPath = Absolute("artifacts/validation/m038-smoke/active-platform-graphics.json");
+            var graphicsPath = review.OwningMilestone == "M048" ? Absolute("artifacts/validation/m048-smoke/active-platform-graphical-preview.json") : Absolute("artifacts/validation/m038-smoke/active-platform-graphics.json");
             if (!File.Exists(graphicsPath) || !File.ReadAllText(graphicsPath).Contains("\"status\": \"passed\"", StringComparison.Ordinal)) { error = "current active-platform graphics prerequisite is missing or failed"; return false; }
         }
         return true;
@@ -201,7 +201,7 @@ public sealed class EngineeringHost
     public async Task<int> ResetReviewsAsync(string milestone, TextWriter stdout)
     {
         if (!IsMilestoneActive(milestone)) throw new EngineeringException($"review reset: milestone '{milestone}' is not active");
-        var reviews = ReadReviews().Where(candidate => candidate.OwningMilestone == milestone && (candidate.Level is "required" or "blocking") && M038ReviewPolicy.IsM038(candidate)).ToArray();
+        var reviews = ReadReviews().Where(candidate => candidate.OwningMilestone == milestone && (candidate.Level is "required" or "blocking") && M038ReviewPolicy.IsRegistered(candidate)).ToArray();
         foreach (var review in reviews)
         {
             var reset = review with { Schema = ReviewRequestSchema, Status = "pending", Decision = string.Empty, Conditions = [], ReviewedRevision = string.Empty, ReviewedFingerprint = string.Empty, CompletedAt = null, Path = Path.Combine(".review", "pending", review.Id + ".json") };
@@ -234,10 +234,10 @@ public sealed class EngineeringHost
                 ReceiptPath(suite, shard),
                 shard.DependsOn,
                 shard.Evidence)).ToArray(),
-            suite.Id is "m037-smoke" or "m039-smoke" or "m040-smoke" or "m041-smoke" or "m042-smoke" or "m043-smoke" or "m044-smoke" or "m045-smoke" or "m046-smoke" or "m047-smoke" ? $"pwsh ./eng/suite.ps1 {suite.Id} --verify" : $"./eng/{suite.Id}.sh --verify",
+            suite.Id is "m037-smoke" or "m039-smoke" or "m040-smoke" or "m041-smoke" or "m042-smoke" or "m043-smoke" or "m044-smoke" or "m045-smoke" or "m046-smoke" or "m047-smoke" or "m048-smoke" ? $"pwsh ./eng/suite.ps1 {suite.Id} --verify" : $"./eng/{suite.Id}.sh --verify",
             suite.Shards.SelectMany(shard => shard.Evidence).Distinct(StringComparer.Ordinal).ToArray());
         var serialized = JsonSerializer.Serialize(plan, json);
-        if (suite.Id is "m033-smoke" or "m034-smoke" or "m035-smoke" or "m039-smoke" or "m040-smoke" or "m041-smoke" or "m042-smoke" or "m043-smoke" or "m044-smoke" or "m045-smoke" or "m046-smoke" or "m047-smoke")
+        if (suite.Id is "m033-smoke" or "m034-smoke" or "m035-smoke" or "m039-smoke" or "m040-smoke" or "m041-smoke" or "m042-smoke" or "m043-smoke" or "m044-smoke" or "m045-smoke" or "m046-smoke" or "m047-smoke" or "m048-smoke")
         {
             var planPath = Absolute(Path.Combine("artifacts", "validation", suite.Id, "plan.json"));
             Directory.CreateDirectory(Path.GetDirectoryName(planPath)!);
@@ -565,6 +565,21 @@ public sealed class EngineeringHost
         {
             var readiness = Absolute("artifacts/validation/m038-smoke/review-readiness.json");
             if (!File.Exists(readiness) || !File.ReadAllText(readiness).Contains("\"status\": \"passed\"", StringComparison.Ordinal)) { diagnostics.WriteLine("error: m038-smoke: review readiness is not passed"); success = false; }
+        }
+
+        if (suite.Id == "m048-smoke" && success)
+        {
+            foreach (var shard in suite.Shards)
+            {
+                var path = Absolute(shard.Evidence[0]);
+                if (!File.Exists(path)) { diagnostics.WriteLine($"error: m048-smoke/{shard.Id}: observation evidence missing"); success = false; continue; }
+                using var document = JsonDocument.Parse(File.ReadAllText(path));
+                if (document.RootElement.TryGetProperty("status", out var status) && status.ValueKind == JsonValueKind.String && status.GetString() != "passed") { diagnostics.WriteLine($"error: m048-smoke/{shard.Id}: status is not passed"); success = false; }
+                var booleans = document.RootElement.EnumerateObject().Where(x => x.Value.ValueKind == JsonValueKind.False && x.Name != "fixedSmokeSubstitute").Select(x => x.Name).ToArray();
+                if (booleans.Length > 0) { diagnostics.WriteLine($"error: m048-smoke/{shard.Id}: observed predicates false: {string.Join(",", booleans)}"); success = false; }
+            }
+            var verificationPath = Absolute("artifacts/validation/m048-smoke/verify.json"); Directory.CreateDirectory(Path.GetDirectoryName(verificationPath)!);
+            File.WriteAllText(verificationPath, JsonSerializer.Serialize(new { schema = "agentic2d.m048.verification.v1", suite = "m048-smoke", status = success ? "passed" : "failed", currentReceipts = suite.Shards.Count, independentObservedPredicates = success, predecessorM047 = success, actualCandidatePreview = success, reviewReadiness = success }, json));
         }
 
         if (suite.Id is "m031-smoke" or "m032-smoke" or "m033-smoke" or "m034-smoke" or "m035-smoke")
@@ -952,6 +967,10 @@ public sealed class EngineeringHost
         if (suite.Id == "m047-smoke")
         {
             return await M047CanonicalAssetSuite.RunAsync(root, shard.Id, diagnostics);
+        }
+        if (suite.Id == "m048-smoke")
+        {
+            return await M048ActualCandidatePreviewSuite.RunAsync(this, root, shard.Id, diagnostics);
         }
         if (suite.Id == "m038-smoke") return await M038SimpleReviewSuite.RunAsync(this, root, shard.Id, diagnostics);
         if (suite.Id == "m036-smoke")
@@ -1611,6 +1630,21 @@ public sealed class EngineeringHost
             Shard("human-review", "Blocking M037 review is approved by the repository user.", "pwsh ./eng/review-check.ps1 --milestone M037", ["artifacts/application/M037/review-pack/review-manifest.json"]),
             Shard("integrated", "Integrated structural proof and completion audit candidate.", "internal:m037", ["artifacts/application/M037/m037-completion-audit.json", "artifacts/application/M037/diagnostics.json"], ["review-pack"], true),
             Shard("completion-audit", "Completion audit derives its terminal outcome from current review state and active-platform proof.", "internal:m037", ["artifacts/application/M037/m037-completion-audit.json", "artifacts/application/M037/diagnostics.json"], ["integrated"], true)
+        ]),
+        new("m048-smoke", "resumable-sharded",
+        [
+            Shard("m047-prerequisite-and-authority-regression", "Current M047 authority remains the preview resolver/materializer source.", "internal:m048", ["artifacts/assets/M048/m047-prerequisite-and-authority-regression.json"], isInternal: true),
+            Shard("preview-subject-and-bundle", "Exact subject and disposable bundle hashes are observed.", "internal:m048", ["artifacts/assets/M048/preview-subject-and-bundle.json"], isInternal: true),
+            Shard("image-candidate-preview", "Actual candidate image media is presented through the preview path.", "internal:m048", ["artifacts/assets/M048/image-candidate-preview.json"], isInternal: true),
+            Shard("animation-candidate-preview", "Actual ordered candidate animation media is presented deterministically.", "internal:m048", ["artifacts/assets/M048/animation-candidate-preview.json"], isInternal: true),
+            Shard("audio-candidate-preview", "Actual candidate audio uses manual raw/processed preview semantics.", "internal:m048", ["artifacts/assets/M048/audio-candidate-preview.json"], isInternal: true),
+            Shard("variant-correction-decision-binding", "Operational draft, exact acknowledgement, decision and promotion subject binding.", "internal:m048", ["artifacts/assets/M048/variant-correction-decision-binding.json"], isInternal: true),
+            Shard("preview-staleness-and-recovery", "Candidate changes and host restart invalidate acknowledgement while recovery remains usable.", "internal:m048", ["artifacts/assets/M048/preview-staleness-and-recovery.json"], isInternal: true),
+            Shard("workbench-input-and-group-preview-guard", "M029 input equivalence and safe group preview guard remain current.", "internal:m048", ["artifacts/assets/M048/workbench-input-and-group-preview-guard.json"], isInternal: true),
+            Shard("review-experience-registry-and-readiness", "M038 compatibility and three actual M048 review experiences are registered.", "internal:m048", ["artifacts/assets/M048/review-experience-registry-and-readiness.json"], isInternal: true),
+            Shard("active-platform-graphical-preview", "Windows Raylib candidate preview process and capture proof.", "internal:m048", ["artifacts/assets/M048/active-platform-graphical-preview.json", "artifacts/validation/m048-smoke/m048-preview.png"], isInternal: true),
+            Shard("evidence-integrity", "Identity and binding conclusions are independently derived.", "internal:m048", ["artifacts/assets/M048/evidence-integrity.json"], isInternal: true),
+            Shard("predecessor-regression", "M047 and focused historical M029/M038 boundaries remain passing.", "internal:m048", ["artifacts/assets/M048/predecessor-regression.json"], isInternal: true)
         ]),
         new("m038-smoke", "resumable-sharded",
         [

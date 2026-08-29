@@ -1,0 +1,35 @@
+{
+  "schema": "agentic2d.engineering.review-request.v2",
+  "id": "review.m048.03-audio-candidate-curation",
+  "owningMilestone": "M048",
+  "owningMilestonePath": "docs/milestones/MILESTONE-048-actual-candidate-preview-and-human-curation-experience.md",
+  "subject": "Is manual raw/processed playback of the actual audio candidate clear and usable enough to judge the selected audio/trim result?",
+  "classes": [
+    "audio",
+    "UX"
+  ],
+  "level": "blocking",
+  "reviewerRole": "repository user",
+  "status": "pending",
+  "evidence": [
+    "artifacts/validation/m048-smoke/review-readiness.json",
+    "artifacts/assets/M048/review/audio/preview-observation.json"
+  ],
+  "acceptanceCriteria": [
+    "Audio does not auto-play and the reviewer can deliberately play the raw/base and processed/current-draft candidate.",
+    "It is clear which candidate/variant and trim/duration state is being heard without inspecting machine evidence.",
+    "The audible comparison and controls are adequate to make a curation-quality judgment."
+  ],
+  "acceptableDecisions": [
+    "approved"
+  ],
+  "waiverPolicy": "No implicit waiver. This perceptual review item establishes a core M048 human-curation capability.",
+  "decision": "",
+  "reviewedRevision": "",
+  "reviewedFingerprint": "",
+  "conditions": [],
+  "completedAt": null,
+  "decisionHistory": [],
+  "correctsReviewId": "",
+  "path": ".review/pending/review.m048.03-audio-candidate-curation.json"
+}

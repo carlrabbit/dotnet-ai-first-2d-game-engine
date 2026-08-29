@@ -11,8 +11,10 @@ namespace Agentic2D.Tools;
 /// </summary>
 public static class PreviewIpcHost
 {
-    private const string RequestSchema = "agentic2d.asset-preview-ipc.request.v1";
-    private const string ResponseSchema = "agentic2d.asset-preview-ipc.response.v1";
+    private const string RequestSchema = "agentic2d.asset-preview-ipc.request.v2";
+    private const string ResponseSchema = "agentic2d.asset-preview-ipc.response.v2";
+    private const string LegacyRequestSchema = "agentic2d.asset-preview-ipc.request.v1";
+    private const string LegacyResponseSchema = "agentic2d.asset-preview-ipc.response.v1";
 
     public static async Task<int> ServeAsync(string endpoint, string sessionId, string stateDirectory, CancellationToken cancellationToken = default)
     {
@@ -80,12 +82,25 @@ public static class PreviewIpcHost
         {
             using var document = JsonDocument.Parse(line); var request = document.RootElement;
             var schema = Text(request, "schema"); var requestSession = Text(request, "sessionId"); var requestId = Text(request, "requestId"); var operation = Text(request, "operation");
-            if (schema != RequestSchema || requestSession != sessionId || string.IsNullOrWhiteSpace(requestId)) return Response(sessionId, requestId, "invalid-request", "schema, sessionId, or requestId is invalid");
+            if (requestSession != sessionId || string.IsNullOrWhiteSpace(requestId)) return Response(sessionId, requestId, "invalid-request", "schema, sessionId, or requestId is invalid");
             if (operation is not ("health" or "load" or "background" or "overlay" or "animation" or "audio" or "capture" or "reset" or "shutdown")) return Response(sessionId, requestId, "invalid-request", "operation is not supported");
+            if (schema == LegacyRequestSchema)
+            {
+                if (operation is not ("health" or "shutdown")) return new { schema = LegacyResponseSchema, sessionId, requestId, status = "invalid-request", diagnostic = "preview IPC v1 is retired; use request.v2 with an exact materialization subject", durableStateOwned = false };
+                shutdown = operation == "shutdown";
+                return new { schema = LegacyResponseSchema, sessionId, requestId, status = "ok", operation, hostState = shutdown ? "shutting-down" : "ready", durableStateOwned = false };
+            }
+            if (schema != RequestSchema) return Response(sessionId, requestId, "invalid-request", "preview IPC v1 is retired; use request.v2 with an exact materialization subject");
             shutdown = operation == "shutdown";
             var state = new { schema = "agentic2d.asset-preview-runtime-state.v1", sessionId, operation, updatedAt = DateTimeOffset.UtcNow.ToString("O"), durableStateOwned = false };
             Directory.CreateDirectory(stateDirectory);
             File.WriteAllText(Path.Combine(stateDirectory, "preview-runtime.json"), JsonSerializer.Serialize(state, new JsonSerializerOptions { WriteIndented = true }));
+            if (operation == "load")
+            {
+                var subject = Text(request, "materializationSubjectFingerprint"); var bundle = Text(request, "previewBundleFingerprint");
+                if (string.IsNullOrWhiteSpace(subject) || string.IsNullOrWhiteSpace(bundle)) return Response(sessionId, requestId, "invalid-request", "v2 load requires exact materializationSubjectFingerprint and previewBundleFingerprint");
+                return new { schema = ResponseSchema, sessionId, requestId, status = "ok", operation, hostState = "ready", durableStateOwned = false, acknowledgedMaterializationSubjectFingerprint = subject, loadedMediaFingerprint = bundle };
+            }
             return new { schema = ResponseSchema, sessionId, requestId, status = "ok", operation, hostState = shutdown ? "shutting-down" : "ready", durableStateOwned = false };
         }
         catch (JsonException) { return Response(sessionId, "", "invalid-request", "request is not valid JSON"); }
