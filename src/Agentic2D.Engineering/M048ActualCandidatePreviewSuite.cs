@@ -68,14 +68,28 @@ public static class M048ActualCandidatePreviewSuite
     private static object ReviewReadiness(EngineeringHost host)
     {
         var items = host.GetOpenSimpleReviews("M048", out var error, requireGraphicsPrerequisite: false);
-        var ready = string.IsNullOrWhiteSpace(error) && items.Count == 3;
-        foreach (var modality in new[] { "image", "animation", "audio" })
+        var experiences = new List<object>(); var fixturesReady = true;
+        foreach (var reviewId in M048ReviewExperienceRegistry.ReviewIds)
         {
-            var path = Path.Combine(host.Root, "artifacts", "assets", "M048", "review", modality, "preview-observation.json"); Directory.CreateDirectory(Path.GetDirectoryName(path)!);
-            File.WriteAllText(path, JsonSerializer.Serialize(BuildProof(host.Root, modality), Json));
+            var resolved = M048ReviewExperienceRegistry.TryResolve(reviewId, host.Root, out var fixture, out var fixtureError);
+            var sceneExists = resolved && File.Exists(fixture!.ScenePath); var bundleExists = resolved && File.Exists(fixture!.BundlePath);
+            var subjectMatches = false;
+            if (sceneExists && bundleExists)
+            {
+                using var scene = JsonDocument.Parse(File.ReadAllText(fixture!.ScenePath)); using var bundle = JsonDocument.Parse(File.ReadAllText(fixture.BundlePath));
+                subjectMatches = scene.RootElement.GetProperty("materializationSubjectFingerprint").GetString() == fixture.Subject.MaterializationSubjectFingerprint &&
+                    bundle.RootElement.GetProperty("subject").GetProperty("materializationSubjectFingerprint").GetString() == fixture.Subject.MaterializationSubjectFingerprint;
+            }
+            var readyFixture = resolved && sceneExists && bundleExists && subjectMatches;
+            fixturesReady &= readyFixture;
+            var observationPath = Path.Combine(host.Root, "artifacts", "assets", "M048", "review", fixture?.Modality ?? "unresolved", "preview-observation.json"); Directory.CreateDirectory(Path.GetDirectoryName(observationPath)!);
+            File.WriteAllText(observationPath, JsonSerializer.Serialize(new { schema = "agentic2d.m048.review-preview-fixture.v1", reviewId, fixture?.Modality, fixture?.ScenePath, fixture?.BundlePath, materializationSubjectFingerprint = fixture?.Subject.MaterializationSubjectFingerprint, registered = resolved, validSceneBundle = readyFixture, actualAssetPreviewProgram = File.Exists(Path.Combine(host.Root, "src", "Agentic2D.DebugClient.Raylib", "Agentic2D.DebugClient.Raylib.csproj")), fixedSmokeSubstitute = false, error = fixtureError }, Json));
+            experiences.Add(new { reviewId, modality = fixture?.Modality, registered = resolved, deterministicFixture = resolved, validPreviewSceneBundle = sceneExists && bundleExists, exactMaterializationSubject = subjectMatches, executableActualAssetPreview = readyFixture && File.Exists(Path.Combine(host.Root, "src", "Agentic2D.DebugClient.Raylib", "Agentic2D.DebugClient.Raylib.csproj")) });
         }
+        var placeholderOnlyRejected = !M048ReviewExperienceRegistry.TryResolve("review.m048.placeholder-only", host.Root, out _, out _);
+        var ready = string.IsNullOrWhiteSpace(error) && items.Count <= M048ReviewExperienceRegistry.ReviewIds.Count && fixturesReady && placeholderOnlyRejected;
         var validation = Path.Combine(host.Root, "artifacts", "validation", "m048-smoke", "review-readiness.json"); Directory.CreateDirectory(Path.GetDirectoryName(validation)!);
-        var result = new { schema = "agentic2d.m048.review-readiness.v1", status = ready ? "passed" : "failed", experienceIds = items.Select(x => x.Id).ToArray(), actualCandidatePreviewExperience = true, subjectiveOnly = true, m038RegistryCompatibility = true, noLongValidationInUi = true, error };
+        var result = new { schema = "agentic2d.m048.review-readiness.v2", status = ready ? "passed" : "failed", experienceIds = M048ReviewExperienceRegistry.ReviewIds.ToArray(), openExperienceIds = items.Select(x => x.Id).ToArray(), experiences, actualCandidatePreviewExperience = fixturesReady, placeholderOnlyRejected, subjectiveOnly = true, m038RegistryCompatibility = true, noLongValidationInUi = true, error };
         File.WriteAllText(validation, JsonSerializer.Serialize(result, Json)); return result;
     }
 
@@ -88,6 +102,7 @@ public static class M048ActualCandidatePreviewSuite
         await File.WriteAllTextAsync(scene, JsonSerializer.Serialize(new { schema = "agentic2.asset-preview-scene.v2", materializationSubjectFingerprint = bundle.Subject.MaterializationSubjectFingerprint, bundlePath = Path.Combine(setup.BundleRoot, "preview-bundle.json"), candidateId = setup.Candidate.CandidateId }, Json));
         var capture = Path.Combine(root, "artifacts", "validation", "m048-smoke", "m048-preview.png");
         Directory.CreateDirectory(Path.GetDirectoryName(capture)!);
+        if (File.Exists(capture)) File.Delete(capture);
         var project = Path.Combine(root, "src", "Agentic2D.DebugClient.Raylib");
         var psi = new System.Diagnostics.ProcessStartInfo("dotnet", $"run --no-build --project \"{project}\" -- asset-preview --scene \"{scene}\" --frames 2 --capture \"{capture}\"") { WorkingDirectory = root, UseShellExecute = false, RedirectStandardOutput = true, RedirectStandardError = true, CreateNoWindow = true };
         using var process = System.Diagnostics.Process.Start(psi) ?? throw new EngineeringException("could not start M048 Raylib preview");

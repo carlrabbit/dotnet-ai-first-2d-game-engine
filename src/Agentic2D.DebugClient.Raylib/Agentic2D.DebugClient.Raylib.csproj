@@ -2,6 +2,7 @@
   <PropertyGroup><OutputType>Exe</OutputType><AllowUnsafeBlocks>true</AllowUnsafeBlocks></PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="../Agentic2D.Rendering/Agentic2D.Rendering.csproj" />
+    <ProjectReference Include="../Agentic2D.Tools/Agentic2D.Tools.csproj" />
     <ProjectReference Include="../Agentic2D.Simulation/Agentic2D.Simulation.csproj" />
     <ProjectReference Include="../Agentic2D.Validation/Agentic2D.Validation.csproj" />
     <PackageReference Include="Raylib-cs" />

@@ -22,11 +22,13 @@ public static class AssetPreviewRaylibWindow
         using var scene = JsonDocument.Parse(File.ReadAllText(scenePath));
         var candidate = scene.RootElement.TryGetProperty("candidateId", out var candidateId) ? candidateId.GetString() ?? "candidate.unresolved" : "candidate.unresolved";
         var projection = new RenderProjectionService().ProjectScenario("game/scenarios/smoke/runtime-smoke.json", sourceMode: "workbench-preview-ui");
-        Texture2D atlas = default; Texture2D candidateTexture = default; Sound rawSound = default; Sound processedSound = default; var rawAudioPath = Path.Combine(FindRepositoryRoot(), "game", "assets", "raw", "samples", "footstep-a.wav"); var processedAudioPath = rawAudioPath; var atlasLoaded = false; var candidateLoaded = false; var audioDevice = false; var soundLoaded = false; var processedSoundLoaded = false; var captured = false;
+        Texture2D atlas = default; Texture2D candidateTexture = default; Raylib_cs.Sound rawSound = default; Raylib_cs.Sound processedSound = default; var rawAudioPath = Path.Combine(FindRepositoryRoot(), "game", "assets", "raw", "samples", "footstep-a.wav"); var processedAudioPath = rawAudioPath; var atlasLoaded = false; var candidateLoaded = false; var audioDevice = false; var soundLoaded = false; var processedSoundLoaded = false; var captured = false;
         var highContrast = false; var overlays = true; var comparison = "side-by-side"; var filtering = "nearest"; var playback = "paused"; var speed = 1d; var audio = "stopped (no device)";
         try
         {
-            global::Raylib_cs.Raylib.InitWindow(1120, 680, "Agentic2D Asset Preview"); global::Raylib_cs.Raylib.SetTargetFPS(60);
+            global::Raylib_cs.Raylib.InitWindow(1120, 680, "Agentic2D Asset Preview");
+            if (!global::Raylib_cs.Raylib.IsWindowReady()) { Console.Error.WriteLine("asset-preview could not initialize the Raylib window"); return 1; }
+            global::Raylib_cs.Raylib.SetTargetFPS(60);
             atlas = global::Raylib_cs.Raylib.LoadTexture(Path.Combine(FindRepositoryRoot(), "game", "assets", "raw", "samples", "render-atlas-smoke.png"));
             atlasLoaded = atlas.Id != 0;
             if (scene.RootElement.TryGetProperty("bundlePath", out var bundlePathElement) && bundlePathElement.ValueKind == JsonValueKind.String)

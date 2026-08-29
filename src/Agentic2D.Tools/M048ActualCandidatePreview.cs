@@ -64,6 +64,52 @@ public static class M048ActualCandidatePreview
         };
     }
 
+    public sealed record ReviewFixture(string ReviewId, string Modality, string Description,
+        string ScenePath, string BundlePath, MaterializationSubject Subject);
+
+    public static ReviewFixture CreateReviewFixture(string root, string reviewId)
+    {
+        var (modality, description, kind) = reviewId switch
+        {
+            "review.m048.01-image-candidate-curation" => ("image", "Exact image/region candidate with the current-draft processed variant.", "image"),
+            "review.m048.02-animation-candidate-curation" => ("animation", "Exact animation candidate with deterministic selected frame order.", "animation"),
+            "review.m048.03-audio-candidate-curation" => ("audio", "Exact audio candidate with manual raw/processed comparison.", "audio"),
+            _ => throw new InvalidDataException("review ID is not a registered M048 candidate-preview experience")
+        };
+        var sourceRoot = Path.Combine(root, "artifacts", "assets", "M048", "fixture", kind);
+        var bundleRoot = Path.Combine(sourceRoot, "review-bundle");
+        Directory.CreateDirectory(sourceRoot);
+        Directory.CreateDirectory(bundleRoot);
+        var source = Path.Combine(root, "game", "assets", "raw", "samples", kind == "audio" ? "footstep-a.wav" : "render-atlas-smoke.png");
+        var name = kind == "audio" ? "candidate.wav" : "candidate.png";
+        File.Copy(source, Path.Combine(sourceRoot, name), true);
+        var selection = new { type = kind == "audio" ? "audio-file" : kind == "animation" ? "animation-sequence" : "image-file", x = 0, y = 0, width = 8, height = 8, startFrame = 0, endFrame = kind == "animation" ? 1 : 0, startSampleFrame = 0, endSampleFrame = 0 };
+        var campaign = new { id = "campaign.m048.review", sourceId = "source.m048.review", candidates = new[] { new { candidateId = "candidate.m048.review." + kind, sourceRelativePath = name, mediaKind = kind, presentationRole = "review", proposalFingerprint = "proposal.m048.review." + kind, selection } } };
+        var campaignPath = Path.Combine(sourceRoot, "review-campaign.json");
+        File.WriteAllText(campaignPath, JsonSerializer.Serialize(campaign));
+        using var document = JsonDocument.Parse(File.ReadAllText(campaignPath));
+        var candidate = M047CanonicalAssetPromotion.Resolve(document.RootElement, "candidate.m048.review." + kind, sourceRoot);
+        IReadOnlyList<M047CanonicalAssetPromotion.Correction> corrections = kind switch
+        {
+            "image" => [new("crop-image-region", JsonSerializer.SerializeToElement(new { type = "region", x = 0, y = 0, width = 8, height = 8 }))],
+            "animation" => [new("order-animation-frames", JsonSerializer.SerializeToElement(new { order = new[] { 0 } }))],
+            _ => [new("audio-copy", JsonSerializer.SerializeToElement(new { }))]
+        };
+        var draft = CreateDraft(candidate, campaign.id, null, corrections);
+        var bundle = BuildBundle(candidate, campaign.id, draft, sourceRoot, bundleRoot);
+        var scenePath = Path.Combine(bundleRoot, "preview-scene.json");
+        File.WriteAllText(scenePath, JsonSerializer.Serialize(new
+        {
+            schema = "agentic2d.asset-preview-scene.v2",
+            materializationSubjectFingerprint = bundle.Subject.MaterializationSubjectFingerprint,
+            bundlePath = Path.Combine(bundleRoot, "preview-bundle.json"),
+            candidateId = candidate.CandidateId,
+            reviewId,
+            modality
+        }, Options));
+        return new(reviewId, modality, description, scenePath, Path.Combine(bundleRoot, "preview-bundle.json"), bundle.Subject);
+    }
+
     public static Draft CreateDraft(M047CanonicalAssetPromotion.Candidate candidate, string campaignId,
         string? variantId = null, IReadOnlyList<M047CanonicalAssetPromotion.Correction>? corrections = null)
     {
