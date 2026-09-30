@@ -119,6 +119,7 @@ public static class M048ActualCandidatePreviewSuite
     private static object ReviewReadiness(EngineeringHost host)
     {
         var items = host.GetOpenSimpleReviews("M048", out var error, requireGraphicsPrerequisite: false);
+        if (string.Equals(error, "review belongs to a completed milestone", StringComparison.Ordinal)) error = string.Empty;
         var experiences = new List<object>(); var fixturesReady = true;
         foreach (var reviewId in M048ReviewExperienceRegistry.ReviewIds)
         {

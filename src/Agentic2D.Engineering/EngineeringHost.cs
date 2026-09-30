@@ -243,7 +243,7 @@ public sealed class EngineeringHost
                 ReceiptPath(suite, shard),
                 shard.DependsOn,
                 shard.Evidence)).ToArray(),
-            suite.Id is "m037-smoke" or "m039-smoke" or "m040-smoke" or "m041-smoke" or "m042-smoke" or "m043-smoke" or "m044-smoke" or "m045-smoke" or "m046-smoke" or "m047-smoke" or "m048-smoke" ? $"pwsh ./eng/suite.ps1 {suite.Id} --verify" : $"./eng/{suite.Id}.sh --verify",
+            suite.Id is "m037-smoke" or "m039-smoke" or "m040-smoke" or "m041-smoke" or "m042-smoke" or "m043-smoke" or "m044-smoke" or "m045-smoke" or "m046-smoke" or "m047-smoke" or "m048-smoke" or "m050-smoke" ? $"pwsh ./eng/suite.ps1 {suite.Id} --verify" : $"./eng/{suite.Id}.sh --verify",
             suite.Shards.SelectMany(shard => shard.Evidence).Distinct(StringComparer.Ordinal).ToArray());
         var serialized = JsonSerializer.Serialize(plan, json);
         if (suite.Id is "m033-smoke" or "m034-smoke" or "m035-smoke" or "m039-smoke" or "m040-smoke" or "m041-smoke" or "m042-smoke" or "m043-smoke" or "m044-smoke" or "m045-smoke" or "m046-smoke" or "m047-smoke" or "m048-smoke")
@@ -981,6 +981,10 @@ public sealed class EngineeringHost
         {
             return await M048ActualCandidatePreviewSuite.RunAsync(this, root, shard.Id, diagnostics);
         }
+        if (suite.Id == "m050-smoke")
+        {
+            return await M050ModalitySpecificPreviewSuite.RunAsync(this, root, shard.Id, diagnostics);
+        }
         if (suite.Id == "m038-smoke") return await M038SimpleReviewSuite.RunAsync(this, root, shard.Id, diagnostics);
         if (suite.Id == "m036-smoke")
         {
@@ -1654,6 +1658,16 @@ public sealed class EngineeringHost
             Shard("active-platform-graphical-preview", "Windows Raylib candidate preview process and capture proof.", "internal:m048", ["artifacts/assets/M048/active-platform-graphical-preview.json", "artifacts/validation/m048-smoke/m048-preview.png"], isInternal: true),
             Shard("evidence-integrity", "Identity and binding conclusions are independently derived.", "internal:m048", ["artifacts/assets/M048/evidence-integrity.json"], isInternal: true),
             Shard("predecessor-regression", "M047 and focused historical M029/M038 boundaries remain passing.", "internal:m048", ["artifacts/assets/M048/predecessor-regression.json"], isInternal: true)
+        ]),
+        new("m050-smoke", "resumable-sharded",
+        [
+            Shard("modality-dispatch-and-context", "Structured media-kind dispatch and reviewer context.", "internal:m050", ["artifacts/assets/M050/modality-dispatch-and-context.json"], isInternal: true),
+            Shard("image-review-surface", "Image-specific controls and meaningful transitions.", "internal:m050", ["artifacts/assets/M050/image-review-surface.json"], isInternal: true),
+            Shard("animation-review-surface", "Animation-specific controls and actual playback state.", "internal:m050", ["artifacts/assets/M050/animation-review-surface.json"], isInternal: true),
+            Shard("audio-review-surface", "Audio-specific manual controls and diagnostics.", "internal:m050", ["artifacts/assets/M050/audio-review-surface.json"], isInternal: true),
+            Shard("actual-platform-review-launch", "Active Windows launch of all exact M048 fixtures.", "internal:m050", ["artifacts/assets/M050/actual-platform-review-launch.json", "artifacts/assets/M050/review.m048.01-image-candidate-curation.png", "artifacts/assets/M050/review.m048.02-animation-candidate-curation.png", "artifacts/assets/M050/review.m048.03-audio-candidate-curation.png"], isInternal: true),
+            Shard("m048-review-regression", "M048 identity, registry, workbench, and review boundary regression.", "internal:m050", ["artifacts/assets/M050/m048-review-regression.json"], isInternal: true),
+            Shard("evidence-integrity", "Observed surface state and structured dispatch integrity.", "internal:m050", ["artifacts/assets/M050/evidence-integrity.json"], isInternal: true)
         ]),
         new("m038-smoke", "resumable-sharded",
         [

@@ -48,7 +48,7 @@ public static class M048ActualCandidatePreview
     public sealed record Bundle(MaterializationSubject Subject, string MediaKind, string BaseMediaHash,
         string ProcessedMediaHash, string BaseMediaPath, string ProcessedMediaPath, string Modality,
         IReadOnlyList<string> FrameHashes, int? SampleRate, int? BaseDurationSamples, int? ProcessedDurationSamples,
-        IReadOnlyList<FrameObservation>? FrameMedia = null)
+        IReadOnlyList<FrameObservation>? FrameMedia = null, PreviewContext? ReviewContext = null)
     {
         public object ToPayload() => new
         {
@@ -64,7 +64,8 @@ public static class M048ActualCandidatePreview
             frameMedia = FrameMedia ?? [],
             sampleRate = SampleRate,
             baseDurationSamples = BaseDurationSamples,
-            processedDurationSamples = ProcessedDurationSamples
+            processedDurationSamples = ProcessedDurationSamples,
+            reviewContext = ReviewContext
         };
     }
 
@@ -156,9 +157,15 @@ public static class M048ActualCandidatePreview
         var frameMedia = candidate.MediaKind == "animation" ? BuildAnimationFrames(source, candidate.Selection, draft.Corrections, outputDirectory) : [];
         IReadOnlyList<string> frames = frameMedia.Select(x => x.ProcessedHash).ToArray();
         var (rate, baseSamples) = WavInfo(source, candidate.MediaKind); var (_, processedSamples) = WavInfo(processed, candidate.MediaKind);
+        var context = new PreviewContext(candidate.MediaKind, candidate.CandidateId, candidate.PresentationRole,
+            draft.SelectedVariantId ?? "none", draft.Corrections.Select(x => x.Type).ToArray(),
+            candidate.MediaKind == "audio" ? "raw/base recording before the current M047 trim" : "raw/base candidate media",
+            candidate.MediaKind == "audio" ? "processed/current draft after the current M047 trim" : "processed/current-draft candidate media",
+            candidate.MediaKind switch { "image" => "Is the selected image region clear and suitable for curation?", "animation" => "Is the selected frame order clear and usable?", "audio" => "Is the raw-versus-processed candidate usable and meaningfully distinguishable?", _ => "Is this candidate suitable for its intended purpose?" },
+            baseSamples, processedSamples, rate);
         var bundle = new Bundle(draft.Subject(campaignId), candidate.MediaKind, Hash(source), Hash(processed),
             Path.GetRelativePath(outputDirectory, basePath).Replace('\\', '/'), Path.GetRelativePath(outputDirectory, processedPath).Replace('\\', '/'),
-            candidate.MediaKind switch { "animation" => "animation-sequence", "audio" => "audio-file", _ => "image" }, frames, rate, baseSamples, processedSamples, frameMedia);
+            candidate.MediaKind switch { "animation" => "animation-sequence", "audio" => "audio-file", _ => "image" }, frames, rate, baseSamples, processedSamples, frameMedia, context);
         File.WriteAllText(Path.Combine(outputDirectory, "preview-bundle.json"), JsonSerializer.Serialize(bundle.ToPayload(), Options));
         return bundle;
     }
