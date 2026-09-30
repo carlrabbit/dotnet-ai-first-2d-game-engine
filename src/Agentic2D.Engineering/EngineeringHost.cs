@@ -185,6 +185,29 @@ public sealed class EngineeringHost
         return items;
     }
 
+    public IReadOnlyList<ReviewRunItem> GetMilestoneReviewSet(string milestone, out string error)
+        => GetMilestoneReviewSet(milestone, out error, requireGraphicsPrerequisite: true);
+
+    public IReadOnlyList<ReviewRunItem> GetMilestoneReviewSet(string milestone, out string error, bool requireGraphicsPrerequisite)
+    {
+        var reviews = ReadReviews()
+            .Where(candidate => candidate.OwningMilestone == milestone && (candidate.Level is "required" or "blocking") && M038ReviewPolicy.IsRegistered(candidate))
+            .OrderBy(candidate => candidate.Id, StringComparer.Ordinal)
+            .ToArray();
+        var items = new List<ReviewRunItem>();
+        foreach (var review in reviews)
+        {
+            if (!TryGetSimpleReview(review.Id, out var current, out error, requireGraphicsPrerequisite)) return [];
+            items.Add(new ReviewRunItem(current!.Id, current.Subject, current.Status));
+        }
+
+        error = string.Empty;
+        return items;
+    }
+
+    public string SerializeReviewRunPayload(IReadOnlyList<ReviewRunItem> items)
+        => Convert.ToBase64String(Encoding.UTF8.GetBytes(JsonSerializer.Serialize(items, json)));
+
     public async Task<int> RunSimpleReviewAsync(string idOrAlias, TextWriter stdout, TextWriter stderr)
     {
         var id = ResolveReviewTarget(idOrAlias);
@@ -198,10 +221,10 @@ public sealed class EngineeringHost
     public async Task<int> RunMilestoneReviewAsync(string milestone, TextWriter stdout, TextWriter stderr)
     {
         if (!IsMilestoneActive(milestone)) throw new EngineeringException($"review-run: milestone '{milestone}' is not active");
-        var items = GetOpenSimpleReviews(milestone, out var error);
+        var items = GetMilestoneReviewSet(milestone, out var error);
         if (!string.IsNullOrWhiteSpace(error)) throw new EngineeringException($"review-run: {error}");
-        if (items.Count == 0) throw new EngineeringException($"review-run: milestone '{milestone}' has no open simple blocking reviews");
-        var payload = Convert.ToBase64String(Encoding.UTF8.GetBytes(JsonSerializer.Serialize(items, json)));
+        if (items.Count == 0) throw new EngineeringException($"review-run: milestone '{milestone}' has no registered simple blocking reviews");
+        var payload = SerializeReviewRunPayload(items);
         var project = Path.Combine(root, "src", "Agentic2D.DebugClient.Raylib");
         var arguments = $"run --no-build --project \"{project}\" -- review-workbench --milestone \"{milestone}\" --items-base64 \"{payload}\"";
         return await ProcessRunner.RunAsync(root, "dotnet " + arguments, stdout, stderr);
