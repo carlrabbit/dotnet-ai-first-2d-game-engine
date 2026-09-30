@@ -43,9 +43,12 @@ public static class M048ActualCandidatePreview
         };
     }
 
+    public sealed record FrameObservation(int SequenceIndex, int SourceFrameIndex, string BasePath, string ProcessedPath, string BaseHash, string ProcessedHash);
+
     public sealed record Bundle(MaterializationSubject Subject, string MediaKind, string BaseMediaHash,
         string ProcessedMediaHash, string BaseMediaPath, string ProcessedMediaPath, string Modality,
-        IReadOnlyList<string> FrameHashes, int? SampleRate, int? BaseDurationSamples, int? ProcessedDurationSamples)
+        IReadOnlyList<string> FrameHashes, int? SampleRate, int? BaseDurationSamples, int? ProcessedDurationSamples,
+        IReadOnlyList<FrameObservation>? FrameMedia = null)
     {
         public object ToPayload() => new
         {
@@ -58,6 +61,7 @@ public static class M048ActualCandidatePreview
             baseMediaPath = BaseMediaPath,
             processedMediaPath = ProcessedMediaPath,
             frameHashes = FrameHashes,
+            frameMedia = FrameMedia ?? [],
             sampleRate = SampleRate,
             baseDurationSamples = BaseDurationSamples,
             processedDurationSamples = ProcessedDurationSamples
@@ -80,10 +84,12 @@ public static class M048ActualCandidatePreview
         var bundleRoot = Path.Combine(sourceRoot, "review-bundle");
         Directory.CreateDirectory(sourceRoot);
         Directory.CreateDirectory(bundleRoot);
-        var source = Path.Combine(root, "game", "assets", "raw", "samples", kind == "audio" ? "footstep-a.wav" : "render-atlas-smoke.png");
+        var source = Path.Combine(sourceRoot, "source" + (kind == "audio" ? ".wav" : ".png"));
         var name = kind == "audio" ? "candidate.wav" : "candidate.png";
+        if (kind == "audio") File.WriteAllBytes(source, DeterministicWave(8000, 17));
+        else File.Copy(Path.Combine(root, "game", "assets", "raw", "samples", "render-atlas-smoke.png"), source, true);
         File.Copy(source, Path.Combine(sourceRoot, name), true);
-        var selection = new { type = kind == "audio" ? "audio-file" : kind == "animation" ? "animation-sequence" : "image-file", x = 0, y = 0, width = 8, height = 8, startFrame = 0, endFrame = kind == "animation" ? 1 : 0, startSampleFrame = 0, endSampleFrame = 0 };
+        var selection = new { type = kind == "audio" ? "audio-file" : kind == "animation" ? "animation-sequence" : "image-file", x = 0, y = 0, width = 8, height = 8, startFrame = 0, endFrame = kind == "animation" ? 2 : 0, startSampleFrame = 0, endSampleFrame = kind == "audio" ? 4000 : 0 };
         var campaign = new { id = "campaign.m048.review", sourceId = "source.m048.review", candidates = new[] { new { candidateId = "candidate.m048.review." + kind, sourceRelativePath = name, mediaKind = kind, presentationRole = "review", proposalFingerprint = "proposal.m048.review." + kind, selection } } };
         var campaignPath = Path.Combine(sourceRoot, "review-campaign.json");
         File.WriteAllText(campaignPath, JsonSerializer.Serialize(campaign));
@@ -92,8 +98,8 @@ public static class M048ActualCandidatePreview
         IReadOnlyList<M047CanonicalAssetPromotion.Correction> corrections = kind switch
         {
             "image" => [new("crop-image-region", JsonSerializer.SerializeToElement(new { type = "region", x = 0, y = 0, width = 8, height = 8 }))],
-            "animation" => [new("order-animation-frames", JsonSerializer.SerializeToElement(new { order = new[] { 0 } }))],
-            _ => [new("audio-copy", JsonSerializer.SerializeToElement(new { }))]
+            "animation" => [new("order-animation-frames", JsonSerializer.SerializeToElement(new { order = new[] { 1, 0 } }))],
+            _ => [new("audio-trim-sample-frames", JsonSerializer.SerializeToElement(new { startSampleFrame = 0, endSampleFrame = 4000 }))]
         };
         var draft = CreateDraft(candidate, campaign.id, null, corrections);
         var bundle = BuildBundle(candidate, campaign.id, draft, sourceRoot, bundleRoot);
@@ -147,13 +153,42 @@ public static class M048ActualCandidatePreview
         var basePath = Path.Combine(outputDirectory, "base" + Extension(candidate.MediaKind, relative));
         var processedPath = Path.Combine(outputDirectory, "processed" + Extension(candidate.MediaKind, relative));
         File.WriteAllBytes(basePath, source); File.WriteAllBytes(processedPath, processed);
-        IReadOnlyList<string> frames = candidate.MediaKind == "animation" ? [candidate.SourceFingerprint, .. candidate.Variants.Select(x => x.Fingerprint)] : [];
+        var frameMedia = candidate.MediaKind == "animation" ? BuildAnimationFrames(source, candidate.Selection, draft.Corrections, outputDirectory) : [];
+        IReadOnlyList<string> frames = frameMedia.Select(x => x.ProcessedHash).ToArray();
         var (rate, baseSamples) = WavInfo(source, candidate.MediaKind); var (_, processedSamples) = WavInfo(processed, candidate.MediaKind);
         var bundle = new Bundle(draft.Subject(campaignId), candidate.MediaKind, Hash(source), Hash(processed),
             Path.GetRelativePath(outputDirectory, basePath).Replace('\\', '/'), Path.GetRelativePath(outputDirectory, processedPath).Replace('\\', '/'),
-            candidate.MediaKind switch { "animation" => "animation-sequence", "audio" => "audio-file", _ => "image" }, frames, rate, baseSamples, processedSamples);
+            candidate.MediaKind switch { "animation" => "animation-sequence", "audio" => "audio-file", _ => "image" }, frames, rate, baseSamples, processedSamples, frameMedia);
         File.WriteAllText(Path.Combine(outputDirectory, "preview-bundle.json"), JsonSerializer.Serialize(bundle.ToPayload(), Options));
         return bundle;
+    }
+
+    private static IReadOnlyList<FrameObservation> BuildAnimationFrames(byte[] source, M047CanonicalAssetPromotion.Selection selection,
+        IReadOnlyList<M047CanonicalAssetPromotion.Correction> corrections, string outputDirectory)
+    {
+        var count = Math.Max(2, selection.EndFrame - selection.StartFrame);
+        var order = corrections.FirstOrDefault(x => x.Type == "order-animation-frames")?.Parameters;
+        var orderedSources = order is { ValueKind: JsonValueKind.Object } && order.Value.TryGetProperty("order", out var values) && values.ValueKind == JsonValueKind.Array
+            ? values.EnumerateArray().Select(x => x.GetInt32()).ToArray()
+            : Enumerable.Range(0, count).ToArray();
+        if (orderedSources.Length != count || orderedSources.Distinct().Count() != count || orderedSources.Any(x => x < 0 || x >= count)) throw new InvalidDataException("animation frame order must contain each candidate frame exactly once");
+        var result = new List<FrameObservation>();
+        for (var sequence = 0; sequence < orderedSources.Length; sequence++)
+        {
+            var sourceFrame = orderedSources[sequence]; var frameSelection = selection with { X = selection.X + sourceFrame * selection.Width, Y = selection.Y, StartFrame = 0, EndFrame = 0 };
+            var frameCrop = new[] { new M047CanonicalAssetPromotion.Correction("crop-image-region", JsonSerializer.SerializeToElement(new { type = "region", x = frameSelection.X, y = frameSelection.Y, width = frameSelection.Width, height = frameSelection.Height, startFrame = 0, endFrame = 0, startSampleFrame = 0, endSampleFrame = 0 })) };
+            var baseBytes = M047CanonicalAssetPromotion.Materialize(source, "image", frameSelection, frameCrop);
+            var processedBytes = M047CanonicalAssetPromotion.Materialize(source, "image", frameSelection, frameCrop.Concat(corrections.Where(x => x.Type != "order-animation-frames")).ToArray());
+            var baseName = $"frame-{sequence}-source-{sourceFrame}-base.png"; var processedName = $"frame-{sequence}-source-{sourceFrame}-processed.png";
+            File.WriteAllBytes(Path.Combine(outputDirectory, baseName), baseBytes); File.WriteAllBytes(Path.Combine(outputDirectory, processedName), processedBytes);
+            result.Add(new(sequence, sourceFrame, baseName, processedName, Hash(baseBytes), Hash(processedBytes)));
+        }
+        return result;
+    }
+
+    public static byte[] DeterministicWave(int samples, short seed)
+    {
+        using var stream = new MemoryStream(); using var writer = new BinaryWriter(stream); writer.Write(Encoding.ASCII.GetBytes("RIFF")); writer.Write(36 + samples * 2); writer.Write(Encoding.ASCII.GetBytes("WAVEfmt ")); writer.Write(16); writer.Write((short)1); writer.Write((short)1); writer.Write(8000); writer.Write(16000); writer.Write((short)2); writer.Write((short)16); writer.Write(Encoding.ASCII.GetBytes("data")); writer.Write(samples * 2); for (var i = 0; i < samples; i++) writer.Write((short)(seed + (i % 97) * 120)); return stream.ToArray();
     }
 
     public static bool Acknowledges(Draft draft, JsonElement response) =>

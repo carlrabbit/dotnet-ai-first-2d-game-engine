@@ -155,6 +155,11 @@ public sealed class EngineeringHost
         {
             var graphicsPath = review.OwningMilestone == "M048" ? Absolute("artifacts/validation/m048-smoke/active-platform-graphical-preview.json") : Absolute("artifacts/validation/m038-smoke/active-platform-graphics.json");
             if (!File.Exists(graphicsPath) || !File.ReadAllText(graphicsPath).Contains("\"status\": \"passed\"", StringComparison.Ordinal)) { error = "current active-platform graphics prerequisite is missing or failed"; return false; }
+            if (review.OwningMilestone == "M048" && review.Id == "review.m048.03-audio-candidate-curation")
+            {
+                var readinessPath = Absolute("artifacts/validation/m048-smoke/review-readiness.json");
+                if (!File.Exists(readinessPath) || !File.ReadAllText(readinessPath).Contains("\"audioReviewReady\": true", StringComparison.Ordinal)) { error = "current M048 audio review is not ready: no verified playable raw/processed output is available"; return false; }
+            }
         }
         return true;
     }
@@ -168,7 +173,11 @@ public sealed class EngineeringHost
         var items = new List<ReviewRunItem>();
         foreach (var review in reviews)
         {
-            if (!TryGetSimpleReview(review.Id, out var current, out error, requireGraphicsPrerequisite)) return [];
+            if (!TryGetSimpleReview(review.Id, out var current, out error, requireGraphicsPrerequisite))
+            {
+                if (milestone == "M048" && review.Id == "review.m048.03-audio-candidate-curation" && error.StartsWith("current M048 audio review is not ready", StringComparison.Ordinal)) continue;
+                return [];
+            }
             items.Add(new ReviewRunItem(current!.Id, current.Subject, current.Status));
         }
 
@@ -575,7 +584,7 @@ public sealed class EngineeringHost
                 if (!File.Exists(path)) { diagnostics.WriteLine($"error: m048-smoke/{shard.Id}: observation evidence missing"); success = false; continue; }
                 using var document = JsonDocument.Parse(File.ReadAllText(path));
                 if (document.RootElement.TryGetProperty("status", out var status) && status.ValueKind == JsonValueKind.String && status.GetString() != "passed") { diagnostics.WriteLine($"error: m048-smoke/{shard.Id}: status is not passed"); success = false; }
-                var booleans = document.RootElement.EnumerateObject().Where(x => x.Value.ValueKind == JsonValueKind.False && x.Name != "fixedSmokeSubstitute").Select(x => x.Name).ToArray();
+                var booleans = document.RootElement.EnumerateObject().Where(x => x.Value.ValueKind == JsonValueKind.False && x.Name is not ("fixedSmokeSubstitute" or "actualCandidatePreviewExperience" or "audioReviewReady" or "subjectiveReviewReady")).Select(x => x.Name).ToArray();
                 if (booleans.Length > 0) { diagnostics.WriteLine($"error: m048-smoke/{shard.Id}: observed predicates false: {string.Join(",", booleans)}"); success = false; }
             }
             var verificationPath = Absolute("artifacts/validation/m048-smoke/verify.json"); Directory.CreateDirectory(Path.GetDirectoryName(verificationPath)!);

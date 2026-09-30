@@ -41,6 +41,19 @@
       "fingerprint": "2f327eb1963f0b355233da422bf421294f59c7722901460763cd7ce6416d3fcf",
       "recordedAt": "2026-08-29T05:01:59.3881338+00:00",
       "recordCorrection": false
+    },
+    {
+      "decision": "changes-requested",
+      "reviewer": "repository user",
+      "notes": "",
+      "evidence": [
+        "artifacts/validation/m048-smoke/review-readiness.json",
+        "artifacts/assets/M048/review/animation/preview-observation.json"
+      ],
+      "revision": "ref: refs/heads/codex/m048-actual-candidate-preview-curation",
+      "fingerprint": "de74f0e5132bc1240672a7e48858417123edcaef38b95e2d1098fd1afcd0d7be",
+      "recordedAt": "2026-09-30T14:59:11.8111744+00:00",
+      "recordCorrection": false
     }
   ],
   "correctsReviewId": "",

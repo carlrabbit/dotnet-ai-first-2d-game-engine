@@ -1,4 +1,5 @@
 using System.Text.Json;
+using System.Security.Cryptography;
 using Agentic2D.Tools;
 
 namespace Agentic2D.Engineering;
@@ -43,7 +44,40 @@ public static class M048ActualCandidatePreviewSuite
         var draft = M048ActualCandidatePreview.CreateDraft(setup.Candidate, setup.CampaignId, null, setup.Corrections);
         var bundle = M048ActualCandidatePreview.BuildBundle(setup.Candidate, setup.CampaignId, draft, setup.SourceRoot, setup.BundleRoot);
         var subject = draft.Subject(setup.CampaignId);
-        return new { schema = "agentic2d.m048.preview-observation.v1", modality, candidateId = setup.Candidate.CandidateId, candidateFingerprint = setup.Candidate.Fingerprint, selectedVariantId = draft.SelectedVariantId, corrections = draft.Corrections.Select(M047CanonicalAssetPromotion.CanonicalCorrection).ToArray(), recipeFingerprint = draft.RecipeFingerprint, materializationSubjectFingerprint = subject.MaterializationSubjectFingerprint, baseMediaHash = bundle.BaseMediaHash, processedMediaHash = bundle.ProcessedMediaHash, actualCandidateMedia = true, sharedM047Materializer = true, fixedSmokeSubstitute = false, acknowledgedMaterializationSubjectFingerprint = subject.MaterializationSubjectFingerprint };
+        var result = new Dictionary<string, object?>
+        {
+            ["schema"] = "agentic2d.m048.preview-observation.v2",
+            ["modality"] = modality,
+            ["candidateId"] = setup.Candidate.CandidateId,
+            ["candidateFingerprint"] = setup.Candidate.Fingerprint,
+            ["selectedVariantId"] = draft.SelectedVariantId,
+            ["corrections"] = draft.Corrections.Select(M047CanonicalAssetPromotion.CanonicalCorrection).ToArray(),
+            ["recipeFingerprint"] = draft.RecipeFingerprint,
+            ["materializationSubjectFingerprint"] = subject.MaterializationSubjectFingerprint,
+            ["baseMediaHash"] = bundle.BaseMediaHash,
+            ["processedMediaHash"] = bundle.ProcessedMediaHash,
+            ["actualCandidateMedia"] = true,
+            ["sharedM047Materializer"] = true,
+            ["fixedSmokeSubstitute"] = false,
+            ["acknowledgedMaterializationSubjectFingerprint"] = subject.MaterializationSubjectFingerprint
+        };
+        if (modality == "animation")
+        {
+            var frames = ObserveFrames(bundle, setup.BundleRoot);
+            var initial = frames[0]; var afterStep = frames[1]; var played = frames.Select(x => x.ProcessedHash).ToArray();
+            result["frameObservations"] = frames; result["initialFrame"] = initial; result["afterStepFrame"] = afterStep;
+            result["playedFrames"] = played; result["resetFrame"] = initial; result["selectedFrameOrder"] = frames.Select(x => x.SourceFrameIndex).ToArray();
+            result["observedFrameAdvance"] = initial.ProcessedHash != afterStep.ProcessedHash;
+            result["observedDistinctFrameIdentities"] = frames.Select(x => x.ProcessedHash).Distinct(StringComparer.Ordinal).Count() >= 2;
+        }
+        if (modality == "audio")
+        {
+            result["audioTrimApplied"] = draft.Corrections.Any(x => x.Type == "audio-trim-sample-frames");
+            result["processedDiffersFromRaw"] = !string.Equals(bundle.BaseMediaHash, bundle.ProcessedMediaHash, StringComparison.Ordinal);
+            result["rawDurationSamples"] = bundle.BaseDurationSamples; result["processedDurationSamples"] = bundle.ProcessedDurationSamples;
+            result["positiveRawAndProcessedDurations"] = bundle.BaseDurationSamples > 0 && bundle.ProcessedDurationSamples > 0;
+        }
+        return result;
     }
 
     private static object BindingProof(string root)
@@ -62,7 +96,24 @@ public static class M048ActualCandidatePreviewSuite
 
     private static object IntegrityProof(string root)
     {
-        var setup = Fixture(root, "image"); var draft = M048ActualCandidatePreview.CreateDraft(setup.Candidate, setup.CampaignId); var derived = M048ActualCandidatePreview.DeriveSubject(setup.Candidate, setup.CampaignId, null); return new { schema = "agentic2d.m048.evidence-integrity.v1", independentlyDerived = derived.MaterializationSubjectFingerprint == draft.MaterializationSubjectFingerprint, noProducerEqualityBoolean = true, observedHashes = true, observedAcknowledgement = true, candidateLabelNotIdentity = true };
+        var setup = Fixture(root, "image"); var draft = M048ActualCandidatePreview.CreateDraft(setup.Candidate, setup.CampaignId); var derived = M048ActualCandidatePreview.DeriveSubject(setup.Candidate, setup.CampaignId, null);
+        var animation = Fixture(root, "animation"); var animationDraft = M048ActualCandidatePreview.CreateDraft(animation.Candidate, animation.CampaignId, null, animation.Corrections); var animationBundle = M048ActualCandidatePreview.BuildBundle(animation.Candidate, animation.CampaignId, animationDraft, animation.SourceRoot, animation.BundleRoot); var observedFrames = ObserveFrames(animationBundle, animation.BundleRoot);
+        var distinct = observedFrames.Select(x => x.ProcessedHash).Distinct(StringComparer.Ordinal).Count() >= 2; var advances = observedFrames.Count >= 2 && observedFrames[0].ProcessedHash != observedFrames[1].ProcessedHash;
+        return new { schema = "agentic2d.m048.evidence-integrity.v2", independentlyDerived = derived.MaterializationSubjectFingerprint == draft.MaterializationSubjectFingerprint, noProducerEqualityBoolean = true, observedHashes = true, observedAcknowledgement = true, candidateLabelNotIdentity = true, staticAnimationRejected = distinct && advances, animationFrameObservationIndependent = distinct && advances, observedAnimationFrameHashes = observedFrames.Select(x => x.ProcessedHash).ToArray() };
+    }
+
+    private sealed record ObservedFrame(int SequenceIndex, int SourceFrameIndex, string BaseHash, string ProcessedHash);
+
+    private static IReadOnlyList<ObservedFrame> ObserveFrames(M048ActualCandidatePreview.Bundle bundle, string bundleRoot)
+    {
+        if (bundle.FrameMedia is null || bundle.FrameMedia.Count < 2) throw new InvalidDataException("animation preview must contain at least two frames");
+        return bundle.FrameMedia.Select(frame =>
+        {
+            var baseBytes = File.ReadAllBytes(Path.Combine(bundleRoot, frame.BasePath)); var processedBytes = File.ReadAllBytes(Path.Combine(bundleRoot, frame.ProcessedPath));
+            var observedBaseHash = Convert.ToHexString(SHA256.HashData(baseBytes)).ToLowerInvariant(); var observedProcessedHash = Convert.ToHexString(SHA256.HashData(processedBytes)).ToLowerInvariant();
+            if (!string.Equals(observedBaseHash, frame.BaseHash, StringComparison.Ordinal) || !string.Equals(observedProcessedHash, frame.ProcessedHash, StringComparison.Ordinal)) throw new InvalidDataException("animation frame observation hash mismatch");
+            return new ObservedFrame(frame.SequenceIndex, frame.SourceFrameIndex, observedBaseHash, observedProcessedHash);
+        }).ToArray();
     }
 
     private static object ReviewReadiness(EngineeringHost host)
@@ -81,16 +132,40 @@ public static class M048ActualCandidatePreviewSuite
                     bundle.RootElement.GetProperty("subject").GetProperty("materializationSubjectFingerprint").GetString() == fixture.Subject.MaterializationSubjectFingerprint;
             }
             var readyFixture = resolved && sceneExists && bundleExists && subjectMatches;
+            var audioProbe = fixture?.Modality == "audio" && resolved ? ProbeAudio(host.Root, fixture.ScenePath) : (Ready: true, Diagnostic: "not-applicable");
             fixturesReady &= readyFixture;
             var observationPath = Path.Combine(host.Root, "artifacts", "assets", "M048", "review", fixture?.Modality ?? "unresolved", "preview-observation.json"); Directory.CreateDirectory(Path.GetDirectoryName(observationPath)!);
-            File.WriteAllText(observationPath, JsonSerializer.Serialize(new { schema = "agentic2d.m048.review-preview-fixture.v1", reviewId, fixture?.Modality, fixture?.ScenePath, fixture?.BundlePath, materializationSubjectFingerprint = fixture?.Subject.MaterializationSubjectFingerprint, registered = resolved, validSceneBundle = readyFixture, actualAssetPreviewProgram = File.Exists(Path.Combine(host.Root, "src", "Agentic2D.DebugClient.Raylib", "Agentic2D.DebugClient.Raylib.csproj")), fixedSmokeSubstitute = false, error = fixtureError }, Json));
-            experiences.Add(new { reviewId, modality = fixture?.Modality, registered = resolved, deterministicFixture = resolved, validPreviewSceneBundle = sceneExists && bundleExists, exactMaterializationSubject = subjectMatches, executableActualAssetPreview = readyFixture && File.Exists(Path.Combine(host.Root, "src", "Agentic2D.DebugClient.Raylib", "Agentic2D.DebugClient.Raylib.csproj")) });
+            File.WriteAllText(observationPath, JsonSerializer.Serialize(new { schema = "agentic2d.m048.review-preview-fixture.v2", reviewId, fixture?.Modality, fixture?.ScenePath, fixture?.BundlePath, materializationSubjectFingerprint = fixture?.Subject.MaterializationSubjectFingerprint, registered = resolved, validSceneBundle = readyFixture, actualAssetPreviewProgram = File.Exists(Path.Combine(host.Root, "src", "Agentic2D.DebugClient.Raylib", "Agentic2D.DebugClient.Raylib.csproj")), audioReviewReady = fixture?.Modality != "audio" || audioProbe.Ready, audioDiagnostics = audioProbe.Diagnostic, fixedSmokeSubstitute = false, error = fixtureError }, Json));
+            experiences.Add(new { reviewId, modality = fixture?.Modality, registered = resolved, deterministicFixture = resolved, validPreviewSceneBundle = sceneExists && bundleExists, exactMaterializationSubject = subjectMatches, executableActualAssetPreview = readyFixture && File.Exists(Path.Combine(host.Root, "src", "Agentic2D.DebugClient.Raylib", "Agentic2D.DebugClient.Raylib.csproj")), audioReviewReady = fixture?.Modality != "audio" || audioProbe.Ready, subjectiveReviewReady = readyFixture && (fixture?.Modality != "audio" || audioProbe.Ready) });
         }
         var placeholderOnlyRejected = !M048ReviewExperienceRegistry.TryResolve("review.m048.placeholder-only", host.Root, out _, out _);
         var ready = string.IsNullOrWhiteSpace(error) && items.Count <= M048ReviewExperienceRegistry.ReviewIds.Count && fixturesReady && placeholderOnlyRejected;
+        var audioReviewReady = false;
+        using var readinessDocument = JsonDocument.Parse(JsonSerializer.Serialize(experiences));
+        audioReviewReady = readinessDocument.RootElement.EnumerateArray().Where(x => x.GetProperty("modality").GetString() == "audio").All(x => x.GetProperty("audioReviewReady").GetBoolean());
+        var actualCandidatePreviewExperience = readinessDocument.RootElement.EnumerateArray().All(x => x.GetProperty("subjectiveReviewReady").GetBoolean());
         var validation = Path.Combine(host.Root, "artifacts", "validation", "m048-smoke", "review-readiness.json"); Directory.CreateDirectory(Path.GetDirectoryName(validation)!);
-        var result = new { schema = "agentic2d.m048.review-readiness.v2", status = ready ? "passed" : "failed", experienceIds = M048ReviewExperienceRegistry.ReviewIds.ToArray(), openExperienceIds = items.Select(x => x.Id).ToArray(), experiences, actualCandidatePreviewExperience = fixturesReady, placeholderOnlyRejected, subjectiveOnly = true, m038RegistryCompatibility = true, noLongValidationInUi = true, error };
+        var result = new { schema = "agentic2d.m048.review-readiness.v3", status = ready ? "passed" : "failed", experienceIds = M048ReviewExperienceRegistry.ReviewIds.ToArray(), openExperienceIds = items.Select(x => x.Id).ToArray(), experiences, machineReviewExperienceEvidence = fixturesReady, actualCandidatePreviewExperience, audioReviewReady, placeholderOnlyRejected, subjectiveOnly = true, m038RegistryCompatibility = true, noLongValidationInUi = true, error };
         File.WriteAllText(validation, JsonSerializer.Serialize(result, Json)); return result;
+    }
+
+    private static (bool Ready, string Diagnostic) ProbeAudio(string root, string scenePath)
+    {
+        var project = Path.Combine(root, "src", "Agentic2D.DebugClient.Raylib");
+        var start = new System.Diagnostics.ProcessStartInfo("dotnet", $"run --no-build --project \"{project}\" -- asset-preview --scene \"{scenePath}\" --frames 1") { WorkingDirectory = root, UseShellExecute = false, CreateNoWindow = true, RedirectStandardOutput = true, RedirectStandardError = true };
+        try
+        {
+            using var process = System.Diagnostics.Process.Start(start) ?? throw new InvalidOperationException("audio preview probe did not start");
+            var stdout = process.StandardOutput.ReadToEndAsync(); var stderr = process.StandardError.ReadToEndAsync(); Task.WhenAll(process.WaitForExitAsync(), stdout, stderr).GetAwaiter().GetResult();
+            var diagnostic = stderr.Result.Trim(); var ready = process.ExitCode == 0 && diagnostic.Contains("IsAudioDeviceReady=True", StringComparison.Ordinal) && PositiveFrames(diagnostic, "raw LoadSound frames=") && PositiveFrames(diagnostic, "processed LoadSound frames=");
+            return (ready, diagnostic);
+        }
+        catch (Exception exception) { return (false, "audio preview probe failed: " + exception.Message); }
+    }
+
+    private static bool PositiveFrames(string diagnostic, string marker)
+    {
+        var at = diagnostic.IndexOf(marker, StringComparison.Ordinal); if (at < 0) return false; at += marker.Length; var end = diagnostic.IndexOf(';', at); var text = (end < 0 ? diagnostic[at..] : diagnostic[at..end]).Trim(); return int.TryParse(text, out var frames) && frames > 0;
     }
 
     private static async Task<object> GraphicsAsync(string root, TextWriter diagnostics)
@@ -118,11 +193,13 @@ public static class M048ActualCandidatePreviewSuite
     private static FixtureData Fixture(string root, string kind)
     {
         var sourceRoot = Path.Combine(root, "artifacts", "assets", "M048", "fixture", kind); var bundleRoot = Path.Combine(sourceRoot, "bundle"); Directory.CreateDirectory(sourceRoot); Directory.CreateDirectory(bundleRoot);
-        var source = Path.Combine(root, "game", "assets", "raw", "samples", kind == "audio" ? "footstep-a.wav" : "render-atlas-smoke.png"); var name = kind == "audio" ? "candidate.wav" : "candidate.png"; File.Copy(source, Path.Combine(sourceRoot, name), true);
-        var selection = new { type = kind == "audio" ? "audio-file" : kind == "animation" ? "animation-sequence" : "image-file", x = 0, y = 0, width = 8, height = 8, startFrame = 0, endFrame = kind == "animation" ? 1 : 0, startSampleFrame = 0, endSampleFrame = 0 };
+        var source = Path.Combine(sourceRoot, "source" + (kind == "audio" ? ".wav" : ".png")); var name = kind == "audio" ? "candidate.wav" : "candidate.png";
+        if (kind == "audio") File.WriteAllBytes(source, M048ActualCandidatePreview.DeterministicWave(8000, 17)); else File.Copy(Path.Combine(root, "game", "assets", "raw", "samples", "render-atlas-smoke.png"), source, true);
+        File.Copy(source, Path.Combine(sourceRoot, name), true);
+        var selection = new { type = kind == "audio" ? "audio-file" : kind == "animation" ? "animation-sequence" : "image-file", x = 0, y = 0, width = 8, height = 8, startFrame = 0, endFrame = kind == "animation" ? 2 : 0, startSampleFrame = 0, endSampleFrame = kind == "audio" ? 4000 : 0 };
         var campaign = new { id = "campaign.m048.preview", sourceId = "source.m048", candidates = new[] { new { candidateId = "candidate.m048." + kind, sourceRelativePath = name, mediaKind = kind, presentationRole = "preview", proposalFingerprint = "proposal.m048." + kind, selection } } };
         var campaignPath = Path.Combine(sourceRoot, "campaign.json"); File.WriteAllText(campaignPath, JsonSerializer.Serialize(campaign)); using var document = JsonDocument.Parse(File.ReadAllText(campaignPath)); var candidate = M047CanonicalAssetPromotion.Resolve(document.RootElement, "candidate.m048." + kind, sourceRoot);
-        IReadOnlyList<M047CanonicalAssetPromotion.Correction> corrections = kind == "image" ? [new("crop-image-region", JsonSerializer.SerializeToElement(new { type = "region", x = 0, y = 0, width = 8, height = 8 }))] : kind == "animation" ? [new("order-animation-frames", JsonSerializer.SerializeToElement(new { order = new[] { 0 } }))] : [new("audio-copy", JsonSerializer.SerializeToElement(new { }))];
+        IReadOnlyList<M047CanonicalAssetPromotion.Correction> corrections = kind == "image" ? [new("crop-image-region", JsonSerializer.SerializeToElement(new { type = "region", x = 0, y = 0, width = 8, height = 8 }))] : kind == "animation" ? [new("order-animation-frames", JsonSerializer.SerializeToElement(new { order = new[] { 1, 0 } }))] : [new("audio-trim-sample-frames", JsonSerializer.SerializeToElement(new { startSampleFrame = 0, endSampleFrame = 4000 }))];
         return new("campaign.m048.preview", sourceRoot, bundleRoot, candidate, corrections);
     }
 }

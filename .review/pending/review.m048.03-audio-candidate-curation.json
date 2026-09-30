@@ -10,7 +10,7 @@
   ],
   "level": "blocking",
   "reviewerRole": "repository user",
-  "status": "pending",
+  "status": "changes-requested",
   "evidence": [
     "artifacts/validation/m048-smoke/review-readiness.json",
     "artifacts/assets/M048/review/audio/preview-observation.json"
@@ -24,12 +24,25 @@
     "approved"
   ],
   "waiverPolicy": "No implicit waiver. This perceptual review item establishes a core M048 human-curation capability.",
-  "decision": "",
+  "decision": "changes-requested",
   "reviewedRevision": "",
   "reviewedFingerprint": "",
   "conditions": [],
-  "completedAt": null,
-  "decisionHistory": [],
+  "decisionHistory": [
+    {
+      "decision": "changes-requested",
+      "reviewer": "repository user",
+      "notes": "",
+      "evidence": [
+        "artifacts/validation/m048-smoke/review-readiness.json",
+        "artifacts/assets/M048/review/audio/preview-observation.json"
+      ],
+      "revision": "ref: refs/heads/codex/m048-actual-candidate-preview-curation",
+      "fingerprint": "de74f0e5132bc1240672a7e48858417123edcaef38b95e2d1098fd1afcd0d7be",
+      "recordedAt": "2026-09-30T15:00:06.8972974+00:00",
+      "recordCorrection": false
+    }
+  ],
   "correctsReviewId": "",
   "path": ".review/pending/review.m048.03-audio-candidate-curation.json"
 }
