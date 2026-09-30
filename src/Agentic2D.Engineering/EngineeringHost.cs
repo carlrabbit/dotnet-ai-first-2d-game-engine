@@ -1194,6 +1194,15 @@ public sealed class EngineeringHost
 
     private bool IsMilestoneActive(string milestone)
     {
+        // A newer milestone may be in progress while an earlier milestone still
+        // owns unresolved required/blocking review work. Starting that newer
+        // milestone must not make the earlier milestone's review workflow
+        // unreachable.
+        if (ReadReviewFiles().Any(review =>
+                review.OwningMilestone == milestone &&
+                review.Level is "required" or "blocking" &&
+                review.Status is "pending" or "changes-requested")) return true;
+
         var directory = Absolute(Path.Combine("docs", "milestones"));
         if (!Directory.Exists(directory)) return ReadReviewFiles().Any(review => review.OwningMilestone == milestone && review.Path.StartsWith(".review/pending/", StringComparison.Ordinal));
         var latest = Directory.EnumerateFiles(directory, "*.md", SearchOption.TopDirectoryOnly)
