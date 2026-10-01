@@ -18,6 +18,7 @@ public static class RaylibGameWindow
         var local = items.Select(item => new LocalReview(item)).ToArray();
         var index = 0; var frame = 0; var mouseWasDown = false; var finalPage = false; var resetting = false; var resetError = string.Empty; var lastAction = "No decision yet"; var resetTask = (Task<DecisionResult>?)null;
         RaylibApi.InitWindow(1120, 720, "Agentic2D — Review Workbench");
+        if (!RaylibApi.IsWindowReady()) { Console.Error.WriteLine("review workbench could not initialize the Raylib window"); return 1; }
         try
         {
             RaylibApi.SetTargetFPS(60);
