@@ -56,6 +56,7 @@ public static class AssetPreviewRaylibWindow
                     var rawPath = Path.GetFullPath(Path.Combine(bundleRoot, bundle.GetProperty("baseMediaPath").GetString()!));
                     var processedPath = Path.GetFullPath(Path.Combine(bundleRoot, bundle.GetProperty("processedMediaPath").GetString()!));
                     audioDiagnostic = LoadAudio(rawPath, processedPath, ref rawSound, ref processedSound, ref rawLoaded, ref processedSoundLoaded, ref rawFrames, ref processedFrames, out audioDevice);
+                    state.SetAudioDiagnostic(audioDiagnostic);
                     Console.Error.WriteLine("asset-preview audio diagnostics: " + audioDiagnostic);
                 }
             }
@@ -110,8 +111,21 @@ public static class AssetPreviewRaylibWindow
         for (var index = 0; index < surface.Controls.Count; index++)
         {
             var control = surface.Controls[index]; var rect = ControlRect(surface.Kind, index); if (!global::Raylib_cs.Raylib.CheckCollisionPointRec(mouse, rect)) continue;
-            state.Apply(control, frameCount);
-            if (control == "Play Raw" && rawLoaded) global::Raylib_cs.Raylib.PlaySound(raw); else if (control == "Play Processed" && processedLoaded) global::Raylib_cs.Raylib.PlaySound(processed); else if (control == "Stop") { if (rawLoaded) global::Raylib_cs.Raylib.StopSound(raw); if (processedLoaded) global::Raylib_cs.Raylib.StopSound(processed); }
+            if (control == "Play Raw")
+            {
+                if (rawLoaded) { global::Raylib_cs.Raylib.PlaySound(raw); state.Apply(control, frameCount); }
+                else state.SetAudioDiagnostic("raw/base playback unavailable; see audio-device diagnostic");
+            }
+            else if (control == "Play Processed")
+            {
+                if (processedLoaded) { global::Raylib_cs.Raylib.PlaySound(processed); state.Apply(control, frameCount); }
+                else state.SetAudioDiagnostic("processed/current-draft playback unavailable; see audio-device diagnostic");
+            }
+            else if (control == "Stop")
+            {
+                if (rawLoaded) global::Raylib_cs.Raylib.StopSound(raw); if (processedLoaded) global::Raylib_cs.Raylib.StopSound(processed); state.Apply(control, frameCount);
+            }
+            else state.Apply(control, frameCount);
             break;
         }
     }
@@ -124,11 +138,11 @@ public static class AssetPreviewRaylibWindow
     private static void DrawSurface(PreviewSurface surface, PreviewSurfaceState state, IReadOnlyList<PreviewFrame> frames, Texture2D baseTexture, Texture2D processedTexture, bool baseLoaded, bool processedLoaded, Texture2D atlas, bool atlasLoaded, string audioDiagnostic, int rawFrames, int processedFrames)
     {
         var layout = ReviewSurfaceLayout.AssetPreview(surface); global::Raylib_cs.Raylib.DrawRectangle(layout.Content.X, layout.Content.Y, layout.Content.Width, layout.Content.Height, new Color(27, 45, 68, 255)); global::Raylib_cs.Raylib.DrawRectangleLines(layout.Content.X, layout.Content.Y, layout.Content.Width, layout.Content.Height, new Color(76, 112, 143, 255));
-        if (surface.Kind == PreviewSurfaceKind.Image) DrawImage(state, baseTexture, processedTexture, baseLoaded, processedLoaded, atlas, atlasLoaded);
+        if (surface.Kind == PreviewSurfaceKind.Image) { DrawImage(state, baseTexture, processedTexture, baseLoaded, processedLoaded, atlas, atlasLoaded); global::Raylib_cs.Raylib.DrawText($"Showing {(state.ImageComparison == "source" ? "raw/base" : "processed/current-draft")} · {(state.IsolatedRegion ? "isolated region" : "source context")} · overlay {(state.Overlays ? "ON" : "OFF")} · filter {state.Filtering}", 680, 275, 15, Color.White); }
         else if (surface.Kind == PreviewSurfaceKind.Animation) DrawAnimation(state, frames);
         else if (surface.Kind == PreviewSurfaceKind.Audio) { global::Raylib_cs.Raylib.DrawText("Manual playback comparison", 80, 275, 25, Color.White); global::Raylib_cs.Raylib.DrawText($"Raw/base duration: {rawFrames} frames", 80, 335, 20, Color.SkyBlue); global::Raylib_cs.Raylib.DrawText($"Processed/current-draft duration: {processedFrames} frames", 80, 375, 20, new Color(144, 238, 144, 255)); global::Raylib_cs.Raylib.DrawText("No audio auto-play", 80, 425, 18, Color.Gold); }
         else global::Raylib_cs.Raylib.DrawText("No preview surface selected", 100, 390, 24, Color.Orange);
-        for (var index = 0; index < surface.Controls.Count; index++) Button(ControlRect(surface.Kind, index), surface.Controls[index], false);
+        for (var index = 0; index < surface.Controls.Count; index++) Button(ControlRect(surface.Kind, index), surface.Controls[index], state.IsActive(surface.Controls[index]));
         if (surface.Kind == PreviewSurfaceKind.Animation) global::Raylib_cs.Raylib.DrawText($"Frame {state.FrameIndex + 1}/{frames.Count} · source {(frames.Count == 0 ? "-" : frames[state.FrameIndex].SourceFrameIndex)} · {(state.Playing ? "playing" : "paused")}", 680, 620, 17, Color.White);
         if (surface.Kind == PreviewSurfaceKind.Audio) { var lines = ReviewSurfaceLayout.Wrap(audioDiagnostic, 400, 12); for (var index = 0; index < lines.Count; index++) global::Raylib_cs.Raylib.DrawText(lines[index], 680, 620 + index * 16, 12, Color.White); }
     }

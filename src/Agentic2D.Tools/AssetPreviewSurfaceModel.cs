@@ -25,6 +25,7 @@ public sealed record PreviewSurface(PreviewSurfaceKind Kind, IReadOnlyList<strin
 public sealed class PreviewSurfaceState
 {
     private readonly PreviewSurface surface;
+    private double playbackElapsed;
     public int FrameIndex { get; private set; }
     public bool Playing { get; private set; }
     public double Speed { get; private set; } = 1;
@@ -36,6 +37,24 @@ public sealed class PreviewSurfaceState
     public void SetAudioDiagnostic(string diagnostic) => AudioState = diagnostic;
 
     public PreviewSurfaceState(PreviewSurface surface) => this.surface = surface;
+    public bool IsActive(string control) => control switch
+    {
+        "Source" => ImageComparison == "source",
+        "Processed" => ImageComparison == "processed",
+        "Isolated region" => IsolatedRegion,
+        "Source context" => !IsolatedRegion,
+        "Nearest" => Filtering == "nearest",
+        "Smooth" => Filtering == "smooth",
+        "Overlays" => Overlays,
+        "Play" => Playing,
+        "Pause" => !Playing,
+        "0.5x" => Speed == .5,
+        "1x" => Speed == 1,
+        "2x" => Speed == 2,
+        "Play Raw" => AudioState.StartsWith("raw/base playing", StringComparison.Ordinal),
+        "Play Processed" => AudioState.StartsWith("processed/current-draft playing", StringComparison.Ordinal),
+        _ => false,
+    };
     public bool Apply(string control, int frameCount = 0)
     {
         if (!surface.Has(control)) return false;
@@ -51,7 +70,7 @@ public sealed class PreviewSurfaceState
             case "Play": Playing = true; break;
             case "Pause": Playing = false; break;
             case "Step": if (!Playing && frameCount > 0) FrameIndex = (FrameIndex + 1) % frameCount; break;
-            case "Reset": FrameIndex = 0; Playing = false; break;
+            case "Reset": FrameIndex = 0; Playing = false; playbackElapsed = 0; break;
             case "0.5x": Speed = .5; break;
             case "1x": Speed = 1; break;
             case "2x": Speed = 2; break;
@@ -64,8 +83,13 @@ public sealed class PreviewSurfaceState
     public bool Advance(double seconds, int frameCount)
     {
         if (!Playing || frameCount < 2) return false;
+        playbackElapsed += Math.Max(0, seconds) * Speed;
         var before = FrameIndex;
-        if (seconds * Speed >= .25) FrameIndex = (FrameIndex + 1) % frameCount;
+        while (playbackElapsed >= .25)
+        {
+            playbackElapsed -= .25;
+            FrameIndex = (FrameIndex + 1) % frameCount;
+        }
         return before != FrameIndex;
     }
 }

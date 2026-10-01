@@ -197,6 +197,11 @@ public sealed class EngineeringHost
         var items = new List<ReviewRunItem>();
         foreach (var review in reviews)
         {
+            if (!IsMilestoneActive(milestone) && IsFinalDecision(review.Status))
+            {
+                items.Add(new ReviewRunItem(review.Id, review.Subject, review.Status));
+                continue;
+            }
             if (!TryGetSimpleReview(review.Id, out var current, out error, requireGraphicsPrerequisite)) return [];
             items.Add(new ReviewRunItem(current!.Id, current.Subject, current.Status));
         }

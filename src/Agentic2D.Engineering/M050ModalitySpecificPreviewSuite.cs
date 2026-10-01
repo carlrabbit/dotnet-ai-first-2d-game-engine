@@ -63,7 +63,12 @@ public static class M050ModalitySpecificPreviewSuite
 
     private static bool AnimationTransition(PreviewSurfaceState state, int count)
     {
-        if (count < 2) return false; state.Apply("Reset", count); var initial = state.FrameIndex; state.Apply("Step", count); var stepped = state.FrameIndex; state.Apply("Play", count); state.Advance(.25, count); var played = state.FrameIndex; state.Apply("Pause", count); state.Apply("Reset", count); return initial != stepped && stepped != played && state.FrameIndex == 0 && !state.Playing;
+        if (count < 2) return false;
+        state.Apply("1x", count); state.Apply("Reset", count); var initial = state.FrameIndex;
+        state.Apply("Step", count); var stepped = state.FrameIndex;
+        state.Apply("Play", count); state.Advance(.25, count); var played = state.FrameIndex;
+        state.Apply("Pause", count); state.Apply("Reset", count);
+        return initial != stepped && stepped != played && state.FrameIndex == 0 && !state.Playing;
     }
     private static object Snapshot(PreviewSurfaceState state, int frameCount) => new { state.FrameIndex, state.Playing, state.Speed, state.ImageComparison, state.IsolatedRegion, state.Filtering, state.Overlays, state.AudioState, frameCount };
 
