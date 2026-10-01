@@ -20,6 +20,12 @@ public static class M038ReviewPolicy
     }
 
     public static bool IsM038(ReviewState review) => review.Id.StartsWith("review.m038.", StringComparison.Ordinal) && review.OwningMilestone == "M038";
+    public static bool IsRegistered(ReviewState review) => IsM038(review) ||
+        (review.Id.StartsWith("review.m048.", StringComparison.Ordinal) && review.OwningMilestone == "M048");
+
+    public static string ExperienceFor(ReviewState review) => IsM038(review)
+        ? "review-shard:m038-workbench-fixture"
+        : "asset-candidate-preview:" + review.Id["review.m048.".Length..];
 }
 
 public static class M038SimpleReviewSuite

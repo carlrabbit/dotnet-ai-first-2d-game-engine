@@ -1,0 +1,49 @@
+{
+  "schema": "agentic2d.engineering.review-record.v2",
+  "id": "review.m048.01-image-candidate-curation",
+  "owningMilestone": "M048",
+  "owningMilestonePath": "docs/milestones/MILESTONE-048-actual-candidate-preview-and-human-curation-experience.md",
+  "subject": "Is it immediately clear which exact image/region and processed variant/correction are under review, and is the visual comparison usable for a curation decision?",
+  "classes": [
+    "visual",
+    "UX"
+  ],
+  "level": "blocking",
+  "reviewerRole": "repository user",
+  "status": "approved",
+  "evidence": [
+    "artifacts/validation/m048-smoke/review-readiness.json",
+    "artifacts/assets/M048/review/image/preview-observation.json"
+  ],
+  "acceptanceCriteria": [
+    "The reviewed content is clearly an actual image/region candidate rather than generic placeholder content.",
+    "Raw/base and processed/current-draft presentation are understandable without inspecting hashes or machine evidence.",
+    "The selected region/variant/correction and relevant crop/pivot/anchor context are visually understandable enough to make a curation judgment."
+  ],
+  "acceptableDecisions": [
+    "approved"
+  ],
+  "waiverPolicy": "No implicit waiver. This perceptual review item establishes a core M048 human-curation capability.",
+  "decision": "approved",
+  "reviewedRevision": "ref: refs/heads/main",
+  "reviewedFingerprint": "2f327eb1963f0b355233da422bf421294f59c7722901460763cd7ce6416d3fcf",
+  "conditions": [],
+  "completedAt": "2026-08-29T05:01:12.0542842+00:00",
+  "decisionHistory": [
+    {
+      "decision": "approved",
+      "reviewer": "repository user",
+      "notes": "",
+      "evidence": [
+        "artifacts/validation/m048-smoke/review-readiness.json",
+        "artifacts/assets/M048/review/image/preview-observation.json"
+      ],
+      "revision": "ref: refs/heads/main",
+      "fingerprint": "2f327eb1963f0b355233da422bf421294f59c7722901460763cd7ce6416d3fcf",
+      "recordedAt": "2026-08-29T05:01:11.6478056+00:00",
+      "recordCorrection": false
+    }
+  ],
+  "correctsReviewId": "",
+  "path": ".review\\records\\review.m048.01-image-candidate-curation.json"
+}
