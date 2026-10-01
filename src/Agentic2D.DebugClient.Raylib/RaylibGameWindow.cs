@@ -78,7 +78,12 @@ public static class RaylibGameWindow
                 else if (finalPage) DrawFinal(local, queue, lastAction, resetError, mouse);
                 else DrawQuestion(milestone, local, index, lastAction, queue, mouse);
                 RaylibApi.EndDrawing();
-                if (capturePath is not null && frame == 2) RaylibApi.TakeScreenshot(capturePath);
+                if (capturePath is not null && frame == 2)
+                {
+                    var absoluteCapture = Path.GetFullPath(capturePath);
+                    Directory.CreateDirectory(Path.GetDirectoryName(absoluteCapture)!);
+                    RaylibApi.TakeScreenshot(Path.GetRelativePath(Directory.GetCurrentDirectory(), absoluteCapture));
+                }
             }
             return 0;
         }
