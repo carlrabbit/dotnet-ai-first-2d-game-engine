@@ -14,6 +14,7 @@ Failures must produce enough structured evidence for diagnosis. Generated artifa
 |---|---|
 | `docs/artifacts/runtime-result-contract.md` | Minimal runtime result. |
 | `docs/artifacts/product-cli-result-contract.md` | Product CLI result. |
+| `docs/artifacts/asset-candidate-preview-and-curation-evidence-contract.md` | M048 exact preview-subject, audiovisual observation, decision-binding, staleness/restart, and review-readiness evidence. |
 | `docs/artifacts/scenario-runner-artifact-contract.md` | Scenario result, events, diagnostics. |
 | `docs/artifacts/content-validation-artifact-contract.md` | Content validation evidence. |
 | `docs/artifacts/workspace-creation-artifact-contract.md` | Workspace acquisition and creation evidence. |

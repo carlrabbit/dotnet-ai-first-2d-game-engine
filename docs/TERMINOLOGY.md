@@ -10,6 +10,9 @@ This document is authoritative for project vocabulary.
 |---|---|
 | Canonical asset candidate | Game-local structured promotion subject binding a stable candidate ID to exact source-relative bytes/hash, typed media selection, promotion-relevant proposal data, variants, and a deterministic fingerprint. |
 | Promoted asset generation | Immutable fully validated project-local set of approved definitions, derivatives, recipes, provenance, and hashes selected by one atomic current-generation record. |
+| Asset curation draft | Operational workbench state selecting one current canonical candidate, variant and typed corrections for preview before an explicit durable v2 decision. |
+| Asset materialization subject | Canonical candidate/variant/corrections plus M047 recipe identity used to prove preview, decision and promotion-plan equivalence. |
+| Asset preview bundle | Disposable authoring bundle containing exact raw/processed candidate media, hashes and projection inputs for one materialization subject; never promoted authority. |
 
 | Term | Meaning |
 |---|---|

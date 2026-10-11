@@ -2,14 +2,26 @@
 
 ## Status
 
-Proposed for M029. Accept when M029 completes.
+Accepted.
+
+Clarified by ADR-0060 for M048 exact candidate/materialization-subject binding.
 
 ## Decision
 
-Use one separate restartable preview-host process per workbench session. It communicates through versioned local IPC and uses actual engine content, rendering, animation, sound projection, and adapters.
+Use one separate restartable preview-host process per workbench session.
 
-The workbench owns UI input, sessions, aliases, decisions, and promotion. The preview host owns temporary preview/playback/capture state only.
+It communicates through a versioned local IPC contract and uses actual engine rendering, animation, sound projection, and isolated native adapters.
+
+The workbench owns UI input, sessions, aliases, operational curation state, decisions, and promotion requests.
+
+The preview host owns temporary preview/playback/comparison/capture state only.
+
+M048 requires the host to acknowledge the exact current materialization subject rather than merely displaying a candidate label.
 
 ## Consequences
 
-One normal window persists, preview crashes do not lose input usability or decisions, reconnect is required, and no second audiovisual/content implementation is introduced.
+- preview crashes/restarts do not erase workbench input or durable decisions;
+- reconnect requires rebuilding/revalidating and acknowledging the current exact subject;
+- no second renderer, audio engine, animation evaluator, candidate resolver, or media processor is introduced;
+- the operational IPC may advance when needed because both local components are updated together;
+- preview state never becomes promotion authority.
