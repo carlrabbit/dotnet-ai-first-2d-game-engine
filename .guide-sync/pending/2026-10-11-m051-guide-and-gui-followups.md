@@ -12,7 +12,7 @@ Guide 0.7.2 -> 0.9.1 migration, profile metadata, active validation policy, prod
 
 - Bring older milestone indexes/capability summaries (especially historically stale `docs/MILESTONES.md` and `README.md`) into alignment with actual merged repository evidence without rewriting historical milestones.
 - Once M052/M053 is implemented, update UI toolkit, presentation, architecture, asset-workbench/review, and renderer indexes to refer to the new typed DSL and operation projections; until then, preserve descriptions of currently implemented behavior.
-- PR #23 is the open M048/M050 implementation branch (`codex/m048-actual-candidate-preview-curation`). When that work resumes, its owner must append any needed 0.9-era obligation/evidence follow-up to the existing M048 and M050 ledgers on that branch, preserve their seeded rows and review records, and reconcile the follow-up before those milestones complete. M051 does not edit or claim retroactive reconciliation of those ledgers.
+- PR #23 (`codex/m048-actual-candidate-preview-curation`) merged into `main` as `429285480a2e4d6cd61400301720859e04186f99` on 2026-10-11. Its M048/M050 ledgers are now on `main` and still record final reconciliation/review work in progress. Their owners should assess whether any 0.9-era obligation/evidence follow-up is needed before those milestones complete, preserving seeded rows and review records. M051 did not edit or claim retroactive reconciliation of those ledgers.
 - Existing copied historical guides in `docs/research/` remain legacy guide leakage and non-authoritative. M051 explicitly does not require reconstruction of historical research; retain any later, genuinely useful inventory or indexing as a separate synchronization task.
 
 ## Completion condition
