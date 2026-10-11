@@ -9,11 +9,17 @@ This document is authoritative for validation tier names, machine-versus-human g
 | 0 | Edit sanity | Cheap checks for trivial/doc-only edits. |
 | 1 | Focused implementation | Validate affected code/content only. |
 | 2 | Standard local gate | Normal pre-completion local confidence. |
-| 3 | PR integration | Clean repository validation in CI. |
-| 4 | Release gate | Validate public/package/release artifacts. |
+| 3 | Integration | Bounded integration across components or supported surfaces, executed at an explicitly named locus. CI is one possible locus, not the definition of Tier 3. |
+| 4 | Consumer/release gate | Validate a current distributable artifact through a representative real consumer entrypoint when the changed surface is packaged or exported. |
 | 5 | Human judgment gate | Milestone-scoped subjective/perceptual acceptance that automation cannot decide. |
 
 Milestones and implementation tasks name the expected validation tier.
+
+## Target and execution locus
+
+Validation depth and execution locus are independent. For material evidence, state what is validated, where it runs, the active platform and required capabilities. A Tier does not imply local, CI, remote, graphics-capable, or release execution; identify those facts directly. The active-platform and deferred inactive-platform rules below remain authoritative.
+
+Tier 4 applies to an actual supported distribution boundary. Linux game export is a supported consumer surface and, when changed, is verified by invoking the assembled executable through its consumer entrypoint. A published `dotnet tool` and Windows game export are not current supported artifacts, so they are not required proof targets.
 
 ## Execution modes
 

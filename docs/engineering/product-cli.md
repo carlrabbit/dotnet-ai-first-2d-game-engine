@@ -34,6 +34,13 @@ Until packaging or tool installation exists, use the development invocation form
 dotnet run --project src/Agentic2D.Tools -- <args>
 ```
 
+## Process and automation contract
+
+The supported product CLI is the `agentic2d` process surface; no separately installable .NET tool is currently published. Commands accept explicit arguments and supported input files. Automation does not depend on interactive terminal questions; commands that explicitly start a graphical workbench remain an opt-in user experience. There is no general CLI configuration file or cross-command configuration precedence. Only documented command options and command-specific environment inputs apply (for example, `AGENTIC2D_ASSET_HOME`, then the documented platform data-home fallback for asset authoring).
+
+`--help` prints command usage and exits 0 without running the runtime. `--version` prints the CLI assembly/development version and exits 0. Successful commands write a concise status and primary artifact/output path to stdout. Usage and execution errors are written to stderr; artifact-producing commands also use their documented structured result and diagnostics artifacts when they can be written. Exit codes and command-specific exceptions are defined in `docs/specs/product-cli-contract.md`.
+
+Path arguments follow the owning command contract. Relative output paths are interpreted from the process working directory; content identifiers and repository-relative content paths resolve through the documented content/workspace resolver. There is no global path-root override. The CLI has no stable cancellation flag or graceful-cancellation exit code; an interrupted invocation is not successful unless its command result/artifact says it completed. Mutating commands retain their documented validation, fingerprint, and transactional guarantees.
 ## Current command surface
 
 The currently supported product CLI commands are:

@@ -15,10 +15,17 @@ M037 development support is native Linux/Bash and Windows/PowerShell 7. The acti
 | Document | Purpose |
 |---|---|
 | `docs/engineering/command-contract.md` | Canonical engineering commands. |
-| `docs/engineering/validation-tiers.md` | Validation tiers and graphics-capable distinction. |
+| `docs/engineering/validation-tiers.md` | Validation depth, execution locus, platform epochs, and review gate separation. |
 | `docs/engineering/platform-verification.md` | Platform epochs, active-platform proof, and deferred inactive-platform verification. |
 | `docs/engineering/future-dotnet-solution.md` | Current and candidate solution shape. |
 | `docs/engineering/product-cli.md` | Product CLI invocation. |
+
+## Supported profile scopes
+
+These semantic scopes describe supported product capabilities and are independent of individual source paths:
+
+- `engine-libraries` is the component scope for reusable, supported .NET engine runtime, contract, validation, and rendering library APIs. It does not claim that a NuGet package is published.
+- `product-cli` is the surface scope for the supported `agentic2d` process and commands documented in `docs/specs/product-cli-contract.md` and `docs/engineering/product-cli.md`. It excludes repository engineering wrappers under `eng/`.
 
 ## Canonical commands
 
@@ -220,7 +227,7 @@ Commands must validate meaningful state or fail clearly. Success-only placeholde
 
 `src/Agentic2D.Engineering` is the tested .NET host for validation plans, fingerprints, atomic receipts, fast verification, and repository-local review state. `eng/*.sh` remains the stable engineering API and only forwards arguments and exit codes.
 
-The resumable suites are `./eng/m019-smoke.sh`, `./eng/m020-smoke.sh`, `./eng/m021-smoke.sh`, `./eng/m023-smoke.sh`, `./eng/m026-smoke.sh`, `./eng/m029-smoke.sh`, `./eng/m031-smoke.sh`, `./eng/m032-smoke.sh`, `./eng/m033-smoke.sh`, `./eng/m034-smoke.sh`, `./eng/m035-smoke.sh`, and `./eng/guide-migration-v050.sh`. Each supports `--list`, `--plan-json`, `--shard <id>`, and `--verify`; a no-argument run is for unconstrained local/CI use. Performance comparisons are advisory same-machine evidence, never deterministic validation authority. M026 marks sub-10-ms references not timing-authoritative and uses bounded scaled real workloads for elapsed comparison.
+New AI-executed ready milestones have planning-seeded `.execution/<id>.md` obligation registries. Planning records each stable acceptance ID and applicable evidence case before ready; implementation preserves those rows and adds work packages, status, progress, resume state, and exercised evidence. Completion audits reconcile exact obligation sets and retain a criterion-to-proof trace. See `AGENTS.md` for the active lifecycle contract. The resumable suites are `./eng/m019-smoke.sh`, `./eng/m020-smoke.sh`, `./eng/m021-smoke.sh`, `./eng/m023-smoke.sh`, `./eng/m026-smoke.sh`, `./eng/m029-smoke.sh`, `./eng/m031-smoke.sh`, `./eng/m032-smoke.sh`, `./eng/m033-smoke.sh`, `./eng/m034-smoke.sh`, `./eng/m035-smoke.sh`, and `./eng/guide-migration-v050.sh`. Each supports `--list`, `--plan-json`, `--shard <id>`, and `--verify`; a no-argument run is for unconstrained local/CI use. Performance comparisons are advisory same-machine evidence, never deterministic validation authority. M026 marks sub-10-ms references not timing-authoritative and uses bounded scaled real workloads for elapsed comparison.
 
 Repository-local review state is `.review/pending/`, `.review/records/`, and `.review/closed/`; generated or large evidence belongs under `artifacts/review/`. The full six-command review family, alias behavior, and reopening policy are authoritative in `docs/engineering/human-review-workflow.md`. Completed records are immutable historical evidence and do not stale because later commits change the repository.
 

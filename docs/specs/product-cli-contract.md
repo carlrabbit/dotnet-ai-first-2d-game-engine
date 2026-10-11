@@ -282,6 +282,16 @@ Commands must keep semantic output deterministic for identical deterministic inp
 
 The result artifact may contain timestamps or durations, but tests must not use environment-specific values as semantic assertions.
 
+## Process, automation, and compatibility semantics
+
+The CLI is argument-driven and supports unattended automation. It does not prompt for missing values; invalid or incomplete invocation returns the documented usage error. Graphical workbench commands are explicit opt-in operations and are not assumed to be headless. There is no general configuration file or global precedence chain. Command-line options and documented command-specific environment inputs are the supported configuration sources; for asset-home commands, `AGENTIC2D_ASSET_HOME` overrides the documented platform data-home fallback.
+
+`--help` and `--version` each write to stdout and exit 0 without running product behavior. Successful command summaries and primary artifact paths go to stdout. Usage/execution diagnostics go to stderr; structured result/diagnostic artifacts remain the machine-readable authority where the command contract defines them. Exit codes remain 0 for passed completion, 1 for completed validation failure, 2 for invalid invocation/input, and 3 for execution or artifact-writing errors, subject to a more specific command contract.
+
+Relative `--output` paths are rooted at the process working directory. Other paths and stable IDs resolve according to each command's content/workspace contract; no global path root is implied. There is no general cancellation option or stable cancellation exit code. A process interruption is incomplete unless its command-specific evidence records completion. Commands that mutate authored state must continue to enforce their specific validation, fingerprint, and transactional rules.
+
+Compatibility is defined by the versioned command and artifact contracts in this repository. Do not infer package-installation or semver guarantees: a separately packaged `dotnet tool` is not currently supported. When an actual supported distributable changes, verify that current artifact through its consumer entrypoint as described by `docs/specs/standalone-linux-game-export-contract.md` and `docs/engineering/validation-tiers.md`.
+
 ## Relationship to `eng/`
 
 `agentic2d` is the product/runtime CLI.

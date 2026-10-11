@@ -8,7 +8,7 @@ This document is authoritative for the core project thesis.
 
 The project is a .NET-based 2D game engine for agentic development.
 
-Humans design, review, and make creative decisions. AI agents implement, modify, validate, and iterate on the game through structured commands, deterministic scenarios, semantic asset pipelines, validated behavior modules, source-generated runtime plumbing, and reproducible debug/release builds.
+Humans design, review, and make creative decisions. AI agents implement, modify, validate, and iterate on the game through structured commands, deterministic scenarios, semantic asset pipelines, validated behavior modules, source-generated runtime plumbing, and reproducible debug/release builds. The project specialization includes artifact-first agentic authoring, reusable runtime/tool libraries, and game/simulation capabilities; these are project descriptions, not selectable guide profile identifiers.
 
 ## Consequences
 
