@@ -9,30 +9,46 @@
   "maturityStage": "implementation-ready",
   "appliedProfiles": [
     {
-      "profile": "base",
-      "scope": {
-        "type": "repository"
-      }
+      "id": "base",
+      "version": "0.9.1",
+      "scopes": [
+        {
+          "kind": "repository"
+        }
+      ]
     },
     {
-      "profile": "artifact-first-runtime",
-      "scope": {
-        "type": "repository"
-      }
+      "id": "artifact-first-runtime",
+      "version": "0.9.1",
+      "scopes": [
+        {
+          "kind": "repository"
+        }
+      ]
     },
     {
-      "profile": "dotnet-library",
-      "scope": {
-        "type": "component",
-        "id": "engine-libraries"
-      }
+      "id": "dotnet-library",
+      "version": "0.9.1",
+      "scopes": [
+        {
+          "kind": "component",
+          "ids": [
+            "engine-libraries"
+          ]
+        }
+      ]
     },
     {
-      "profile": "cli-tool",
-      "scope": {
-        "type": "surface",
-        "id": "product-cli"
-      }
+      "id": "cli-tool",
+      "version": "0.9.1",
+      "scopes": [
+        {
+          "kind": "surface",
+          "ids": [
+            "product-cli"
+          ]
+        }
+      ]
     }
   ],
   "maturityModes": [

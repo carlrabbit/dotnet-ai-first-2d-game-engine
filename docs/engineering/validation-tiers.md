@@ -8,7 +8,7 @@ This document is authoritative for validation tier names, machine-versus-human g
 |---:|---|---|
 | 0 | Edit sanity | Cheap checks for trivial/doc-only edits. |
 | 1 | Focused implementation | Validate affected code/content only. |
-| 2 | Standard local gate | Normal pre-completion local confidence. |
+| 2 | Standard repository validation | Normal repository-wide validation before completion. |
 | 3 | Integration | Bounded integration across components or supported surfaces, executed at an explicitly named locus. CI is one possible locus, not the definition of Tier 3. |
 | 4 | Consumer/release gate | Validate a current distributable artifact through a representative real consumer entrypoint when the changed surface is packaged or exported. |
 | 5 | Human judgment gate | Milestone-scoped subjective/perceptual acceptance that automation cannot decide. |

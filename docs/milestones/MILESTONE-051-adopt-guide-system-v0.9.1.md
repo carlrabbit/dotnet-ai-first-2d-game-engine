@@ -4,7 +4,8 @@
 
 | Field | Resolved value |
 |---|---|
-| Lifecycle | **ready** (planning-seeded overlay) |
+| Lifecycle | **done / COMPLETE** (implementation and completion audit finished 2026-10-12) |
+| Planning lifecycle history | **ready** before execution; the planning readiness assessment and seeded registry below are retained unchanged. |
 | Workflow classification | Guide-system migration; ordinary coding/documentation milestone execution |
 | Execution mode | `ai-executed-broad` (preserve the project's configured mode) |
 | Baseline implementation model | `GPT-5.6 Luna` (existing project metadata; do not change just to match a new default) |
@@ -40,7 +41,7 @@ The external guide repository is `carlrabbit/agentic-project-guides`; v0.9.1 is 
 
 ## Resolved profile selection for guide 0.9.1
 
-Use guide-profile schema version **2** and the **additive, unordered** `appliedProfiles` list. Replace legacy selection fields rather than leaving conflicting parallel profile declarations. The resulting profile assignments are:
+Use guide-profile schema version **2** and the **additive, unordered** `appliedProfiles` list. Each entry uses exactly `id`, `version`, and `scopes`; `version` is `0.9.1` and each scope uses `kind`, with `ids` for component and surface scopes. Replace legacy selection fields rather than leaving conflicting parallel profile declarations. The resulting profile assignments are:
 
 | Central profile | Scope | Rationale |
 |---|---|---|
@@ -186,37 +187,37 @@ The migration is documentation/metadata only. If an intermediate change produces
 The overlay seeds `.guide-sync/pending/2026-10-11-m051-guide-and-gui-followups.md`. Narrow/complete individual items only after inspecting the live branch and relevant completed changes. This hint is not authority for M051 or any later implementation milestone.
 ## M051 completion record
 
-**Final status: COMPLETE** (2026-10-11). This record is the durable criterion-to-proof trace; `.execution/M051.md` remains the mutable operational ledger.
+**Final status: COMPLETE** (2026-10-12). The planning lifecycle reached `ready` before implementation; this completed record preserves the planning-readiness assessment and the planning-seeded registry. This record is the durable criterion-to-proof trace; `.execution/M051.md` remains the mutable operational ledger.
 
-Validation ran on Windows with PowerShell 7 and .NET SDK 10.0.401, the active platform in `eng/platform-verification.json`. No Linux verification is claimed. `pwsh ./eng/restore.ps1`, `pwsh ./eng/build.ps1` (0 warnings, 0 errors), `pwsh ./eng/test.ps1` (191/191), `pwsh ./eng/format.ps1 --verify`, and the complete `pwsh ./eng/check.ps1` all passed. `git diff --check` passed. The canonical check first exposed absent generated Signal Passage WAV fixture inputs; after running the existing documented workspace/project/sound validation and synthesis steps, the aggregate check passed. Those generated validation outputs are not committed. M051 requires no Tier 3 integration, Tier 4 consumer-install, Tier 5 human review, or Linux catch-up gate.
+Validation was freshly rerun on 2026-10-12 on Windows with PowerShell 7 and .NET SDK 10.0.401, the active platform in `eng/platform-verification.json`; no Linux verification is claimed. Focused VAL-01 checked the full canonical guide-profile shape and exact assignments. Focused VAL-02/VAL-05 checks passed `git diff --check`, the Tier 2 terminology and execution-locus/platform-policy audit, and exact seeded obligation/evidence-case wording and coverage reconciliation. Canonical `pwsh ./eng/check.ps1` exited 0: restore passed, build succeeded with 0 warnings and 0 errors, all 191 tests passed, and format verification passed. M051 requires no Tier 3 integration, Tier 4 consumer-install, Tier 5 human review, or Linux catch-up gate.
 
 | Criterion | Durable evidence | Gate/result |
 |---|---|---|
-| AC-01 | `.guide-profile.json` uses `schemaVersion: 2` and `guideSystem.version: 0.9.1`; legacy guide/version/profile selector fields are absent. | VAL-01 passed: PowerShell JSON parse and legacy-key check. |
-| AC-02 | `.guide-profile.json` contains exactly `base` [repository], `artifact-first-runtime` [repository], `dotnet-library` [component `engine-libraries`], and `cli-tool` [surface `product-cli`]. | VAL-01 passed: exact tuple-set comparison; order ignored. |
+| AC-01 | `.guide-profile.json` uses `schemaVersion: 2` and `guideSystem.version: 0.9.1`; legacy guide/version/profile selector fields are absent. | Revalidated VAL-01: `pwsh ./eng/validate-guide-profile.ps1` passed required profile/entry/scope fields, versions, exact assignments, and absence of legacy forms. |
+| AC-02 | `.guide-profile.json` contains exactly `base` [repository], `artifact-first-runtime` [repository], `dotnet-library` [component `engine-libraries`], and `cli-tool` [surface `product-cli`]. | Revalidated VAL-01: validator compared the unordered exact assignment set and rejected missing, duplicate, or extra assignments. |
 | AC-03 | `docs/ENGINEERING.md` defines both semantic scopes and excludes `eng/`; README/project thesis retain project specialization; metadata retains provider role, implementation-ready maturity, GPT-5.6 Luna, ai-executed-broad, and separate review/sync/release settings. | VAL-01 and VAL-02 passed. |
-| AC-04 | `docs/engineering/validation-tiers.md` defines depth independently from locus; `eng/platform-verification.json` and `docs/engineering/platform-verification.md` retain Windows active and Linux deferred policy. | VAL-02 passed. |
+| AC-04 | `docs/engineering/validation-tiers.md` defines depth independently from locus; `eng/platform-verification.json` and `docs/engineering/platform-verification.md` retain Windows active and Linux deferred policy. | Revalidated VAL-02: Tier 2 is “Standard repository validation” in both validation tiers and command contract; tier depth remains independent of execution locus. Windows remains active and Linux verification remains deferred. |
 | AC-05 | `AGENTS.md` requires ready milestones to preserve material decisions in project authority or the milestone and be executable by the baseline model. | VAL-02 passed. |
 | AC-06 | `AGENTS.md` assigns pre-ready per-obligation/evidence-case seeding to planning and bounded work-package/status/evidence updates to implementation; the M051 registry retains its seeded AC/EC rows and VAL mappings. | VAL-02 and VAL-05 passed. |
-| AC-07 | `AGENTS.md` requires exact coverage reconciliation, exercised per-criterion proof, and a durable completion trace; this table records that trace. | VAL-05 passed; exact AC-01…AC-16 and applicable EC sets reconciled. |
+| AC-07 | `AGENTS.md` requires exact coverage reconciliation, exercised per-criterion proof, and a durable completion trace; this table records that trace. | Revalidated VAL-05: exact seeded AC-01…AC-16 and EC-03a/b, EC-08a/b, EC-09a/b sets match this table; criterion evidence below is refreshed for affected rows. |
 | AC-08 | `docs/engineering/validation-tiers.md` requires representative real-consumer invocation for changed supported distributions and names Linux export; it explicitly excludes an unpublished dotnet tool and Windows export. | VAL-02 passed. |
 | AC-09 | `docs/specs/product-cli-contract.md` and `docs/engineering/product-cli.md` define supported process invocation, automation, stdout/stderr, outputs, exit codes, paths, configuration inputs, interruption limits, help/version, diagnostics, and contract-based compatibility. | VAL-02 passed. |
 | AC-10 | `AGENTS.md` classifies research and copied guides as non-authoritative legacy traceability and explicitly does not require historical reconstruction. No research file was promoted. | VAL-02 passed. |
 | AC-11 | Existing `docs/HUMAN-REVIEW.md`, `docs/engineering/human-review-workflow.md`, and review records remain unchanged; M051 declares no subjective review gate. | VAL-02 passed; review tree unchanged. |
 | AC-12 | `.guide-sync/pending/2026-10-11-m051-guide-and-gui-followups.md` assigned any M048/M050 follow-up to PR #23's owning branch while it was open; no M048/M050 ledger or source was edited by M051. PR #23 later merged as `429285480a2e4d6cd61400301720859e04186f99`; its ledgers remain in progress. | VAL-02 passed; active branch collision avoided. The merged ledgers and their outstanding reconciliation/review status are preserved. |
 | AC-13 | `docs/architecture/agentic-ui-direction.md` preserves the typed compositional C# DSL and renderer/operation boundaries; no UI implementation was added. | VAL-02 passed. |
-| AC-14 | The change set is limited to metadata, project guidance, the M051 overlay, operational ledger, and deferred sync hint; product/runtime source and supported CLI implementation are unchanged. | VAL-02, VAL-03, and VAL-04 passed. |
+| AC-14 | The change set contains guide metadata, active project/validation documentation, M051 completion evidence, and a focused engineering-only profile validator; product/runtime source, supported CLI implementation, copied guides, TBPs, and templates are unchanged. | Revalidated VAL-02 through VAL-04: changed-file scope inspection and canonical repository validation passed. |
 | AC-15 | The seeded sync hint now distinguishes M051-complete authority from deferred indexes, future M052/M053 indexing, owning-branch M048/M050 reconciliation, and non-authoritative historical research. | VAL-02 passed. |
-| AC-16 | VAL-01…VAL-05 were executed and recorded in `.execution/M051.md`; this record preserves their outcomes and criterion mapping. | VAL-01 through VAL-05 passed; VAL-04 is the complete canonical aggregate. |
+| AC-16 | VAL-01…VAL-05 were executed and recorded in `.execution/M051.md`; this record preserves their outcomes and criterion mapping. | Revalidated VAL-01…VAL-05 on 2026-10-12; focused profile/schema, documentation, exact-coverage checks and canonical `eng/check.ps1` results are recorded in `.execution/M051.md`. |
 
 Selective evidence cases:
 
 | Evidence case | Proof |
 |---|---|
-| EC-03a | `docs/ENGINEERING.md` defines `engine-libraries` as supported reusable .NET API components without implying NuGet publication; VAL-01/02 passed. |
-| EC-03b | `docs/ENGINEERING.md` defines `product-cli` as the `agentic2d` product surface and expressly excludes `eng/`; VAL-01/02 passed. |
-| EC-08a | `docs/engineering/validation-tiers.md` retains representative real-artifact Linux-export consumer validation; VAL-02 passed. |
-| EC-08b | `docs/engineering/validation-tiers.md` says no packaged dotnet tool or Windows export is currently required/present; VAL-02 passed. |
+| EC-03a | `docs/ENGINEERING.md` defines `engine-libraries` as supported reusable .NET API components without implying NuGet publication; revalidated VAL-01/02 passed. |
+| EC-03b | `docs/ENGINEERING.md` defines `product-cli` as the `agentic2d` product surface and expressly excludes `eng/`; revalidated VAL-01/02 passed. |
+| EC-08a | `docs/engineering/validation-tiers.md` retains representative real-artifact Linux-export consumer validation; revalidated VAL-02 passed. |
+| EC-08b | `docs/engineering/validation-tiers.md` says no packaged dotnet tool or Windows export is currently required/present; revalidated VAL-02 passed. |
 | EC-09a | Product CLI contracts cover invocation, help/version, unattended use, stdout/stderr, structured results, and exit behavior; VAL-02 passed. |
 | EC-09b | Product CLI contracts cover command-specific configuration/environment inputs, path resolution, cancellation limits, diagnostics, and compatibility boundaries; VAL-02 passed. |
 
