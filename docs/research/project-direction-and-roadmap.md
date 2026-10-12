@@ -112,6 +112,14 @@ This is planning guidance only. It does not authorize M049 or future feature imp
 - Whether UI research results will change authoring/workbench priorities enough to reorder feature work.
 - When Linux catch-up should occur relative to the next product-facing milestone group.
 
+## Detailed research
+
+Use these when the planning question needs more than this track map:
+
+- simulation/game baseline: `docs/research/simulation-and-settlement-evolution.md`;
+- asset/workbench history and remaining closure: `docs/research/asset-authoring-and-workbench-evolution.md`;
+- historical future-feature sequence and rebase questions: `docs/research/feature-roadmap-reconstruction.md`.
+
 ## Related authority
 
 - `docs/specs/project-thesis.md`
