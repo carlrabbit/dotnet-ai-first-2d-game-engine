@@ -295,19 +295,25 @@ public static class M052AgentOrientedUiSuite
 
     private static bool ActivateNativeWindow(nint handle)
     {
-        var foreground = GetForegroundWindow();
-        var foregroundThread = foreground == 0 ? 0 : GetWindowThreadProcessId(foreground, out _);
         var targetThread = GetWindowThreadProcessId(handle, out var targetProcess);
         _ = AllowSetForegroundWindow(targetProcess);
         var currentThread = GetCurrentThreadId();
-        var attached = foregroundThread != 0 && foregroundThread != currentThread && AttachThreadInput(currentThread, foregroundThread, true);
-        try
+        if (targetThread == 0) return false;
+        for (var attempt = 0; attempt < 8; attempt++)
         {
-            ShowWindow(handle, 9); BringWindowToTop(handle);
-            _ = SetForegroundWindow(handle); _ = SetActiveWindow(handle); _ = SetFocus(handle);
-            return targetThread != 0 && GetForegroundWindow() == handle;
+            var foreground = GetForegroundWindow();
+            var foregroundThread = foreground == 0 ? 0 : GetWindowThreadProcessId(foreground, out _);
+            var attached = foregroundThread != 0 && foregroundThread != currentThread && AttachThreadInput(currentThread, foregroundThread, true);
+            try
+            {
+                ShowWindow(handle, 9); BringWindowToTop(handle);
+                _ = SetForegroundWindow(handle); _ = SetActiveWindow(handle); _ = SetFocus(handle);
+            }
+            finally { if (attached) AttachThreadInput(currentThread, foregroundThread, false); }
+            if (GetForegroundWindow() == handle) return true;
+            Thread.Sleep(100);
         }
-        finally { if (attached) AttachThreadInput(currentThread, foregroundThread, false); }
+        return false;
     }
 
     private static object Compatibility()

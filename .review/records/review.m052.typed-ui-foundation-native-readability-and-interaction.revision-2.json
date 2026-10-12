@@ -1,5 +1,5 @@
 {
-  "schema": "agentic2d.engineering.review-request.v2",
+  "schema": "agentic2d.engineering.review-record.v2",
   "id": "review.m052.typed-ui-foundation-native-readability-and-interaction",
   "owningMilestone": "M052",
   "owningMilestonePath": "docs/milestones/MILESTONE-052-agent-oriented-ui-foundation.md",
@@ -10,7 +10,7 @@
   ],
   "level": "required",
   "reviewerRole": "human reviewer",
-  "status": "pending",
+  "status": "approved",
   "evidence": [
     "artifacts/ui/M052/product-shell.png",
     "artifacts/ui/M052/review-stress.png"
@@ -24,10 +24,11 @@
     "approved"
   ],
   "waiverPolicy": "No implicit waiver.",
-  "decision": "",
+  "decision": "approved",
   "reviewedRevision": "unavailable",
-  "reviewedFingerprint": "775fcf21362ba54aa5eb0263f6741502e33a9f69dabf00fb33a0ccf509857e72",
+  "reviewedFingerprint": "fa040ca83e28fb249b55d722861e4035542ba7bf6904908ad7e5d248029db218",
   "conditions": [],
+  "completedAt": "2026-10-12T20:35:05.0341247+00:00",
   "decisionHistory": [
     {
       "decision": "changes-requested",
@@ -67,8 +68,21 @@
       "fingerprint": "4ad27c90ef3af66022b8924b1510b234ea7c5a01d1941f3d75d26b74f01a48ac",
       "recordedAt": "2026-10-12T20:23:52.8522864+00:00",
       "recordCorrection": false
+    },
+    {
+      "decision": "approved",
+      "reviewer": "human reviewer",
+      "notes": "",
+      "evidence": [
+        "artifacts/ui/M052/product-shell.png",
+        "artifacts/ui/M052/review-stress.png"
+      ],
+      "revision": "unavailable",
+      "fingerprint": "fa040ca83e28fb249b55d722861e4035542ba7bf6904908ad7e5d248029db218",
+      "recordedAt": "2026-10-12T20:35:04.8321659+00:00",
+      "recordCorrection": false
     }
   ],
   "correctsReviewId": "",
-  "path": ".review\\pending\\review.m052.typed-ui-foundation-native-readability-and-interaction.json"
+  "path": ".review\\records\\review.m052.typed-ui-foundation-native-readability-and-interaction.revision-2.json"
 }
