@@ -197,6 +197,8 @@ public static class RaylibGameWindow
                 windowHandle = nativeWindowHandle,
                 viewport = session.Layout.Viewport,
                 layoutFingerprint = session.Layout.Fingerprint,
+                focus = session.FocusedId,
+                captured = session.CapturedId,
                 menu = menu.Select(x => new { x.Id, x.Label, x.Available }).ToArray(),
                 controls = session.Layout.Elements.Where(x => x.Focusable && x.Enabled).OrderBy(x => x.LogicalBounds.Y).ThenBy(x => x.Order).Select(x => new { x.Id, x.ActionId, x.PhysicalBounds }).ToArray(),
                 inputTrace

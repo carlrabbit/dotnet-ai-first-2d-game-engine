@@ -198,22 +198,19 @@ public static class M052AgentOrientedUiSuite
                     }
                     else
                     {
-                        var expectedFocus = controls[0].GetProperty("id").GetString();
-                        // A physical pointer activation first guarantees that the native
-                        // window owns the desktop input queue, then Tab proves traversal.
-                        var firstBounds = controls[0].GetProperty("physicalBounds");
-                        var dpiScale = initialDocument.RootElement.GetProperty("viewport").GetProperty("osDpiScale").GetDouble();
-                        var firstPoint = new NativePoint
-                        {
-                            X = (int)Math.Round((firstBounds.GetProperty("x").GetDouble() + firstBounds.GetProperty("width").GetDouble() / 2) / dpiScale),
-                            Y = (int)Math.Round((firstBounds.GetProperty("y").GetDouble() + firstBounds.GetProperty("height").GetDouble() / 2) / dpiScale)
-                        };
-                        if (!ClientToScreen(handle, ref firstPoint)) throw new InvalidOperationException("Could not map the first projected keyboard-focus target to the desktop.");
-                        SetCursorPos(firstPoint.X, firstPoint.Y); await Task.Delay(100); mouse_event(0x0002, 0, 0, 0, 0); await Task.Delay(100); mouse_event(0x0004, 0, 0, 0, 0);
+                        // Activate the native input queue on empty client space. Clicking
+                        // a product action here would start a business operation before
+                        // the keyboard traversal probe begins.
+                        var neutralPoint = new NativePoint { X = 8, Y = 8 };
+                        if (!ClientToScreen(handle, ref neutralPoint)) throw new InvalidOperationException("Could not map neutral keyboard-probe input to the desktop.");
+                        SetCursorPos(neutralPoint.X, neutralPoint.Y); await Task.Delay(100); mouse_event(0x0002, 0, 0, 0, 0); await Task.Delay(100); mouse_event(0x0004, 0, 0, 0, 0);
                         await Task.Delay(200);
+                        using var focusedDocument = JsonDocument.Parse(await File.ReadAllTextAsync(reportPath));
+                        var expectedFocus = focusedDocument.RootElement.GetProperty("focus").GetString();
                         for (var attempt = 0; attempt < controls.Length * 2 && expectedFocus != target.GetProperty("id").GetString(); attempt++)
                         {
-                            keybd_event(0x09, 0x0f, 0, 0); await Task.Delay(160); keybd_event(0x09, 0x0f, 0x0002, 0);
+                            if (GetForegroundWindow() != handle && !ActivateNativeWindow(handle)) throw new InvalidDataException("Windows lost the Product Shell foreground before native Tab traversal.");
+                            SendNativeKey(0x09, keyUp: false); await Task.Delay(180); SendNativeKey(0x09, keyUp: true);
                             var focusDeadline = DateTime.UtcNow + TimeSpan.FromSeconds(1);
                             while (DateTime.UtcNow < focusDeadline)
                             {
@@ -231,7 +228,7 @@ public static class M052AgentOrientedUiSuite
                             await Task.Delay(120);
                         }
                         if (expectedFocus != target.GetProperty("id").GetString()) throw new InvalidDataException($"Native keyboard Tab traversal reached '{expectedFocus}' instead of '{target.GetProperty("id").GetString()}'.");
-                        keybd_event(0x0d, 0x1c, 0, 0); await Task.Delay(120); keybd_event(0x0d, 0x1c, 0x0002, 0);
+                        SendNativeKey(0x0d, keyUp: false); await Task.Delay(180); SendNativeKey(0x0d, keyUp: true);
                     }
                     var inputStarted = DateTime.UtcNow;
                     while (DateTime.UtcNow - inputStarted < TimeSpan.FromSeconds(8))
@@ -245,12 +242,15 @@ public static class M052AgentOrientedUiSuite
                                 var requests = report.GetProperty("requests").EnumerateArray().ToArray();
                                 var sourceId = pointer ? "menu.quit" : "menu.quit";
                                 var valid = requests.Any(request => request.GetProperty("actionId").GetString() == "shell.quit" && request.GetProperty("sourceId").GetString() == sourceId);
-                                var closeStarted = DateTime.UtcNow;
-                                while (IsWindow(handle) && IsWindowVisible(handle) && DateTime.UtcNow - closeStarted < TimeSpan.FromSeconds(3)) await Task.Delay(50);
-                                valid &= !IsWindow(handle) || !IsWindowVisible(handle);
-                                if (!process.HasExited) { process.Kill(entireProcessTree: true); await process.WaitForExitAsync(); }
-                                await Task.WhenAll(stdout, stderr);
-                                return (valid, report);
+                                if (valid)
+                                {
+                                    var closeStarted = DateTime.UtcNow;
+                                    while (IsWindow(handle) && IsWindowVisible(handle) && DateTime.UtcNow - closeStarted < TimeSpan.FromSeconds(3)) await Task.Delay(50);
+                                    valid &= !IsWindow(handle) || !IsWindowVisible(handle);
+                                    if (!process.HasExited) { process.Kill(entireProcessTree: true); await process.WaitForExitAsync(); }
+                                    await Task.WhenAll(stdout, stderr);
+                                    return (valid, report);
+                                }
                             }
                         }
                         if (process.HasExited) break;
@@ -283,7 +283,15 @@ public static class M052AgentOrientedUiSuite
     [DllImport("kernel32.dll")] private static extern uint GetCurrentThreadId();
     [DllImport("user32.dll")] private static extern bool AttachThreadInput(uint attach, uint attachTo, bool attachState);
     [DllImport("user32.dll")] private static extern bool AllowSetForegroundWindow(uint processId);
-    [DllImport("user32.dll")] private static extern void keybd_event(byte virtualKey, byte scanCode, uint flags, nuint extraInfo);
+    [StructLayout(LayoutKind.Sequential)] private struct NativeKeyboardInput { public ushort VirtualKey, ScanCode; public uint Flags, Time; public nuint ExtraInfo; }
+    [StructLayout(LayoutKind.Explicit, Size = 40)] private struct NativeInput { [FieldOffset(0)] public uint Type; [FieldOffset(8)] public NativeKeyboardInput Keyboard; }
+    [DllImport("user32.dll", SetLastError = true)] private static extern uint SendInput(uint count, [In] NativeInput[] inputs, int size);
+
+    private static void SendNativeKey(ushort virtualKey, bool keyUp)
+    {
+        var input = new NativeInput { Type = 1, Keyboard = new NativeKeyboardInput { VirtualKey = virtualKey, Flags = keyUp ? 0x0002u : 0u } };
+        if (SendInput(1, [input], Marshal.SizeOf<NativeInput>()) != 1) throw new InvalidOperationException("Windows did not accept native keyboard input.");
+    }
 
     private static bool ActivateNativeWindow(nint handle)
     {
