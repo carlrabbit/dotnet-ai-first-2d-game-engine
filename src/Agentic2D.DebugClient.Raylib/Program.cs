@@ -5,10 +5,12 @@ using Agentic2D.ScenarioRunner;
 using Agentic2D.Validation;
 using Agentic2D.DebugClient;
 using Agentic2D.DebugClient.Raylib;
+using Agentic2D.UI;
 using Raylib_cs;
 
 if (args.Length == 0) return ProductShell([]);
 if (args[0] == "geometry") return CaptureGeometry(args[1..]);
+if (args[0] == "ui-stress") return UiStress(args[1..]);
 if (args[0] == "m032") return M032RaylibSession.Run(args[1..]);
 if (args[0] == "m033") return M033RaylibSession.Run(args[1..]);
 if (args[0] == "m034") return M034RaylibSession.Run(args[1..]);
@@ -98,6 +100,38 @@ static int CaptureGeometry(string[] arguments)
 }
 static int ProductShell(string[] arguments)
 {
+    int? frames = null; string? capture = null; string? probeReport = null;
+    for (var index = 0; index < arguments.Length; index++)
+    {
+        if (arguments[index] == "--frames" && ++index < arguments.Length && int.TryParse(arguments[index], out var count) && count > 0) frames = count;
+        else if (arguments[index] == "--capture" && ++index < arguments.Length) capture = arguments[index];
+        else if (arguments[index] == "--probe-report" && ++index < arguments.Length) probeReport = arguments[index];
+        else return Usage();
+    }
+    var output = Path.GetDirectoryName(Path.GetFullPath(capture ?? "shell.png"))!;
+    using var application = new ProductShellSession(Path.Combine(output, "save-catalog.json"), Path.Combine(output, "user-settings.json"));
+    var projection = application.Start();
+    RaylibGameWindow.ShowProductShell("Agentic2D Player Shell", projection.Menu, output, item =>
+    {
+        var current = application.Project().Menu.FirstOrDefault(candidate => candidate.Id == item.Id);
+        if (current is null || !current.Available) return;
+        switch (item.Id)
+        {
+            case "continue": application.Continue(); break;
+            case "new-game": application.StartNewGame(new("standard", "seed.m052.demo", "New settlement")); break;
+            case "tutorial": application.StartTutorial(); break;
+        }
+    }, frames, capture is null ? null : Path.GetFileName(capture), probeReport);
+    Directory.CreateDirectory(output);
+    var captureBytes = capture is not null && File.Exists(capture) ? new FileInfo(capture).Length : 0;
+    if (capture is not null && captureBytes < 128) throw new InvalidDataException("Product Shell did not produce a real Raylib capture.");
+    var inputProbe = probeReport is null ? "not-requested" : File.Exists(probeReport) ? JsonDocument.Parse(File.ReadAllText(probeReport)).RootElement.GetProperty("status").GetString() : "missing";
+    if (probeReport is not null && inputProbe != "observed") throw new InvalidDataException("Product Shell native input was not observed by the application session.");
+    File.WriteAllText(Path.Combine(output, "product-shell-graphics-report.json"), JsonSerializer.Serialize(new { schema = "agentic2d.m052.product-shell-graphics-proof.v2", status = "rendered", menu = projection.Menu, capture = capture is null ? null : new { path = Path.GetFullPath(capture), bytes = captureBytes }, inputProbe }, new JsonSerializerOptions { WriteIndented = true }));
+    return 0;
+}
+static int UiStress(string[] arguments)
+{
     int? frames = null; string? capture = null;
     for (var index = 0; index < arguments.Length; index++)
     {
@@ -105,10 +139,7 @@ static int ProductShell(string[] arguments)
         else if (arguments[index] == "--capture" && ++index < arguments.Length) capture = arguments[index];
         else return Usage();
     }
-    var output = Path.GetDirectoryName(Path.GetFullPath(capture ?? "shell.png"))!;
-    RaylibGameWindow.ShowProductShell("Agentic2D Player Shell", ["Continue", "New Game", "Load Game", "Tutorial", "Options", "Credits", "Quit"], output, frames, capture is null ? null : Path.GetFileName(capture));
-    Directory.CreateDirectory(output);
-    File.WriteAllText(Path.Combine(output, "product-shell-graphics-report.json"), JsonSerializer.Serialize(new { schema = "agentic2d.m037.windows-graphical-proof.v1", status = "passed", menu = new[] { "Continue", "New Game", "Load Game", "Tutorial", "Options", "Credits", "Quit" }, capture = capture is null ? null : Path.GetFullPath(capture), pointerOperable = true, visibleFocus = true, adapter = "raylib-cs" }, new JsonSerializerOptions { WriteIndented = true }));
+    RaylibGameWindow.ShowUiStress("Agentic2D — UI Stress Screen", frames, capture);
     return 0;
 }
 static void DrawGeometry(VisualPartSource part)
@@ -144,4 +175,4 @@ static int ReviewWorkbench(string[] arguments)
     else items = [new(reviewId ?? "review.m038.simple-human-review-boundary-and-workbench", question ?? "Is this review experience clear and understandable?", "pending")];
     return RaylibGameWindow.ShowReviewWorkbench(milestone ?? "M038", items, frames, capture);
 }
-static int Usage() { Console.Error.WriteLine("usage: scenario --scenario <id> [--capture <png>] | snapshot --input <render-snapshot.json> [--capture <png>] | review-workbench [--review-id <id>] [--question <text>] [--frames <count>] [--capture <png>] | m032 --input <structural-frame.json> [--commands <designation-input.jsonl>] (--capture <png> | --interactive) | geometry --input <visual-definition.json> --capture <png> | asset-workbench --session <review-session.json> --commands <input-command.jsonl> [--capture <png>] [--frames <count>] | asset-preview --scene <preview-scene.json> [--capture <png>] [--frames <count>]"); return 2; }
+static int Usage() { Console.Error.WriteLine("usage: scenario --scenario <id> [--capture <png>] | snapshot --input <render-snapshot.json> [--capture <png>] | review-workbench [--review-id <id>] [--question <text>] [--frames <count>] [--capture <png>] | ui-stress [--frames <count>] [--capture <png>] | m032 --input <structural-frame.json> [--commands <designation-input.jsonl>] (--capture <png> | --interactive) | geometry --input <visual-definition.json> --capture <png> | asset-workbench --session <review-session.json> --commands <input-command.jsonl> [--capture <png>] [--frames <count>] | asset-preview --scene <preview-scene.json> [--capture <png>] [--frames <count>]"); return 2; }

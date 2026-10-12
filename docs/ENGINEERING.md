@@ -6,7 +6,7 @@ This document indexes build, validation, commands, and project-layout policy.
 
 ## Current status
 
-The repository includes deterministic runtime, product CLI, scenarios, content validation, asset workflows, maps, runtime inspection, behavior/spatial systems, entity/component runtime, definitions and interactions, backend-neutral rendering, and an isolated raylib-cs debug client.
+The repository includes deterministic runtime, product CLI, scenarios, content validation, asset workflows, maps, runtime inspection, behavior/spatial systems, entity/component runtime, definitions and interactions, backend-neutral rendering, a typed agent-oriented UI foundation, and an isolated raylib-cs debug client.
 
 M037 development support is native Linux/Bash and Windows/PowerShell 7. The active development epoch is Windows beginning at M036; Linux is supported but inactive. Linux platform-sensitive verification from M036 and M037 is deferred and tracked in `eng/platform-verification.json`; current milestone completion does not claim fresh evidence on both platforms. `src/Agentic2D.Engineering` owns suite definitions, process selection, fingerprints, receipts, temporary-file/atomic replacement policy, review operations, and platform evidence. `eng/*.sh` and `eng/*.ps1` are thin adapters. Linux export remains platform-specific; Windows export remains out of scope.
 
@@ -19,6 +19,7 @@ M037 development support is native Linux/Bash and Windows/PowerShell 7. The acti
 | `docs/engineering/platform-verification.md` | Platform epochs, active-platform proof, and deferred inactive-platform verification. |
 | `docs/engineering/future-dotnet-solution.md` | Current and candidate solution shape. |
 | `docs/engineering/product-cli.md` | Product CLI invocation. |
+| `docs/specs/agent-oriented-ui-contract.md` | Typed UI authoring API, deterministic diagnostics and screen/presentation semantics. |
 
 ## Supported profile scopes
 
@@ -238,6 +239,8 @@ The tested engineering baseline is Linux/Bash and native Windows/PowerShell 7 wi
 `./eng/m035-smoke.sh` is resumable-sharded. Its verifier requires current direct and nested campaign receipts, a completed four-hour graphics-capable soak, an allowed readiness decision, and approved M035 blocking review. It writes readiness evidence under `artifacts/readiness/M035/`; `--verify` is the only aggregate-success authority.
 
 M037 uses the shared `suite.ps1` / `suite.sh` interface with `m037-smoke`; its receipt root is `artifacts/validation/m037-smoke/` and its product-shell evidence root is `artifacts/application/M037/`.
+
+M052 adds the resumable `m052-ui` suite. Run `pwsh ./eng/suite.ps1 m052-ui --plan-json`, each required shard in a separate invocation, and `--verify` for aggregate success. Structural evidence is written under `artifacts/ui/M052/`; Windows Raylib captures require a graphics-capable desktop. The M052 review is registered to the actual UI stress screen and is gated on the current verified M052 suite.
 
 The standalone host exposes `agentic2d-game --product-shell` for the player-facing Raylib shell, with `--safe-mode` and `--reset-user-settings` startup recovery options. The shell writes a bounded startup projection before any scenario execution.
 

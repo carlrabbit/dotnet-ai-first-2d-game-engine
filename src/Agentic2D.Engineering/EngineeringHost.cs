@@ -153,7 +153,12 @@ public sealed class EngineeringHost
         if (!M038ReviewPolicy.IsRegistered(review)) { error = "review is not registered to a simple current experience"; return false; }
         if (requireGraphicsPrerequisite)
         {
-            var graphicsPath = review.OwningMilestone == "M048" ? Absolute("artifacts/validation/m048-smoke/active-platform-graphical-preview.json") : Absolute("artifacts/validation/m038-smoke/active-platform-graphics.json");
+            var graphicsPath = review.OwningMilestone switch
+            {
+                "M048" => Absolute("artifacts/validation/m048-smoke/active-platform-graphical-preview.json"),
+                "M052" => Absolute("artifacts/validation/m052-ui/verify.json"),
+                _ => Absolute("artifacts/validation/m038-smoke/active-platform-graphics.json")
+            };
             if (!File.Exists(graphicsPath) || !File.ReadAllText(graphicsPath).Contains("\"status\": \"passed\"", StringComparison.Ordinal)) { error = "current active-platform graphics prerequisite is missing or failed"; return false; }
             if (review.OwningMilestone == "M048" && review.Id == "review.m048.03-audio-candidate-curation")
             {
@@ -271,10 +276,10 @@ public sealed class EngineeringHost
                 ReceiptPath(suite, shard),
                 shard.DependsOn,
                 shard.Evidence)).ToArray(),
-            suite.Id is "m037-smoke" or "m039-smoke" or "m040-smoke" or "m041-smoke" or "m042-smoke" or "m043-smoke" or "m044-smoke" or "m045-smoke" or "m046-smoke" or "m047-smoke" or "m048-smoke" or "m050-smoke" ? $"pwsh ./eng/suite.ps1 {suite.Id} --verify" : $"./eng/{suite.Id}.sh --verify",
+            suite.Id is "m037-smoke" or "m039-smoke" or "m040-smoke" or "m041-smoke" or "m042-smoke" or "m043-smoke" or "m044-smoke" or "m045-smoke" or "m046-smoke" or "m047-smoke" or "m048-smoke" or "m050-smoke" or "m052-ui" ? $"pwsh ./eng/suite.ps1 {suite.Id} --verify" : $"./eng/{suite.Id}.sh --verify",
             suite.Shards.SelectMany(shard => shard.Evidence).Distinct(StringComparer.Ordinal).ToArray());
         var serialized = JsonSerializer.Serialize(plan, json);
-        if (suite.Id is "m033-smoke" or "m034-smoke" or "m035-smoke" or "m039-smoke" or "m040-smoke" or "m041-smoke" or "m042-smoke" or "m043-smoke" or "m044-smoke" or "m045-smoke" or "m046-smoke" or "m047-smoke" or "m048-smoke")
+        if (suite.Id is "m033-smoke" or "m034-smoke" or "m035-smoke" or "m039-smoke" or "m040-smoke" or "m041-smoke" or "m042-smoke" or "m043-smoke" or "m044-smoke" or "m045-smoke" or "m046-smoke" or "m047-smoke" or "m048-smoke" or "m052-ui")
         {
             var planPath = Absolute(Path.Combine("artifacts", "validation", suite.Id, "plan.json"));
             Directory.CreateDirectory(Path.GetDirectoryName(planPath)!);
@@ -774,12 +779,20 @@ public sealed class EngineeringHost
         var id = Required(options, "--id");
         var milestone = Required(options, "--milestone");
         ValidateCanonicalReviewId(id);
-        if (ReadReviewFiles().Any(review => review.Id == id)) throw new EngineeringException($"review ID already exists: {id}");
+        var existing = ReadReviewFiles().Where(review => review.Id == id).ToArray();
+        if (existing.Length > 0)
+        {
+            var pending = existing.SingleOrDefault(review => review.Path.StartsWith(".review/pending/", StringComparison.Ordinal));
+            if (!string.Equals(options.GetValueOrDefault("--update-pending"), "true", StringComparison.Ordinal) || pending is null || pending.Status != "pending" || pending.OwningMilestone != milestone)
+            {
+                throw new EngineeringException($"review ID already exists: {id}; only an undecided pending request for the same milestone may be updated with --update-pending true");
+            }
+        }
         var review = new ReviewState(
             ReviewRequestSchema,
             id,
             milestone,
-            options.GetValueOrDefault("--milestone-path", $"docs/milestones/{milestone}.md"),
+            options.GetValueOrDefault("--milestone-path", ResolveMilestonePath(milestone)),
             Required(options, "--subject"),
             Split(Required(options, "--class")),
             Required(options, "--level"),
@@ -1013,6 +1026,10 @@ public sealed class EngineeringHost
         {
             return await M050ModalitySpecificPreviewSuite.RunAsync(this, root, shard.Id, diagnostics);
         }
+        if (suite.Id == "m052-ui")
+        {
+            return await M052AgentOrientedUiSuite.RunAsync(this, root, shard.Id, diagnostics);
+        }
         if (suite.Id == "m038-smoke") return await M038SimpleReviewSuite.RunAsync(this, root, shard.Id, diagnostics);
         if (suite.Id == "m036-smoke")
         {
@@ -1239,6 +1256,20 @@ public sealed class EngineeringHost
             .OrderByDescending(value => value.Sequence)
             .FirstOrDefault();
         return latest.Sequence >= 0 && latest.Id == milestone;
+    }
+
+    private string ResolveMilestonePath(string milestone)
+    {
+        var directory = Absolute(Path.Combine("docs", "milestones"));
+        if (Directory.Exists(directory))
+        {
+            var matching = Directory.EnumerateFiles(directory, "*.md", SearchOption.TopDirectoryOnly)
+                .Where(path => ParseMilestoneId(Path.GetFileNameWithoutExtension(path)).Id == milestone)
+                .OrderBy(path => path, StringComparer.Ordinal)
+                .FirstOrDefault();
+            if (matching is not null) return Path.GetRelativePath(root, matching).Replace('\\', '/');
+        }
+        return $"docs/milestones/{milestone}.md";
     }
 
     private static (string Id, int Sequence) ParseMilestoneId(string? name)
@@ -1705,6 +1736,13 @@ public sealed class EngineeringHost
             Shard("actual-platform-review-launch", "Active Windows launch of all exact M048 fixtures.", "internal:m050", ["artifacts/assets/M050/actual-platform-review-launch.json", "artifacts/assets/M050/review.m048.01-image-candidate-curation.png", "artifacts/assets/M050/review.m048.02-animation-candidate-curation.png", "artifacts/assets/M050/review.m048.03-audio-candidate-curation.png"], isInternal: true),
             Shard("m048-review-regression", "M048 identity, registry, workbench, and review boundary regression.", "internal:m050", ["artifacts/assets/M050/m048-review-regression.json"], isInternal: true),
             Shard("evidence-integrity", "Observed surface state and structured dispatch integrity.", "internal:m050", ["artifacts/assets/M050/evidence-integrity.json"], isInternal: true)
+        ]),
+        new("m052-ui", "resumable-sharded",
+        [
+            Shard("headless-layout", "Compiled consumer DSL, deterministic desktop resolution matrix, text and constraint diagnostics.", "internal:m052", ["artifacts/ui/M052/headless-layout.json", "artifacts/ui/M052/headless-layout-detail.json"], isInternal: true),
+            Shard("headless-interaction", "Recomposition, retained control state, pointer capture, keyboard focus, operation projection and injected presentation clock.", "internal:m052", ["artifacts/ui/M052/headless-interaction.json", "artifacts/ui/M052/interaction-trace.json"], isInternal: true),
+            Shard("windows-raylib", "Actual Windows Raylib Product Shell and synthetic stress screen launch/capture with pointer and keyboard action receipts.", "internal:m052", ["artifacts/ui/M052/windows-raylib.json", "artifacts/ui/M052/product-shell.png", "artifacts/ui/M052/review-stress.png", "artifacts/ui/M052/product-shell-pointer-input.json", "artifacts/ui/M052/product-shell-keyboard-input.json"], isInternal: true),
+            Shard("compatibility", "M021 semantic projection and M037 retained host remain available with shared M052 model.", "internal:m052", ["artifacts/ui/M052/compatibility.json"], isInternal: true)
         ]),
         new("m038-smoke", "resumable-sharded",
         [
