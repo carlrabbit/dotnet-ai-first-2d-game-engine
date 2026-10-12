@@ -139,8 +139,8 @@ public static class RaylibGameWindow
         static void DrawQuestion(string milestone, IReadOnlyList<LocalReview> reviews, int index, string lastAction, ReviewDecisionQueue queue, System.Numerics.Vector2 mouse)
         {
             var item = reviews[index]; var question = ReviewSurfaceLayout.WorkbenchQuestion(item.Item.Subject); var content = ReviewSurfaceLayout.WorkbenchContent;
-            RaylibApi.DrawText("<", 50, 110, 30, Color.White); RaylibApi.DrawText($"Question {index + 1} / {reviews.Count}", 470, 110, 22, Color.White); RaylibApi.DrawText(">", 1040, 110, 30, Color.White);
-            RaylibApi.DrawText("Status: " + item.CurrentStatus.ToUpperInvariant(), 50, 114, 16, StatusColor(item.CurrentStatus));
+            RaylibApi.DrawText("<", ReviewSurfaceLayout.WorkbenchPrevious.X, ReviewSurfaceLayout.WorkbenchPrevious.Y, 30, Color.White); RaylibApi.DrawText($"Question {index + 1} / {reviews.Count}", ReviewSurfaceLayout.WorkbenchOrdinal.X, ReviewSurfaceLayout.WorkbenchOrdinal.Y, 22, Color.White); RaylibApi.DrawText(">", ReviewSurfaceLayout.WorkbenchNext.X, ReviewSurfaceLayout.WorkbenchNext.Y, 30, Color.White);
+            RaylibApi.DrawText("Status: " + item.CurrentStatus.ToUpperInvariant(), ReviewSurfaceLayout.WorkbenchStatus.X, 114, 16, StatusColor(item.CurrentStatus));
             DrawWrappedLines(question.Lines, question.Bounds.X, question.Bounds.Y, question.LineHeight, question.FontSize, Color.White);
             RaylibApi.DrawRectangle(content.X, content.Y, content.Width, content.Height, new Color(27, 45, 68, 255)); RaylibApi.DrawRectangleLines(content.X, content.Y, content.Width, content.Height, new Color(76, 112, 143, 255));
             if (milestone == "M048") DrawReviewSubjectPanel(item, mouse);

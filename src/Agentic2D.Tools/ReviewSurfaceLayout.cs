@@ -24,15 +24,18 @@ public static class ReviewSurfaceLayout
         {
             var lineHeight = fontSize + 6;
             var lines = Wrap(subject, 1010, fontSize);
-            if (lines.Count * lineHeight <= 92) return new(fontSize, lineHeight, lines, new(50, 132, 1010, 92));
+            if (lines.Count * lineHeight <= 92) return new(fontSize, lineHeight, lines, new(50, 140, 1010, 92));
         }
 
         var fallback = Wrap(subject, 1010, 14);
-        return new(14, 20, fallback, new(50, 132, 1010, 92));
+        return new(14, 20, fallback, new(50, 140, 1010, 92));
     }
 
-    public static UiRect WorkbenchHeader => new(40, 18, 1040, 98);
-    public static UiRect WorkbenchStatus => new(50, 112, 1010, 24);
+    public static UiRect WorkbenchPrevious => new(50, 110, 30, 36);
+    public static UiRect WorkbenchStatus => new(160, 110, 280, 28);
+    public static UiRect WorkbenchOrdinal => new(470, 110, 200, 30);
+    public static UiRect WorkbenchNext => new(1040, 110, 30, 36);
+    public static UiRect WorkbenchHeader => new(40, 18, 1040, 120);
     public static UiRect WorkbenchContent => new(50, 245, 1010, 290);
     public static UiRect WorkbenchPreviewLaunch => new(350, 430, 420, 60);
     public static UiRect WorkbenchPersistence => new(50, 548, 1010, 54);
