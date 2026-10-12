@@ -1741,7 +1741,7 @@ public sealed class EngineeringHost
         [
             Shard("headless-layout", "Compiled consumer DSL, deterministic desktop resolution matrix, text and constraint diagnostics.", "internal:m052", ["artifacts/ui/M052/headless-layout.json", "artifacts/ui/M052/headless-layout-detail.json"], isInternal: true),
             Shard("headless-interaction", "Recomposition, retained control state, pointer capture, keyboard focus, operation projection and injected presentation clock.", "internal:m052", ["artifacts/ui/M052/headless-interaction.json", "artifacts/ui/M052/interaction-trace.json"], isInternal: true),
-            Shard("windows-raylib", "Actual Windows Raylib Product Shell and synthetic stress screen launch/capture.", "internal:m052", ["artifacts/ui/M052/windows-raylib.json", "artifacts/ui/M052/product-shell.png", "artifacts/ui/M052/review-stress.png"], isInternal: true),
+            Shard("windows-raylib", "Actual Windows Raylib Product Shell and synthetic stress screen launch/capture with pointer and keyboard action receipts.", "internal:m052", ["artifacts/ui/M052/windows-raylib.json", "artifacts/ui/M052/product-shell.png", "artifacts/ui/M052/review-stress.png", "artifacts/ui/M052/product-shell-pointer-input.json", "artifacts/ui/M052/product-shell-keyboard-input.json"], isInternal: true),
             Shard("compatibility", "M021 semantic projection and M037 retained host remain available with shared M052 model.", "internal:m052", ["artifacts/ui/M052/compatibility.json"], isInternal: true)
         ]),
         new("m038-smoke", "resumable-sharded",

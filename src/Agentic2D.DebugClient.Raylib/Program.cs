@@ -100,11 +100,12 @@ static int CaptureGeometry(string[] arguments)
 }
 static int ProductShell(string[] arguments)
 {
-    int? frames = null; string? capture = null;
+    int? frames = null; string? capture = null; string? probeReport = null;
     for (var index = 0; index < arguments.Length; index++)
     {
         if (arguments[index] == "--frames" && ++index < arguments.Length && int.TryParse(arguments[index], out var count) && count > 0) frames = count;
         else if (arguments[index] == "--capture" && ++index < arguments.Length) capture = arguments[index];
+        else if (arguments[index] == "--probe-report" && ++index < arguments.Length) probeReport = arguments[index];
         else return Usage();
     }
     var output = Path.GetDirectoryName(Path.GetFullPath(capture ?? "shell.png"))!;
@@ -120,9 +121,13 @@ static int ProductShell(string[] arguments)
             case "new-game": application.StartNewGame(new("standard", "seed.m052.demo", "New settlement")); break;
             case "tutorial": application.StartTutorial(); break;
         }
-    }, frames, capture is null ? null : Path.GetFileName(capture));
+    }, frames, capture is null ? null : Path.GetFileName(capture), probeReport);
     Directory.CreateDirectory(output);
-    File.WriteAllText(Path.Combine(output, "product-shell-graphics-report.json"), JsonSerializer.Serialize(new { schema = "agentic2d.m052.product-shell-graphics-proof.v1", status = "passed", menu = projection.Menu, capture = capture is null ? null : Path.GetFullPath(capture), pointerOperable = true, keyboardFocusable = true, semanticUiProjection = true, adapter = "raylib-cs" }, new JsonSerializerOptions { WriteIndented = true }));
+    var captureBytes = capture is not null && File.Exists(capture) ? new FileInfo(capture).Length : 0;
+    if (capture is not null && captureBytes < 128) throw new InvalidDataException("Product Shell did not produce a real Raylib capture.");
+    var inputProbe = probeReport is null ? "not-requested" : File.Exists(probeReport) ? JsonDocument.Parse(File.ReadAllText(probeReport)).RootElement.GetProperty("status").GetString() : "missing";
+    if (probeReport is not null && inputProbe != "observed") throw new InvalidDataException("Product Shell native input was not observed by the application session.");
+    File.WriteAllText(Path.Combine(output, "product-shell-graphics-report.json"), JsonSerializer.Serialize(new { schema = "agentic2d.m052.product-shell-graphics-proof.v2", status = "rendered", menu = projection.Menu, capture = capture is null ? null : new { path = Path.GetFullPath(capture), bytes = captureBytes }, inputProbe }, new JsonSerializerOptions { WriteIndented = true }));
     return 0;
 }
 static int UiStress(string[] arguments)

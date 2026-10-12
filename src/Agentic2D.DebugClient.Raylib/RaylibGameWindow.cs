@@ -3,6 +3,7 @@ using RaylibApi = Raylib_cs.Raylib;
 using System.Text.Json;
 using System.Collections.Concurrent;
 using System.Threading.Channels;
+using System.Runtime.InteropServices;
 using Agentic2D.Tools;
 using Agentic2D.UI;
 
@@ -45,7 +46,7 @@ public static class RaylibGameWindow
                     else { foreach (var item in local) { item.Decision = null; item.Persistence = "none"; } index = 0; finalPage = false; lastAction = "Review set reset; question 1 of " + local.Length; }
                 }
 
-                var mouse = RaylibApi.GetMousePosition(); var mouseDown = RaylibApi.IsMouseButtonDown(MouseButton.Left); var click = RaylibApi.IsMouseButtonPressed(MouseButton.Left) || (mouseDown && !mouseWasDown); mouseWasDown = mouseDown;
+                var mouse = ToLegacyCoordinates(RaylibApi.GetMousePosition()); var mouseDown = RaylibApi.IsMouseButtonDown(MouseButton.Left); var click = RaylibApi.IsMouseButtonPressed(MouseButton.Left) || (mouseDown && !mouseWasDown); mouseWasDown = mouseDown;
                 var left = !resetting && !finalPage && RaylibApi.IsKeyPressed(KeyboardKey.Left); var right = !resetting && !finalPage && RaylibApi.IsKeyPressed(KeyboardKey.Right);
                 if (left) index = (index + local.Length - 1) % local.Length; if (right) index = (index + 1) % local.Length;
                 var restart = click && Hit(mouse, 35, 600, 300, 90); var reject = click && !resetting && !finalPage && Hit(mouse, 410, 600, 300, 90); var accept = click && !resetting && !finalPage && Hit(mouse, 780, 600, 300, 90);
@@ -73,12 +74,12 @@ public static class RaylibGameWindow
                     var next = NextUndecided(local, index); if (next < 0) finalPage = true; else index = next;
                 }
 
-                RaylibApi.BeginDrawing(); RaylibApi.ClearBackground(new Color(14, 22, 38, 255));
+                RaylibApi.BeginDrawing(); RaylibApi.ClearBackground(new Color(14, 22, 38, 255)); RaylibApi.BeginMode2D(LegacyCamera());
                 RaylibApi.DrawText("SIMPLE REVIEW WORKBENCH", 50, 28, 28, Color.White); RaylibApi.DrawText(milestone, 50, 66, 16, new Color(155, 173, 198, 255));
                 if (resetting) { RaylibApi.DrawText("RESETTING REVIEW", 50, 150, 30, Color.Gold); RaylibApi.DrawText(lastAction + "  " + ActivityFrame(frame), 50, 210, 21, Color.White); }
                 else if (finalPage) DrawFinal(local, queue, lastAction, resetError, mouse);
                 else DrawQuestion(milestone, local, index, lastAction, queue, mouse);
-                RaylibApi.EndDrawing();
+                RaylibApi.EndMode2D(); RaylibApi.EndDrawing();
                 if (capturePath is not null && frame == 2)
                 {
                     var absoluteCapture = Path.GetFullPath(capturePath);
@@ -176,20 +177,36 @@ public static class RaylibGameWindow
         static void DrawWrappedLines(IReadOnlyList<string> lines, int x, int y, int lineHeight, int fontSize, Color color) { for (var row = 0; row < lines.Count; row++) RaylibApi.DrawText(lines[row], x, y + row * lineHeight, fontSize, color); }
     }
 
-    public static void ShowProductShell(string title, IReadOnlyList<MenuItem> menu, string output, Action<MenuItem>? dispatchAction = null, int? autoCloseAfterFrames = null, string? capturePath = null)
+    public static void ShowProductShell(string title, IReadOnlyList<MenuItem> menu, string output, Action<MenuItem>? dispatchAction = null, int? autoCloseAfterFrames = null, string? capturePath = null, string? inputProbeReportPath = null)
     {
         InitDesktopWindow(title + " — Main Menu");
+        if (!RaylibApi.IsWindowReady()) throw new InvalidOperationException("Raylib failed to create a graphical Product Shell window.");
         var definition = M052UiScreens.ProductShell(menu);
-        var session = new UiSession(definition, new UiViewport(RaylibApi.GetScreenWidth(), RaylibApi.GetScreenHeight()));
-        var lastWidth = RaylibApi.GetScreenWidth(); var lastHeight = RaylibApi.GetScreenHeight();
+        var session = new UiSession(definition, CurrentViewport());
+        var lastViewport = CurrentViewport();
         var shouldExit = false;
+        var observed = new List<UiActionRequest>();
+        if (inputProbeReportPath is not null)
+        {
+            Directory.CreateDirectory(Path.GetDirectoryName(Path.GetFullPath(inputProbeReportPath))!);
+            File.WriteAllText(inputProbeReportPath, JsonSerializer.Serialize(new
+            {
+                status = "ready",
+                viewport = session.Layout.Viewport,
+                layoutFingerprint = session.Layout.Fingerprint,
+                menu = menu.Select(x => new { x.Id, x.Label, x.Available }).ToArray(),
+                controls = session.Layout.Elements.Where(x => x.Focusable && x.Enabled).OrderBy(x => x.LogicalBounds.Y).ThenBy(x => x.Order).Select(x => new { x.Id, x.ActionId, x.PhysicalBounds }).ToArray()
+            }, new JsonSerializerOptions { WriteIndented = true, PropertyNamingPolicy = JsonNamingPolicy.CamelCase }));
+        }
         try
         {
             RaylibApi.SetTargetFPS(60);
             for (var frame = 0; !RaylibApi.WindowShouldClose() && !shouldExit && (!autoCloseAfterFrames.HasValue || frame < autoCloseAfterFrames.Value); frame++)
             {
-                if (lastWidth != RaylibApi.GetScreenWidth() || lastHeight != RaylibApi.GetScreenHeight()) { lastWidth = RaylibApi.GetScreenWidth(); lastHeight = RaylibApi.GetScreenHeight(); session.Recompose(definition, new UiViewport(lastWidth, lastHeight)); }
-                var mouse = RaylibApi.GetMousePosition();
+                var currentViewport = CurrentViewport();
+                if (currentViewport != lastViewport) { lastViewport = currentViewport; session.Recompose(definition, currentViewport); }
+                if (!RaylibApi.IsWindowFocused() && session.CapturedId is not null) session.Dispatch(new UiInputEvent("pointer-cancel"));
+                var mouse = RaylibApi.GetMousePosition(); var dpi = CurrentViewport().OsDpiScale; mouse *= (float)dpi;
                 session.Dispatch(new UiInputEvent("pointer-move", mouse.X, mouse.Y));
                 if (RaylibApi.IsMouseButtonPressed(MouseButton.Left)) session.Dispatch(new UiInputEvent("pointer-down", mouse.X, mouse.Y));
                 if (RaylibApi.IsMouseButtonReleased(MouseButton.Left)) session.Dispatch(new UiInputEvent("pointer-up", mouse.X, mouse.Y));
@@ -197,8 +214,15 @@ public static class RaylibGameWindow
                 if (RaylibApi.IsKeyPressed(KeyboardKey.Up)) session.Dispatch(new UiInputEvent("key", Key: "Up"));
                 if (RaylibApi.IsKeyPressed(KeyboardKey.Tab)) session.Dispatch(new UiInputEvent("key", Key: RaylibApi.IsKeyDown(KeyboardKey.LeftShift) ? "Up" : "Tab"));
                 if (RaylibApi.IsKeyPressed(KeyboardKey.Enter) || RaylibApi.IsKeyPressed(KeyboardKey.KpEnter)) session.Dispatch(new UiInputEvent("key", Key: "Enter"));
+                if (RaylibApi.IsKeyPressed(KeyboardKey.Space)) session.Dispatch(new UiInputEvent("key", Key: "Space"));
+                if (RaylibApi.IsKeyPressed(KeyboardKey.Left)) session.Dispatch(new UiInputEvent("key", Key: "Left"));
+                if (RaylibApi.IsKeyPressed(KeyboardKey.Right)) session.Dispatch(new UiInputEvent("key", Key: "Right"));
+                if (RaylibApi.IsKeyPressed(KeyboardKey.Backspace)) session.Dispatch(new UiInputEvent("key", Key: "Backspace"));
+                if (RaylibApi.IsKeyPressed(KeyboardKey.Delete)) session.Dispatch(new UiInputEvent("key", Key: "Delete"));
+                if (RaylibApi.IsKeyPressed(KeyboardKey.Escape)) shouldExit = true;
                 foreach (var request in session.DrainActions())
                 {
+                    observed.Add(request);
                     if (!request.ActionId.StartsWith("shell.", StringComparison.Ordinal)) continue;
                     var id = request.ActionId["shell.".Length..];
                     var current = menu.FirstOrDefault(item => item.Id == id);
@@ -206,6 +230,8 @@ public static class RaylibGameWindow
                     if (id == "quit") shouldExit = true;
                     else dispatchAction?.Invoke(current);
                 }
+                if (inputProbeReportPath is not null && observed.Count > 0)
+                    File.WriteAllText(inputProbeReportPath, JsonSerializer.Serialize(new { status = "observed", viewport = session.Layout.Viewport, layoutFingerprint = session.Layout.Fingerprint, focus = session.FocusedId, requests = observed }, new JsonSerializerOptions { WriteIndented = true, PropertyNamingPolicy = JsonNamingPolicy.CamelCase }));
                 RaylibApi.BeginDrawing(); RaylibApi.ClearBackground(ParseThemeColor(definition.Theme.Background));
                 RaylibAgentUiRenderer.Render(UiDrawProjection.Create(session), definition.Theme);
                 RaylibApi.EndDrawing();
@@ -218,24 +244,32 @@ public static class RaylibGameWindow
     public static void ShowUiStress(string title, int? autoCloseAfterFrames = null, string? capturePath = null)
     {
         InitDesktopWindow(title);
-        var operation = new UiOperationProjection("preview.synthetic", AgentUiOperationStatus.Failed, "Preview unavailable. Retry is ready.", "stress.retry");
+        if (!RaylibApi.IsWindowReady()) throw new InvalidOperationException("Raylib failed to create a graphical UI stress window.");
+        var operationController = new M052SyntheticReviewOperationController();
         var modalVisible = false;
-        var definition = M052UiScreens.ReviewStress(operation, modalVisible);
-        var session = new UiSession(definition, new UiViewport(RaylibApi.GetScreenWidth(), RaylibApi.GetScreenHeight()));
-        var lastWidth = RaylibApi.GetScreenWidth(); var lastHeight = RaylibApi.GetScreenHeight();
+        var definition = M052UiScreens.ReviewStress(operationController.Projection, modalVisible);
+        var session = new UiSession(definition, CurrentViewport());
+        var lastViewport = CurrentViewport();
         try
         {
             RaylibApi.SetTargetFPS(60);
             for (var frame = 0; !RaylibApi.WindowShouldClose() && (!autoCloseAfterFrames.HasValue || frame < autoCloseAfterFrames.Value); frame++)
             {
-                if (lastWidth != RaylibApi.GetScreenWidth() || lastHeight != RaylibApi.GetScreenHeight()) { lastWidth = RaylibApi.GetScreenWidth(); lastHeight = RaylibApi.GetScreenHeight(); session.Recompose(definition, new UiViewport(lastWidth, lastHeight)); }
+                var currentViewport = CurrentViewport();
+                if (currentViewport != lastViewport) { lastViewport = currentViewport; session.Recompose(definition, currentViewport); }
                 session.Dispatch(new UiInputEvent("time", Delta: RaylibApi.GetFrameTime()));
-                var mouse = RaylibApi.GetMousePosition(); session.Dispatch(new UiInputEvent("pointer-move", mouse.X, mouse.Y));
+                var operationChanged = operationController.Advance(RaylibApi.GetFrameTime());
+                if (!RaylibApi.IsWindowFocused() && session.CapturedId is not null) session.Dispatch(new UiInputEvent("pointer-cancel"));
+                var mouse = RaylibApi.GetMousePosition(); var dpi = CurrentViewport().OsDpiScale; mouse *= (float)dpi; session.Dispatch(new UiInputEvent("pointer-move", mouse.X, mouse.Y));
                 if (RaylibApi.IsMouseButtonPressed(MouseButton.Left)) session.Dispatch(new UiInputEvent("pointer-down", mouse.X, mouse.Y));
                 if (RaylibApi.IsMouseButtonReleased(MouseButton.Left)) session.Dispatch(new UiInputEvent("pointer-up", mouse.X, mouse.Y));
                 if (RaylibApi.IsKeyPressed(KeyboardKey.Tab)) session.Dispatch(new UiInputEvent("key", Key: "Tab"));
                 if (RaylibApi.IsKeyPressed(KeyboardKey.Enter)) session.Dispatch(new UiInputEvent("key", Key: "Enter"));
+                if (RaylibApi.IsKeyPressed(KeyboardKey.Space)) session.Dispatch(new UiInputEvent("key", Key: "Space"));
                 if (RaylibApi.IsKeyPressed(KeyboardKey.Backspace)) session.Dispatch(new UiInputEvent("key", Key: "Backspace"));
+                if (RaylibApi.IsKeyPressed(KeyboardKey.Delete)) session.Dispatch(new UiInputEvent("key", Key: "Delete"));
+                if (RaylibApi.IsKeyPressed(KeyboardKey.Left)) session.Dispatch(new UiInputEvent("key", Key: "Left"));
+                if (RaylibApi.IsKeyPressed(KeyboardKey.Right)) session.Dispatch(new UiInputEvent("key", Key: "Right"));
                 var codepoint = RaylibApi.GetCharPressed();
                 while (codepoint > 0) { if (codepoint >= 32) session.Dispatch(new UiInputEvent("text", Text: char.ConvertFromUtf32(codepoint))); codepoint = RaylibApi.GetCharPressed(); }
                 var wheel = RaylibApi.GetMouseWheelMove(); if (wheel != 0) session.Dispatch(new UiInputEvent("scroll", mouse.X, mouse.Y, Delta: -wheel * 40));
@@ -243,11 +277,15 @@ public static class RaylibGameWindow
                 {
                     if (request.ActionId == "stress.dialog") modalVisible = true;
                     else if (request.ActionId == "stress.modal.close") modalVisible = false;
+                    else if (request.ActionId == "stress.start") operationChanged |= operationController.Start();
+                    else if (request.ActionId == "stress.cancel") operationChanged |= operationController.Cancel();
+                    else if (request.ActionId == "stress.retry") operationChanged |= operationController.Retry();
                 }
-                if (modalVisible != definition.Root.Items.SelectMany(Flatten).Any(x => x.Kind == AgentUiKind.Modal && x.Visible))
+                var wasModalVisible = definition.Root.Items.SelectMany(Flatten).Any(x => x.Kind == AgentUiKind.Modal && x.Visible);
+                if (modalVisible != wasModalVisible || operationChanged)
                 {
-                    definition = M052UiScreens.ReviewStress(operation, modalVisible);
-                    session.Recompose(definition, new UiViewport(RaylibApi.GetScreenWidth(), RaylibApi.GetScreenHeight()));
+                    definition = M052UiScreens.ReviewStress(operationController.Projection, modalVisible);
+                    session.Recompose(definition, CurrentViewport());
                 }
                 RaylibApi.BeginDrawing(); RaylibApi.ClearBackground(ParseThemeColor(definition.Theme.Background));
                 RaylibAgentUiRenderer.Render(UiDrawProjection.Create(session), definition.Theme);
@@ -260,14 +298,75 @@ public static class RaylibGameWindow
         static IEnumerable<UiElementDefinition> Flatten(UiElementDefinition item) { yield return item; foreach (var child in item.Items) foreach (var nested in Flatten(child)) yield return nested; }
     }
 
-    private static void InitDesktopWindow(string title)
+    private static unsafe void InitDesktopWindow(string title)
     {
+        RaylibApi.SetConfigFlags(ConfigFlags.ResizableWindow);
+        var work = GetWorkArea();
         var monitor = RaylibApi.GetCurrentMonitor();
-        var width = Math.Min(1920, Math.Max(1280, RaylibApi.GetMonitorWidth(monitor) - 80));
-        var height = Math.Min(1080, Math.Max(720, RaylibApi.GetMonitorHeight(monitor) - 100));
+        var systemDpi = OperatingSystem.IsWindows() ? Math.Max(96, GetDpiForSystem()) / 96d : 96d / 96d;
+        var workWidth = work.Width > 0 ? work.Width / systemDpi : RaylibApi.GetMonitorWidth(monitor) / systemDpi;
+        var workHeight = work.Height > 0 ? work.Height / systemDpi : RaylibApi.GetMonitorHeight(monitor) / systemDpi;
+        var width = (int)Math.Max(1, Math.Round(Math.Min(1920, workWidth)));
+        var height = (int)Math.Max(1, Math.Round(Math.Min(1080, workHeight)));
         RaylibApi.InitWindow(width, height, title);
-        if (RaylibApi.IsWindowReady()) RaylibApi.SetWindowMinSize(1280, 720);
+        if (!RaylibApi.IsWindowReady() || work.Width <= 0 || work.Height <= 0) return;
+        var handle = (nint)RaylibApi.GetWindowHandle();
+        if (GetWindowRect(handle, out var windowRect) && GetClientRect(handle, out var clientRect))
+        {
+            var decorationWidth = Math.Max(0, (windowRect.Right - windowRect.Left) - (clientRect.Right - clientRect.Left));
+            var decorationHeight = Math.Max(0, (windowRect.Bottom - windowRect.Top) - (clientRect.Bottom - clientRect.Top));
+            var scale = RaylibApi.GetWindowScaleDPI(); var dpiX = float.IsFinite(scale.X) && scale.X > 0 ? scale.X : 1; var dpiY = float.IsFinite(scale.Y) && scale.Y > 0 ? scale.Y : 1;
+            var logicalWorkWidth = work.Width / dpiX; var logicalWorkHeight = work.Height / dpiY;
+            var logicalDecorationWidth = decorationWidth / dpiX; var logicalDecorationHeight = decorationHeight / dpiY;
+            var clientWidth = Math.Min(1920, Math.Max(1, (int)Math.Floor(logicalWorkWidth - logicalDecorationWidth)));
+            var clientHeight = Math.Min(1080, Math.Max(1, (int)Math.Floor(logicalWorkHeight - logicalDecorationHeight)));
+            RaylibApi.SetWindowSize(clientWidth, clientHeight);
+            var logicalLeft = work.Left / dpiX; var logicalTop = work.Top / dpiY;
+            RaylibApi.SetWindowPosition((int)Math.Round(logicalLeft + Math.Max(0, (logicalWorkWidth - clientWidth - logicalDecorationWidth) / 2)), (int)Math.Round(logicalTop + Math.Max(0, (logicalWorkHeight - clientHeight - logicalDecorationHeight) / 2)));
+        }
     }
+
+    private static UiViewport CurrentViewport()
+    {
+        var dpi = RaylibApi.GetWindowScaleDPI();
+        var dpiScale = Math.Max(dpi.X, dpi.Y);
+        var renderWidth = RaylibApi.GetRenderWidth();
+        var renderHeight = RaylibApi.GetRenderHeight();
+        var screenWidth = RaylibApi.GetScreenWidth();
+        var screenHeight = RaylibApi.GetScreenHeight();
+        var effectiveDpi = float.IsFinite(dpiScale) && dpiScale > 0 ? (double)dpiScale : 1;
+        if (renderWidth > 0 && screenWidth > 0) effectiveDpi = renderWidth / (double)screenWidth;
+        return new(renderWidth > 0 ? renderWidth : screenWidth, renderHeight > 0 ? renderHeight : screenHeight, 1, effectiveDpi);
+    }
+
+    private static System.Numerics.Vector2 ToLegacyCoordinates(System.Numerics.Vector2 point)
+    {
+        var camera = LegacyCamera();
+        var scale = camera.Zoom;
+        return (point - camera.Offset) / scale;
+    }
+
+    private static Camera2D LegacyCamera()
+    {
+        var screenWidth = RaylibApi.GetScreenWidth(); var screenHeight = RaylibApi.GetScreenHeight();
+        var scale = Math.Min(screenWidth / 1120f, screenHeight / 720f);
+        var x = (screenWidth - 1120f * scale) / 2; var y = (screenHeight - 720f * scale) / 2;
+        return new Camera2D { Offset = new(x, y), Target = System.Numerics.Vector2.Zero, Rotation = 0, Zoom = scale };
+    }
+
+    private static WorkArea GetWorkArea()
+    {
+        if (!OperatingSystem.IsWindows()) return default;
+        var area = new NativeRect();
+        return SystemParametersInfo(0x0030, 0, ref area, 0) ? new(area.Left, area.Top, area.Right - area.Left, area.Bottom - area.Top) : default;
+    }
+
+    private readonly record struct WorkArea(int Left, int Top, int Width, int Height);
+    [StructLayout(LayoutKind.Sequential)] private struct NativeRect { public int Left, Top, Right, Bottom; }
+    [DllImport("user32.dll", SetLastError = true)] private static extern bool SystemParametersInfo(uint action, uint parameter, ref NativeRect value, uint flags);
+    [DllImport("user32.dll", SetLastError = true)] private static extern bool GetWindowRect(nint handle, out NativeRect rectangle);
+    [DllImport("user32.dll", SetLastError = true)] private static extern bool GetClientRect(nint handle, out NativeRect rectangle);
+    [DllImport("user32.dll")] private static extern uint GetDpiForSystem();
 
     internal static void DrawUiCommand(UiDrawCommand item, UiTheme theme)
     {
@@ -286,9 +385,9 @@ public static class RaylibGameWindow
         else if (item.Kind == "Modal")
         {
             RaylibApi.DrawRectangle(x, y, width, height, new Color(6, 12, 22, 235));
-            var inset = Math.Min(width, 640); var left = x + (width - inset) / 2; var top = y + height / 4;
-            RaylibApi.DrawRectangle(left, top, inset, Math.Max(240, height / 2), ParseThemeColor(theme.Surface));
-            RaylibApi.DrawRectangleLines(left, top, inset, Math.Max(240, height / 2), new Color(106, 139, 174, 255));
+            var panel = item.ModalPanelBounds ?? item.Bounds; var panelX = (int)Math.Round(panel.X); var panelY = (int)Math.Round(panel.Y); var panelWidth = Math.Max(0, (int)Math.Round(panel.Width)); var panelHeight = Math.Max(0, (int)Math.Round(panel.Height));
+            RaylibApi.DrawRectangle(panelX, panelY, panelWidth, panelHeight, ParseThemeColor(theme.Surface));
+            RaylibApi.DrawRectangleLines(panelX, panelY, panelWidth, panelHeight, new Color(106, 139, 174, 255));
         }
         else if (item.Kind == "Separator") RaylibApi.DrawRectangle(x, y, width, height, new Color(75, 91, 112, 255));
         if (!string.IsNullOrWhiteSpace(item.Text))
@@ -297,7 +396,7 @@ public static class RaylibGameWindow
             var textColor = item.Variant == "error" ? ParseThemeColor(theme.Error) : item.Enabled ? ParseThemeColor(theme.Foreground) : Color.LightGray;
             var lines = item.Text.Split('\n'); var lineHeight = Math.Max(fontSize, (int)Math.Round(item.LineHeight));
             var textY = y + (interactive ? Math.Max(8, (height - lines.Length * lineHeight) / 2) : 0);
-            for (var line = 0; line < lines.Length; line++) RaylibApi.DrawText(lines[line], x + (interactive ? 18 : 0), textY + line * lineHeight, fontSize, textColor);
+            for (var line = 0; line < lines.Length; line++) RaylibApi.DrawTextEx(RaylibApi.GetFontDefault(), lines[line], new System.Numerics.Vector2(x + (interactive ? 18 : 0), textY + line * lineHeight), fontSize, (float)item.LetterSpacing, textColor);
         }
         if (item.Kind == "Progress" && item.Value is { } progress) { RaylibApi.DrawRectangle(x, y + height - 8, width, 6, new Color(62, 75, 92, 255)); RaylibApi.DrawRectangle(x, y + height - 8, (int)(width * progress), 6, ParseThemeColor(theme.Accent)); }
         if (item.Kind == "Busy") { var pulse = item.Variant == "busy" ? item.Pulse : 1; RaylibApi.DrawCircle(x + 9, y + 10, 6 * (float)pulse, item.Variant == "error" ? Color.Orange : Color.Gold); }
