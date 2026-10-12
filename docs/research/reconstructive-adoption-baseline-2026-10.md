@@ -51,6 +51,9 @@ Unavailable or unverified historical material is not reconstructed.
 - `architectural-correction-lessons.md`
 - `validation-and-human-review-lessons.md`
 - `platform-and-development-context.md`
+- `simulation-and-settlement-evolution.md`
+- `asset-authoring-and-workbench-evolution.md`
+- `feature-roadmap-reconstruction.md`
 
 These artifacts summarize reusable findings rather than milestone chronology.
 
@@ -74,11 +77,11 @@ If later reconstruction identifies a current requirement that exists only in res
 
 ## Known gaps
 
-This baseline intentionally does not yet reconstruct:
+This baseline intentionally does not attempt exhaustive reconstruction of:
 
-- a detailed feature-by-feature history before the current architectural foundation;
+- every early feature-by-feature planning turn;
 - every abandoned renderer/runtime option;
-- every asset-workbench experiment;
+- every asset-workbench experiment or UI iteration;
 - every simulation tuning discussion;
 - every historical validation defect;
 - the active UI track's eventual experimental results, because that work is still underway;
