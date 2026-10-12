@@ -146,26 +146,32 @@ public static class M052AgentOrientedUiSuite
 
     private static async Task<(bool Success, JsonElement Report)> RunNativeShellProbe(string root, string project, string capturePath, string reportPath, bool pointer)
     {
-        var start = new ProcessStartInfo("dotnet") { WorkingDirectory = root, UseShellExecute = false, CreateNoWindow = true, RedirectStandardOutput = true, RedirectStandardError = true };
+        if (File.Exists(reportPath)) File.Delete(reportPath);
+        // Keep the Raylib process attached to the interactive desktop. CreateNoWindow can
+        // place native windows outside the user's visible desktop even when WGL succeeds.
+        var start = new ProcessStartInfo("dotnet") { WorkingDirectory = root, UseShellExecute = false, CreateNoWindow = false, RedirectStandardOutput = true, RedirectStandardError = true };
         foreach (var argument in new[] { "run", "--no-build", "--no-restore", "--project", project, "--", "shell", "--capture", capturePath, "--probe-report", reportPath }) start.ArgumentList.Add(argument);
         using var process = Process.Start(start) ?? throw new InvalidOperationException("Raylib Product Shell probe process did not start.");
         var stdout = process.StandardOutput.ReadToEndAsync(); var stderr = process.StandardError.ReadToEndAsync();
-        var started = DateTime.UtcNow; nint handle = 0;
+        var started = DateTime.UtcNow;
         while (DateTime.UtcNow - started < TimeSpan.FromSeconds(20))
         {
             if (process.HasExited) { await Task.WhenAll(stdout, stderr); throw new InvalidDataException("Raylib window exited before native input: " + stdout.Result + stderr.Result); }
-            handle = FindWindow(null, "Agentic2D Player Shell — Main Menu");
-            if (handle != 0 && File.Exists(reportPath))
+            if (File.Exists(reportPath))
             {
                 using var initialDocument = JsonDocument.Parse(await File.ReadAllTextAsync(reportPath));
                 if (initialDocument.RootElement.GetProperty("status").GetString() == "ready")
                 {
+                    var handle = (nint)initialDocument.RootElement.GetProperty("windowHandle").GetInt64();
+                    if (handle == 0 || !IsWindow(handle) || !IsWindowVisible(handle)) throw new InvalidDataException("Raylib Product Shell reported a native handle that is not a visible desktop window.");
                     var controls = initialDocument.RootElement.GetProperty("controls").EnumerateArray().ToArray();
                     var targetIndex = Array.FindIndex(controls, item => item.GetProperty("actionId").GetString() == "shell.quit");
                     if (targetIndex < 0) throw new InvalidDataException("Native Product Shell projection has no enabled Quit control.");
                     var target = controls[targetIndex];
-                    SetForegroundWindow(handle);
-                    await Task.Delay(150);
+                    ShowWindow(handle, 9);
+                    BringWindowToTop(handle);
+                    if (!ActivateNativeWindow(handle)) throw new InvalidDataException("Windows could not activate the visible Product Shell window for native input.");
+                    await Task.Delay(450);
                     if (pointer)
                     {
                         var bounds = target.GetProperty("physicalBounds");
@@ -174,16 +180,58 @@ public static class M052AgentOrientedUiSuite
                         var y = (int)Math.Round((bounds.GetProperty("y").GetDouble() + bounds.GetProperty("height").GetDouble() / 2) / dpi);
                         var screen = new NativePoint { X = x, Y = y };
                         if (!ClientToScreen(handle, ref screen)) throw new InvalidOperationException("Could not map projected pointer position to the desktop.");
-                        SetCursorPos(screen.X, screen.Y); await Task.Delay(120);
-                        mouse_event(0x0002, 0, 0, 0, 0); mouse_event(0x0004, 0, 0, 0, 0);
+                        SetCursorPos(screen.X, screen.Y); await Task.Delay(150);
+                        mouse_event(0x0002, 0, 0, 0, 0); await Task.Delay(150);
+                        var releaseObserved = false;
+                        for (var attempt = 0; attempt < 5 && !releaseObserved; attempt++)
+                        {
+                            mouse_event(0x0004, 0, 0, 0, 0); await Task.Delay(100);
+                            if (!File.Exists(reportPath)) continue;
+                            try
+                            {
+                                using var pointerDocument = JsonDocument.Parse(await File.ReadAllTextAsync(reportPath));
+                                releaseObserved = pointerDocument.RootElement.TryGetProperty("inputTrace", out var pointerTrace) && pointerTrace.EnumerateArray().Any(entry => entry.TryGetProperty("kind", out var kind) && kind.GetString() == "pointer-up");
+                            }
+                            catch (JsonException) { }
+                        }
+                        if (!releaseObserved) throw new InvalidDataException("Raylib did not observe pointer release after the projected target press.");
                     }
                     else
                     {
-                        for (var key = 0; key < targetIndex; key++) { keybd_event(0x09, 0, 0, 0); keybd_event(0x09, 0, 0x0002, 0); await Task.Delay(110); }
-                        keybd_event(0x0d, 0, 0, 0); keybd_event(0x0d, 0, 0x0002, 0);
+                        // Activate the native input queue on empty client space. Clicking
+                        // a product action here would start a business operation before
+                        // the keyboard traversal probe begins.
+                        var neutralPoint = new NativePoint { X = 8, Y = 8 };
+                        if (!ClientToScreen(handle, ref neutralPoint)) throw new InvalidOperationException("Could not map neutral keyboard-probe input to the desktop.");
+                        SetCursorPos(neutralPoint.X, neutralPoint.Y); await Task.Delay(100); mouse_event(0x0002, 0, 0, 0, 0); await Task.Delay(100); mouse_event(0x0004, 0, 0, 0, 0);
+                        await Task.Delay(200);
+                        using var focusedDocument = JsonDocument.Parse(await File.ReadAllTextAsync(reportPath));
+                        var expectedFocus = focusedDocument.RootElement.GetProperty("focus").GetString();
+                        for (var attempt = 0; attempt < controls.Length * 2 && expectedFocus != target.GetProperty("id").GetString(); attempt++)
+                        {
+                            if (GetForegroundWindow() != handle && !ActivateNativeWindow(handle)) throw new InvalidDataException("Windows lost the Product Shell foreground before native Tab traversal.");
+                            SendNativeKey(0x09, keyUp: false); await Task.Delay(180); SendNativeKey(0x09, keyUp: true);
+                            var focusDeadline = DateTime.UtcNow + TimeSpan.FromSeconds(1);
+                            while (DateTime.UtcNow < focusDeadline)
+                            {
+                                if (File.Exists(reportPath))
+                                {
+                                    using var focusDocument = JsonDocument.Parse(await File.ReadAllTextAsync(reportPath));
+                                    if (focusDocument.RootElement.TryGetProperty("focus", out var focusValue) && focusValue.ValueKind == JsonValueKind.String)
+                                    {
+                                        var observedFocus = focusValue.GetString();
+                                        if (observedFocus != expectedFocus) { expectedFocus = observedFocus; break; }
+                                    }
+                                }
+                                await Task.Delay(30);
+                            }
+                            await Task.Delay(120);
+                        }
+                        if (expectedFocus != target.GetProperty("id").GetString()) throw new InvalidDataException($"Native keyboard Tab traversal reached '{expectedFocus}' instead of '{target.GetProperty("id").GetString()}'.");
+                        SendNativeKey(0x0d, keyUp: false); await Task.Delay(180); SendNativeKey(0x0d, keyUp: true);
                     }
                     var inputStarted = DateTime.UtcNow;
-                    while (DateTime.UtcNow - inputStarted < TimeSpan.FromSeconds(8) && !process.HasExited)
+                    while (DateTime.UtcNow - inputStarted < TimeSpan.FromSeconds(8))
                     {
                         if (File.Exists(reportPath))
                         {
@@ -194,11 +242,18 @@ public static class M052AgentOrientedUiSuite
                                 var requests = report.GetProperty("requests").EnumerateArray().ToArray();
                                 var sourceId = pointer ? "menu.quit" : "menu.quit";
                                 var valid = requests.Any(request => request.GetProperty("actionId").GetString() == "shell.quit" && request.GetProperty("sourceId").GetString() == sourceId);
-                                if (!process.HasExited) { try { SetForegroundWindow(handle); keybd_event(0x1b, 0, 0, 0); keybd_event(0x1b, 0, 0x0002, 0); } catch { } }
-                                await process.WaitForExitAsync().WaitAsync(TimeSpan.FromSeconds(5)); await Task.WhenAll(stdout, stderr);
-                                return (valid, report);
+                                if (valid)
+                                {
+                                    var closeStarted = DateTime.UtcNow;
+                                    while (IsWindow(handle) && IsWindowVisible(handle) && DateTime.UtcNow - closeStarted < TimeSpan.FromSeconds(3)) await Task.Delay(50);
+                                    valid &= !IsWindow(handle) || !IsWindowVisible(handle);
+                                    if (!process.HasExited) { process.Kill(entireProcessTree: true); await process.WaitForExitAsync(); }
+                                    await Task.WhenAll(stdout, stderr);
+                                    return (valid, report);
+                                }
                             }
                         }
+                        if (process.HasExited) break;
                         await Task.Delay(100);
                     }
                     break;
@@ -208,17 +263,58 @@ public static class M052AgentOrientedUiSuite
         }
         if (!process.HasExited) { process.Kill(entireProcessTree: true); await process.WaitForExitAsync(); }
         await Task.WhenAll(stdout, stderr);
-        throw new InvalidDataException("Raylib Product Shell did not expose a ready window and native input receipt. " + stdout.Result + stderr.Result);
+        var lastReport = File.Exists(reportPath) ? await File.ReadAllTextAsync(reportPath) : "<no report written>";
+        throw new InvalidDataException("Raylib Product Shell did not expose an observed native input receipt (processExited=" + process.HasExited + ", lastReport=" + lastReport + "). " + stdout.Result + stderr.Result);
     }
 
-    private static nint FindWindow(string? className, string windowName) => FindWindowNative(className, windowName);
     [StructLayout(LayoutKind.Sequential)] private struct NativePoint { public int X, Y; }
-    [DllImport("user32.dll", CharSet = CharSet.Unicode, EntryPoint = "FindWindowW")] private static extern nint FindWindowNative(string? className, string windowName);
+    [DllImport("user32.dll")] private static extern bool IsWindow(nint handle);
+    [DllImport("user32.dll")] private static extern bool IsWindowVisible(nint handle);
     [DllImport("user32.dll")] private static extern bool ClientToScreen(nint handle, ref NativePoint point);
-    [DllImport("user32.dll")] private static extern bool SetForegroundWindow(nint handle);
     [DllImport("user32.dll")] private static extern bool SetCursorPos(int x, int y);
     [DllImport("user32.dll")] private static extern void mouse_event(uint flags, uint dx, uint dy, uint data, nuint extraInfo);
-    [DllImport("user32.dll")] private static extern void keybd_event(byte virtualKey, byte scanCode, uint flags, nuint extraInfo);
+    [DllImport("user32.dll")] private static extern bool ShowWindow(nint handle, int command);
+    [DllImport("user32.dll")] private static extern bool BringWindowToTop(nint handle);
+    [DllImport("user32.dll")] private static extern bool SetForegroundWindow(nint handle);
+    [DllImport("user32.dll")] private static extern bool SetActiveWindow(nint handle);
+    [DllImport("user32.dll")] private static extern nint SetFocus(nint handle);
+    [DllImport("user32.dll")] private static extern nint GetForegroundWindow();
+    [DllImport("user32.dll")] private static extern uint GetWindowThreadProcessId(nint handle, out uint processId);
+    [DllImport("kernel32.dll")] private static extern uint GetCurrentThreadId();
+    [DllImport("user32.dll")] private static extern bool AttachThreadInput(uint attach, uint attachTo, bool attachState);
+    [DllImport("user32.dll")] private static extern bool AllowSetForegroundWindow(uint processId);
+    [StructLayout(LayoutKind.Sequential)] private struct NativeKeyboardInput { public ushort VirtualKey, ScanCode; public uint Flags, Time; public nuint ExtraInfo; }
+    [StructLayout(LayoutKind.Explicit, Size = 40)] private struct NativeInput { [FieldOffset(0)] public uint Type; [FieldOffset(8)] public NativeKeyboardInput Keyboard; }
+    [DllImport("user32.dll", SetLastError = true)] private static extern uint SendInput(uint count, [In] NativeInput[] inputs, int size);
+
+    private static void SendNativeKey(ushort virtualKey, bool keyUp)
+    {
+        var input = new NativeInput { Type = 1, Keyboard = new NativeKeyboardInput { VirtualKey = virtualKey, Flags = keyUp ? 0x0002u : 0u } };
+        if (SendInput(1, [input], Marshal.SizeOf<NativeInput>()) != 1) throw new InvalidOperationException("Windows did not accept native keyboard input.");
+    }
+
+    private static bool ActivateNativeWindow(nint handle)
+    {
+        var targetThread = GetWindowThreadProcessId(handle, out var targetProcess);
+        _ = AllowSetForegroundWindow(targetProcess);
+        var currentThread = GetCurrentThreadId();
+        if (targetThread == 0) return false;
+        for (var attempt = 0; attempt < 8; attempt++)
+        {
+            var foreground = GetForegroundWindow();
+            var foregroundThread = foreground == 0 ? 0 : GetWindowThreadProcessId(foreground, out _);
+            var attached = foregroundThread != 0 && foregroundThread != currentThread && AttachThreadInput(currentThread, foregroundThread, true);
+            try
+            {
+                ShowWindow(handle, 9); BringWindowToTop(handle);
+                _ = SetForegroundWindow(handle); _ = SetActiveWindow(handle); _ = SetFocus(handle);
+            }
+            finally { if (attached) AttachThreadInput(currentThread, foregroundThread, false); }
+            if (GetForegroundWindow() == handle) return true;
+            Thread.Sleep(100);
+        }
+        return false;
+    }
 
     private static object Compatibility()
     {
