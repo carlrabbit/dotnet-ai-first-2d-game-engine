@@ -388,6 +388,22 @@ public sealed class EngineeringHost
             }
         }
 
+        if (suite.Id == "m052-ui")
+        {
+            var verificationPath = Absolute("artifacts/validation/m052-ui/verify.json");
+            Directory.CreateDirectory(Path.GetDirectoryName(verificationPath)!);
+            File.WriteAllText(verificationPath, JsonSerializer.Serialize(new
+            {
+                schema = "agentic2d.m052.verification.v1",
+                suite = suite.Id,
+                status = success ? "passed" : "failed",
+                suiteFingerprint = expectedSuite,
+                repositoryFingerprint = expectedRepository,
+                currentReceipts = suite.Shards.Count,
+                verifiedReceipts = suite.Shards.Count(shard => HasCurrentReceipt(suite, shard.Id, TextWriter.Null))
+            }, json));
+        }
+
         if (success)
         {
             diagnostics.WriteLine($"{suite.Id}: verification passed ({suite.Shards.Count} current receipts)");

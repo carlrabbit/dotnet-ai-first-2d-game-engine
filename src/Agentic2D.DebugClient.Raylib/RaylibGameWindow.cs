@@ -177,25 +177,29 @@ public static class RaylibGameWindow
         static void DrawWrappedLines(IReadOnlyList<string> lines, int x, int y, int lineHeight, int fontSize, Color color) { for (var row = 0; row < lines.Count; row++) RaylibApi.DrawText(lines[row], x, y + row * lineHeight, fontSize, color); }
     }
 
-    public static void ShowProductShell(string title, IReadOnlyList<MenuItem> menu, string output, Action<MenuItem>? dispatchAction = null, int? autoCloseAfterFrames = null, string? capturePath = null, string? inputProbeReportPath = null)
+    public static unsafe void ShowProductShell(string title, IReadOnlyList<MenuItem> menu, string output, Action<MenuItem>? dispatchAction = null, int? autoCloseAfterFrames = null, string? capturePath = null, string? inputProbeReportPath = null)
     {
         InitDesktopWindow(title + " — Main Menu");
         if (!RaylibApi.IsWindowReady()) throw new InvalidOperationException("Raylib failed to create a graphical Product Shell window.");
+        var nativeWindowHandle = (long)(nint)RaylibApi.GetWindowHandle();
         var definition = M052UiScreens.ProductShell(menu);
         var session = new UiSession(definition, CurrentViewport());
         var lastViewport = CurrentViewport();
         var shouldExit = false;
         var observed = new List<UiActionRequest>();
+        var inputTrace = new List<object>();
         if (inputProbeReportPath is not null)
         {
             Directory.CreateDirectory(Path.GetDirectoryName(Path.GetFullPath(inputProbeReportPath))!);
             File.WriteAllText(inputProbeReportPath, JsonSerializer.Serialize(new
             {
                 status = "ready",
+                windowHandle = nativeWindowHandle,
                 viewport = session.Layout.Viewport,
                 layoutFingerprint = session.Layout.Fingerprint,
                 menu = menu.Select(x => new { x.Id, x.Label, x.Available }).ToArray(),
-                controls = session.Layout.Elements.Where(x => x.Focusable && x.Enabled).OrderBy(x => x.LogicalBounds.Y).ThenBy(x => x.Order).Select(x => new { x.Id, x.ActionId, x.PhysicalBounds }).ToArray()
+                controls = session.Layout.Elements.Where(x => x.Focusable && x.Enabled).OrderBy(x => x.LogicalBounds.Y).ThenBy(x => x.Order).Select(x => new { x.Id, x.ActionId, x.PhysicalBounds }).ToArray(),
+                inputTrace
             }, new JsonSerializerOptions { WriteIndented = true, PropertyNamingPolicy = JsonNamingPolicy.CamelCase }));
         }
         try
@@ -208,18 +212,18 @@ public static class RaylibGameWindow
                 if (!RaylibApi.IsWindowFocused() && session.CapturedId is not null) session.Dispatch(new UiInputEvent("pointer-cancel"));
                 var mouse = RaylibApi.GetMousePosition(); var dpi = CurrentViewport().OsDpiScale; mouse *= (float)dpi;
                 session.Dispatch(new UiInputEvent("pointer-move", mouse.X, mouse.Y));
-                if (RaylibApi.IsMouseButtonPressed(MouseButton.Left)) session.Dispatch(new UiInputEvent("pointer-down", mouse.X, mouse.Y));
-                if (RaylibApi.IsMouseButtonReleased(MouseButton.Left)) session.Dispatch(new UiInputEvent("pointer-up", mouse.X, mouse.Y));
-                if (RaylibApi.IsKeyPressed(KeyboardKey.Down)) session.Dispatch(new UiInputEvent("key", Key: "Down"));
-                if (RaylibApi.IsKeyPressed(KeyboardKey.Up)) session.Dispatch(new UiInputEvent("key", Key: "Up"));
-                if (RaylibApi.IsKeyPressed(KeyboardKey.Tab)) session.Dispatch(new UiInputEvent("key", Key: RaylibApi.IsKeyDown(KeyboardKey.LeftShift) ? "Up" : "Tab"));
-                if (RaylibApi.IsKeyPressed(KeyboardKey.Enter) || RaylibApi.IsKeyPressed(KeyboardKey.KpEnter)) session.Dispatch(new UiInputEvent("key", Key: "Enter"));
-                if (RaylibApi.IsKeyPressed(KeyboardKey.Space)) session.Dispatch(new UiInputEvent("key", Key: "Space"));
-                if (RaylibApi.IsKeyPressed(KeyboardKey.Left)) session.Dispatch(new UiInputEvent("key", Key: "Left"));
-                if (RaylibApi.IsKeyPressed(KeyboardKey.Right)) session.Dispatch(new UiInputEvent("key", Key: "Right"));
-                if (RaylibApi.IsKeyPressed(KeyboardKey.Backspace)) session.Dispatch(new UiInputEvent("key", Key: "Backspace"));
-                if (RaylibApi.IsKeyPressed(KeyboardKey.Delete)) session.Dispatch(new UiInputEvent("key", Key: "Delete"));
-                if (RaylibApi.IsKeyPressed(KeyboardKey.Escape)) shouldExit = true;
+                if (RaylibApi.IsMouseButtonPressed(MouseButton.Left)) { session.Dispatch(new UiInputEvent("pointer-down", mouse.X, mouse.Y)); inputTrace.Add(new { kind = "pointer-down", x = mouse.X, y = mouse.Y, session.CapturedId }); }
+                if (RaylibApi.IsMouseButtonReleased(MouseButton.Left)) { session.Dispatch(new UiInputEvent("pointer-up", mouse.X, mouse.Y)); inputTrace.Add(new { kind = "pointer-up", x = mouse.X, y = mouse.Y, session.FocusedId, session.CapturedId }); }
+                if (RaylibApi.IsKeyPressed(KeyboardKey.Down)) { session.Dispatch(new UiInputEvent("key", Key: "Down")); inputTrace.Add(new { kind = "key", key = "Down", session.FocusedId }); }
+                if (RaylibApi.IsKeyPressed(KeyboardKey.Up)) { session.Dispatch(new UiInputEvent("key", Key: "Up")); inputTrace.Add(new { kind = "key", key = "Up", session.FocusedId }); }
+                if (RaylibApi.IsKeyPressed(KeyboardKey.Tab)) { session.Dispatch(new UiInputEvent("key", Key: RaylibApi.IsKeyDown(KeyboardKey.LeftShift) ? "Up" : "Tab")); inputTrace.Add(new { kind = "key", key = "Tab", session.FocusedId }); }
+                if (RaylibApi.IsKeyPressed(KeyboardKey.Enter) || RaylibApi.IsKeyPressed(KeyboardKey.KpEnter)) { session.Dispatch(new UiInputEvent("key", Key: "Enter")); inputTrace.Add(new { kind = "key", key = "Enter", session.FocusedId }); }
+                if (RaylibApi.IsKeyPressed(KeyboardKey.Space)) { session.Dispatch(new UiInputEvent("key", Key: "Space")); inputTrace.Add(new { kind = "key", key = "Space", session.FocusedId }); }
+                if (RaylibApi.IsKeyPressed(KeyboardKey.Left)) { session.Dispatch(new UiInputEvent("key", Key: "Left")); inputTrace.Add(new { kind = "key", key = "Left", session.FocusedId }); }
+                if (RaylibApi.IsKeyPressed(KeyboardKey.Right)) { session.Dispatch(new UiInputEvent("key", Key: "Right")); inputTrace.Add(new { kind = "key", key = "Right", session.FocusedId }); }
+                if (RaylibApi.IsKeyPressed(KeyboardKey.Backspace)) { session.Dispatch(new UiInputEvent("key", Key: "Backspace")); inputTrace.Add(new { kind = "key", key = "Backspace", session.FocusedId }); }
+                if (RaylibApi.IsKeyPressed(KeyboardKey.Delete)) { session.Dispatch(new UiInputEvent("key", Key: "Delete")); inputTrace.Add(new { kind = "key", key = "Delete", session.FocusedId }); }
+                if (RaylibApi.IsKeyPressed(KeyboardKey.Escape)) { shouldExit = true; inputTrace.Add(new { kind = "key", key = "Escape", session.FocusedId }); }
                 foreach (var request in session.DrainActions())
                 {
                     observed.Add(request);
@@ -230,8 +234,8 @@ public static class RaylibGameWindow
                     if (id == "quit") shouldExit = true;
                     else dispatchAction?.Invoke(current);
                 }
-                if (inputProbeReportPath is not null && observed.Count > 0)
-                    File.WriteAllText(inputProbeReportPath, JsonSerializer.Serialize(new { status = "observed", viewport = session.Layout.Viewport, layoutFingerprint = session.Layout.Fingerprint, focus = session.FocusedId, requests = observed }, new JsonSerializerOptions { WriteIndented = true, PropertyNamingPolicy = JsonNamingPolicy.CamelCase }));
+                if (inputProbeReportPath is not null && (inputTrace.Count > 0 || observed.Count > 0))
+                    File.WriteAllText(inputProbeReportPath, JsonSerializer.Serialize(new { status = observed.Count > 0 ? "observed" : "ready", windowHandle = nativeWindowHandle, viewport = session.Layout.Viewport, layoutFingerprint = session.Layout.Fingerprint, focus = session.FocusedId, captured = session.CapturedId, inputTrace, requests = observed }, new JsonSerializerOptions { WriteIndented = true, PropertyNamingPolicy = JsonNamingPolicy.CamelCase }));
                 RaylibApi.BeginDrawing(); RaylibApi.ClearBackground(ParseThemeColor(definition.Theme.Background));
                 RaylibAgentUiRenderer.Render(UiDrawProjection.Create(session), definition.Theme);
                 RaylibApi.EndDrawing();
