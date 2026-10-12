@@ -157,6 +157,7 @@ public sealed class EngineeringHost
             {
                 "M048" => Absolute("artifacts/validation/m048-smoke/active-platform-graphical-preview.json"),
                 "M052" => Absolute("artifacts/validation/m052-ui/verify.json"),
+                "M053" => Absolute("artifacts/validation/m053-workbenches/verify.json"),
                 _ => Absolute("artifacts/validation/m038-smoke/active-platform-graphics.json")
             };
             if (!File.Exists(graphicsPath) || !File.ReadAllText(graphicsPath).Contains("\"status\": \"passed\"", StringComparison.Ordinal)) { error = "current active-platform graphics prerequisite is missing or failed"; return false; }
@@ -276,10 +277,10 @@ public sealed class EngineeringHost
                 ReceiptPath(suite, shard),
                 shard.DependsOn,
                 shard.Evidence)).ToArray(),
-            suite.Id is "m037-smoke" or "m039-smoke" or "m040-smoke" or "m041-smoke" or "m042-smoke" or "m043-smoke" or "m044-smoke" or "m045-smoke" or "m046-smoke" or "m047-smoke" or "m048-smoke" or "m050-smoke" or "m052-ui" ? $"pwsh ./eng/suite.ps1 {suite.Id} --verify" : $"./eng/{suite.Id}.sh --verify",
+            suite.Id is "m037-smoke" or "m039-smoke" or "m040-smoke" or "m041-smoke" or "m042-smoke" or "m043-smoke" or "m044-smoke" or "m045-smoke" or "m046-smoke" or "m047-smoke" or "m048-smoke" or "m050-smoke" or "m052-ui" or "m053-workbenches" ? $"pwsh ./eng/suite.ps1 {suite.Id} --verify" : $"./eng/{suite.Id}.sh --verify",
             suite.Shards.SelectMany(shard => shard.Evidence).Distinct(StringComparer.Ordinal).ToArray());
         var serialized = JsonSerializer.Serialize(plan, json);
-        if (suite.Id is "m033-smoke" or "m034-smoke" or "m035-smoke" or "m039-smoke" or "m040-smoke" or "m041-smoke" or "m042-smoke" or "m043-smoke" or "m044-smoke" or "m045-smoke" or "m046-smoke" or "m047-smoke" or "m048-smoke" or "m052-ui")
+        if (suite.Id is "m033-smoke" or "m034-smoke" or "m035-smoke" or "m039-smoke" or "m040-smoke" or "m041-smoke" or "m042-smoke" or "m043-smoke" or "m044-smoke" or "m045-smoke" or "m046-smoke" or "m047-smoke" or "m048-smoke" or "m052-ui" or "m053-workbenches")
         {
             var planPath = Absolute(Path.Combine("artifacts", "validation", suite.Id, "plan.json"));
             Directory.CreateDirectory(Path.GetDirectoryName(planPath)!);
@@ -388,13 +389,13 @@ public sealed class EngineeringHost
             }
         }
 
-        if (suite.Id == "m052-ui")
+        if (suite.Id is "m052-ui" or "m053-workbenches")
         {
-            var verificationPath = Absolute("artifacts/validation/m052-ui/verify.json");
+            var verificationPath = Absolute(Path.Combine("artifacts", "validation", suite.Id, "verify.json"));
             Directory.CreateDirectory(Path.GetDirectoryName(verificationPath)!);
             File.WriteAllText(verificationPath, JsonSerializer.Serialize(new
             {
-                schema = "agentic2d.m052.verification.v1",
+                schema = suite.Id == "m052-ui" ? "agentic2d.m052.verification.v1" : "agentic2d.m053.verification.v1",
                 suite = suite.Id,
                 status = success ? "passed" : "failed",
                 suiteFingerprint = expectedSuite,
@@ -1045,6 +1046,10 @@ public sealed class EngineeringHost
         if (suite.Id == "m052-ui")
         {
             return await M052AgentOrientedUiSuite.RunAsync(this, root, shard.Id, diagnostics);
+        }
+        if (suite.Id == "m053-workbenches")
+        {
+            return await M053RealWorkbenchSuite.RunAsync(root, shard.Id, diagnostics);
         }
         if (suite.Id == "m038-smoke") return await M038SimpleReviewSuite.RunAsync(this, root, shard.Id, diagnostics);
         if (suite.Id == "m036-smoke")
@@ -1759,6 +1764,14 @@ public sealed class EngineeringHost
             Shard("headless-interaction", "Recomposition, retained control state, pointer capture, keyboard focus, operation projection and injected presentation clock.", "internal:m052", ["artifacts/ui/M052/headless-interaction.json", "artifacts/ui/M052/interaction-trace.json"], isInternal: true),
             Shard("windows-raylib", "Actual Windows Raylib Product Shell and synthetic stress screen launch/capture with pointer and keyboard action receipts.", "internal:m052", ["artifacts/ui/M052/windows-raylib.json", "artifacts/ui/M052/product-shell.png", "artifacts/ui/M052/review-stress.png", "artifacts/ui/M052/product-shell-pointer-input.json", "artifacts/ui/M052/product-shell-keyboard-input.json"], isInternal: true),
             Shard("compatibility", "M021 semantic projection and M037 retained host remain available with shared M052 model.", "internal:m052", ["artifacts/ui/M052/compatibility.json"], isInternal: true)
+        ]),
+        new("m053-workbenches", "resumable-sharded",
+        [
+            Shard("headless-compositions", "Actual Review, Asset Workbench, and image/animation/audio/unsupported typed compositions; deterministic supported viewport matrix and canonical semantic/draw projections.", "internal:m053", ["artifacts/ui/M053/headless-compositions.json"], isInternal: true),
+            Shard("application-behavior", "Review decision intents, current action guards, retained command editing, explicit JSONL submit, and negative hit/disabled checks.", "internal:m053", ["artifacts/ui/M053/application-behavior.json"], ["headless-compositions"], true),
+            Shard("windows-native", "Active Windows launch and genuine Raylib captures for actual Review/Asset workbenches and exact image/animation/audio candidate fixtures.", "internal:m053", ["artifacts/ui/M053/windows-native.json", "artifacts/ui/M053/native/review-workbench.png", "artifacts/ui/M053/native/asset-workbench.png", "artifacts/ui/M053/native/asset-preview-image.png", "artifacts/ui/M053/native/asset-preview-animation.png", "artifacts/ui/M053/native/asset-preview-audio.png"], ["headless-compositions", "application-behavior"], true),
+            Shard("compatibility", "Structured mediaKind, M029 JSONL envelope, preview IPC v2, exact materialization identity, and M052 consumer boundaries remain intact without predecessor verifier freshness dependencies.", "internal:m053", ["artifacts/ui/M053/compatibility.json"], ["headless-compositions"], true),
+            Shard("evidence-integrity", "M053 portable/native evidence artifacts are current, observed and separately identified from human review.", "internal:m053", ["artifacts/ui/M053/evidence-integrity.json"], ["application-behavior", "windows-native", "compatibility"], true)
         ]),
         new("m038-smoke", "resumable-sharded",
         [

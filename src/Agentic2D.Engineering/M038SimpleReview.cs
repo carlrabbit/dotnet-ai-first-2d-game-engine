@@ -20,15 +20,18 @@ public static class M038ReviewPolicy
     }
 
     public static bool IsM038(ReviewState review) => review.Id.StartsWith("review.m038.", StringComparison.Ordinal) && review.OwningMilestone == "M038";
+    public static bool IsM053(ReviewState review) => review.Id.StartsWith("review.m053.", StringComparison.Ordinal) && review.OwningMilestone == "M053";
     public static bool IsM052(ReviewState review) => review.Id.StartsWith("review.m052.", StringComparison.Ordinal) && review.OwningMilestone == "M052";
     public static bool IsRegistered(ReviewState review) => IsM038(review) ||
-        (review.Id.StartsWith("review.m048.", StringComparison.Ordinal) && review.OwningMilestone == "M048") || IsM052(review);
+        (review.Id.StartsWith("review.m048.", StringComparison.Ordinal) && review.OwningMilestone == "M048") || IsM052(review) || IsM053(review);
 
     public static string ExperienceFor(ReviewState review) => IsM038(review)
         ? "review-shard:m038-workbench-fixture"
         : IsM052(review)
             ? "m052-ui-stress:" + review.Id
-            : "asset-candidate-preview:" + review.Id["review.m048.".Length..];
+            : IsM053(review)
+                ? "m053-real-workbench:" + review.Id["review.m053.".Length..]
+                : "asset-candidate-preview:" + review.Id["review.m048.".Length..];
 }
 
 public static class M038SimpleReviewSuite

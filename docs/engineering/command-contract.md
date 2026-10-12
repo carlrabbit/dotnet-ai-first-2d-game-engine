@@ -106,6 +106,8 @@ M037 is dispatched through the generic resumable interface: `pwsh ./eng/suite.ps
 
 M038 is dispatched through the generic resumable interface: `pwsh ./eng/suite.ps1 m038-smoke --plan-json`, each required `--shard <id>` in a separate invocation, then `--verify` (or the equivalent `./eng/suite.sh` commands on Bash). The aggregate verifier is machine-only and does not require human approval. The canonical bounded human entry point is `pwsh ./eng/review-run.ps1 <review-id-or-alias>` or `./eng/review-run.sh <review-id-or-alias>`; it requires current M038 machine prerequisites before launching the isolated Raylib workbench.
 
+M053 real workbench migration validation uses `pwsh ./eng/suite.ps1 m053-workbenches --plan-json`, each listed `--shard <id>` in a separate invocation, then `--verify`. The Windows native shard launches the actual review/asset workbenches and structured image, animation, and audio candidate previews. Required subjective M053 reviews are launched with `pwsh ./eng/review-run.ps1 <review-id>` only after current machine verification; use `pwsh ./eng/review-check.ps1 --milestone M053` for their blocking review gate.
+
 The M037 graphical shell smoke is `dotnet run --project src/Agentic2D.DebugClient.Raylib -- shell --frames <count> --capture <png>` in a graphics-capable environment.
 
 PowerShell 7 launchers delegate to the same host and are the native Windows surface:

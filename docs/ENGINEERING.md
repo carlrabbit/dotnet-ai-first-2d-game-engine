@@ -242,6 +242,8 @@ M037 uses the shared `suite.ps1` / `suite.sh` interface with `m037-smoke`; its r
 
 M052 adds the resumable `m052-ui` suite. Run `pwsh ./eng/suite.ps1 m052-ui --plan-json`, each required shard in a separate invocation, and `--verify` for aggregate success. Structural evidence is written under `artifacts/ui/M052/`; Windows Raylib captures require a graphics-capable desktop. The M052 review is registered to the actual UI stress screen and is gated on the current verified M052 suite.
 
+M053 migrates the production Review Workbench, Asset Workbench and image/animation/audio Asset Preview through the typed UI contract. Run `pwsh ./eng/suite.ps1 m053-workbenches --plan-json`, execute each listed shard separately, then use `--verify` for aggregate machine success. Current native captures and projected pointer/keyboard evidence are stored under `artifacts/ui/M053/`. The M053 required subjective review set remains pending until people use the canonical `review-run.ps1` and the owning `review-check.ps1 --milestone M053` passes.
+
 The standalone host exposes `agentic2d-game --product-shell` for the player-facing Raylib shell, with `--safe-mode` and `--reset-user-settings` startup recovery options. The shell writes a bounded startup projection before any scenario execution.
 
 The isolated Raylib adapter also exposes `dotnet run --project src/Agentic2D.DebugClient.Raylib -- shell --frames <count> --capture <png>` for bounded graphical shell evidence; it remains adapter-only and does not become runtime authority.

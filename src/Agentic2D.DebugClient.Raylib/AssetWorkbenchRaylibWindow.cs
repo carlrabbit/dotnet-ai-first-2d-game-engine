@@ -1,101 +1,136 @@
-using System.Numerics;
 using System.Runtime.InteropServices;
 using System.Text.Json;
+using Agentic2D.Tools;
+using Agentic2D.UI;
 using Raylib_cs;
+using Agentic2D.DebugClient.Raylib;
+using RaylibApi = Raylib_cs.Raylib;
 
 namespace Agentic2D.DebugClient;
 
-/// <summary>
-/// Isolated native workbench surface. It owns presentation and text/mouse translation only;
-/// the provider CLI validates and applies the emitted canonical input commands.
-/// </summary>
+/// <summary>Native input adapter for the canonical provider-side asset-workbench command stream.</summary>
 public static class AssetWorkbenchRaylibWindow
 {
     public static unsafe int Run(string[] args)
     {
-        string? sessionPath = null, commandPath = null, capture = null, initialText = null, initialMessage = null; var frames = 0;
+        string? sessionPath = null, commandPath = null, capture = null, initialText = null, initialMessage = null, inputProbeReportPath = null;
+        var frames = 0;
         for (var index = 0; index < args.Length; index++)
         {
             if (args[index] == "--session" && ++index < args.Length) sessionPath = args[index];
             else if (args[index] == "--commands" && ++index < args.Length) commandPath = args[index];
             else if (args[index] == "--capture" && ++index < args.Length) capture = args[index];
-            else if (args[index] == "--frames")
-            {
-                if (++index >= args.Length || !int.TryParse(args[index], out frames)) return Usage();
-            }
+            else if (args[index] == "--frames" && ++index < args.Length && int.TryParse(args[index], out frames)) { }
             else if (args[index] == "--initial-text" && ++index < args.Length) initialText = args[index];
             else if (args[index] == "--message" && ++index < args.Length) initialMessage = args[index];
+            else if (args[index] == "--probe-report" && ++index < args.Length) inputProbeReportPath = args[index];
             else return Usage();
         }
         if (string.IsNullOrWhiteSpace(sessionPath) || string.IsNullOrWhiteSpace(commandPath) || !File.Exists(sessionPath)) return Usage();
-        using var document = JsonDocument.Parse(File.ReadAllText(sessionPath)); var root = document.RootElement;
+        using var document = JsonDocument.Parse(File.ReadAllText(sessionPath));
+        var root = document.RootElement;
         var sessionId = root.GetProperty("id").GetString() ?? "workbench-session.unknown";
         var candidates = root.GetProperty("candidates").EnumerateArray().Select(x => x.GetString() ?? "candidate.unknown").ToArray();
         var generation = root.GetProperty("aliasGeneration").GetInt32();
+        var activeCandidate = root.TryGetProperty("activeCandidate", out var active) ? active.GetString() : null;
         Directory.CreateDirectory(Path.GetDirectoryName(Path.GetFullPath(commandPath))!);
-        var buffer = initialText ?? string.Empty; var message = initialMessage ?? "Type a visible choice or bounded command, then use Submit."; var focus = true; var captured = false;
+        var draft = initialText ?? string.Empty;
+        var feedback = initialMessage ?? "Type a visible choice or bounded command, then use Submit.";
+        UiSession? retainedSession = null;
+        var definition = M053WorkbenchScreens.AssetWorkbench(new(sessionId, generation, candidates, activeCandidate, draft, feedback));
+        RaylibGameWindow.InitDesktopWindow("Agentic2D — Asset Workbench");
+        if (!RaylibApi.IsWindowReady()) { Console.Error.WriteLine("asset workbench could not initialize the Raylib window"); return 1; }
         try
         {
-            global::Raylib_cs.Raylib.InitWindow(960, 620, "Agentic2D Asset Workbench"); global::Raylib_cs.Raylib.SetTargetFPS(60);
-            for (var frame = 0; !global::Raylib_cs.Raylib.WindowShouldClose() && (frames <= 0 || frame < frames); frame++)
+            RaylibApi.SetTargetFPS(60);
+            var session = new UiSession(definition, RaylibGameWindow.CurrentViewport());
+            retainedSession = session;
+            var observedActions = new List<string>();
+            void WriteProbe(string status)
             {
-                var mouse = global::Raylib_cs.Raylib.GetMousePosition();
-                var charCode = global::Raylib_cs.Raylib.GetCharPressed();
-                while (charCode > 0) { if (charCode >= 32 && charCode <= 126) buffer += (char)charCode; charCode = global::Raylib_cs.Raylib.GetCharPressed(); }
-                if (global::Raylib_cs.Raylib.IsKeyPressed(KeyboardKey.Backspace) && buffer.Length > 0) buffer = buffer[..^1];
-                if (global::Raylib_cs.Raylib.IsKeyPressed(KeyboardKey.Delete)) buffer = string.Empty;
-                if (global::Raylib_cs.Raylib.IsKeyPressed(KeyboardKey.Enter)) Submit(buffer, "enter");
-                var field = new Rectangle(32, 420, 580, 52); var submit = new Rectangle(628, 420, 130, 52); var clear = new Rectangle(772, 420, 90, 52); var accept = new Rectangle(32, 486, 155, 42); var reject = new Rectangle(201, 486, 115, 42); var defer = new Rectangle(330, 486, 105, 42); var presentationOnly = new Rectangle(449, 486, 188, 42); var paste = new Rectangle(651, 486, 110, 42);
-                if (Clicked(field, mouse)) focus = true;
-                if (Clicked(submit, mouse)) Submit(buffer, "submit-button");
-                if (Clicked(clear, mouse)) { buffer = string.Empty; message = "Entry cleared; no command was submitted."; }
-                if (Clicked(accept, mouse)) { Emit("decision accept-proposal", "mouse-touch"); message = "Accept decision submitted through the canonical command model."; }
-                if (Clicked(reject, mouse)) { Emit("decision reject", "mouse-touch"); message = "Reject decision submitted through the canonical command model."; }
-                if (Clicked(defer, mouse)) { Emit("decision defer", "mouse-touch"); message = "Defer decision submitted through the canonical command model."; }
-                if (Clicked(presentationOnly, mouse)) { Emit("decision approve-with-corrections presentation-only", "mouse-touch"); message = "Presentation-only decision submitted; no gameplay binding is created."; }
-                if (Clicked(paste, mouse))
+                if (inputProbeReportPath is null) return;
+                Directory.CreateDirectory(Path.GetDirectoryName(Path.GetFullPath(inputProbeReportPath))!);
+                File.WriteAllText(inputProbeReportPath, JsonSerializer.Serialize(new
                 {
-                    var clipboard = Marshal.PtrToStringUTF8((IntPtr)global::Raylib_cs.Raylib.GetClipboardText());
-                    if (!string.IsNullOrEmpty(clipboard)) { buffer += clipboard; message = "Pasted text is editable; use Submit to act."; }
-                    else message = "Clipboard is empty; no command was submitted.";
+                    status,
+                    processId = Environment.ProcessId,
+                    windowHandle = (long)(nint)RaylibApi.GetWindowHandle(),
+                    viewport = session.Layout.Viewport,
+                    observedActions,
+                    commandFile = commandPath,
+                    commandLines = File.Exists(commandPath) ? File.ReadAllLines(commandPath) : [],
+                    controls = session.Layout.Elements.Where(element => element.Enabled && (element.ActionId == "asset-workbench.choose" || element.Id == "asset-workbench.command"))
+                        .Select(element => new { element.Id, element.ActionId, element.PhysicalBounds }).ToArray()
+                }, new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase }));
+            }
+            WriteProbe("ready");
+            var viewport = session.Layout.Viewport;
+            for (var frame = 0; !RaylibApi.WindowShouldClose() && (frames <= 0 || frame < frames); frame++)
+            {
+                var currentViewport = RaylibGameWindow.CurrentViewport();
+                if (currentViewport != viewport) { viewport = currentViewport; session.Recompose(definition, viewport); }
+                if (!RaylibApi.IsWindowFocused() && session.CapturedId is not null) session.Dispatch(new UiInputEvent("pointer-cancel"));
+                session.Dispatch(new UiInputEvent("time", Delta: RaylibApi.GetFrameTime()));
+                var inputSource = RaylibWorkbenchInput.Dispatch(session);
+                foreach (var action in session.DrainActions())
+                {
+                    observedActions.Add(action.ActionId + ":" + action.Value + "@" + inputSource);
+                    switch (action.ActionId)
+                    {
+                        case "asset-workbench.choose":
+                            var selected = Convert.ToInt32(action.Value, System.Globalization.CultureInfo.InvariantCulture);
+                            if (selected >= 0 && selected < candidates.Length)
+                            {
+                                Emit((selected + 1).ToString(System.Globalization.CultureInfo.InvariantCulture), inputSource is "enter" or "mouse-touch" ? inputSource : "mouse-touch");
+                                feedback = $"Choice {selected + 1} submitted with current session generation {generation}.";
+                            }
+                            break;
+                        case "asset-workbench.submit":
+                            draft = action.Value?.ToString() ?? session.Snapshot().Drafts.GetValueOrDefault("asset-workbench.command", draft);
+                            Submit(draft, action.SourceId == "asset-workbench.command" ? "enter" : "submit-button");
+                            break;
+                        case "asset-workbench.clear":
+                            draft = string.Empty; session.UpdateTextDraft("asset-workbench.command", draft); feedback = "Entry cleared; no command was submitted.";
+                            break;
+                        case "asset-workbench.paste":
+                            var clipboard = Marshal.PtrToStringUTF8((IntPtr)RaylibApi.GetClipboardText());
+                            if (!string.IsNullOrEmpty(clipboard)) { draft = session.Snapshot().Drafts.GetValueOrDefault("asset-workbench.command", draft) + clipboard; session.UpdateTextDraft("asset-workbench.command", draft); feedback = "Pasted text is editable; use Submit to act."; }
+                            else feedback = "Clipboard is empty; no command was submitted.";
+                            break;
+                        case "asset-workbench.accept": Emit("decision accept-proposal", inputSource is "enter" or "mouse-touch" ? inputSource : "mouse-touch"); feedback = "Accept decision submitted through the canonical command model."; break;
+                        case "asset-workbench.reject": Emit("decision reject", inputSource is "enter" or "mouse-touch" ? inputSource : "mouse-touch"); feedback = "Reject decision submitted through the canonical command model."; break;
+                        case "asset-workbench.defer": Emit("decision defer", inputSource is "enter" or "mouse-touch" ? inputSource : "mouse-touch"); feedback = "Defer decision submitted through the canonical command model."; break;
+                        case "asset-workbench.presentation-only": Emit("decision approve-with-corrections presentation-only", inputSource is "enter" or "mouse-touch" ? inputSource : "mouse-touch"); feedback = "Presentation-only decision submitted; no gameplay binding is created."; break;
+                    }
                 }
-                for (var candidate = 0; candidate < candidates.Length; candidate++)
+                var currentDraft = session.Snapshot().Drafts.GetValueOrDefault("asset-workbench.command", draft);
+                if (currentDraft != draft) draft = currentDraft;
+                if (feedback != ReadFeedback(definition))
                 {
-                    var row = new Rectangle(32, 116 + candidate * 58, 830, 46);
-                    if (Clicked(row, mouse)) { Emit((candidate + 1).ToString(), "mouse-touch"); message = "Choice " + (candidate + 1) + " submitted through the canonical command model."; }
+                    definition = M053WorkbenchScreens.AssetWorkbench(new(sessionId, generation, candidates, activeCandidate, draft, feedback));
+                    session.Recompose(definition, currentViewport);
                 }
-                global::Raylib_cs.Raylib.BeginDrawing(); global::Raylib_cs.Raylib.ClearBackground(new Color(18, 27, 42, 255));
-                global::Raylib_cs.Raylib.DrawText("ASSET WORKBENCH", 32, 28, 28, Color.RayWhite); global::Raylib_cs.Raylib.DrawText("Session " + sessionId, 32, 64, 15, Color.LightGray);
-                global::Raylib_cs.Raylib.DrawText("Visible choices — click/touch a row or enter its number below", 32, 92, 17, Color.SkyBlue);
-                for (var candidate = 0; candidate < candidates.Length; candidate++)
+                RaylibWorkbenchInput.Render(session);
+                WriteProbe("ready");
+                if (capture is not null && frame == 1)
                 {
-                    var row = new Rectangle(32, 116 + candidate * 58, 830, 46); global::Raylib_cs.Raylib.DrawRectangleRec(row, new Color(37, 54, 79, 255)); global::Raylib_cs.Raylib.DrawRectangleLinesEx(row, 2, Color.SkyBlue);
-                    global::Raylib_cs.Raylib.DrawText((candidate + 1) + ".", 48, 129 + candidate * 58, 21, Color.Gold); global::Raylib_cs.Raylib.DrawText(candidates[candidate], 90, 131 + candidate * 58, 19, Color.RayWhite);
-                }
-                global::Raylib_cs.Raylib.DrawText("Editable command field", 32, 394, 17, Color.SkyBlue); global::Raylib_cs.Raylib.DrawRectangleRec(field, focus ? new Color(245, 245, 245, 255) : new Color(180, 180, 180, 255)); global::Raylib_cs.Raylib.DrawText(buffer, 44, 435, 20, Color.Black);
-                Button(submit, "Submit", new Color(60, 152, 93, 255)); Button(clear, "Clear", new Color(130, 88, 62, 255)); Button(accept, "Accept", new Color(60, 152, 93, 255)); Button(reject, "Reject", new Color(154, 66, 66, 255)); Button(defer, "Defer", new Color(126, 104, 58, 255)); Button(presentationOnly, "Presentation only", new Color(92, 80, 151, 255)); Button(paste, "Paste", new Color(72, 104, 158, 255));
-                global::Raylib_cs.Raylib.DrawText(message, 32, 550, 16, Color.LightGray); global::Raylib_cs.Raylib.DrawText("Enter is an accelerator only. Focus changes never submit text.", 32, 578, 14, Color.Gray); global::Raylib_cs.Raylib.EndDrawing();
-                if (capture is not null && !captured)
-                {
-                    var absoluteCapture = Path.GetFullPath(capture);
-                    Directory.CreateDirectory(Path.GetDirectoryName(absoluteCapture)!);
-                    global::Raylib_cs.Raylib.TakeScreenshot(Path.GetRelativePath(Directory.GetCurrentDirectory(), absoluteCapture));
-                    captured = true;
+                    var absolute = Path.GetFullPath(capture); Directory.CreateDirectory(Path.GetDirectoryName(absolute)!);
+                    RaylibApi.TakeScreenshot(Path.GetRelativePath(Directory.GetCurrentDirectory(), absolute));
                 }
             }
             return 0;
         }
-        finally { if (global::Raylib_cs.Raylib.IsWindowReady()) global::Raylib_cs.Raylib.CloseWindow(); }
+        finally { if (RaylibApi.IsWindowReady()) RaylibApi.CloseWindow(); }
 
         void Submit(string value, string source)
         {
-            if (string.IsNullOrWhiteSpace(value)) { message = "Enter a number or bounded command before submitting."; return; }
-            Emit(value, source); buffer = string.Empty; message = "Submitted; the provider validates the canonical command.";
+            if (string.IsNullOrWhiteSpace(value)) { feedback = "Enter a number or bounded command before submitting."; return; }
+            Emit(value, source); draft = string.Empty; retainedSession?.UpdateTextDraft("asset-workbench.command", draft); feedback = "Submitted; the provider validates the canonical command.";
         }
-        void Emit(string value, string source) => File.AppendAllText(commandPath, JsonSerializer.Serialize(new { schema = "agentic2d.asset-workbench-input-command.v1", sessionId, source, value, generation }) + "\n");
+        void Emit(string value, string source) => File.AppendAllText(commandPath!, JsonSerializer.Serialize(new { schema = "agentic2d.asset-workbench-input-command.v1", sessionId, source, value, generation }) + "\n");
     }
 
-    private static bool Clicked(Rectangle rectangle, Vector2 mouse) => global::Raylib_cs.Raylib.IsMouseButtonPressed(MouseButton.Left) && global::Raylib_cs.Raylib.CheckCollisionPointRec(mouse, rectangle);
-    private static void Button(Rectangle rectangle, string text, Color color) { global::Raylib_cs.Raylib.DrawRectangleRec(rectangle, color); global::Raylib_cs.Raylib.DrawRectangleLinesEx(rectangle, 2, Color.RayWhite); global::Raylib_cs.Raylib.DrawText(text, (int)rectangle.X + 14, (int)rectangle.Y + 15, 18, Color.RayWhite); }
+    private static string ReadFeedback(UiDefinition definition) => definition.Root.Items.SelectMany(Flatten).FirstOrDefault(item => item.Id == "asset-workbench.feedback")?.Text ?? string.Empty;
+    private static IEnumerable<UiElementDefinition> Flatten(UiElementDefinition item) { yield return item; foreach (var child in item.Items) foreach (var nested in Flatten(child)) yield return nested; }
     private static int Usage() { Console.Error.WriteLine("asset-workbench requires --session <review-session.json> --commands <input-command.jsonl> [--capture <png>] [--frames <count>] [--initial-text <text>] [--message <text>]"); return 2; }
 }
