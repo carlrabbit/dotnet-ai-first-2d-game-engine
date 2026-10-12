@@ -1,5 +1,12 @@
 # Agentic 2D Game Engine — Project Summary
 
+> [!NOTE]
+> **Historical planning source — substantially superseded in detail.**
+>
+> This document preserves early project direction and brainstorming. It is not current project authority and should not be used as the default planning baseline.
+>
+> Start with `docs/RESEARCH.md` and the curated reconstructed research documents. Current specs, architecture, decisions, engineering documents, and ready milestones override this historical summary.
+
 This document is a continuation summary for the **agentic 2D game engine project**. It captures the project idea, the design direction, and the decisions made so far. It is intended as a basis for continuing the project in another chat or with another agent.
 
 ---
