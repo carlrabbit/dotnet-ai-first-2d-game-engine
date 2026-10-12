@@ -10,7 +10,7 @@ The engine is headless-first, CLI/API-first, validation-first, and artifact-firs
 
 - Repository role: capability provider.
 - Maturity: implementation-ready and artifact-first.
-- Profiles: artifact-first agentic authoring, runtime/tool, and game/simulation.
+- Project specialization: artifact-first agentic authoring, reusable runtime/tool libraries, and game/simulation capabilities. These describe project focus; guide profile selection is separately scoped in `.guide-profile.json`.
 - Implemented milestone range: M000 through M016, including the guide-system M009 update.
 - Current capability surface:
   - deterministic runtime and product CLI;
@@ -119,7 +119,7 @@ runtime inspect
 render project
 ```
 
-The product CLI is authoritative through `docs/specs/product-cli-contract.md` and `docs/engineering/product-cli.md`. `eng/` scripts are repository validation wrappers, not the product API.
+The product CLI is authoritative through `docs/specs/product-cli-contract.md` and `docs/engineering/product-cli.md`. `eng/` scripts are repository validation wrappers, not the product API. The supported `product-cli` scope names this `agentic2d` process and its documented commands; `engine-libraries` names reusable .NET engine APIs across supported library components, without claiming package publication.
 
 ## Rendering
 

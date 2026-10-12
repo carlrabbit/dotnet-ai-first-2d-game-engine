@@ -83,15 +83,17 @@ Read `docs/HUMAN-REVIEW.md`, applicable contracts, and generated review packs. H
 
 ## Authority rule
 
-`docs/research/` is non-authoritative traceability material.
+`docs/research/` is non-authoritative traceability material. Copied historical guides are legacy guide leakage, not project policy; reconstructing old research is not a migration prerequisite.
 
 Project-specific operational rules must exist in active repository docs before implementation agents rely on them.
 
 ## Guide-system execution semantics
 
-Planning follows `planning -> ready milestone -> implementation`. A milestone is `ready` only when the configured baseline implementation model can execute it without inventing a material decision about architecture, semantics, compatibility, scope, acceptance, or validation policy.
+Planning follows `planning -> ready milestone -> implementation`. A milestone is `ready` only when the configured baseline implementation model can execute it without inventing a material decision about architecture, semantics, compatibility, scope, acceptance, or validation policy; preserve those decisions in project authority or the ready milestone, not only in conversation or research.
 
-Implementation follows `implement -> validate -> completion audit`. After validation, continue resolving every agent-resolvable gap. Terminate exactly as `COMPLETE`, `AWAITING HUMAN REVIEW`, or `BLOCKED`; passing tests alone is not milestone completion. Completed milestones and reviews remain historical evidence and are not reopened for guide adoption.
+Before marking a new AI-executed milestone ready, planning seeds `.execution/<milestone-id>.md` with one stable row for each independently verifiable acceptance obligation, selective evidence cases where proof paths materially differ, and validation gates mapped to exact IDs. The implementer preserves seeded rows and owns bounded work-package decomposition, status/progress, resume state, and concrete evidence. Do not merge, delete, renumber, or weaken obligations, and do not add duplicate per-milestone execution-methodology documents or generic ledger commands.
+
+Implementation follows `implement -> validate -> completion audit`. Reconcile the exact obligation and applicable evidence-case sets; establish exercised evidence for each criterion; retain a durable criterion-to-proof completion trace; and continue resolving every agent-resolvable gap. Aggregate validation is not evidence for unrelated criteria. Terminate exactly as `COMPLETE`, `AWAITING HUMAN REVIEW`, or `BLOCKED`; passing tests alone is not milestone completion. Completed milestones and reviews remain historical evidence and are not reopened for guide adoption.
 
 ## Hard constraints
 

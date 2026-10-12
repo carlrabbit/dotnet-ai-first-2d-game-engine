@@ -1,19 +1,55 @@
 {
   "schemaVersion": 2,
-  "guideSystemVersion": "0.7.2",
-  "guideRepository": "carlrabbit/agentic-project-guides",
-  "guideSystem": { "repository": "carlrabbit/agentic-project-guides", "version": "0.7.2" },
-  "baseProfileVersion": "0.7.2",
-  "appliedProfileVersion": "0.7.2",
-  "base": { "profileVersion": "0.7.2" },
-  "applied": { "profileVersion": "0.7.2" },
+  "guideSystem": {
+    "repository": "carlrabbit/agentic-project-guides",
+    "version": "0.9.1"
+  },
   "targetRepository": "carlrabbit/dotnet-ai-first-2d-game-engine",
   "repositoryRole": "capability-provider",
   "maturityStage": "implementation-ready",
-  "repositoryProfiles": [
-    "artifact-first-agentic-authoring",
-    "runtime-tool",
-    "game-simulation"
+  "appliedProfiles": [
+    {
+      "id": "base",
+      "version": "0.9.1",
+      "scopes": [
+        {
+          "kind": "repository"
+        }
+      ]
+    },
+    {
+      "id": "artifact-first-runtime",
+      "version": "0.9.1",
+      "scopes": [
+        {
+          "kind": "repository"
+        }
+      ]
+    },
+    {
+      "id": "dotnet-library",
+      "version": "0.9.1",
+      "scopes": [
+        {
+          "kind": "component",
+          "ids": [
+            "engine-libraries"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "cli-tool",
+      "version": "0.9.1",
+      "scopes": [
+        {
+          "kind": "surface",
+          "ids": [
+            "product-cli"
+          ]
+        }
+      ]
+    }
   ],
   "maturityModes": [
     "implementation-ready",
@@ -30,8 +66,16 @@
   "engineeringCommands": {
     "canonicalInterface": "eng",
     "implementation": "repository-specific",
-    "supportedLaunchers": ["bash", "powershell"],
-    "testedPlatforms": ["linux", "windows"]
+    "supportedLaunchers": [
+      "bash",
+      "powershell"
+    ],
+    "supportedPlatforms": [
+      "linux",
+      "windows"
+    ],
+    "activeDevelopmentPlatform": "windows",
+    "deferredInactivePlatform": "linux"
   },
   "guideUse": [
     "planning",
@@ -40,17 +84,25 @@
     "release-readiness"
   ],
   "adoption": {
-    "migratedFromGuideSystemVersion": "0.5.1",
+    "migratedFromGuideSystemVersion": "0.7.2",
     "includesGuideSystemVersions": [
       "0.4.0",
       "0.5.0",
       "0.5.1",
       "0.5.2",
-      "0.6.0"
+      "0.6.0",
+      "0.7.2",
+      "0.7.3",
+      "0.7.4",
+      "0.7.5",
+      "0.8.0",
+      "0.9.0",
+      "0.9.1"
     ],
     "humanReviewModel": "milestone-scoped-completion-gate",
     "validationExecutionModel": "direct-or-resumable-sharded",
-    "engineeringCommandModel": "thin-launchers-over-tested-dotnet-host"
+    "engineeringCommandModel": "thin-launchers-over-tested-dotnet-host",
+    "consumerValidationModel": "representative-current-artifact-through-consumer-entrypoint-when-distribution-changes"
   },
   "ordinaryImplementationAgents": {
     "mustRead": false,
@@ -60,11 +112,31 @@
     ]
   },
   "planningWorkflow": {
-    "lifecycle": ["planning", "ready", "implementation"],
+    "lifecycle": [
+      "planning",
+      "ready",
+      "implementation"
+    ],
     "readyDefinition": "The configured baseline implementation model can execute the milestone without inventing a material decision about architecture, semantics, compatibility, scope, acceptance, or validation policy.",
-    "requiresExecutionPromptHandoff": true,
+    "executionLedgerSeedPhase": "before-ready",
+    "executionLedgerSeedOwnership": "planning",
+    "executionLedgerRule": "One stable row per independently verifiable obligation; selective evidence cases; preserve seeded rows unchanged; implementation owns work packages, status, progress, resume state, and evidence.",
+    "completionAudit": "Reconcile exact obligation and applicable evidence-case sets, exercise criterion-specific evidence, retain a durable completion trace, and continue resolving agent-resolvable gaps.",
     "latestGuideVersionResolvedAtPlanningTime": true,
     "externalGuideRepositoryRequiredForImplementation": false
+  },
+  "implementationWorkflow": {
+    "lifecycle": [
+      "implement",
+      "validate",
+      "completion audit"
+    ],
+    "terminalStates": [
+      "COMPLETE",
+      "AWAITING HUMAN REVIEW",
+      "BLOCKED"
+    ],
+    "aggregateValidationAloneIsCompletion": false
   },
   "notes": [
     "This file is guide-selection and traceability metadata only.",
@@ -72,7 +144,7 @@
     "Do not copy guide documents or prompt templates into this repository.",
     "Human review is owned by one milestone, gates only that milestone, and becomes immutable historical evidence when completed.",
     "Aggregate validation success is established only by direct bounded completion or by fast verification of current fingerprinted shard receipts.",
-    "Implementation lifecycle is implement, validate, completion audit, continue resolving agent-resolvable gaps, then terminate only as COMPLETE, AWAITING HUMAN REVIEW, or BLOCKED.",
+    "Completed milestones and reviews remain historical evidence and are not reopened for guide adoption.",
     "M037 is reserved for the postponed product shell; M036 does not implement product-shell work."
   ]
 }
