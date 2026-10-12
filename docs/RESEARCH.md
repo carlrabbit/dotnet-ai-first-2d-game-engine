@@ -11,15 +11,27 @@ Research preserves evidence, reconstructed planning context, uncertainty, and re
 | Subject | Status / freshness | Revalidate when | Related authority | Research path |
 |---|---|---|---|---|
 | Reconstructive adoption baseline | Current — 2026-10-12 | adoption scope expands or contradictory evidence appears | M051; project research boundary | `docs/research/reconstructive-adoption-baseline-2026-10.md` |
-| Project direction and roadmap | Current — 2026-10-12 | M049 or M052–M054 materially completes/changes direction; explicit roadmap reset | project thesis; agent-oriented UI direction; asset promotion authority | `docs/research/project-direction-and-roadmap.md` |
+| Project direction and track map | Current — 2026-10-12 | M049 or M052–M054 materially completes/changes direction; explicit roadmap reset | project thesis; agent-oriented UI direction; asset promotion authority | `docs/research/project-direction-and-roadmap.md` |
+| Simulation and settlement evolution | Current — 2026-10-12 | indirect-control, fidelity, population or core settlement semantics change | simulation/runtime/persistence authority; M032–M046 | `docs/research/simulation-and-settlement-evolution.md` |
+| Asset authoring/workbench evolution | Current — 2026-10-12 | M049, substantial M053 workbench migration, new media kinds, or promotion semantics change | M047–M050 asset authority | `docs/research/asset-authoring-and-workbench-evolution.md` |
+| Feature-roadmap reconstruction | Current historical roadmap — 2026-10-12 | M049 or M052–M054 completes; next product objective selected | M037 product shell; current project thesis and capability | `docs/research/feature-roadmap-reconstruction.md` |
 | Architectural correction lessons | Current — 2026-10-12 | new subsystem intentionally changes authority/equivalence/publication patterns | runtime, persistence, fidelity, asset and UI authority | `docs/research/architectural-correction-lessons.md` |
 | Validation and human-review lessons | Current — 2026-10-12 | review framework, validation host, or guide execution model materially changes | AGENTS; validation tiers; human-review contracts | `docs/research/validation-and-human-review-lessons.md` |
 | Platform and development context | Current — 2026-10-12 | platform epoch, renderer, remote-access, graphics or audio topology changes | platform verification; UI direction | `docs/research/platform-and-development-context.md` |
-| Early project summary | Historical / partially superseded | only when investigating early design intent | current project authority supersedes operative conclusions | `docs/research/agentic-2d-game-engine-project-summary.md` |
+| Early project summary | Historical / substantially superseded in detail | only when investigating early design intent | current project authority supersedes operative conclusions | `docs/research/agentic-2d-game-engine-project-summary.md` |
 
 ## Retrieval rule
 
 Planning should load only research relevant to the current decision surface.
+
+Suggested starting points:
+
+- overall direction: `project-direction-and-roadmap.md`;
+- gameplay/simulation: `simulation-and-settlement-evolution.md`;
+- assets/workbench: `asset-authoring-and-workbench-evolution.md`;
+- future product work: `feature-roadmap-reconstruction.md`;
+- why prior corrective work mattered: `architectural-correction-lessons.md` and `validation-and-human-review-lessons.md`;
+- platform-sensitive planning: `platform-and-development-context.md`.
 
 Do not load the whole corpus merely because it exists.
 
