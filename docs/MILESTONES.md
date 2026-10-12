@@ -40,6 +40,26 @@ This document indexes planned and completed implementation milestones.
 |---|---|---|
 | `docs/milestones/MILESTONE-003-asset-curation-workbench-spike.md` | Deferred candidate | Superseded by the implemented M003 and later asset milestones. |
 
+## Proposed engineering-validation roadmap — decouple regressions from milestone receipts
+
+**Priority:** High; schedule before the new UI/workbench regression surface expands substantially, ideally before or alongside M053. **State:** Unassigned candidate, not a ready milestone; no new number is reserved.
+
+**Observed problem:** M050's `m048-review-regression` requires a successful `m048-smoke --verify`, and M048's twelve receipts embed a repository-wide fingerprint. Unrelated source, documentation, or ledger edits can therefore force re-execution of predecessor acceptance shards, including native Raylib capture, without indicating an actual regression.
+
+**Target:** Preserve worthwhile M048/M050 behavior checks as maintained unit/integration tests with focused entry points. Retain milestone-completion evidence and approved human reviews as historical proof; later changes check affected current contracts, not the whole predecessor milestone. Make reusable test-receipt freshness depend on relevant inputs with a conservative fallback for unknown dependencies.
+
+**Proposed implementation sequence:**
+
+1. Inventory M048/M050 validation by role: permanent behavior, bounded/native integration, historical completion proof, and unverified success assertions.
+2. Establish ordinary fast regression coverage and explicit native integration journeys for shared preview, review and input contracts.
+3. Replace whole-prior-milestone dependencies with narrow, exercised behavioral prerequisites while preserving outstanding M048/M050 acceptance and review obligations.
+4. Introduce scoped, fail-closed validation-input fingerprints and separate historical archival records from current test outcomes.
+5. Test changed/unrelated-file selection, negative regressions, native evidence freshness and real execution cost; update project engineering authority and completion documentation once a ready milestone adopts the design.
+
+**Non-goals:** No reopening approved historical reviews, retroactive weakening of ready milestones, silent relaxation of current graphic prerequisites, or M053 workbench migration.
+
+**Research:** `docs/research/milestone-receipts-vs-regression-validation-2026-10-12.md` (non-authoritative). This roadmap records priority and desired outcome, not an executable contract.
+
 ## Next direction
 
 Select the next milestone explicitly from current project truth. Likely candidates include deterministic input frames, animation projection, audio projection, save/load and replay, or packaging. None is current capability until specified and implemented.
