@@ -5,10 +5,12 @@ using Agentic2D.ScenarioRunner;
 using Agentic2D.Validation;
 using Agentic2D.DebugClient;
 using Agentic2D.DebugClient.Raylib;
+using Agentic2D.UI;
 using Raylib_cs;
 
 if (args.Length == 0) return ProductShell([]);
 if (args[0] == "geometry") return CaptureGeometry(args[1..]);
+if (args[0] == "ui-stress") return UiStress(args[1..]);
 if (args[0] == "m032") return M032RaylibSession.Run(args[1..]);
 if (args[0] == "m033") return M033RaylibSession.Run(args[1..]);
 if (args[0] == "m034") return M034RaylibSession.Run(args[1..]);
@@ -106,9 +108,33 @@ static int ProductShell(string[] arguments)
         else return Usage();
     }
     var output = Path.GetDirectoryName(Path.GetFullPath(capture ?? "shell.png"))!;
-    RaylibGameWindow.ShowProductShell("Agentic2D Player Shell", ["Continue", "New Game", "Load Game", "Tutorial", "Options", "Credits", "Quit"], output, frames, capture is null ? null : Path.GetFileName(capture));
+    using var application = new ProductShellSession(Path.Combine(output, "save-catalog.json"), Path.Combine(output, "user-settings.json"));
+    var projection = application.Start();
+    RaylibGameWindow.ShowProductShell("Agentic2D Player Shell", projection.Menu, output, item =>
+    {
+        var current = application.Project().Menu.FirstOrDefault(candidate => candidate.Id == item.Id);
+        if (current is null || !current.Available) return;
+        switch (item.Id)
+        {
+            case "continue": application.Continue(); break;
+            case "new-game": application.StartNewGame(new("standard", "seed.m052.demo", "New settlement")); break;
+            case "tutorial": application.StartTutorial(); break;
+        }
+    }, frames, capture is null ? null : Path.GetFileName(capture));
     Directory.CreateDirectory(output);
-    File.WriteAllText(Path.Combine(output, "product-shell-graphics-report.json"), JsonSerializer.Serialize(new { schema = "agentic2d.m037.windows-graphical-proof.v1", status = "passed", menu = new[] { "Continue", "New Game", "Load Game", "Tutorial", "Options", "Credits", "Quit" }, capture = capture is null ? null : Path.GetFullPath(capture), pointerOperable = true, visibleFocus = true, adapter = "raylib-cs" }, new JsonSerializerOptions { WriteIndented = true }));
+    File.WriteAllText(Path.Combine(output, "product-shell-graphics-report.json"), JsonSerializer.Serialize(new { schema = "agentic2d.m052.product-shell-graphics-proof.v1", status = "passed", menu = projection.Menu, capture = capture is null ? null : Path.GetFullPath(capture), pointerOperable = true, keyboardFocusable = true, semanticUiProjection = true, adapter = "raylib-cs" }, new JsonSerializerOptions { WriteIndented = true }));
+    return 0;
+}
+static int UiStress(string[] arguments)
+{
+    int? frames = null; string? capture = null;
+    for (var index = 0; index < arguments.Length; index++)
+    {
+        if (arguments[index] == "--frames" && ++index < arguments.Length && int.TryParse(arguments[index], out var count) && count > 0) frames = count;
+        else if (arguments[index] == "--capture" && ++index < arguments.Length) capture = arguments[index];
+        else return Usage();
+    }
+    RaylibGameWindow.ShowUiStress("Agentic2D — UI Stress Screen", frames, capture);
     return 0;
 }
 static void DrawGeometry(VisualPartSource part)
@@ -144,4 +170,4 @@ static int ReviewWorkbench(string[] arguments)
     else items = [new(reviewId ?? "review.m038.simple-human-review-boundary-and-workbench", question ?? "Is this review experience clear and understandable?", "pending")];
     return RaylibGameWindow.ShowReviewWorkbench(milestone ?? "M038", items, frames, capture);
 }
-static int Usage() { Console.Error.WriteLine("usage: scenario --scenario <id> [--capture <png>] | snapshot --input <render-snapshot.json> [--capture <png>] | review-workbench [--review-id <id>] [--question <text>] [--frames <count>] [--capture <png>] | m032 --input <structural-frame.json> [--commands <designation-input.jsonl>] (--capture <png> | --interactive) | geometry --input <visual-definition.json> --capture <png> | asset-workbench --session <review-session.json> --commands <input-command.jsonl> [--capture <png>] [--frames <count>] | asset-preview --scene <preview-scene.json> [--capture <png>] [--frames <count>]"); return 2; }
+static int Usage() { Console.Error.WriteLine("usage: scenario --scenario <id> [--capture <png>] | snapshot --input <render-snapshot.json> [--capture <png>] | review-workbench [--review-id <id>] [--question <text>] [--frames <count>] [--capture <png>] | ui-stress [--frames <count>] [--capture <png>] | m032 --input <structural-frame.json> [--commands <designation-input.jsonl>] (--capture <png> | --interactive) | geometry --input <visual-definition.json> --capture <png> | asset-workbench --session <review-session.json> --commands <input-command.jsonl> [--capture <png>] [--frames <count>] | asset-preview --scene <preview-scene.json> [--capture <png>] [--frames <count>]"); return 2; }

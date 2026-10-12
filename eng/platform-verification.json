@@ -31,6 +31,16 @@
         "m037/safe-mode-startup"
       ],
       "review": "future-linux-platform-compatibility-review-owned-by-catch-up-task"
+    },
+    {
+      "platform": "linux",
+      "sourceMilestone": "M052",
+      "checks": [
+        "m052/linux-product-shell-raylib-graphics",
+        "m052/linux-ui-stress-raylib-graphics",
+        "m052/linux-review-workbench-integration"
+      ],
+      "review": "future-linux-platform-compatibility-review-owned-by-catch-up-task"
     }
   ]
 }

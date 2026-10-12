@@ -91,6 +91,7 @@ This document indexes permanent behavioral authority. Milestones sequence work; 
 | `docs/specs/save-compatibility-and-recovery-contract.md` | M035 save compatibility, migration, corruption diagnostics, and recovery. |
 | `docs/specs/reproduction-and-internal-testing-contract.md` | M035 tester sessions, reproduction bundles, and readiness decisions. |
 | `docs/specs/ui-toolkit-contract.md` | M037 retained backend-neutral UI, focus, modal, text capture, scaling, and lifecycle. |
+| `docs/specs/agent-oriented-ui-contract.md` | M052 typed C# UI composition, normalized model, deterministic layout/input, presentation and evidence. |
 | `docs/specs/application-shell-and-client-contract.md` | M037 product lifecycle, player/diagnostics compositions, menus, and world replacement. |
 | `docs/specs/save-catalog-and-autosave-contract.md` | M037 player save metadata, Continue, catalog operations, autosave, and retention. |
 | `docs/specs/user-settings-and-display-safety-contract.md` | M037 versioned user settings, display preview/rollback, and safe mode. |

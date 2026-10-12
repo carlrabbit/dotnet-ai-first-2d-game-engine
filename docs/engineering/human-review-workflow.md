@@ -93,6 +93,8 @@ Machine aggregate verification and human review-check are separate gates.
 ./eng/review-check.sh --milestone <id>
 ```
 
+An undecided pending request can be corrected through the canonical `review request` command with `--update-pending true`, using the same review ID and owning milestone. Decided requests and immutable records cannot be replaced through this path.
+
 PowerShell 7 exposes equivalent thin adapters.
 
 ### review-run --milestone

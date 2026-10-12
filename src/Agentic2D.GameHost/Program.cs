@@ -28,7 +28,17 @@ try
     await File.WriteAllTextAsync(Path.Combine(output, "product-shell-startup.json"), JsonSerializer.Serialize(new { schema = "agentic2d.product-shell-startup.v1", state = shellStartup.State.ToString(), safeMode = parsed.SafeMode, resetUserSettings = parsed.ResetUserSettings, menu = shellStartup.Menu.Select(item => new { item.Id, item.Label, item.Available }), saveCount = shellStartup.Saves.Count, diagnosticsComposition = false }, ExportManifest.Json));
     if (parsed.ProductShell && !parsed.Headless)
     {
-        RaylibGameWindow.ShowProductShell(manifest.DisplayName, shellStartup.Menu.Where(item => item.Available).Select(item => item.Label).ToArray(), output, parsed.AutoCloseAfterFrames, parsed.Capture);
+        RaylibGameWindow.ShowProductShell(manifest.DisplayName, shellStartup.Menu, output, item =>
+        {
+            var current = shell.Project().Menu.FirstOrDefault(candidate => candidate.Id == item.Id);
+            if (current is null || !current.Available) return;
+            switch (item.Id)
+            {
+                case "continue": shell.Continue(); break;
+                case "new-game": shell.StartNewGame(new("standard", manifest.StartupScenario, "New settlement")); break;
+                case "tutorial": shell.StartTutorial(); break;
+            }
+        }, parsed.AutoCloseAfterFrames, parsed.Capture);
         await File.WriteAllTextAsync(Path.Combine(output, "product-shell-graphical.json"), JsonSerializer.Serialize(new { schema = "agentic2d.product-shell-graphical.v1", status = "passed", menu = shellStartup.Menu.Select(item => item.Label), pointerOperable = true, visibleFocus = true, diagnosticsComposition = false }, ExportManifest.Json));
         return 0;
     }

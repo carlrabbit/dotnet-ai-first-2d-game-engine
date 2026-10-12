@@ -4,6 +4,7 @@ using System.Text.Json;
 using System.Collections.Concurrent;
 using System.Threading.Channels;
 using Agentic2D.Tools;
+using Agentic2D.UI;
 
 namespace Agentic2D.DebugClient.Raylib;
 
@@ -17,7 +18,7 @@ public static class RaylibGameWindow
         using var queue = new ReviewDecisionQueue(Directory.GetCurrentDirectory());
         var local = items.Select(item => new LocalReview(item)).ToArray();
         var index = 0; var frame = 0; var mouseWasDown = false; var finalPage = false; var resetting = false; var resetError = string.Empty; var lastAction = "No decision yet"; var resetTask = (Task<DecisionResult>?)null;
-        RaylibApi.InitWindow(1120, 720, "Agentic2D — Review Workbench");
+        InitDesktopWindow("Agentic2D — Review Workbench");
         if (!RaylibApi.IsWindowReady()) { Console.Error.WriteLine("review workbench could not initialize the Raylib window"); return 1; }
         try
         {
@@ -48,7 +49,7 @@ public static class RaylibGameWindow
                 var left = !resetting && !finalPage && RaylibApi.IsKeyPressed(KeyboardKey.Left); var right = !resetting && !finalPage && RaylibApi.IsKeyPressed(KeyboardKey.Right);
                 if (left) index = (index + local.Length - 1) % local.Length; if (right) index = (index + 1) % local.Length;
                 var restart = click && Hit(mouse, 35, 600, 300, 90); var reject = click && !resetting && !finalPage && Hit(mouse, 410, 600, 300, 90); var accept = click && !resetting && !finalPage && Hit(mouse, 780, 600, 300, 90);
-                var launchPreview = click && !resetting && !finalPage && milestone == "M048" && Hit(mouse, 350, 435, 420, 72);
+                var launchPreview = click && !resetting && !finalPage && (milestone is "M048" or "M052") && Hit(mouse, 350, 435, 420, 72);
                 var retry = click && finalPage && Hit(mouse, 380, 600, 340, 72); var close = click && finalPage && queue.PendingCount == 0 && !local.Any(item => item.Persistence.StartsWith("failed", StringComparison.Ordinal)) && Hit(mouse, 780, 600, 300, 72);
                 if (restart && !resetting)
                 {
@@ -62,8 +63,8 @@ public static class RaylibGameWindow
                     var item = local[index];
                     if (item.PreviewTask is null || item.PreviewTask.IsCompleted)
                     {
-                        item.PreviewStatus = "launching actual candidate preview…";
-                        item.PreviewTask = LaunchPreviewAsync(item.Item.Id);
+                        item.PreviewStatus = milestone == "M052" ? "launching actual UI stress screen…" : "launching actual candidate preview…";
+                        item.PreviewTask = milestone == "M052" ? LaunchUiStressAsync() : LaunchPreviewAsync(item.Item.Id);
                     }
                 }
                 else if (reject || accept)
@@ -109,6 +110,22 @@ public static class RaylibGameWindow
             }
             catch (Exception exception) { return new(false, "actual candidate preview could not be launched: " + exception.Message); }
         }
+        static async Task<PreviewLaunchResult> LaunchUiStressAsync()
+        {
+            var root = FindRepositoryRoot();
+            var project = Path.Combine(root, "src", "Agentic2D.DebugClient.Raylib");
+            var start = new System.Diagnostics.ProcessStartInfo("dotnet") { WorkingDirectory = root, UseShellExecute = false, CreateNoWindow = true, RedirectStandardOutput = true, RedirectStandardError = true };
+            start.ArgumentList.Add("run"); start.ArgumentList.Add("--no-build"); start.ArgumentList.Add("--project"); start.ArgumentList.Add(project); start.ArgumentList.Add("--"); start.ArgumentList.Add("ui-stress");
+            try
+            {
+                using var process = System.Diagnostics.Process.Start(start) ?? throw new InvalidOperationException("UI stress screen process did not start");
+                var stdout = process.StandardOutput.ReadToEndAsync(); var stderr = process.StandardError.ReadToEndAsync();
+                await Task.WhenAll(process.WaitForExitAsync(), stdout, stderr);
+                if (process.ExitCode != 0) return new(false, "actual UI stress screen exited abnormally: " + stderr.Result.Trim());
+                return new(true, "launched / completed");
+            }
+            catch (Exception exception) { return new(false, "actual UI stress screen could not be launched: " + exception.Message); }
+        }
         static string FindRepositoryRoot()
         {
             var directory = AppContext.BaseDirectory;
@@ -125,7 +142,9 @@ public static class RaylibGameWindow
             RaylibApi.DrawText("Status: " + item.CurrentStatus.ToUpperInvariant(), 50, 114, 16, StatusColor(item.CurrentStatus));
             DrawWrappedLines(question.Lines, question.Bounds.X, question.Bounds.Y, question.LineHeight, question.FontSize, Color.White);
             RaylibApi.DrawRectangle(content.X, content.Y, content.Width, content.Height, new Color(27, 45, 68, 255)); RaylibApi.DrawRectangleLines(content.X, content.Y, content.Width, content.Height, new Color(76, 112, 143, 255));
-            if (milestone == "M048") DrawReviewSubjectPanel(item, mouse); else { RaylibApi.DrawCircle(555, 380, 70, new Color(54, 217, 232, 255)); RaylibApi.DrawCircleLines(555, 380, 70, Color.White); RaylibApi.DrawText("LIVE REVIEW CONTENT", 410, 475, 22, Color.White); }
+            if (milestone == "M048") DrawReviewSubjectPanel(item, mouse);
+            else if (milestone == "M052") DrawM052ReviewPanel(item, mouse);
+            else { RaylibApi.DrawCircle(555, 380, 70, new Color(54, 217, 232, 255)); RaylibApi.DrawCircleLines(555, 380, 70, Color.White); RaylibApi.DrawText("LIVE REVIEW CONTENT", 410, 475, 22, Color.White); }
             RaylibApi.DrawText($"Current decision: {item.Decision ?? "none"}   {item.Persistence}", 50, 556, 17, Color.White); RaylibApi.DrawText($"Last decision: {lastAction}   pending {queue.PendingCount} {Activity(queue.PendingCount)}", 50, 581, 15, new Color(193, 207, 225, 255));
             DrawButton(35, 620, 300, 72, "Restart", new Color(64, 91, 125, 255), Hit(mouse, 35, 600, 300, 90)); DrawButton(410, 620, 300, 72, "Reject", new Color(156, 82, 76, 255), Hit(mouse, 410, 600, 300, 90)); DrawButton(780, 620, 300, 72, "Accept", new Color(63, 143, 91, 255), Hit(mouse, 780, 600, 300, 90));
         }
@@ -136,6 +155,14 @@ public static class RaylibGameWindow
             RaylibApi.DrawText("Preview: " + item.PreviewStatus, 82, 360, 17, item.PreviewStatus.StartsWith("failed", StringComparison.Ordinal) ? Color.Red : Color.LightGray);
             DrawButton(350, 430, 420, 60, item.PreviewStatus.StartsWith("launched", StringComparison.Ordinal) ? "Launch again" : "Launch candidate preview", new Color(72, 104, 158, 255), Hit(mouse, 350, 435, 420, 72));
             RaylibApi.DrawText("Launching is optional; Accept and Reject remain available.", 82, 510, 16, new Color(193, 207, 225, 255));
+        }
+        static void DrawM052ReviewPanel(LocalReview item, System.Numerics.Vector2 mouse)
+        {
+            RaylibApi.DrawText("M052 AGENT-ORIENTED UI", 82, 265, 24, Color.White);
+            RaylibApi.DrawText("Launch the actual Product Shell stress screen to inspect layout, readable content, focus, feedback and input.", 82, 305, 17, new Color(178, 198, 220, 255));
+            RaylibApi.DrawText("Preview: " + item.PreviewStatus, 82, 355, 17, item.PreviewStatus.StartsWith("failed", StringComparison.Ordinal) ? Color.Red : Color.LightGray);
+            DrawButton(350, 430, 420, 60, item.PreviewStatus.StartsWith("launched", StringComparison.Ordinal) ? "Launch UI stress screen again" : "Launch actual UI stress screen", new Color(72, 104, 158, 255), Hit(mouse, 350, 435, 420, 72));
+            RaylibApi.DrawText("The synthetic content does not write review decisions or modify review persistence.", 82, 510, 16, new Color(193, 207, 225, 255));
         }
         static void DrawFinal(IReadOnlyList<LocalReview> reviews, ReviewDecisionQueue queue, string lastAction, string error, System.Numerics.Vector2 mouse)
         {
@@ -149,27 +176,137 @@ public static class RaylibGameWindow
         static void DrawWrappedLines(IReadOnlyList<string> lines, int x, int y, int lineHeight, int fontSize, Color color) { for (var row = 0; row < lines.Count; row++) RaylibApi.DrawText(lines[row], x, y + row * lineHeight, fontSize, color); }
     }
 
-    public static void ShowProductShell(string title, IReadOnlyList<string> menu, string output, int? autoCloseAfterFrames = null, string? capturePath = null)
+    public static void ShowProductShell(string title, IReadOnlyList<MenuItem> menu, string output, Action<MenuItem>? dispatchAction = null, int? autoCloseAfterFrames = null, string? capturePath = null)
     {
-        RaylibApi.InitWindow(960, 540, title + " — Main Menu");
-        var selected = 0;
+        InitDesktopWindow(title + " — Main Menu");
+        var definition = M052UiScreens.ProductShell(menu);
+        var session = new UiSession(definition, new UiViewport(RaylibApi.GetScreenWidth(), RaylibApi.GetScreenHeight()));
+        var lastWidth = RaylibApi.GetScreenWidth(); var lastHeight = RaylibApi.GetScreenHeight();
+        var shouldExit = false;
+        try
+        {
+            RaylibApi.SetTargetFPS(60);
+            for (var frame = 0; !RaylibApi.WindowShouldClose() && !shouldExit && (!autoCloseAfterFrames.HasValue || frame < autoCloseAfterFrames.Value); frame++)
+            {
+                if (lastWidth != RaylibApi.GetScreenWidth() || lastHeight != RaylibApi.GetScreenHeight()) { lastWidth = RaylibApi.GetScreenWidth(); lastHeight = RaylibApi.GetScreenHeight(); session.Recompose(definition, new UiViewport(lastWidth, lastHeight)); }
+                var mouse = RaylibApi.GetMousePosition();
+                session.Dispatch(new UiInputEvent("pointer-move", mouse.X, mouse.Y));
+                if (RaylibApi.IsMouseButtonPressed(MouseButton.Left)) session.Dispatch(new UiInputEvent("pointer-down", mouse.X, mouse.Y));
+                if (RaylibApi.IsMouseButtonReleased(MouseButton.Left)) session.Dispatch(new UiInputEvent("pointer-up", mouse.X, mouse.Y));
+                if (RaylibApi.IsKeyPressed(KeyboardKey.Down)) session.Dispatch(new UiInputEvent("key", Key: "Down"));
+                if (RaylibApi.IsKeyPressed(KeyboardKey.Up)) session.Dispatch(new UiInputEvent("key", Key: "Up"));
+                if (RaylibApi.IsKeyPressed(KeyboardKey.Tab)) session.Dispatch(new UiInputEvent("key", Key: RaylibApi.IsKeyDown(KeyboardKey.LeftShift) ? "Up" : "Tab"));
+                if (RaylibApi.IsKeyPressed(KeyboardKey.Enter) || RaylibApi.IsKeyPressed(KeyboardKey.KpEnter)) session.Dispatch(new UiInputEvent("key", Key: "Enter"));
+                foreach (var request in session.DrainActions())
+                {
+                    if (!request.ActionId.StartsWith("shell.", StringComparison.Ordinal)) continue;
+                    var id = request.ActionId["shell.".Length..];
+                    var current = menu.FirstOrDefault(item => item.Id == id);
+                    if (current is null || !current.Available) continue;
+                    if (id == "quit") shouldExit = true;
+                    else dispatchAction?.Invoke(current);
+                }
+                RaylibApi.BeginDrawing(); RaylibApi.ClearBackground(ParseThemeColor(definition.Theme.Background));
+                RaylibAgentUiRenderer.Render(UiDrawProjection.Create(session), definition.Theme);
+                RaylibApi.EndDrawing();
+                if (capturePath is not null && frame == 1) { Directory.CreateDirectory(output); var screenshotPath = Path.IsPathRooted(capturePath) ? capturePath : Path.Combine(output, capturePath); var raylibScreenshotPath = Path.GetRelativePath(Directory.GetCurrentDirectory(), Path.GetFullPath(screenshotPath)); RaylibApi.TakeScreenshot(raylibScreenshotPath); }
+            }
+        }
+        finally { if (RaylibApi.IsWindowReady()) RaylibApi.CloseWindow(); }
+    }
+
+    public static void ShowUiStress(string title, int? autoCloseAfterFrames = null, string? capturePath = null)
+    {
+        InitDesktopWindow(title);
+        var operation = new UiOperationProjection("preview.synthetic", AgentUiOperationStatus.Failed, "Preview unavailable. Retry is ready.", "stress.retry");
+        var modalVisible = false;
+        var definition = M052UiScreens.ReviewStress(operation, modalVisible);
+        var session = new UiSession(definition, new UiViewport(RaylibApi.GetScreenWidth(), RaylibApi.GetScreenHeight()));
+        var lastWidth = RaylibApi.GetScreenWidth(); var lastHeight = RaylibApi.GetScreenHeight();
         try
         {
             RaylibApi.SetTargetFPS(60);
             for (var frame = 0; !RaylibApi.WindowShouldClose() && (!autoCloseAfterFrames.HasValue || frame < autoCloseAfterFrames.Value); frame++)
             {
-                if (RaylibApi.IsKeyPressed(KeyboardKey.Down)) selected = (selected + 1) % menu.Count;
-                if (RaylibApi.IsKeyPressed(KeyboardKey.Up)) selected = (selected + menu.Count - 1) % menu.Count;
-                var mouse = RaylibApi.GetMousePosition();
-                for (var index = 0; index < menu.Count; index++) if (new System.Numerics.Vector2(320, 130 + index * 48).X <= mouse.X && mouse.X <= 640 && mouse.Y >= 130 + index * 48 && mouse.Y <= 170 + index * 48 && RaylibApi.IsMouseButtonPressed(MouseButton.Left)) selected = index;
-                RaylibApi.BeginDrawing(); RaylibApi.ClearBackground(new Color(17, 24, 39, 255));
-                RaylibApi.DrawText("AGENTIC2D", 320, 44, 34, Color.White); RaylibApi.DrawText("Endless settlement", 364, 84, 18, new Color(177, 190, 209, 255));
-                for (var index = 0; index < menu.Count; index++) { var focused = selected == index; var y = 130 + index * 48; RaylibApi.DrawRectangle(320, y, 320, 40, focused ? new Color(45, 125, 184, 255) : new Color(34, 48, 70, 255)); RaylibApi.DrawRectangleLines(320, y, 320, 40, focused ? Color.White : new Color(86, 104, 130, 255)); RaylibApi.DrawText(menu[index], 344, y + 10, 18, Color.White); }
-                RaylibApi.DrawText("Use pointer or Up/Down; Escape closes", 320, 492, 16, new Color(177, 190, 209, 255)); RaylibApi.EndDrawing();
-                if (capturePath is not null && frame == 1) { Directory.CreateDirectory(output); var screenshotPath = Path.IsPathRooted(capturePath) ? capturePath : Path.Combine(output, capturePath); var raylibScreenshotPath = Path.GetRelativePath(Directory.GetCurrentDirectory(), Path.GetFullPath(screenshotPath)); RaylibApi.TakeScreenshot(raylibScreenshotPath); }
+                if (lastWidth != RaylibApi.GetScreenWidth() || lastHeight != RaylibApi.GetScreenHeight()) { lastWidth = RaylibApi.GetScreenWidth(); lastHeight = RaylibApi.GetScreenHeight(); session.Recompose(definition, new UiViewport(lastWidth, lastHeight)); }
+                session.Dispatch(new UiInputEvent("time", Delta: RaylibApi.GetFrameTime()));
+                var mouse = RaylibApi.GetMousePosition(); session.Dispatch(new UiInputEvent("pointer-move", mouse.X, mouse.Y));
+                if (RaylibApi.IsMouseButtonPressed(MouseButton.Left)) session.Dispatch(new UiInputEvent("pointer-down", mouse.X, mouse.Y));
+                if (RaylibApi.IsMouseButtonReleased(MouseButton.Left)) session.Dispatch(new UiInputEvent("pointer-up", mouse.X, mouse.Y));
+                if (RaylibApi.IsKeyPressed(KeyboardKey.Tab)) session.Dispatch(new UiInputEvent("key", Key: "Tab"));
+                if (RaylibApi.IsKeyPressed(KeyboardKey.Enter)) session.Dispatch(new UiInputEvent("key", Key: "Enter"));
+                if (RaylibApi.IsKeyPressed(KeyboardKey.Backspace)) session.Dispatch(new UiInputEvent("key", Key: "Backspace"));
+                var codepoint = RaylibApi.GetCharPressed();
+                while (codepoint > 0) { if (codepoint >= 32) session.Dispatch(new UiInputEvent("text", Text: char.ConvertFromUtf32(codepoint))); codepoint = RaylibApi.GetCharPressed(); }
+                var wheel = RaylibApi.GetMouseWheelMove(); if (wheel != 0) session.Dispatch(new UiInputEvent("scroll", mouse.X, mouse.Y, Delta: -wheel * 40));
+                foreach (var request in session.DrainActions())
+                {
+                    if (request.ActionId == "stress.dialog") modalVisible = true;
+                    else if (request.ActionId == "stress.modal.close") modalVisible = false;
+                }
+                if (modalVisible != definition.Root.Items.SelectMany(Flatten).Any(x => x.Kind == AgentUiKind.Modal && x.Visible))
+                {
+                    definition = M052UiScreens.ReviewStress(operation, modalVisible);
+                    session.Recompose(definition, new UiViewport(RaylibApi.GetScreenWidth(), RaylibApi.GetScreenHeight()));
+                }
+                RaylibApi.BeginDrawing(); RaylibApi.ClearBackground(ParseThemeColor(definition.Theme.Background));
+                RaylibAgentUiRenderer.Render(UiDrawProjection.Create(session), definition.Theme);
+                RaylibApi.EndDrawing();
+                if (capturePath is not null && frame == 1) RaylibApi.TakeScreenshot(Path.GetRelativePath(Directory.GetCurrentDirectory(), Path.GetFullPath(capturePath)));
             }
         }
         finally { if (RaylibApi.IsWindowReady()) RaylibApi.CloseWindow(); }
+
+        static IEnumerable<UiElementDefinition> Flatten(UiElementDefinition item) { yield return item; foreach (var child in item.Items) foreach (var nested in Flatten(child)) yield return nested; }
+    }
+
+    private static void InitDesktopWindow(string title)
+    {
+        var monitor = RaylibApi.GetCurrentMonitor();
+        var width = Math.Min(1920, Math.Max(1280, RaylibApi.GetMonitorWidth(monitor) - 80));
+        var height = Math.Min(1080, Math.Max(720, RaylibApi.GetMonitorHeight(monitor) - 100));
+        RaylibApi.InitWindow(width, height, title);
+        if (RaylibApi.IsWindowReady()) RaylibApi.SetWindowMinSize(1280, 720);
+    }
+
+    internal static void DrawUiCommand(UiDrawCommand item, UiTheme theme)
+    {
+        var b = item.Bounds; var x = (int)Math.Round(b.X); var y = (int)Math.Round(b.Y); var width = Math.Max(1, (int)Math.Round(b.Width)); var height = Math.Max(1, (int)Math.Round(b.Height));
+        var interactive = item.Kind is "Button" or "Toggle" or "Slider" or "TextField" or "Select" or "List";
+        if (interactive)
+        {
+            var fill = !item.Enabled ? new Color(54, 65, 82, 255) : item.Focused || item.Variant == "hovered" ? ParseThemeColor(theme.Accent) : ParseThemeColor(theme.Surface);
+            RaylibApi.DrawRectangle(x, y, width, height, fill); RaylibApi.DrawRectangleLinesEx(new Rectangle(x, y, width, height), item.Focused ? (float)theme.FocusWidth : 1, item.Focused ? ParseThemeColor(theme.Foreground) : new Color(75, 91, 112, 255));
+        }
+        else if (item.Kind is "ContentSlot" or "Image")
+        {
+            RaylibApi.DrawRectangle(x, y, width, height, ParseThemeColor(theme.Surface)); RaylibApi.DrawRectangleLines(x, y, width, height, new Color(86, 117, 148, 255));
+            RaylibApi.DrawText(item.ContentReference ?? "Preview", x + 14, y + 14, 18, Color.LightGray);
+        }
+        else if (item.Kind == "Modal")
+        {
+            RaylibApi.DrawRectangle(x, y, width, height, new Color(6, 12, 22, 235));
+            var inset = Math.Min(width, 640); var left = x + (width - inset) / 2; var top = y + height / 4;
+            RaylibApi.DrawRectangle(left, top, inset, Math.Max(240, height / 2), ParseThemeColor(theme.Surface));
+            RaylibApi.DrawRectangleLines(left, top, inset, Math.Max(240, height / 2), new Color(106, 139, 174, 255));
+        }
+        else if (item.Kind == "Separator") RaylibApi.DrawRectangle(x, y, width, height, new Color(75, 91, 112, 255));
+        if (!string.IsNullOrWhiteSpace(item.Text))
+        {
+            var fontSize = Math.Max(1, (int)Math.Round(item.FontSize));
+            var textColor = item.Variant == "error" ? ParseThemeColor(theme.Error) : item.Enabled ? ParseThemeColor(theme.Foreground) : Color.LightGray;
+            var lines = item.Text.Split('\n'); var lineHeight = Math.Max(fontSize, (int)Math.Round(item.LineHeight));
+            var textY = y + (interactive ? Math.Max(8, (height - lines.Length * lineHeight) / 2) : 0);
+            for (var line = 0; line < lines.Length; line++) RaylibApi.DrawText(lines[line], x + (interactive ? 18 : 0), textY + line * lineHeight, fontSize, textColor);
+        }
+        if (item.Kind == "Progress" && item.Value is { } progress) { RaylibApi.DrawRectangle(x, y + height - 8, width, 6, new Color(62, 75, 92, 255)); RaylibApi.DrawRectangle(x, y + height - 8, (int)(width * progress), 6, ParseThemeColor(theme.Accent)); }
+        if (item.Kind == "Busy") { var pulse = item.Variant == "busy" ? item.Pulse : 1; RaylibApi.DrawCircle(x + 9, y + 10, 6 * (float)pulse, item.Variant == "error" ? Color.Orange : Color.Gold); }
+    }
+
+    private static Color ParseThemeColor(string value)
+    {
+        if (value.Length != 7 || value[0] != '#') return Color.White;
+        return new(Convert.ToInt32(value.Substring(1, 2), 16), Convert.ToInt32(value.Substring(3, 2), 16), Convert.ToInt32(value.Substring(5, 2), 16), 255);
     }
 
     public static void Show(string title, string scenarioId, int finalTick, int? autoCloseAfterFrames = null)
