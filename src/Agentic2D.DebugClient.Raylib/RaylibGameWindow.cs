@@ -1,8 +1,6 @@
 using Raylib_cs;
 using RaylibApi = Raylib_cs.Raylib;
 using System.Text.Json;
-using System.Collections.Concurrent;
-using System.Threading.Channels;
 using System.Runtime.InteropServices;
 using Agentic2D.Tools;
 using Agentic2D.UI;
@@ -14,167 +12,243 @@ public static class RaylibGameWindow
 {
     public sealed record ReviewWorkbenchItem(string Id, string Subject, string Status);
 
-    public static int ShowReviewWorkbench(string milestone, IReadOnlyList<ReviewWorkbenchItem> items, int? autoCloseAfterFrames = null, string? capturePath = null)
+    public static Task<int> ShowReviewWorkbench(string milestone, IReadOnlyList<ReviewWorkbenchItem> items, int? autoCloseAfterFrames = null, string? capturePath = null, string? inputProbeReportPath = null) => ShowM053ReviewWorkbench(milestone, items, autoCloseAfterFrames, capturePath, inputProbeReportPath);
+
+    private static async Task<int> ShowM053ReviewWorkbench(string milestone, IReadOnlyList<ReviewWorkbenchItem> items, int? autoCloseAfterFrames, string? capturePath, string? inputProbeReportPath)
     {
-        using var queue = new ReviewDecisionQueue(Directory.GetCurrentDirectory());
+        if (items.Count == 0) return 0;
+        var root = FindRepositoryRoot();
+        var queue = new ReviewDecisionQueue(items.Count, operation => ExecuteDecisionAsync(root, operation));
         var local = items.Select(item => new LocalReview(item)).ToArray();
-        var index = 0; var frame = 0; var mouseWasDown = false; var finalPage = false; var resetting = false; var resetError = string.Empty; var lastAction = "No decision yet"; var resetTask = (Task<DecisionResult>?)null;
+        var index = Array.FindIndex(local, item => item.IsUnresolved); if (index < 0) index = 0;
+        var finalPage = !local.Any(item => item.IsUnresolved); var resetting = false; var resetError = string.Empty; var lastAction = "No decision yet"; var closeLifecycle = new ReviewWorkbenchCloseLifecycle();
+        Task<ReviewResetResult>? resetTask = null;
         InitDesktopWindow("Agentic2D — Review Workbench");
         if (!RaylibApi.IsWindowReady()) { Console.Error.WriteLine("review workbench could not initialize the Raylib window"); return 1; }
         try
         {
             RaylibApi.SetTargetFPS(60);
-            while (!RaylibApi.WindowShouldClose() && (!autoCloseAfterFrames.HasValue || frame++ < autoCloseAfterFrames.Value))
+            RaylibApi.SetExitKey(KeyboardKey.Null);
+            var viewport = CurrentViewport();
+            var definition = Compose();
+            var session = new UiSession(definition, viewport);
+            var observedActions = new List<string>();
+            void WriteProbe(string status)
             {
+                if (inputProbeReportPath is null) return;
+                Directory.CreateDirectory(Path.GetDirectoryName(Path.GetFullPath(inputProbeReportPath))!);
+                File.WriteAllText(inputProbeReportPath, JsonSerializer.Serialize(new
+                {
+                    status,
+                    processId = Environment.ProcessId,
+                    windowHandle = CurrentWindowHandle(),
+                    viewport = session.Layout.Viewport,
+                    currentItem = local[index].Item.Id,
+                    currentOrdinal = index + 1,
+                    observedActions,
+                    mousePosition = RaylibApi.GetMousePosition(),
+                    windowFocused = RaylibApi.IsWindowFocused(),
+                    controls = session.Layout.Elements.Where(element => element.Enabled && element.ActionId is "review.previous" or "review.next")
+                        .Select(element => new { element.Id, element.ActionId, element.PhysicalBounds }).ToArray()
+                }, new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase }));
+            }
+            WriteProbe("ready");
+            for (var frame = 0; RaylibApi.IsWindowReady() && (!autoCloseAfterFrames.HasValue || frame < autoCloseAfterFrames.Value); frame++)
+            {
+                if (RaylibApi.WindowShouldClose()) closeLifecycle.RequestClose();
+                var currentViewport = CurrentViewport();
+                if (currentViewport != viewport) { viewport = currentViewport; session.Recompose(Compose(), viewport); }
                 foreach (var completion in queue.TakeCompletions())
                 {
                     var target = local.FirstOrDefault(item => item.Item.Id == completion.Id);
-                    if (target is not null) { target.Persistence = completion.Success ? "saved" : "failed: " + completion.Message; if (completion.Success && target.Decision is not null) target.CurrentStatus = target.Decision == "Accepted" ? "approved" : "changes-requested"; }
-                    if (!completion.Success) resetError = completion.Message;
-                    else if (!local.Any(item => item.Persistence.StartsWith("failed", StringComparison.Ordinal))) resetError = string.Empty;
+                    if (target is not null)
+                    {
+                        target.Persistence = completion.Success ? "saved" : "failed: " + completion.Message;
+                        target.Error = completion.Success ? string.Empty : completion.Message;
+                        if (completion.Success && target.Decision is not null) target.CurrentStatus = target.Decision == "Accepted" ? "approved" : "changes-requested";
+                    }
                 }
                 foreach (var item in local.Where(item => item.PreviewTask is { IsCompleted: true }))
                 {
-                    var result = item.PreviewTask!.Result;
-                    item.PreviewStatus = result.Success ? result.Message : "failed: " + result.Message;
-                    item.PreviewTask = null;
+                    var result = item.PreviewTask!.Result; item.PreviewStatus = result.Success ? result.Message : "failed: " + result.Message; item.PreviewTask = null;
                 }
                 if (resetTask is { IsCompleted: true })
                 {
                     var result = resetTask.Result; resetTask = null; resetting = false;
-                    if (!result.Success) resetError = result.Message;
-                    else { foreach (var item in local) { item.Decision = null; item.Persistence = "none"; } index = 0; finalPage = false; lastAction = "Review set reset; question 1 of " + local.Length; }
-                }
-
-                var mouse = ToLegacyCoordinates(RaylibApi.GetMousePosition()); var mouseDown = RaylibApi.IsMouseButtonDown(MouseButton.Left); var click = RaylibApi.IsMouseButtonPressed(MouseButton.Left) || (mouseDown && !mouseWasDown); mouseWasDown = mouseDown;
-                var left = !resetting && !finalPage && RaylibApi.IsKeyPressed(KeyboardKey.Left); var right = !resetting && !finalPage && RaylibApi.IsKeyPressed(KeyboardKey.Right);
-                if (left) index = (index + local.Length - 1) % local.Length; if (right) index = (index + 1) % local.Length;
-                var restart = click && Hit(mouse, 35, 600, 300, 90); var reject = click && !resetting && !finalPage && Hit(mouse, 410, 600, 300, 90); var accept = click && !resetting && !finalPage && Hit(mouse, 780, 600, 300, 90);
-                var launchPreview = click && !resetting && !finalPage && (milestone is "M048" or "M052") && Hit(mouse, 350, 435, 420, 72);
-                var retry = click && finalPage && Hit(mouse, 380, 600, 340, 72); var close = click && finalPage && queue.PendingCount == 0 && !local.Any(item => item.Persistence.StartsWith("failed", StringComparison.Ordinal)) && Hit(mouse, 780, 600, 300, 72);
-                if (restart && !resetting)
-                {
-                    resetting = true; finalPage = false; resetError = string.Empty; lastAction = "RESETTING REVIEW — draining queued decisions";
-                    resetTask = ResetAsync(queue, milestone);
-                }
-                else if (retry) foreach (var item in local.Where(item => item.Persistence.StartsWith("failed", StringComparison.Ordinal))) Enqueue(item, queue, ref lastAction);
-                else if (close) return 0;
-                else if (launchPreview)
-                {
-                    var item = local[index];
-                    if (item.PreviewTask is null || item.PreviewTask.IsCompleted)
+                    if (!result.Success) { resetError = result.Message; closeLifecycle.CancelRequest(); lastAction = "Review reset failed"; }
+                    else
                     {
-                        item.PreviewStatus = milestone == "M052" ? "launching actual UI stress screen…" : "launching actual candidate preview…";
-                        item.PreviewTask = milestone == "M052" ? LaunchUiStressAsync() : LaunchPreviewAsync(item.Item.Id);
+                        local = result.Items.Select(item => new LocalReview(item)).ToArray();
+                        if (local.Length == 0) { resetError = "Canonical review reload returned no registered reviews."; closeLifecycle.CancelRequest(); }
+                        else
+                        {
+                            await queue.CompleteAsync();
+                            queue = new ReviewDecisionQueue(local.Length, operation => ExecuteDecisionAsync(root, operation));
+                            index = Array.FindIndex(local, item => item.IsUnresolved); if (index < 0) index = 0; finalPage = !local.Any(item => item.IsUnresolved); resetError = string.Empty; lastAction = "Review set reset; question 1 of " + local.Length; session = new UiSession(Compose(), viewport);
+                        }
                     }
                 }
-                else if (reject || accept)
+                if (closeLifecycle.ShouldExit(queue.PendingCount, queue.FailedOperations.Count, resetting)) break;
+                if (!RaylibApi.IsWindowFocused() && session.CapturedId is not null) session.Dispatch(new UiInputEvent("pointer-cancel"));
+                session.Dispatch(new UiInputEvent("time", Delta: RaylibApi.GetFrameTime()));
+                var escapePressed = RaylibApi.IsKeyPressed(KeyboardKey.Escape);
+                if (escapePressed && !session.Dispatch(new UiInputEvent("key", Key: "Escape"))) closeLifecycle.RequestClose();
+                RaylibWorkbenchInput.Dispatch(session, allowEscape: false);
+                foreach (var request in session.DrainActions())
                 {
-                    var item = local[index]; item.Decision = accept ? "Accepted" : "Rejected"; item.Persistence = "saving"; lastAction = $"Question {index + 1}: {item.Decision} — saving"; Enqueue(item, queue, ref lastAction);
-                    var next = NextUndecided(local, index); if (next < 0) finalPage = true; else index = next;
+                    observedActions.Add(request.ActionId + "@" + local[index].Item.Id);
+                    switch (request.ActionId)
+                    {
+                        case "review.previous": if (!finalPage && !resetting && !closeLifecycle.BlocksNewActions) index = (index + local.Length - 1) % local.Length; break;
+                        case "review.next": if (!finalPage && !resetting && !closeLifecycle.BlocksNewActions) index = (index + 1) % local.Length; break;
+                        case "review.restart":
+                            if (!resetting && !closeLifecycle.BlocksNewActions) { resetting = true; finalPage = false; resetError = string.Empty; lastAction = "Restarting review and draining pending decisions"; resetTask = ResetAsync(); }
+                            break;
+                        case "review.preview":
+                            if (!finalPage && !resetting && !closeLifecycle.BlocksNewActions && milestone is "M048" or "M053") { var item = local[index]; if (item.PreviewTask is null) { item.PreviewStatus = "launching actual candidate preview"; item.PreviewTask = milestone == "M048" ? LaunchM048PreviewAsync(item.Item.Id) : LaunchM053ExperienceAsync(item.Item.Id); } }
+                            break;
+                        case "review.stress":
+                            if (!finalPage && !resetting && !closeLifecycle.BlocksNewActions && milestone == "M052") { var item = local[index]; if (item.PreviewTask is null) { item.PreviewStatus = "launching actual UI stress screen"; item.PreviewTask = LaunchUiStressWindowAsync(); } }
+                            break;
+                        case "review.retry":
+                            if (!resetting)
+                            {
+                                var retryIds = queue.FailedOperations.Select(operation => operation.Id).ToHashSet(StringComparer.Ordinal);
+                                var retryCount = queue.RetryFailed();
+                                foreach (var item in local.Where(item => retryIds.Contains(item.Item.Id))) item.Persistence = "retrying";
+                                lastAction = $"Retrying {retryCount} failed decision saves";
+                            }
+                            break;
+                        case "review.close":
+                            closeLifecycle.RequestClose();
+                            break;
+                        case "review.accept":
+                        case "review.reject":
+                            if (!resetting && !closeLifecycle.BlocksNewActions && !finalPage && local[index].IsUnresolved && local[index].Decision is null)
+                            {
+                                var item = local[index]; item.Decision = request.ActionId == "review.accept" ? "Accepted" : "Rejected"; item.Persistence = "saving";
+                                lastAction = $"Question {index + 1}: {item.Decision} — saving";
+                                if (!queue.TryEnqueue(new ReviewDecisionOperation(item.Item.Id, item.Decision == "Accepted" ? "approved" : "changes-requested"))) { item.Persistence = "failed: Decision queue is full or the item already has an accepted operation."; item.Error = "Decision queue is full or the item already has an accepted operation."; }
+                                var next = NextUndecided(local, index); if (next < 0) finalPage = true; else index = next;
+                            }
+                            break;
+                    }
                 }
-
-                RaylibApi.BeginDrawing(); RaylibApi.ClearBackground(new Color(14, 22, 38, 255)); RaylibApi.BeginMode2D(LegacyCamera());
-                RaylibApi.DrawText("SIMPLE REVIEW WORKBENCH", 50, 28, 28, Color.White); RaylibApi.DrawText(milestone, 50, 66, 16, new Color(155, 173, 198, 255));
-                if (resetting) { RaylibApi.DrawText("RESETTING REVIEW", 50, 150, 30, Color.Gold); RaylibApi.DrawText(lastAction + "  " + ActivityFrame(frame), 50, 210, 21, Color.White); }
-                else if (finalPage) DrawFinal(local, queue, lastAction, resetError, mouse);
-                else DrawQuestion(milestone, local, index, lastAction, queue, mouse);
-                RaylibApi.EndMode2D(); RaylibApi.EndDrawing();
+                definition = Compose(); session.Recompose(definition, currentViewport);
+                WriteProbe("ready");
+                RaylibWorkbenchInput.Render(session);
                 if (capturePath is not null && frame == 2)
                 {
-                    var absoluteCapture = Path.GetFullPath(capturePath);
-                    Directory.CreateDirectory(Path.GetDirectoryName(absoluteCapture)!);
+                    var absoluteCapture = Path.GetFullPath(capturePath); Directory.CreateDirectory(Path.GetDirectoryName(absoluteCapture)!);
                     RaylibApi.TakeScreenshot(Path.GetRelativePath(Directory.GetCurrentDirectory(), absoluteCapture));
                 }
             }
             return 0;
         }
-        finally { if (RaylibApi.IsWindowReady()) RaylibApi.CloseWindow(); }
-
-        static int NextUndecided(IReadOnlyList<LocalReview> reviews, int current) { for (var offset = 1; offset <= reviews.Count; offset++) { var candidate = (current + offset) % reviews.Count; if (reviews[candidate].IsUnresolved && reviews[candidate].Decision is null) return candidate; } return -1; }
-        static void Enqueue(LocalReview item, ReviewDecisionQueue queue, ref string lastAction) { queue.Enqueue(item.Item.Id, item.Decision == "Accepted" ? "approved" : "changes-requested", item.CurrentStatus == "approved"); lastAction = $"Question {item.Item.Id}: {item.Decision} — saving {Activity(queue.PendingCount)}"; }
-        static async Task<DecisionResult> ResetAsync(ReviewDecisionQueue queue, string milestone) { await queue.DrainAsync(); return await queue.RunControlAsync(["review", "reset", "--milestone", milestone]); }
-        static async Task<PreviewLaunchResult> LaunchPreviewAsync(string reviewId)
+        finally
         {
-            var root = FindRepositoryRoot();
-            if (!M048ReviewExperienceRegistry.TryResolve(reviewId, root, out var fixture, out var error)) return new(false, error);
-            var project = Path.Combine(root, "src", "Agentic2D.DebugClient.Raylib");
-            var start = new System.Diagnostics.ProcessStartInfo("dotnet") { WorkingDirectory = root, UseShellExecute = false, CreateNoWindow = false, RedirectStandardOutput = true, RedirectStandardError = true };
-            start.ArgumentList.Add("run"); start.ArgumentList.Add("--no-build"); start.ArgumentList.Add("--project"); start.ArgumentList.Add(project); start.ArgumentList.Add("--"); start.ArgumentList.Add("asset-preview"); start.ArgumentList.Add("--scene"); start.ArgumentList.Add(fixture!.ScenePath);
+            await queue.CompleteAsync();
+            if (RaylibApi.IsWindowReady()) RaylibApi.CloseWindow();
+        }
+
+        UiDefinition Compose()
+        {
+            var item = local[index];
+            var failed = queue.FailedOperations.ToDictionary(operation => operation.Id, StringComparer.Ordinal);
+            var summaries = local.Select((entry, ordinal) => new M053WorkbenchScreens.ReviewDecisionSummary(ordinal + 1,
+                entry.Decision ?? (entry.CurrentStatus == "approved" ? "Accepted" : entry.CurrentStatus == "changes-requested" ? "Rejected" : ""),
+                entry.Persistence == "saving" || entry.Persistence == "retrying" ? $"Saving ({queue.PendingCount} pending)" : entry.Persistence switch { "saved" => "Saved", _ when entry.Persistence.StartsWith("failed", StringComparison.Ordinal) => "Failed", _ => "Not written" },
+                entry.Error)).ToArray();
+            var allSaved = queue.PendingCount == 0 && failed.Count == 0 && local.Where(entry => entry.Decision is not null).All(entry => entry.Persistence == "saved");
+            var status = failed.Count > 0 ? "failed" : item.Persistence;
+            var feedback = resetting ? (closeLifecycle.IsRequested ? "Waiting for the active review reset to finish before closing." : lastAction) : !string.IsNullOrWhiteSpace(resetError) ? "Review reset failed: " + resetError : failed.Count > 0 ? string.Join("; ", failed.Select(pair => $"{pair.Key}: {local.First(entry => entry.Item.Id == pair.Key).Error}")) : $"{lastAction}; pending {queue.PendingCount}; current item {item.Persistence}.";
+            return M053WorkbenchScreens.Review(new(milestone, item.Item.Id, item.Item.Subject, index + 1, local.Length,
+                item.CurrentStatus, status, feedback, item.IsUnresolved && item.Decision is null && !resetting && !closeLifecycle.BlocksNewActions,
+                failed.Count > 0, finalPage && allSaved,
+                milestone == "M048" || milestone == "M053" && (item.Item.Id.EndsWith("asset-workbench", StringComparison.Ordinal) || item.Item.Id.Contains("preview", StringComparison.Ordinal)), milestone == "M052", finalPage, resetting,
+                summaries, queue.PendingCount, closeLifecycle.IsRequested));
+        }
+        int NextUndecided(IReadOnlyList<LocalReview> reviews, int current)
+        {
+            for (var offset = 1; offset <= reviews.Count; offset++) { var candidate = (current + offset) % reviews.Count; if (reviews[candidate].IsUnresolved && reviews[candidate].Decision is null) return candidate; }
+            return -1;
+        }
+        async Task<ReviewResetResult> ResetAsync()
+        {
+            await queue.WaitForIdleAsync();
+            if (queue.FailedOperations.Count > 0) return new(false, "Review reset stopped because decision persistence failed. Retry failed saves before restarting.", []);
+            var reset = await RunEngineeringCommandAsync(root, ["review", "reset", "--milestone", milestone]);
+            if (!reset.Success) return new(false, reset.Error, []);
+            var snapshot = await RunEngineeringCommandAsync(root, ["review", "snapshot", "--milestone", milestone]);
+            if (!snapshot.Success) return new(false, snapshot.Error, []);
             try
             {
-                using var process = System.Diagnostics.Process.Start(start) ?? throw new InvalidOperationException("asset-preview process did not start");
-                var stdout = process.StandardOutput.ReadToEndAsync(); var stderr = process.StandardError.ReadToEndAsync();
-                await Task.WhenAll(process.WaitForExitAsync(), stdout, stderr);
-                if (process.ExitCode != 0) return new(false, "actual candidate preview exited abnormally: " + stderr.Result.Trim());
-                return new(true, "launched / completed");
+                var reloaded = JsonSerializer.Deserialize<List<ReviewWorkbenchItem>>(snapshot.Output, new JsonSerializerOptions { PropertyNameCaseInsensitive = true }) ?? [];
+                if (reloaded.Count == 0 || reloaded.Any(review => string.IsNullOrWhiteSpace(review.Id) || review.Status is not ("pending" or "changes-requested"))) return new(false, "Canonical review reload returned an invalid or non-undecided review set.", []);
+                return new(true, "Active milestone review state reset and reloaded.", reloaded);
             }
-            catch (Exception exception) { return new(false, "actual candidate preview could not be launched: " + exception.Message); }
+            catch (JsonException exception) { return new(false, "Could not parse canonical review reload: " + exception.Message, []); }
         }
-        static async Task<PreviewLaunchResult> LaunchUiStressAsync()
-        {
-            var root = FindRepositoryRoot();
-            var project = Path.Combine(root, "src", "Agentic2D.DebugClient.Raylib");
-            var start = new System.Diagnostics.ProcessStartInfo("dotnet") { WorkingDirectory = root, UseShellExecute = false, CreateNoWindow = true, RedirectStandardOutput = true, RedirectStandardError = true };
-            start.ArgumentList.Add("run"); start.ArgumentList.Add("--no-build"); start.ArgumentList.Add("--project"); start.ArgumentList.Add(project); start.ArgumentList.Add("--"); start.ArgumentList.Add("ui-stress");
-            try
-            {
-                using var process = System.Diagnostics.Process.Start(start) ?? throw new InvalidOperationException("UI stress screen process did not start");
-                var stdout = process.StandardOutput.ReadToEndAsync(); var stderr = process.StandardError.ReadToEndAsync();
-                await Task.WhenAll(process.WaitForExitAsync(), stdout, stderr);
-                if (process.ExitCode != 0) return new(false, "actual UI stress screen exited abnormally: " + stderr.Result.Trim());
-                return new(true, "launched / completed");
-            }
-            catch (Exception exception) { return new(false, "actual UI stress screen could not be launched: " + exception.Message); }
-        }
-        static string FindRepositoryRoot()
-        {
-            var directory = AppContext.BaseDirectory;
-            while (!string.IsNullOrWhiteSpace(directory)) { if (File.Exists(Path.Combine(directory, "dotnet-ai-first-2d-game-engine.slnx"))) return directory; directory = Directory.GetParent(directory)?.FullName; }
-            return Directory.GetCurrentDirectory();
-        }
-        static string Activity(int value) => value > 0 ? "◌" + new string('.', (value % 3) + 1) : "saved";
-        static string ActivityFrame(int frame) => "◌" + new string('.', (frame % 3) + 1);
-        static bool Hit(System.Numerics.Vector2 p, int x, int y, int w, int h) => p.X >= x && p.X <= x + w && p.Y >= y && p.Y <= y + h;
-        static void DrawQuestion(string milestone, IReadOnlyList<LocalReview> reviews, int index, string lastAction, ReviewDecisionQueue queue, System.Numerics.Vector2 mouse)
-        {
-            var item = reviews[index]; var question = ReviewSurfaceLayout.WorkbenchQuestion(item.Item.Subject); var content = ReviewSurfaceLayout.WorkbenchContent;
-            RaylibApi.DrawText("<", ReviewSurfaceLayout.WorkbenchPrevious.X, ReviewSurfaceLayout.WorkbenchPrevious.Y, 30, Color.White); RaylibApi.DrawText($"Question {index + 1} / {reviews.Count}", ReviewSurfaceLayout.WorkbenchOrdinal.X, ReviewSurfaceLayout.WorkbenchOrdinal.Y, 22, Color.White); RaylibApi.DrawText(">", ReviewSurfaceLayout.WorkbenchNext.X, ReviewSurfaceLayout.WorkbenchNext.Y, 30, Color.White);
-            RaylibApi.DrawText("Status: " + item.CurrentStatus.ToUpperInvariant(), ReviewSurfaceLayout.WorkbenchStatus.X, 114, 16, StatusColor(item.CurrentStatus));
-            DrawWrappedLines(question.Lines, question.Bounds.X, question.Bounds.Y, question.LineHeight, question.FontSize, Color.White);
-            RaylibApi.DrawRectangle(content.X, content.Y, content.Width, content.Height, new Color(27, 45, 68, 255)); RaylibApi.DrawRectangleLines(content.X, content.Y, content.Width, content.Height, new Color(76, 112, 143, 255));
-            if (milestone == "M048") DrawReviewSubjectPanel(item, mouse);
-            else if (milestone == "M052") DrawM052ReviewPanel(item, mouse);
-            else { RaylibApi.DrawCircle(555, 380, 70, new Color(54, 217, 232, 255)); RaylibApi.DrawCircleLines(555, 380, 70, Color.White); RaylibApi.DrawText("LIVE REVIEW CONTENT", 410, 475, 22, Color.White); }
-            RaylibApi.DrawText($"Current decision: {item.Decision ?? "none"}   {item.Persistence}", 50, 556, 17, Color.White); RaylibApi.DrawText($"Last decision: {lastAction}   pending {queue.PendingCount} {Activity(queue.PendingCount)}", 50, 581, 15, new Color(193, 207, 225, 255));
-            DrawButton(35, 620, 300, 72, "Restart", new Color(64, 91, 125, 255), Hit(mouse, 35, 600, 300, 90)); DrawButton(410, 620, 300, 72, "Reject", new Color(156, 82, 76, 255), Hit(mouse, 410, 600, 300, 90)); DrawButton(780, 620, 300, 72, "Accept", new Color(63, 143, 91, 255), Hit(mouse, 780, 600, 300, 90));
-        }
-        static void DrawReviewSubjectPanel(LocalReview item, System.Numerics.Vector2 mouse)
-        {
-            RaylibApi.DrawText("M048 CANDIDATE PREVIEW", 82, 275, 22, Color.White);
-            RaylibApi.DrawText("The actual candidate is available in the separate Raylib asset-preview window.", 82, 315, 17, new Color(178, 198, 220, 255));
-            RaylibApi.DrawText("Preview: " + item.PreviewStatus, 82, 360, 17, item.PreviewStatus.StartsWith("failed", StringComparison.Ordinal) ? Color.Red : Color.LightGray);
-            DrawButton(350, 430, 420, 60, item.PreviewStatus.StartsWith("launched", StringComparison.Ordinal) ? "Launch again" : "Launch candidate preview", new Color(72, 104, 158, 255), Hit(mouse, 350, 435, 420, 72));
-            RaylibApi.DrawText("Launching is optional; Accept and Reject remain available.", 82, 510, 16, new Color(193, 207, 225, 255));
-        }
-        static void DrawM052ReviewPanel(LocalReview item, System.Numerics.Vector2 mouse)
-        {
-            RaylibApi.DrawText("M052 AGENT-ORIENTED UI", 82, 265, 24, Color.White);
-            RaylibApi.DrawText("Launch the actual Product Shell stress screen to inspect layout, readable content, focus, feedback and input.", 82, 305, 17, new Color(178, 198, 220, 255));
-            RaylibApi.DrawText("Preview: " + item.PreviewStatus, 82, 355, 17, item.PreviewStatus.StartsWith("failed", StringComparison.Ordinal) ? Color.Red : Color.LightGray);
-            DrawButton(350, 430, 420, 60, item.PreviewStatus.StartsWith("launched", StringComparison.Ordinal) ? "Launch UI stress screen again" : "Launch actual UI stress screen", new Color(72, 104, 158, 255), Hit(mouse, 350, 435, 420, 72));
-            RaylibApi.DrawText("The synthetic content does not write review decisions or modify review persistence.", 82, 510, 16, new Color(193, 207, 225, 255));
-        }
-        static void DrawFinal(IReadOnlyList<LocalReview> reviews, ReviewDecisionQueue queue, string lastAction, string error, System.Numerics.Vector2 mouse)
-        {
-            RaylibApi.DrawText("REVIEW PASS COMPLETE", 50, 150, 30, Color.White); var y = 220; for (var i = 0; i < reviews.Count; i++) { RaylibApi.DrawText($"{i + 1}   {reviews[i].Decision}", 80, y, 22, reviews[i].Decision == "Accepted" ? new Color(130, 230, 150, 255) : Color.Orange); y += 42; }
-            RaylibApi.DrawText($"{lastAction}   pending {queue.PendingCount} {Activity(queue.PendingCount)}", 50, 410, 18, Color.White); if (!string.IsNullOrWhiteSpace(error)) { RaylibApi.DrawText("Persistence failed — Retry", 50, 455, 20, Color.Red); DrawButton(380, 600, 340, 72, "Retry", new Color(180, 126, 50, 255), Hit(mouse, 380, 600, 340, 72)); }
-            var enabled = queue.PendingCount == 0 && string.IsNullOrWhiteSpace(error) && !reviews.Any(item => item.Persistence.StartsWith("failed", StringComparison.Ordinal)); DrawButton(780, 600, 300, 72, enabled ? "Close" : "Saving…", new Color(64, 91, 125, 255), enabled && Hit(mouse, 780, 600, 300, 72));
-        }
-        static void DrawButton(int x, int y, int w, int h, string text, Color color, bool hovered) { var fill = hovered ? new Color(Math.Min(color.R + 25, 255), Math.Min(color.G + 25, 255), Math.Min(color.B + 25, 255), 255) : color; RaylibApi.DrawRectangle(x, y, w, h, fill); RaylibApi.DrawRectangleLinesEx(new Rectangle(x, y, w, h), hovered ? 3 : 1, Color.White); RaylibApi.DrawText(text, x + (w - RaylibApi.MeasureText(text, 26)) / 2, y + 22, 26, Color.White); }
-        static Color StatusColor(string status) => status switch { "approved" => new Color(130, 230, 150, 255), "changes-requested" => Color.Orange, _ => Color.Gold };
+    }
 
-        static void DrawWrappedLines(IReadOnlyList<string> lines, int x, int y, int lineHeight, int fontSize, Color color) { for (var row = 0; row < lines.Count; row++) RaylibApi.DrawText(lines[row], x, y + row * lineHeight, fontSize, color); }
+    private static unsafe long CurrentWindowHandle() => (long)(nint)RaylibApi.GetWindowHandle();
+
+    private static async Task<PreviewLaunchResult> LaunchM048PreviewAsync(string reviewId)
+    {
+        var root = FindRepositoryRoot();
+        if (!M048ReviewExperienceRegistry.TryResolve(reviewId, root, out var fixture, out var error)) return new(false, error);
+        var start = new System.Diagnostics.ProcessStartInfo("dotnet") { WorkingDirectory = root, UseShellExecute = false, CreateNoWindow = false, RedirectStandardOutput = true, RedirectStandardError = true };
+        start.ArgumentList.Add("run"); start.ArgumentList.Add("--no-build"); start.ArgumentList.Add("--project"); start.ArgumentList.Add(Path.Combine(root, "src", "Agentic2D.DebugClient.Raylib")); start.ArgumentList.Add("--"); start.ArgumentList.Add("asset-preview"); start.ArgumentList.Add("--scene"); start.ArgumentList.Add(fixture!.ScenePath);
+        return await RunPreviewProcessAsync(start, "actual candidate preview");
+    }
+
+    private static async Task<PreviewLaunchResult> LaunchM053ExperienceAsync(string reviewId)
+    {
+        var root = FindRepositoryRoot();
+        var nativeRoot = Path.Combine(root, "artifacts", "ui", "M053", "native");
+        var project = Path.Combine(root, "src", "Agentic2D.DebugClient.Raylib");
+        var start = new System.Diagnostics.ProcessStartInfo("dotnet") { WorkingDirectory = root, UseShellExecute = false, CreateNoWindow = false, RedirectStandardOutput = true, RedirectStandardError = true };
+        start.ArgumentList.Add("run"); start.ArgumentList.Add("--no-build"); start.ArgumentList.Add("--project"); start.ArgumentList.Add(project); start.ArgumentList.Add("--");
+        if (reviewId.Contains("asset-workbench", StringComparison.Ordinal))
+        {
+            var session = Path.Combine(nativeRoot, "workbench-fixture", "opened", "review-session.json");
+            if (!File.Exists(session)) return new(false, "M053 asset-workbench fixture is unavailable; rerun m053-workbenches native validation.");
+            start.ArgumentList.Add("asset-workbench"); start.ArgumentList.Add("--session"); start.ArgumentList.Add(session); start.ArgumentList.Add("--commands"); start.ArgumentList.Add(Path.Combine(nativeRoot, "workbench-fixture", "review-commands.jsonl"));
+            return await RunPreviewProcessAsync(start, "M053 asset workbench experience");
+        }
+        var kind = reviewId.Contains("image", StringComparison.Ordinal) ? "image" : reviewId.Contains("animation", StringComparison.Ordinal) ? "animation" : reviewId.Contains("audio", StringComparison.Ordinal) ? "audio" : null;
+        if (kind is null) return new(false, "No M053 application experience is registered for this review item.");
+        var scene = Path.Combine(nativeRoot, "preview-fixtures", kind, "artifacts", "assets", "M048", "fixture", kind, "review-bundle", "preview-scene.json");
+        if (!File.Exists(scene)) return new(false, "M053 " + kind + " preview fixture is unavailable; rerun m053-workbenches native validation.");
+        start.ArgumentList.Add("asset-preview"); start.ArgumentList.Add("--scene"); start.ArgumentList.Add(scene);
+        return await RunPreviewProcessAsync(start, "M053 " + kind + " candidate preview");
+    }
+
+    private static async Task<PreviewLaunchResult> LaunchUiStressWindowAsync()
+    {
+        var root = FindRepositoryRoot();
+        var start = new System.Diagnostics.ProcessStartInfo("dotnet") { WorkingDirectory = root, UseShellExecute = false, CreateNoWindow = false, RedirectStandardOutput = true, RedirectStandardError = true };
+        start.ArgumentList.Add("run"); start.ArgumentList.Add("--no-build"); start.ArgumentList.Add("--project"); start.ArgumentList.Add(Path.Combine(root, "src", "Agentic2D.DebugClient.Raylib")); start.ArgumentList.Add("--"); start.ArgumentList.Add("ui-stress");
+        return await RunPreviewProcessAsync(start, "actual UI stress screen");
+    }
+
+    private static async Task<PreviewLaunchResult> RunPreviewProcessAsync(System.Diagnostics.ProcessStartInfo start, string label)
+    {
+        try
+        {
+            using var process = System.Diagnostics.Process.Start(start) ?? throw new InvalidOperationException(label + " process did not start");
+            var stdout = process.StandardOutput.ReadToEndAsync(); var stderr = process.StandardError.ReadToEndAsync();
+            await Task.WhenAll(process.WaitForExitAsync(), stdout, stderr);
+            return process.ExitCode == 0 ? new(true, "launched / completed") : new(false, label + " exited abnormally: " + stderr.Result.Trim());
+        }
+        catch (Exception exception) { return new(false, label + " could not be launched: " + exception.Message); }
+    }
+
+    private static string FindRepositoryRoot()
+    {
+        var directory = AppContext.BaseDirectory;
+        while (!string.IsNullOrWhiteSpace(directory)) { if (File.Exists(Path.Combine(directory, "dotnet-ai-first-2d-game-engine.slnx"))) return directory; directory = Directory.GetParent(directory)?.FullName; }
+        return Directory.GetCurrentDirectory();
     }
 
     public static unsafe void ShowProductShell(string title, IReadOnlyList<MenuItem> menu, string output, Action<MenuItem>? dispatchAction = null, int? autoCloseAfterFrames = null, string? capturePath = null, string? inputProbeReportPath = null)
@@ -304,7 +378,7 @@ public static class RaylibGameWindow
         static IEnumerable<UiElementDefinition> Flatten(UiElementDefinition item) { yield return item; foreach (var child in item.Items) foreach (var nested in Flatten(child)) yield return nested; }
     }
 
-    private static unsafe void InitDesktopWindow(string title)
+    internal static unsafe void InitDesktopWindow(string title)
     {
         RaylibApi.SetConfigFlags(ConfigFlags.ResizableWindow);
         var work = GetWorkArea();
@@ -332,7 +406,7 @@ public static class RaylibGameWindow
         }
     }
 
-    private static UiViewport CurrentViewport()
+    internal static UiViewport CurrentViewport()
     {
         var dpi = RaylibApi.GetWindowScaleDPI();
         var dpiScale = Math.Max(dpi.X, dpi.Y);
@@ -343,21 +417,6 @@ public static class RaylibGameWindow
         var effectiveDpi = float.IsFinite(dpiScale) && dpiScale > 0 ? (double)dpiScale : 1;
         if (renderWidth > 0 && screenWidth > 0) effectiveDpi = renderWidth / (double)screenWidth;
         return new(renderWidth > 0 ? renderWidth : screenWidth, renderHeight > 0 ? renderHeight : screenHeight, 1, effectiveDpi);
-    }
-
-    private static System.Numerics.Vector2 ToLegacyCoordinates(System.Numerics.Vector2 point)
-    {
-        var camera = LegacyCamera();
-        var scale = camera.Zoom;
-        return (point - camera.Offset) / scale;
-    }
-
-    private static Camera2D LegacyCamera()
-    {
-        var screenWidth = RaylibApi.GetScreenWidth(); var screenHeight = RaylibApi.GetScreenHeight();
-        var scale = Math.Min(screenWidth / 1120f, screenHeight / 720f);
-        var x = (screenWidth - 1120f * scale) / 2; var y = (screenHeight - 720f * scale) / 2;
-        return new Camera2D { Offset = new(x, y), Target = System.Numerics.Vector2.Zero, Rotation = 0, Zoom = scale };
     }
 
     private static WorkArea GetWorkArea()
@@ -517,68 +576,40 @@ public static class RaylibGameWindow
 
     private sealed class LocalReview
     {
-        public LocalReview(ReviewWorkbenchItem item) { Item = item; CurrentStatus = item.Status; }
+        public LocalReview(ReviewWorkbenchItem item) { Item = item; CurrentStatus = item.Status; if (item.Status == "approved") { Decision = "Accepted"; Persistence = "saved"; } }
         public ReviewWorkbenchItem Item { get; }
         public string CurrentStatus { get; set; } = string.Empty;
         public string? Decision { get; set; }
         public string Persistence { get; set; } = "none";
+        public string Error { get; set; } = string.Empty;
         public string PreviewStatus { get; set; } = "not launched from this review session";
         public Task<PreviewLaunchResult>? PreviewTask { get; set; }
-        public bool IsUnresolved => Item.Status is "pending" or "changes-requested";
+        public bool IsUnresolved => CurrentStatus is "pending" or "changes-requested";
     }
 
-    private sealed record DecisionCompletion(string Id, bool Success, string Message);
-    private sealed record DecisionJob(string Id, string Decision, bool ReopenFirst);
-    private sealed record DecisionResult(bool Success, string Message);
+    private sealed record ReviewResetResult(bool Success, string Message, IReadOnlyList<ReviewWorkbenchItem> Items);
+    private sealed record EngineeringCommandResult(bool Success, string Output, string Error);
     private sealed record PreviewLaunchResult(bool Success, string Message);
 
-    private sealed class ReviewDecisionQueue : IDisposable
+    private static async Task<ReviewDecisionOperationResult> ExecuteDecisionAsync(string root, ReviewDecisionOperation operation)
     {
-        private readonly string root;
-        private readonly Channel<DecisionJob> jobs = Channel.CreateUnbounded<DecisionJob>(new UnboundedChannelOptions { SingleReader = true, SingleWriter = false });
-        private readonly ConcurrentQueue<DecisionCompletion> completions = new();
-        private readonly Task worker;
-        private int pending;
+        var decision = await RunEngineeringCommandAsync(root, ["review", "decide", operation.Id, operation.Decision]);
+        return new ReviewDecisionOperationResult(decision.Success, decision.Success ? decision.Output.Trim() : decision.Error.Trim());
+    }
 
-        public ReviewDecisionQueue(string root) { this.root = root; worker = ConsumeAsync(); }
-        public int PendingCount => Volatile.Read(ref pending);
-        public void Enqueue(string id, string decision, bool reopenFirst) { Interlocked.Increment(ref pending); jobs.Writer.TryWrite(new DecisionJob(id, decision, reopenFirst)); }
-        public IEnumerable<DecisionCompletion> TakeCompletions() { while (completions.TryDequeue(out var completion)) yield return completion; }
-        public async Task DrainAsync() { while (PendingCount > 0) await Task.Delay(15); }
-        public Task<DecisionResult> RunControlAsync(IReadOnlyList<string> args) => RunEngineeringAsync(args);
-
-        private async Task ConsumeAsync()
+    private static async Task<EngineeringCommandResult> RunEngineeringCommandAsync(string root, IReadOnlyList<string> args)
+    {
+        var project = Path.Combine(root, "src", "Agentic2D.Engineering");
+        var start = new System.Diagnostics.ProcessStartInfo("dotnet") { WorkingDirectory = root, UseShellExecute = false, CreateNoWindow = true, RedirectStandardOutput = true, RedirectStandardError = true };
+        start.ArgumentList.Add("run"); start.ArgumentList.Add("--no-build"); start.ArgumentList.Add("--project"); start.ArgumentList.Add(project); start.ArgumentList.Add("--");
+        foreach (var arg in args) start.ArgumentList.Add(arg);
+        try
         {
-            await foreach (var job in jobs.Reader.ReadAllAsync())
-            {
-                var result = job.ReopenFirst ? await ReopenAndRecordAsync(job) : await RunEngineeringAsync(["review", "record", job.Id, job.Decision]);
-                completions.Enqueue(new DecisionCompletion(job.Id, result.Success, result.Message));
-                Interlocked.Decrement(ref pending);
-            }
+            using var process = System.Diagnostics.Process.Start(start) ?? throw new InvalidOperationException("engineering process did not start");
+            var output = process.StandardOutput.ReadToEndAsync(); var error = process.StandardError.ReadToEndAsync();
+            await process.WaitForExitAsync().ConfigureAwait(false); await Task.WhenAll(output, error).ConfigureAwait(false);
+            return process.ExitCode == 0 ? new(true, output.Result, string.Empty) : new(false, output.Result, error.Result.Trim());
         }
-
-        private async Task<DecisionResult> ReopenAndRecordAsync(DecisionJob job)
-        {
-            var reopened = await RunEngineeringAsync(["review", "reopen", job.Id, "--reason", "explicit decision from current milestone review workbench"]);
-            return reopened.Success ? await RunEngineeringAsync(["review", "record", job.Id, job.Decision]) : reopened;
-        }
-
-        private async Task<DecisionResult> RunEngineeringAsync(IReadOnlyList<string> args)
-        {
-            var project = Path.Combine(root, "src", "Agentic2D.Engineering");
-            var start = new System.Diagnostics.ProcessStartInfo("dotnet") { WorkingDirectory = root, UseShellExecute = false, CreateNoWindow = true, RedirectStandardOutput = true, RedirectStandardError = true };
-            start.ArgumentList.Add("run"); start.ArgumentList.Add("--no-build"); start.ArgumentList.Add("--project"); start.ArgumentList.Add(project); start.ArgumentList.Add("--");
-            foreach (var arg in args) start.ArgumentList.Add(arg);
-            try
-            {
-                using var process = System.Diagnostics.Process.Start(start) ?? throw new InvalidOperationException("engineering process did not start");
-                var output = process.StandardOutput.ReadToEndAsync(); var error = process.StandardError.ReadToEndAsync();
-                await process.WaitForExitAsync(); await Task.WhenAll(output, error);
-                return process.ExitCode == 0 ? new DecisionResult(true, "saved") : new DecisionResult(false, (await error).Trim());
-            }
-            catch (Exception exception) { return new DecisionResult(false, exception.Message); }
-        }
-
-        public void Dispose() { jobs.Writer.TryComplete(); }
+        catch (Exception exception) { return new(false, string.Empty, exception.Message); }
     }
 }

@@ -521,6 +521,17 @@ public sealed class UiSession
         }
     }
     public UiSessionSnapshot Snapshot() => new(FocusedId, CapturedId, HoveredId, new Dictionary<string, string>(drafts), new Dictionary<string, double>(values), new Dictionary<string, double>(scroll), actions.ToArray(), trace.ToArray(), PresentationTime);
+    /// <summary>Updates a retained text-field draft from an application-owned clipboard or clear action.</summary>
+    public bool UpdateTextDraft(string elementId, string value)
+    {
+        ArgumentNullException.ThrowIfNull(value);
+        if (Element(elementId) is not { Kind: AgentUiKind.TextField }) return false;
+        drafts[elementId] = value;
+        textCursors[elementId] = value.EnumerateRunes().Count();
+        RefreshLayoutFromDrafts();
+        trace.Add("draft-update:" + elementId);
+        return true;
+    }
     public IReadOnlyList<UiPresentationSample> PresentationSamples() => layout.Elements.Where(x => x.Visible).Select(item =>
     {
         var variant = !item.Enabled ? "disabled" : item.Id == CapturedId ? "pressed" : item.Id == FocusedId ? "focused" : item.Id == HoveredId ? "hovered" : item.Operation?.Status switch { AgentUiOperationStatus.Working => "busy", AgentUiOperationStatus.Failed => "error", AgentUiOperationStatus.Succeeded => "success", _ => "normal" };
@@ -629,7 +640,7 @@ public sealed class UiSession
         if (node.Kind == AgentUiKind.Select && node.Options is { Count: > 0 } options) values[element.Id] = ((int)(double)value + 1) % options.Count;
         if (node.Kind is AgentUiKind.Toggle or AgentUiKind.Select) RefreshLayoutFromDrafts();
         if (node.Kind == AgentUiKind.TextField) value = drafts.GetValueOrDefault(element.Id, node.Text ?? string.Empty);
-        else if (node.Kind is AgentUiKind.Toggle or AgentUiKind.Slider or AgentUiKind.Select) value = values[element.Id];
+        else if (node.Kind is AgentUiKind.Toggle or AgentUiKind.Slider or AgentUiKind.Select or AgentUiKind.List) value = values[element.Id];
         else value = null;
         Emit(node, element.Id, value);
     }

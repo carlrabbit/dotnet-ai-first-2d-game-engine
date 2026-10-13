@@ -1,0 +1,34 @@
+{
+  "schema": "agentic2d.engineering.review-request.v2",
+  "id": "review.m053.animation-candidate-preview-clarity",
+  "owningMilestone": "M053",
+  "owningMilestonePath": "docs/milestones/MILESTONE-053-real-workbench-agent-ui-migration.md",
+  "subject": "Is the animation frame order and playback state clear, and are the preview controls usable?",
+  "classes": [
+    "visual"
+  ],
+  "level": "required",
+  "reviewerRole": "human reviewer",
+  "status": "pending",
+  "evidence": [
+    "artifacts/ui/M053/native/asset-preview-animation.png",
+    "artifacts/ui/M053/native/preview-input-animation.json",
+    "artifacts/ui/M053/headless-compositions.json"
+  ],
+  "acceptanceCriteria": [
+    "Inspect the actual frame display",
+    "frame count",
+    "playback status and Step behavior."
+  ],
+  "acceptableDecisions": [
+    "approved"
+  ],
+  "waiverPolicy": "No implicit waiver.",
+  "decision": "",
+  "reviewedRevision": "",
+  "reviewedFingerprint": "",
+  "conditions": [],
+  "decisionHistory": [],
+  "correctsReviewId": "",
+  "path": ".review\\pending\\review.m053.animation-candidate-preview-clarity.json"
+}

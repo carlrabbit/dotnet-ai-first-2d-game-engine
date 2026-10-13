@@ -1,0 +1,34 @@
+{
+  "schema": "agentic2d.engineering.review-request.v2",
+  "id": "review.m053.asset-workbench-choice-and-command-ux",
+  "owningMilestone": "M053",
+  "owningMilestonePath": "docs/milestones/MILESTONE-053-real-workbench-agent-ui-migration.md",
+  "subject": "Are the asset candidates, editable command entry, explicit submit and feedback clear to use?",
+  "classes": [
+    "UX"
+  ],
+  "level": "required",
+  "reviewerRole": "human reviewer",
+  "status": "pending",
+  "evidence": [
+    "artifacts/ui/M053/native/asset-workbench.png",
+    "artifacts/ui/M053/native/asset-input.json",
+    "artifacts/ui/M053/headless-compositions.json"
+  ],
+  "acceptanceCriteria": [
+    "Inspect candidate choice",
+    "typed Enter command submission",
+    "current session identity and response feedback."
+  ],
+  "acceptableDecisions": [
+    "approved"
+  ],
+  "waiverPolicy": "No implicit waiver.",
+  "decision": "",
+  "reviewedRevision": "",
+  "reviewedFingerprint": "",
+  "conditions": [],
+  "decisionHistory": [],
+  "correctsReviewId": "",
+  "path": ".review\\pending\\review.m053.asset-workbench-choice-and-command-ux.json"
+}

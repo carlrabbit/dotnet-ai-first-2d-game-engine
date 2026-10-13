@@ -175,7 +175,22 @@ public static class M029AssetWorkbenchCommands
         }
         SaveInput(home, session.Id, input);
         if (Option(args, "--decision") is { } decision && (command is null || action is not null) && action?.Kind.StartsWith("decision", StringComparison.Ordinal) != true) await RecordDecision(home, session, decision, Option(args, "--consequence"), Option(args, "--reason"), Option(args, "--alternative"), Option(args, "--correction"));
-        if (args.Contains("--preview-restart", StringComparer.Ordinal)) { session = LoadSession(home, session.Id) with { Preview = session.Preview with { Status = "reconnected", RestartCount = session.Preview.RestartCount + 1 } }; SaveSession(home, session); }
+        if (args.Contains("--preview-restart", StringComparer.Ordinal))
+        {
+            try
+            {
+                await RestartPreviewHostAsync(session, Path.Combine(home, "sessions", session.Id, "preview"));
+                session = LoadSession(home, session.Id) with { Preview = session.Preview with { Status = "reconnected", RestartCount = session.Preview.RestartCount + 1 } };
+                input = input with { ValidationMessage = "Preview host restarted and passed its health check." };
+            }
+            catch (Exception exception) when (exception is IOException or SocketException or TimeoutException)
+            {
+                session = LoadSession(home, session.Id) with { Preview = session.Preview with { Status = "disconnected" } };
+                input = input with { ValidationMessage = "Preview host restart failed: " + exception.Message };
+            }
+            SaveSession(home, session);
+            SaveInput(home, session.Id, input);
+        }
         await Emit(output, LoadSession(home, session.Id), LoadInput(home, session.Id), AliasMap(LoadSession(home, session.Id)), action is null ? "input-updated" : "action-executed", command, action);
         return 0;
     }
@@ -302,8 +317,44 @@ public static class M029AssetWorkbenchCommands
     {
         if (File.Exists(PreviewIpcHost.SocketPath(endpoint))) return;
         var root = ContentTargetResolver.FindRepositoryRoot(); var project = Path.Combine(root, "src", "Agentic2D.Tools"); var start = new ProcessStartInfo("dotnet") { UseShellExecute = false, WorkingDirectory = root };
+        if (Environment.GetEnvironmentVariable("AGENTIC2D_ASSET_HOME") is { } assetHome) start.Environment["AGENTIC2D_ASSET_HOME"] = assetHome;
         foreach (var argument in new[] { "run", "--no-build", "--project", project, "--", "asset", "preview-host", "serve", sessionId, "--output", outputDirectory }) start.ArgumentList.Add(argument);
         _ = Process.Start(start) ?? throw new IOException("could not start the session preview host");
+    }
+
+    private static async Task RestartPreviewHostAsync(Session session, string outputDirectory)
+    {
+        var socket = PreviewIpcHost.SocketPath(session.Preview.Endpoint);
+        if (File.Exists(socket))
+        {
+            try
+            {
+                using var stopped = await PreviewIpcHost.SendAsync(session.Preview.Endpoint, new { schema = "agentic2d.asset-preview-ipc.request.v2", sessionId = session.Id, requestId = "preview-restart-stop", operation = "shutdown" });
+            }
+            catch (IOException) { }
+            catch (SocketException) { }
+
+            var stopDeadline = DateTime.UtcNow + TimeSpan.FromSeconds(5);
+            while (File.Exists(socket) && DateTime.UtcNow < stopDeadline) await Task.Delay(50);
+            if (File.Exists(socket)) File.Delete(socket);
+        }
+
+        StartPreviewHost(session.Id, outputDirectory, session.Preview.Endpoint);
+        var healthDeadline = DateTime.UtcNow + TimeSpan.FromSeconds(45);
+        Exception? lastError = null;
+        while (DateTime.UtcNow < healthDeadline)
+        {
+            try
+            {
+                using var health = await PreviewIpcHost.SendAsync(session.Preview.Endpoint, new { schema = "agentic2d.asset-preview-ipc.request.v2", sessionId = session.Id, requestId = "preview-restart-health", operation = "health" });
+                if (health.RootElement.GetProperty("status").GetString() == "ok") return;
+                throw new IOException("preview host health check returned " + health.RootElement.GetProperty("status").GetString());
+            }
+            catch (IOException exception) { lastError = exception; }
+            catch (SocketException exception) { lastError = exception; }
+            await Task.Delay(100);
+        }
+        throw new TimeoutException("preview host did not become healthy after restart" + (lastError is null ? string.Empty : ": " + lastError.Message));
     }
 
     private static void StartPreviewUi(string outputDirectory)

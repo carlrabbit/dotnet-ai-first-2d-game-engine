@@ -2,161 +2,263 @@ using System.Numerics;
 using System.Text.Json;
 using Agentic2D.Rendering;
 using Agentic2D.Tools;
+using Agentic2D.UI;
 using Raylib_cs;
+using Agentic2D.DebugClient.Raylib;
+using RaylibApi = Raylib_cs.Raylib;
 
 namespace Agentic2D.DebugClient;
 
-/// <summary>One generic native preview process with structured modality-specific review surfaces.</summary>
+/// <summary>One generic native preview process; UI geometry comes only from the M052 projection.</summary>
 public static class AssetPreviewRaylibWindow
 {
-    public static int Run(string[] args)
+    public static unsafe int Run(string[] args)
     {
-        string? scenePath = null, capture = null; var frames = 0;
+        string? scenePath = null, capture = null, inputProbeReportPath = null; var frames = 0;
         for (var index = 0; index < args.Length; index++)
         {
             if (args[index] == "--scene" && ++index < args.Length) scenePath = args[index];
             else if (args[index] == "--capture" && ++index < args.Length) capture = args[index];
+            else if (args[index] == "--probe-report" && ++index < args.Length) inputProbeReportPath = args[index];
             else if (args[index] == "--frames" && ++index < args.Length && int.TryParse(args[index], out var parsed)) frames = parsed;
             else return Usage();
         }
         if (string.IsNullOrWhiteSpace(scenePath) || !File.Exists(scenePath)) return Usage();
         using var scene = JsonDocument.Parse(File.ReadAllText(scenePath));
-        var candidate = scene.RootElement.TryGetProperty("candidateId", out var candidateId) ? candidateId.GetString() ?? "candidate unresolved" : "candidate unresolved";
-        var surface = LoadSurface(scene.RootElement, out var bundleDocument, out var bundleRoot, out var bundleError);
-        Console.Error.WriteLine($"asset-preview surface: kind={surface.Kind.ToString().ToUpperInvariant()}; controls={string.Join(",", surface.Controls)}; candidate={surface.Context.CandidateId}; question={surface.Context.SubjectiveQuestion}");
+        var surface = LoadSurface(scene.RootElement, out var bundleDocument, out var bundle, out var bundleRoot, out var bundleError);
+        var candidate = surface.Context.CandidateId;
+        Console.Error.WriteLine($"asset-preview surface: kind={surface.Kind}; candidate={candidate}; diagnostic={surface.Diagnostic}");
         var state = new PreviewSurfaceState(surface);
-        Texture2D atlas = default, baseTexture = default, processedTexture = default; var atlasLoaded = false; var baseLoaded = false; var processedLoaded = false;
+        Texture2D baseTexture = default, processedTexture = default; var baseLoaded = false; var processedLoaded = false;
         var animationFrames = new List<PreviewFrame>();
-        Raylib_cs.Sound rawSound = default, processedSound = default; var audioDevice = false; var rawLoaded = false; var processedSoundLoaded = false; var rawFrames = 0; var processedFrames = 0;
-        var audioDiagnostic = "audio playback is manual; device not attempted"; var captured = false;
+        Raylib_cs.Sound rawSound = default, processedSound = default; var audioDevice = false; var rawLoaded = false; var processedLoadedSound = false; var rawFrames = 0; var processedFrames = 0;
+        var audioDiagnostic = "Playback is manual; audio device has not been attempted.";
+        var mediaDiagnostic = bundleError;
         try
         {
-            global::Raylib_cs.Raylib.InitWindow(1120, 720, "Agentic2D Asset Preview — " + surface.Context.Modality);
-            if (!global::Raylib_cs.Raylib.IsWindowReady()) { Console.Error.WriteLine("asset-preview could not initialize the Raylib window"); return 1; }
-            global::Raylib_cs.Raylib.SetTargetFPS(60);
-            atlas = global::Raylib_cs.Raylib.LoadTexture(Path.Combine(FindRepositoryRoot(), "game", "assets", "raw", "samples", "render-atlas-smoke.png")); atlasLoaded = atlas.Id != 0;
-            if (bundleDocument is not null && bundleRoot is not null)
+            RaylibGameWindow.InitDesktopWindow("Agentic2D — Asset Preview · " + surface.Context.Modality);
+            if (!RaylibApi.IsWindowReady()) { Console.Error.WriteLine("asset-preview could not initialize the Raylib window"); return 1; }
+            RaylibApi.SetTargetFPS(60);
+            if (bundle is not null && bundleRoot is not null)
             {
-                var bundle = bundleDocument.RootElement;
                 if (surface.Kind == PreviewSurfaceKind.Image)
                 {
-                    baseTexture = LoadTexture(bundleRoot, bundle, "baseMediaPath", out baseLoaded); processedTexture = LoadTexture(bundleRoot, bundle, "processedMediaPath", out processedLoaded);
+                    baseTexture = LoadTexture(bundleRoot, bundle.Value, "baseMediaPath", out baseLoaded);
+                    processedTexture = LoadTexture(bundleRoot, bundle.Value, "processedMediaPath", out processedLoaded);
+                    if (!baseLoaded || !processedLoaded) mediaDiagnostic = "One or more image candidate media files could not be loaded.";
                 }
-                else if (surface.Kind == PreviewSurfaceKind.Animation && bundle.TryGetProperty("frameMedia", out var frameMedia) && frameMedia.ValueKind == JsonValueKind.Array)
+                else if (surface.Kind == PreviewSurfaceKind.Animation && bundle.Value.TryGetProperty("frameMedia", out var frameMedia) && frameMedia.ValueKind == JsonValueKind.Array)
                 {
-                    foreach (var frame in frameMedia.EnumerateArray())
+                    foreach (var frame in frameMedia.EnumerateArray().OrderBy(item => item.GetProperty("sequenceIndex").GetInt32()))
                     {
-                        var path = Path.GetFullPath(Path.Combine(bundleRoot, frame.GetProperty("processedPath").GetString()!));
+                        var path = SafeBundlePath(bundleRoot, frame.GetProperty("processedPath").GetString()!);
                         if (!File.Exists(path)) continue;
-                        var texture = global::Raylib_cs.Raylib.LoadTexture(path); if (texture.Id != 0) animationFrames.Add(new(frame.GetProperty("sequenceIndex").GetInt32(), frame.GetProperty("sourceFrameIndex").GetInt32(), texture));
+                        var texture = RaylibApi.LoadTexture(path); if (texture.Id != 0) animationFrames.Add(new(frame.GetProperty("sequenceIndex").GetInt32(), frame.GetProperty("sourceFrameIndex").GetInt32(), texture));
                     }
+                    if (animationFrames.Count == 0) mediaDiagnostic = "No ordered animation frames are available.";
                 }
-                if (surface.Kind == PreviewSurfaceKind.Audio)
+                else if (surface.Kind == PreviewSurfaceKind.Audio)
                 {
-                    var rawPath = Path.GetFullPath(Path.Combine(bundleRoot, bundle.GetProperty("baseMediaPath").GetString()!));
-                    var processedPath = Path.GetFullPath(Path.Combine(bundleRoot, bundle.GetProperty("processedMediaPath").GetString()!));
-                    audioDiagnostic = LoadAudio(rawPath, processedPath, ref rawSound, ref processedSound, ref rawLoaded, ref processedSoundLoaded, ref rawFrames, ref processedFrames, out audioDevice);
+                    var rawPath = SafeBundlePath(bundleRoot, bundle.Value.GetProperty("baseMediaPath").GetString()!);
+                    var processedPath = SafeBundlePath(bundleRoot, bundle.Value.GetProperty("processedMediaPath").GetString()!);
+                    audioDiagnostic = LoadAudio(rawPath, processedPath, ref rawSound, ref processedSound, ref rawLoaded, ref processedLoadedSound, ref rawFrames, ref processedFrames, out audioDevice);
                     state.SetAudioDiagnostic(audioDiagnostic);
                     Console.Error.WriteLine("asset-preview audio diagnostics: " + audioDiagnostic);
                 }
             }
-            for (var frame = 0; !global::Raylib_cs.Raylib.WindowShouldClose() && (frames <= 0 || frame < frames); frame++)
+            var definition = Compose();
+            var viewport = RaylibGameWindow.CurrentViewport();
+            var session = new UiSession(definition, viewport);
+            var observedActions = new List<string>();
+            void WriteProbe()
             {
-                var mouse = global::Raylib_cs.Raylib.GetMousePosition();
-                if (global::Raylib_cs.Raylib.IsMouseButtonPressed(MouseButton.Left)) HandleClick(surface, state, animationFrames.Count, mouse, ref rawSound, ref processedSound, rawLoaded, processedSoundLoaded);
-                state.Advance(global::Raylib_cs.Raylib.GetFrameTime(), animationFrames.Count);
-                global::Raylib_cs.Raylib.BeginDrawing(); global::Raylib_cs.Raylib.ClearBackground(new Color(14, 22, 38, 255));
-                DrawHeader(surface, bundleError); DrawSurface(surface, state, animationFrames, baseTexture, processedTexture, baseLoaded, processedLoaded, atlas, atlasLoaded, audioDiagnostic, rawFrames, processedFrames);
-                global::Raylib_cs.Raylib.EndDrawing();
-                if (capture is not null && !captured) { var absolute = Path.GetFullPath(capture); Directory.CreateDirectory(Path.GetDirectoryName(absolute)!); global::Raylib_cs.Raylib.TakeScreenshot(Path.GetRelativePath(Directory.GetCurrentDirectory(), absolute)); captured = true; break; }
+                if (inputProbeReportPath is null) return;
+                Directory.CreateDirectory(Path.GetDirectoryName(Path.GetFullPath(inputProbeReportPath))!);
+                File.WriteAllText(inputProbeReportPath, JsonSerializer.Serialize(new
+                {
+                    status = "ready",
+                    processId = Environment.ProcessId,
+                    windowHandle = (long)(nint)RaylibApi.GetWindowHandle(),
+                    viewport = session.Layout.Viewport,
+                    observedActions,
+                    frameIndex = state.FrameIndex,
+                    frameCount = animationFrames.Count,
+                    playing = state.Playing,
+                    imageComparison = state.ImageComparison,
+                    mediaDiagnostic,
+                    rawMediaLoaded = rawLoaded,
+                    processedMediaLoaded = processedLoaded || processedLoadedSound,
+                    audioState = state.AudioState,
+                    audioDeviceReady = audioDevice && RaylibApi.IsAudioDeviceReady(),
+                    audioDiagnostic,
+                    controls = session.Layout.Elements.Where(element => element.ActionId?.StartsWith("asset-preview.control.", StringComparison.Ordinal) == true && element.Enabled)
+                        .Select(element => new { element.Id, element.ActionId, element.PhysicalBounds, element.VisibleBounds }).ToArray()
+                }, new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase }));
+            }
+            WriteProbe();
+            RaylibApi.SetMouseCursor(MouseCursor.Default);
+            for (var frame = 0; !RaylibApi.WindowShouldClose() && (frames <= 0 || frame < frames); frame++)
+            {
+                var currentViewport = RaylibGameWindow.CurrentViewport();
+                if (currentViewport != viewport) { viewport = currentViewport; session.Recompose(definition, viewport); }
+                if (!RaylibApi.IsWindowFocused() && session.CapturedId is not null) session.Dispatch(new UiInputEvent("pointer-cancel"));
+                var delta = RaylibApi.GetFrameTime();
+                session.Dispatch(new UiInputEvent("time", Delta: delta));
+                state.Advance(delta, animationFrames.Count);
+                RaylibWorkbenchInput.Dispatch(session);
+                foreach (var action in session.DrainActions())
+                {
+                    if (!action.ActionId.StartsWith("asset-preview.control.", StringComparison.Ordinal)) continue;
+                    var control = action.ActionId["asset-preview.control.".Length..];
+                    if (!surface.Has(control)) continue;
+                    observedActions.Add(action.ActionId);
+                    if (control == "Play Raw")
+                    {
+                        if (PreviewAudioPlaybackPolicy.CanStartPlayback(audioDevice && RaylibApi.IsAudioDeviceReady(), rawLoaded)) { RaylibApi.PlaySound(rawSound); state.Apply(control, animationFrames.Count); }
+                        else { audioDiagnostic = "Raw/base playback unavailable; " + audioDiagnostic; state.SetAudioDiagnostic(audioDiagnostic); }
+                    }
+                    else if (control == "Play Processed")
+                    {
+                        if (PreviewAudioPlaybackPolicy.CanStartPlayback(audioDevice && RaylibApi.IsAudioDeviceReady(), processedLoadedSound)) { RaylibApi.PlaySound(processedSound); state.Apply(control, animationFrames.Count); }
+                        else { audioDiagnostic = "Processed/current-draft playback unavailable; " + audioDiagnostic; state.SetAudioDiagnostic(audioDiagnostic); }
+                    }
+                    else
+                    {
+                        if (control == "Stop") { if (rawLoaded) RaylibApi.StopSound(rawSound); if (processedLoadedSound) RaylibApi.StopSound(processedSound); }
+                        state.Apply(control, animationFrames.Count);
+                    }
+                }
+                definition = Compose(); session.Recompose(definition, currentViewport);
+                RaylibApi.BeginDrawing();
+                RaylibApi.ClearBackground(new Color(17, 24, 39, 255));
+                var commands = UiDrawProjection.Create(session);
+                RaylibAgentUiRenderer.Instance.Render(commands, definition.Theme, viewport, session.PresentationTime, definition.ReducedMotion);
+                DrawMediaSlot(session, surface, state, animationFrames, baseTexture, processedTexture, baseLoaded, processedLoaded, mediaDiagnostic);
+                RaylibApi.EndDrawing();
+                WriteProbe();
+                if (capture is not null && frame == 1)
+                {
+                    var absolute = Path.GetFullPath(capture); Directory.CreateDirectory(Path.GetDirectoryName(absolute)!);
+                    RaylibApi.TakeScreenshot(Path.GetRelativePath(Directory.GetCurrentDirectory(), absolute));
+                }
             }
             return 0;
+
+            UiDefinition Compose()
+            {
+                var reference = surface.Kind switch
+                {
+                    PreviewSurfaceKind.Image => state.ImageComparison == "source" ? "media.raw-image" : "media.processed-image",
+                    PreviewSurfaceKind.Animation => "media.animation-frame." + state.FrameIndex,
+                    PreviewSurfaceKind.Audio => "media.audio-manual-playback",
+                    _ => "media.unsupported"
+                };
+                var status = surface.Kind == PreviewSurfaceKind.Image
+                    ? $"Showing {(state.ImageComparison == "source" ? "raw/base" : "processed/current draft")} · {(state.IsolatedRegion ? "isolated candidate region" : "source context")} · overlays {(state.Overlays ? "on" : "off")} · {state.Filtering} filter"
+                    : surface.Kind == PreviewSurfaceKind.Animation ? (animationFrames.Count == 0 ? mediaDiagnostic : "Ordered candidate frames loaded.")
+                    : surface.Kind == PreviewSurfaceKind.Audio ? "Manual playback comparison; no autoplay."
+                    : surface.Diagnostic;
+                var playbackStatus = state.Playing ? "Playing" : surface.Kind == PreviewSurfaceKind.Audio
+                    ? state.AudioState.StartsWith("raw/base playing", StringComparison.Ordinal) ? "Raw/base playing"
+                    : state.AudioState.StartsWith("processed/current-draft playing", StringComparison.Ordinal) ? "Processed/current draft playing"
+                    : state.AudioState == "stopped" ? "Stopped" : "Not playing; playback is manual"
+                    : state.AudioState;
+                return M053WorkbenchScreens.AssetPreview(new(surface, reference, status,
+                    playbackStatus, state.FrameIndex, animationFrames.Count, state.Playing, audioDiagnostic));
+            }
         }
         finally
         {
-            if (rawLoaded) { global::Raylib_cs.Raylib.StopSound(rawSound); global::Raylib_cs.Raylib.UnloadSound(rawSound); }
-            if (processedSoundLoaded) { global::Raylib_cs.Raylib.StopSound(processedSound); global::Raylib_cs.Raylib.UnloadSound(processedSound); }
-            if (audioDevice && global::Raylib_cs.Raylib.IsAudioDeviceReady()) global::Raylib_cs.Raylib.CloseAudioDevice();
-            if (baseLoaded) global::Raylib_cs.Raylib.UnloadTexture(baseTexture); if (processedLoaded) global::Raylib_cs.Raylib.UnloadTexture(processedTexture); foreach (var frame in animationFrames) global::Raylib_cs.Raylib.UnloadTexture(frame.Texture); if (atlasLoaded) global::Raylib_cs.Raylib.UnloadTexture(atlas); if (global::Raylib_cs.Raylib.IsWindowReady()) global::Raylib_cs.Raylib.CloseWindow();
+            if (rawLoaded) { RaylibApi.StopSound(rawSound); RaylibApi.UnloadSound(rawSound); }
+            if (processedLoadedSound) { RaylibApi.StopSound(processedSound); RaylibApi.UnloadSound(processedSound); }
+            if (audioDevice && RaylibApi.IsAudioDeviceReady()) RaylibApi.CloseAudioDevice();
+            if (baseLoaded) RaylibApi.UnloadTexture(baseTexture);
+            if (processedLoaded) RaylibApi.UnloadTexture(processedTexture);
+            foreach (var frame in animationFrames) RaylibApi.UnloadTexture(frame.Texture);
+            if (RaylibApi.IsWindowReady()) RaylibApi.CloseWindow();
         }
     }
 
-    private static PreviewSurface LoadSurface(JsonElement scene, out JsonDocument? bundleDocument, out string? bundleRoot, out string error)
+    private static void DrawMediaSlot(UiSession session, PreviewSurface surface, PreviewSurfaceState state,
+        IReadOnlyList<PreviewFrame> frames, Texture2D baseTexture, Texture2D processedTexture,
+        bool baseLoaded, bool processedLoaded, string diagnostic)
     {
-        bundleDocument = null; bundleRoot = null; error = string.Empty;
-        if (!scene.TryGetProperty("bundlePath", out var path) || path.ValueKind != JsonValueKind.String) { error = "preview scene has no structured bundlePath"; return Unsupported(error); }
-        var full = Path.GetFullPath(path.GetString()!); if (!File.Exists(full)) { error = "structured preview bundle is unavailable"; return Unsupported(error); }
-        bundleDocument = JsonDocument.Parse(File.ReadAllText(full)); bundleRoot = Path.GetDirectoryName(full); return AssetPreviewSurfaceModel.FromBundle(bundleDocument.RootElement);
+        var item = session.Layout.Elements.FirstOrDefault(element => element.Id == "asset-preview.media");
+        if (item is null || item.VisibleBounds.Width <= 0 || item.VisibleBounds.Height <= 0) return;
+        var bounds = item.VisibleBounds;
+        RaylibApi.BeginScissorMode((int)bounds.X, (int)bounds.Y, Math.Max(0, (int)bounds.Width), Math.Max(0, (int)bounds.Height));
+        if (surface.Kind == PreviewSurfaceKind.Image)
+        {
+            var texture = state.ImageComparison == "source" ? baseTexture : processedTexture;
+            var loaded = state.ImageComparison == "source" ? baseLoaded : processedLoaded;
+            if (loaded)
+            {
+                RaylibApi.SetTextureFilter(texture, state.Filtering == "smooth" ? TextureFilter.Bilinear : TextureFilter.Point);
+                DrawFitted(texture, bounds, state.IsolatedRegion);
+                if (state.Overlays) RaylibApi.DrawRectangleLinesEx(new Rectangle((float)bounds.X, (float)bounds.Y, (float)bounds.Width, (float)bounds.Height), 2, Color.Magenta);
+            }
+            else RaylibApi.DrawText(diagnostic.Length == 0 ? "Candidate image unavailable" : diagnostic, (int)bounds.X + 12, (int)bounds.Y + 12, 16, Color.Orange);
+        }
+        else if (surface.Kind == PreviewSurfaceKind.Animation)
+        {
+            if (frames.Count > 0) DrawFitted(frames[state.FrameIndex].Texture, bounds, true);
+            else RaylibApi.DrawText(diagnostic.Length == 0 ? "Animation frames unavailable" : diagnostic, (int)bounds.X + 12, (int)bounds.Y + 12, 16, Color.Orange);
+        }
+        else if (surface.Kind == PreviewSurfaceKind.Audio)
+        {
+            for (var index = 0; index < 48; index++)
+            {
+                var x = (int)(bounds.X + 18 + index * Math.Max(1, (bounds.Width - 36) / 48));
+                var height = 8 + (int)(Math.Abs(Math.Sin(index * .67)) * Math.Min(52, bounds.Height * .18));
+                RaylibApi.DrawRectangle(x, (int)(bounds.Y + (bounds.Height - height) / 2), 3, height, new Color(96, 165, 250, 210));
+            }
+        }
+        RaylibApi.EndScissorMode();
     }
-    private static PreviewSurface Unsupported(string error) => new(PreviewSurfaceKind.Unsupported, [], new("unsupported", "candidate unresolved", "review subject", "none", [], "raw/base unavailable", "processed/current-draft unavailable", "No review surface can be selected."), error);
+
+    private static void DrawFitted(Texture2D texture, UiBounds bounds, bool crop)
+    {
+        if (texture.Width <= 0 || texture.Height <= 0) return;
+        var scale = crop ? Math.Max(bounds.Width / texture.Width, bounds.Height / texture.Height) : Math.Min(bounds.Width / texture.Width, bounds.Height / texture.Height);
+        var width = texture.Width * scale; var height = texture.Height * scale;
+        var target = new Rectangle((float)(bounds.X + (bounds.Width - width) / 2), (float)(bounds.Y + (bounds.Height - height) / 2), (float)width, (float)height);
+        RaylibApi.DrawTexturePro(texture, new Rectangle(0, 0, texture.Width, -texture.Height), target, Vector2.Zero, 0, Color.White);
+    }
+
+    private static PreviewSurface LoadSurface(JsonElement scene, out JsonDocument? bundleDocument, out JsonElement? bundle, out string? bundleRoot, out string error)
+    {
+        bundleDocument = null; bundle = null; bundleRoot = null; error = string.Empty;
+        if (!scene.TryGetProperty("bundlePath", out var path) || path.ValueKind != JsonValueKind.String) { error = "Preview scene has no structured bundlePath."; return Unsupported(error); }
+        var full = Path.GetFullPath(path.GetString()!); if (!File.Exists(full)) { error = "Structured preview bundle is unavailable."; return Unsupported(error); }
+        bundleDocument = JsonDocument.Parse(File.ReadAllText(full)); bundle = bundleDocument.RootElement; bundleRoot = Path.GetDirectoryName(full);
+        return AssetPreviewSurfaceModel.FromBundle(bundle.Value);
+    }
+
+    private static PreviewSurface Unsupported(string error) => new(PreviewSurfaceKind.Unsupported, [], new("unsupported", "candidate unresolved", "review subject", "none", [], "raw/base unavailable", "processed/current draft unavailable", "No review surface can be selected."), error);
     private static Texture2D LoadTexture(string root, JsonElement bundle, string property, out bool loaded)
     {
-        loaded = false; var path = Path.GetFullPath(Path.Combine(root, bundle.GetProperty(property).GetString()!)); if (!File.Exists(path)) return default;
-        var texture = global::Raylib_cs.Raylib.LoadTexture(path); loaded = texture.Id != 0; return texture;
+        loaded = false; var path = SafeBundlePath(root, bundle.GetProperty(property).GetString()!); if (!File.Exists(path)) return default;
+        var texture = RaylibApi.LoadTexture(path); loaded = texture.Id != 0; return texture;
+    }
+    private static string SafeBundlePath(string root, string relative)
+    {
+        var full = Path.GetFullPath(Path.Combine(root, relative));
+        var prefix = Path.GetFullPath(root).TrimEnd(Path.DirectorySeparatorChar) + Path.DirectorySeparatorChar;
+        if (!full.StartsWith(prefix, StringComparison.OrdinalIgnoreCase)) throw new InvalidDataException("Preview media path escapes its exact bundle root.");
+        return full;
     }
     private static string LoadAudio(string rawPath, string processedPath, ref Raylib_cs.Sound raw, ref Raylib_cs.Sound processed, ref bool rawLoaded, ref bool processedLoaded, ref int rawFrames, ref int processedFrames, out bool device)
     {
-        var rawExists = File.Exists(rawPath); var processedExists = File.Exists(processedPath); var init = false; device = false;
+        var rawExists = File.Exists(rawPath); var processedExists = File.Exists(processedPath); var attempted = false; device = false;
         try
         {
-            init = true; global::Raylib_cs.Raylib.InitAudioDevice(); device = global::Raylib_cs.Raylib.IsAudioDeviceReady();
-            if (device && rawExists) { raw = global::Raylib_cs.Raylib.LoadSound(rawPath); rawFrames = (int)raw.FrameCount; rawLoaded = rawFrames > 0; }
-            if (device && processedExists) { processed = global::Raylib_cs.Raylib.LoadSound(processedPath); processedFrames = (int)processed.FrameCount; processedLoaded = processedFrames > 0; }
+            attempted = true; RaylibApi.InitAudioDevice(); device = RaylibApi.IsAudioDeviceReady();
+            if (device && rawExists) { raw = RaylibApi.LoadSound(rawPath); rawFrames = (int)raw.FrameCount; rawLoaded = rawFrames > 0; }
+            if (device && processedExists) { processed = RaylibApi.LoadSound(processedPath); processedFrames = (int)processed.FrameCount; processedLoaded = processedFrames > 0; }
         }
-        catch (Exception exception) { return $"InitAudioDevice attempted={init}; IsAudioDeviceReady={device}; raw WAV exists={rawExists}; processed WAV exists={processedExists}; raw LoadSound frames={rawFrames}; processed LoadSound frames={processedFrames}; error={exception.Message}"; }
-        return $"InitAudioDevice attempted={init}; IsAudioDeviceReady={device}; raw WAV exists={rawExists}; processed WAV exists={processedExists}; raw LoadSound frames={rawFrames}; processed LoadSound frames={processedFrames}";
+        catch (Exception exception) { return $"Audio diagnostic: device attempted={attempted}, ready={device}, raw exists={rawExists}, processed exists={processedExists}, loaded frames={rawFrames}/{processedFrames}; {exception.Message}"; }
+        return $"Audio diagnostic: device attempted={attempted}, ready={device}, raw exists={rawExists}, processed exists={processedExists}, loaded frames={rawFrames}/{processedFrames}.";
     }
-    private static void HandleClick(PreviewSurface surface, PreviewSurfaceState state, int frameCount, Vector2 mouse, ref Raylib_cs.Sound raw, ref Raylib_cs.Sound processed, bool rawLoaded, bool processedLoaded)
-    {
-        for (var index = 0; index < surface.Controls.Count; index++)
-        {
-            var control = surface.Controls[index]; var rect = ControlRect(surface.Kind, index); if (!global::Raylib_cs.Raylib.CheckCollisionPointRec(mouse, rect)) continue;
-            if (control == "Play Raw")
-            {
-                if (rawLoaded) { global::Raylib_cs.Raylib.PlaySound(raw); state.Apply(control, frameCount); }
-                else state.SetAudioDiagnostic("raw/base playback unavailable; see audio-device diagnostic");
-            }
-            else if (control == "Play Processed")
-            {
-                if (processedLoaded) { global::Raylib_cs.Raylib.PlaySound(processed); state.Apply(control, frameCount); }
-                else state.SetAudioDiagnostic("processed/current-draft playback unavailable; see audio-device diagnostic");
-            }
-            else if (control == "Stop")
-            {
-                if (rawLoaded) global::Raylib_cs.Raylib.StopSound(raw); if (processedLoaded) global::Raylib_cs.Raylib.StopSound(processed); state.Apply(control, frameCount);
-            }
-            else state.Apply(control, frameCount);
-            break;
-        }
-    }
-    private static void DrawHeader(PreviewSurface surface, string error)
-    {
-        var layout = ReviewSurfaceLayout.AssetPreview(surface); global::Raylib_cs.Raylib.DrawRectangle(28, layout.Context.Bounds.Y, layout.Context.Bounds.Width, layout.Context.Bounds.Height, new Color(27, 45, 68, 255)); global::Raylib_cs.Raylib.DrawRectangleLines(28, layout.Context.Bounds.Y, layout.Context.Bounds.Width, layout.Context.Bounds.Height, new Color(76, 112, 143, 255));
-        for (var index = 0; index < layout.Context.Lines.Count; index++) global::Raylib_cs.Raylib.DrawText(layout.Context.Lines[index], layout.Context.Bounds.X, layout.Context.Bounds.Y + index * layout.Context.LineHeight, layout.Context.FontSize, index switch { 0 => Color.White, 3 => Color.SkyBlue, 4 => new Color(144, 238, 144, 255), 5 => Color.Gold, _ => Color.LightGray });
-        if (!string.IsNullOrWhiteSpace(error)) global::Raylib_cs.Raylib.DrawText(error, 680, 175, 14, Color.Orange);
-    }
-    private static void DrawSurface(PreviewSurface surface, PreviewSurfaceState state, IReadOnlyList<PreviewFrame> frames, Texture2D baseTexture, Texture2D processedTexture, bool baseLoaded, bool processedLoaded, Texture2D atlas, bool atlasLoaded, string audioDiagnostic, int rawFrames, int processedFrames)
-    {
-        var layout = ReviewSurfaceLayout.AssetPreview(surface); global::Raylib_cs.Raylib.DrawRectangle(layout.Content.X, layout.Content.Y, layout.Content.Width, layout.Content.Height, new Color(27, 45, 68, 255)); global::Raylib_cs.Raylib.DrawRectangleLines(layout.Content.X, layout.Content.Y, layout.Content.Width, layout.Content.Height, new Color(76, 112, 143, 255));
-        if (surface.Kind == PreviewSurfaceKind.Image) { DrawImage(state, baseTexture, processedTexture, baseLoaded, processedLoaded, atlas, atlasLoaded); global::Raylib_cs.Raylib.DrawText($"Showing {(state.ImageComparison == "source" ? "raw/base" : "processed/current-draft")} · {(state.IsolatedRegion ? "isolated region" : "source context")} · overlay {(state.Overlays ? "ON" : "OFF")} · filter {state.Filtering}", 680, 275, 15, Color.White); }
-        else if (surface.Kind == PreviewSurfaceKind.Animation) DrawAnimation(state, frames);
-        else if (surface.Kind == PreviewSurfaceKind.Audio) { global::Raylib_cs.Raylib.DrawText("Manual playback comparison", 80, 275, 25, Color.White); global::Raylib_cs.Raylib.DrawText($"Raw/base duration: {rawFrames} frames", 80, 335, 20, Color.SkyBlue); global::Raylib_cs.Raylib.DrawText($"Processed/current-draft duration: {processedFrames} frames", 80, 375, 20, new Color(144, 238, 144, 255)); global::Raylib_cs.Raylib.DrawText("No audio auto-play", 80, 425, 18, Color.Gold); }
-        else global::Raylib_cs.Raylib.DrawText("No preview surface selected", 100, 390, 24, Color.Orange);
-        for (var index = 0; index < surface.Controls.Count; index++) Button(ControlRect(surface.Kind, index), surface.Controls[index], state.IsActive(surface.Controls[index]));
-        if (surface.Kind == PreviewSurfaceKind.Animation) global::Raylib_cs.Raylib.DrawText($"Frame {state.FrameIndex + 1}/{frames.Count} · source {(frames.Count == 0 ? "-" : frames[state.FrameIndex].SourceFrameIndex)} · {(state.Playing ? "playing" : "paused")}", 680, 620, 17, Color.White);
-        if (surface.Kind == PreviewSurfaceKind.Audio) { var lines = ReviewSurfaceLayout.Wrap(audioDiagnostic, 400, 12); for (var index = 0; index < lines.Count; index++) global::Raylib_cs.Raylib.DrawText(lines[index], 680, 620 + index * 16, 12, Color.White); }
-    }
-    private static void DrawImage(PreviewSurfaceState state, Texture2D baseTexture, Texture2D processedTexture, bool baseLoaded, bool processedLoaded, Texture2D atlas, bool atlasLoaded)
-    {
-        var texture = state.ImageComparison == "source" ? baseTexture : processedTexture; var loaded = state.ImageComparison == "source" ? baseLoaded : processedLoaded;
-        if (loaded) { global::Raylib_cs.Raylib.SetTextureFilter(texture, state.Filtering == "smooth" ? TextureFilter.Bilinear : TextureFilter.Point); global::Raylib_cs.Raylib.DrawTexturePro(texture, new Rectangle(0, 0, texture.Width, -texture.Height), new Rectangle(110, 250, 460, 300), Vector2.Zero, 0, Color.White); }
-        else if (atlasLoaded) global::Raylib_cs.Raylib.DrawTexturePro(atlas, new Rectangle(0, 0, 8, 8), new Rectangle(110, 250, 460, 300), Vector2.Zero, 0, Color.White); else global::Raylib_cs.Raylib.DrawText("Image candidate unavailable", 150, 390, 22, Color.Orange);
-        if (state.Overlays) { global::Raylib_cs.Raylib.DrawRectangleLines(28, 205, 620, 405, Color.Magenta); global::Raylib_cs.Raylib.DrawText(state.IsolatedRegion ? "isolated candidate region" : "source context", 44, 575, 16, Color.Magenta); }
-    }
-    private static void DrawAnimation(PreviewSurfaceState state, IReadOnlyList<PreviewFrame> frames)
-    { if (frames.Count == 0) { global::Raylib_cs.Raylib.DrawText("Animation frame sequence unavailable", 100, 390, 22, Color.Orange); return; } var texture = frames[state.FrameIndex].Texture; global::Raylib_cs.Raylib.SetTextureFilter(texture, TextureFilter.Point); global::Raylib_cs.Raylib.DrawTexturePro(texture, new Rectangle(0, 0, texture.Width, -texture.Height), new Rectangle(110, 250, 460, 300), Vector2.Zero, 0, Color.White); }
-    private static Rectangle ControlRect(PreviewSurfaceKind kind, int index) { var surface = new PreviewSurface(kind, [], new("", "", "", "", [], "", "", ""), string.Empty); var layout = ReviewSurfaceLayout.AssetPreview(surface); return new(layout.Controls.X + (index % 2) * 200, layout.Controls.Y + (index / 2) * 52, 190, 38); }
-    private static void Button(Rectangle rect, string text, bool active) { var color = active ? new Color(60, 152, 93, 255) : new Color(72, 104, 158, 255); global::Raylib_cs.Raylib.DrawRectangleRec(rect, color); global::Raylib_cs.Raylib.DrawRectangleLinesEx(rect, 2, Color.RayWhite); global::Raylib_cs.Raylib.DrawText(text, (int)rect.X + 12, (int)rect.Y + 10, 15, Color.RayWhite); }
     private static string FindRepositoryRoot() { var directory = AppContext.BaseDirectory; while (!string.IsNullOrWhiteSpace(directory)) { if (File.Exists(Path.Combine(directory, "dotnet-ai-first-2d-game-engine.slnx"))) return directory; directory = Directory.GetParent(directory)?.FullName; } return Directory.GetCurrentDirectory(); }
     private static int Usage() { Console.Error.WriteLine("asset-preview requires --scene <preview-scene.json> [--capture <png>] [--frames <count>]"); return 2; }
     private sealed record PreviewFrame(int SequenceIndex, int SourceFrameIndex, Texture2D Texture);
