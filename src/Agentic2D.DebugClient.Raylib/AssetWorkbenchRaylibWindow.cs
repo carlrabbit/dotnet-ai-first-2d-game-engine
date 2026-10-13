@@ -58,6 +58,7 @@ public static class AssetWorkbenchRaylibWindow
                     sessionId,
                     aliasGeneration = generation,
                     viewport = session.Layout.Viewport,
+                    focusedId = session.FocusedId,
                     observedActions,
                     commandFile = commandPath,
                     commandLines = File.Exists(commandPath) ? File.ReadAllLines(commandPath) : [],
