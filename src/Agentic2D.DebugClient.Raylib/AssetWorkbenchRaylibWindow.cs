@@ -55,11 +55,13 @@ public static class AssetWorkbenchRaylibWindow
                     status,
                     processId = Environment.ProcessId,
                     windowHandle = (long)(nint)RaylibApi.GetWindowHandle(),
+                    sessionId,
+                    aliasGeneration = generation,
                     viewport = session.Layout.Viewport,
                     observedActions,
                     commandFile = commandPath,
                     commandLines = File.Exists(commandPath) ? File.ReadAllLines(commandPath) : [],
-                    controls = session.Layout.Elements.Where(element => element.Enabled && (element.ActionId == "asset-workbench.choose" || element.Id == "asset-workbench.command"))
+                    controls = session.Layout.Elements.Where(element => element.Enabled && (element.ActionId?.StartsWith("asset-workbench.", StringComparison.Ordinal) == true || element.Id == "asset-workbench.command"))
                         .Select(element => new { element.Id, element.ActionId, element.PhysicalBounds }).ToArray()
                 }, new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase }));
             }

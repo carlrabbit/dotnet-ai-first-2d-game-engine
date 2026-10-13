@@ -145,7 +145,9 @@ public static class M053RealWorkbenchSuite
             "headless-compositions.json", "application-behavior.json", "compatibility.json", "windows-native.json",
             "native/review-workbench.png", "native/asset-workbench.png", "native/asset-preview-image.png",
             "native/asset-preview-animation.png", "native/asset-preview-audio.png", "native/review-input.json",
-            "native/asset-input.json", "native/preview-input-image.json", "native/preview-input-animation.json", "native/preview-input-audio.json"
+            "native/asset-input.json", "native/asset-input-accept.json", "native/asset-input-reject.json",
+            "native/asset-input-defer.json", "native/asset-input-presentation-only.json",
+            "native/preview-input-image.json", "native/preview-input-animation.json", "native/preview-input-audio.json"
         };
         var files = required.Select(name => Path.Combine(output, name)).ToArray();
         if (files.Any(path => !File.Exists(path))) throw new InvalidDataException("M053 evidence-integrity is missing an exercised portable evidence case: " + string.Join(',', files.Where(path => !File.Exists(path))));
@@ -161,6 +163,20 @@ public static class M053RealWorkbenchSuite
         if ((reviewProbeStatus == "passed") != (reviewInputObserved && reviewEscapeObserved) || reviewProbeStatus is not ("passed" or "partial"))
             throw new InvalidDataException("M053 Review Workbench native action status and observed input evidence disagree.");
         if (nativeReport.GetProperty("assetWorkbench").GetProperty("nativeInput").GetProperty("status").GetString() != "passed") throw new InvalidDataException("M053 native input probe did not pass for Asset Workbench.");
+        var decisionInputs = nativeReport.GetProperty("assetWorkbench").GetProperty("decisionInputs").EnumerateArray().ToArray();
+        var expectedDecisionCommands = new[] { "decision accept-proposal", "decision reject", "decision defer", "decision approve-with-corrections presentation-only" };
+        if (decisionInputs.Length != expectedDecisionCommands.Length) throw new InvalidDataException("M053 native evidence is missing one or more Asset Workbench decision controls.");
+        foreach (var decisionInput in decisionInputs)
+        {
+            var command = decisionInput.GetProperty("inputCommand");
+            if (decisionInput.GetProperty("status").GetString() != "passed" ||
+                !expectedDecisionCommands.Contains(command.GetProperty("value").GetString(), StringComparer.Ordinal) ||
+                command.GetProperty("schema").GetString() != "agentic2d.asset-workbench-input-command.v1" ||
+                command.GetProperty("source").GetString() != "mouse-touch" ||
+                command.GetProperty("generation").GetInt32() <= 0 ||
+                string.IsNullOrWhiteSpace(command.GetProperty("sessionId").GetString()))
+                throw new InvalidDataException("M053 native Asset Workbench decision evidence does not contain a valid canonical command envelope.");
+        }
         foreach (var preview in nativeReport.GetProperty("previews").EnumerateArray())
             if (preview.GetProperty("nativeInput").GetProperty("status").GetString() != "passed" || preview.GetProperty("capture").GetProperty("bytes").GetInt64() == 0)
                 throw new InvalidDataException("M053 native preview input/capture evidence did not pass for " + preview.GetProperty("kind").GetString() + ".");
@@ -199,6 +215,9 @@ public static class M053RealWorkbenchSuite
         var sessionPath = Path.Combine(workbenchOutput, "review-session.json"); var commandPath = Path.Combine(workbenchRoot, "commands.jsonl");
         var workbenchCapture = Path.Combine(nativeRoot, "asset-workbench.png");
         var assetInput = await RunNativeInputProbe(root, project, ["asset-workbench", "--session", sessionPath, "--commands", commandPath], Path.Combine(nativeRoot, "asset-input.json"), "asset-workbench.command", keyboardCommand: true);
+        var assetDecisionInputs = new List<object>();
+        foreach (var action in new[] { "asset-workbench.accept", "asset-workbench.reject", "asset-workbench.defer", "asset-workbench.presentation-only" })
+            assetDecisionInputs.Add(await RunNativeInputProbe(root, project, ["asset-workbench", "--session", sessionPath, "--commands", commandPath], Path.Combine(nativeRoot, "asset-input-" + action[("asset-workbench.".Length)..] + ".json"), action, keyboardCommand: false));
         if (File.Exists(commandPath)) File.Delete(commandPath);
         await RunNative(root, project, ["asset-workbench", "--session", sessionPath, "--commands", commandPath, "--frames", "5", "--capture", workbenchCapture]);
 
@@ -237,7 +256,7 @@ public static class M053RealWorkbenchSuite
             missingMedia.Add(new { kind, probe });
         }
         var captures = new[] { reviewCapture, workbenchCapture }.Concat(kinds.Select(pair => Path.Combine(nativeRoot, "asset-preview-" + pair.Item1 + ".png"))).Select(Capture).ToArray();
-        return new { schema = "agentic2d.m053.windows-native.v1", platform = "windows", currentGraphicalProcess = true, reviewWorkbench = new { capture = Capture(reviewCapture), nativeInput = reviewInput }, assetWorkbench = new { session = JsonDocument.Parse(await File.ReadAllTextAsync(sessionPath)).RootElement.Clone(), capture = Capture(workbenchCapture), nativeInput = assetInput, isolatedCaptureCommandFileUnchanged = !File.Exists(commandPath) || new FileInfo(commandPath).Length == 0 }, previews, missingMedia, allNativeCapturesCurrent = captures.All(item => item.Bytes > 0), inputAutomation = "native Review and Asset Workbench input plus image, animation and audio preview actions were observed against projected geometry; five current graphical-process captures were hashed" };
+        return new { schema = "agentic2d.m053.windows-native.v1", platform = "windows", currentGraphicalProcess = true, reviewWorkbench = new { capture = Capture(reviewCapture), nativeInput = reviewInput }, assetWorkbench = new { session = JsonDocument.Parse(await File.ReadAllTextAsync(sessionPath)).RootElement.Clone(), capture = Capture(workbenchCapture), nativeInput = assetInput, decisionInputs = assetDecisionInputs, isolatedCaptureCommandFileUnchanged = !File.Exists(commandPath) || new FileInfo(commandPath).Length == 0 }, previews, missingMedia, allNativeCapturesCurrent = captures.All(item => item.Bytes > 0), inputAutomation = "native Review and Asset Workbench pointer/keyboard input, all four Asset decision controls, and image/animation/audio preview actions were observed against projected geometry; five current graphical-process captures were hashed" };
     }
 
     private static async Task<object> RunNative(string root, string project, IReadOnlyList<string> args)
@@ -391,6 +410,33 @@ public static class M053RealWorkbenchSuite
                 SendNativeKey(0x1B);
                 await process.WaitForExitAsync();
                 return new { status = "passed", pointerCandidateChoice = true, keyboardEnterCommand = true, canonicalJsonlLines = lines };
+            }
+            if (args[0] == "asset-workbench")
+            {
+                var actionControl = controls.SingleOrDefault(element => element.GetProperty("actionId").GetString() == targetId);
+                if (actionControl.ValueKind == JsonValueKind.Undefined) throw new InvalidDataException("Asset Workbench native probe has no projected " + targetId + " control.");
+                var priorLineCount = rootElement.GetProperty("commandLines").GetArrayLength();
+                ClickProjected(handle, actionControl.GetProperty("physicalBounds"), rootElement.GetProperty("viewport").GetProperty("osDpiScale").GetDouble());
+                using var activated = await WaitForProbeReport(process, reportPath, json =>
+                    json.RootElement.GetProperty("observedActions").EnumerateArray().Any(value => value.GetString()!.StartsWith(targetId + ":", StringComparison.Ordinal)) &&
+                    json.RootElement.GetProperty("commandLines").GetArrayLength() > priorLineCount);
+                var line = JsonDocument.Parse(activated.RootElement.GetProperty("commandLines").EnumerateArray().Last().GetString()!).RootElement.Clone();
+                if (line.GetProperty("schema").GetString() != "agentic2d.asset-workbench-input-command.v1" ||
+                    line.GetProperty("sessionId").GetString() != rootElement.GetProperty("sessionId").GetString() ||
+                    line.GetProperty("generation").GetInt32() != rootElement.GetProperty("aliasGeneration").GetInt32() ||
+                    line.GetProperty("source").GetString() != "mouse-touch")
+                    throw new InvalidDataException("Native Asset Workbench decision control did not emit the canonical session/generation/source envelope.");
+                var expectedCommand = targetId switch
+                {
+                    "asset-workbench.accept" => "decision accept-proposal",
+                    "asset-workbench.reject" => "decision reject",
+                    "asset-workbench.defer" => "decision defer",
+                    "asset-workbench.presentation-only" => "decision approve-with-corrections presentation-only",
+                    _ => throw new InvalidDataException("Unknown native Asset Workbench decision target " + targetId)
+                };
+                if (line.GetProperty("value").GetString() != expectedCommand) throw new InvalidDataException("Native decision control emitted the wrong canonical command for " + targetId + ".");
+                SendNativeKey(0x1B); await process.WaitForExitAsync();
+                return new { status = "passed", projectedAction = targetId, inputCommand = line };
             }
             var target = controls.SingleOrDefault(element => element.GetProperty("actionId").GetString() == targetId);
             if (target.ValueKind == JsonValueKind.Undefined) throw new InvalidDataException("Review Workbench native probe has no projected " + targetId + " control.");
