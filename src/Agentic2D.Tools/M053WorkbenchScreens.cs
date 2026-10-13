@@ -7,7 +7,10 @@ public static class M053WorkbenchScreens
 {
     public sealed record ReviewProjection(string Milestone, string ItemId, string Question, int Ordinal, int Count,
         string Status, string OperationStatus, string Feedback, bool CanDecide, bool CanRetry, bool CanClose,
-        bool CanLaunchPreview, bool CanLaunchStress, bool FinalPage = false, bool Resetting = false);
+        bool CanLaunchPreview, bool CanLaunchStress, bool FinalPage = false, bool Resetting = false,
+        IReadOnlyList<ReviewDecisionSummary>? DecisionSummary = null, int PendingCount = 0, bool Closing = false);
+
+    public sealed record ReviewDecisionSummary(int Ordinal, string Decision, string Persistence, string Error = "");
 
     public sealed record AssetProjection(string SessionId, int AliasGeneration, IReadOnlyList<string> CandidateIds,
         string? ActiveCandidateId, string Draft, string Feedback);
@@ -19,19 +22,19 @@ public static class M053WorkbenchScreens
     {
         var experiences = new List<UiElementDefinition>
         {
-            Ui.Text("review.experience", state.FinalPage ? "All review decisions are queued for persistence." : "Review the actual experience for this question. Preview is optional; decisions remain available.")
+            Ui.Text("review.experience", state.FinalPage ? "Ordered review decision summary" : "Review the actual experience for this question. Preview is optional; decisions remain available.")
         };
-        if (state.CanLaunchPreview) experiences.Add(Ui.Button("review.preview", "Launch actual experience", "review.preview", !state.FinalPage && !state.Resetting));
-        if (state.CanLaunchStress) experiences.Add(Ui.Button("review.stress", "Launch UI stress screen", "review.stress", !state.FinalPage && !state.Resetting));
+        if (state.CanLaunchPreview) experiences.Add(Ui.Button("review.preview", "Launch actual experience", "review.preview", !state.FinalPage && !state.Resetting && !state.Closing));
+        if (state.CanLaunchStress) experiences.Add(Ui.Button("review.stress", "Launch UI stress screen", "review.stress", !state.FinalPage && !state.Resetting && !state.Closing));
         var children = new List<UiElementDefinition>
         {
             Ui.Title("review.title", "Simple Review Workbench"),
             Ui.Text("review.milestone", state.Milestone),
             Ui.Row("review.navigation",
-                Ui.Button("review.previous", "Previous", "review.previous", !state.FinalPage && !state.Resetting),
+                Ui.Button("review.previous", "Previous", "review.previous", !state.FinalPage && !state.Resetting && !state.Closing),
                 Ui.Text("review.ordinal", state.FinalPage ? "Review complete" : $"Question {state.Ordinal} / {state.Count}"),
-                Ui.Button("review.next", "Next", "review.next", !state.FinalPage && !state.Resetting)),
-            Ui.Text("review.status", state.FinalPage ? "Final status" : "Status: " + state.Status.ToUpperInvariant()),
+                Ui.Button("review.next", "Next", "review.next", !state.FinalPage && !state.Resetting && !state.Closing)),
+            Ui.Text("review.status", state.Closing && state.PendingCount > 0 ? $"Finishing review saves — {state.PendingCount} pending" : state.FinalPage ? "Final status" : "Status: " + state.Status.ToUpperInvariant()),
             Ui.Scroll("review.question-scroll", Ui.Column("review.question-content",
                 Ui.Title("review.question", state.FinalPage ? "Review pass complete" : state.Question))),
             Ui.Scroll("review.experience-scroll", Ui.Column("review.experience-content", experiences.ToArray())),
@@ -43,19 +46,27 @@ public static class M053WorkbenchScreens
                     "saving" or "retrying" => AgentUiOperationStatus.Working,
                     _ => AgentUiOperationStatus.Idle
                 }, state.Feedback, state.CanRetry ? "review.retry" : null)),
+            Ui.Text("review.pending-count", $"Pending operations: {state.PendingCount}"),
             Ui.Text("review.feedback", state.Feedback),
-            Ui.Button("review.retry", "Retry failed saves", "review.retry", state.CanRetry)
+            Ui.Button("review.retry", "Retry failed saves", "review.retry", state.CanRetry && !state.Resetting)
         };
         if (state.FinalPage)
         {
+            var rows = (state.DecisionSummary ?? []).Select(summary =>
+            {
+                var decision = summary.Decision is "Accepted" or "Rejected" ? summary.Decision : throw new InvalidDataException($"Invalid final review decision '{summary.Decision}'.");
+                var persistence = string.IsNullOrWhiteSpace(summary.Error) ? summary.Persistence : summary.Persistence + ": " + summary.Error;
+                return Ui.Text($"review.summary.item.{summary.Ordinal}", $"Item {summary.Ordinal} — {decision} — {persistence}");
+            }).ToArray();
+            children.Add(Ui.Scroll("review.final-summary-scroll", Ui.Column("review.final-summary", rows)));
             children.Add(Ui.Button("review.close", "Close", "review.close", state.CanClose));
         }
         else
         {
             children.Add(Ui.Row("review.decisions",
-                Ui.Button("review.restart", state.Resetting ? "Restarting…" : "Restart", "review.restart", !state.Resetting),
-                Ui.Button("review.reject", "Reject", "review.reject", state.CanDecide && !state.Resetting),
-                Ui.Button("review.accept", "Accept", "review.accept", state.CanDecide && !state.Resetting)));
+                Ui.Button("review.restart", state.Resetting ? "Restarting…" : "Restart", "review.restart", !state.Resetting && !state.Closing),
+                Ui.Button("review.reject", "Reject", "review.reject", state.CanDecide && !state.Resetting && !state.Closing),
+                Ui.Button("review.accept", "Accept", "review.accept", state.CanDecide && !state.Resetting && !state.Closing)));
         }
         return UiDefinition.Normalize("m053.review", Ui.Screen("review.screen",
             Ui.Margin("review.gutter", UiInsets.All(28), Ui.Column("review.content", children.ToArray()) with { Gap = 12 })));

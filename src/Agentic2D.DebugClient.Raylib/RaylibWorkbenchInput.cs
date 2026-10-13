@@ -7,7 +7,7 @@ namespace Agentic2D.DebugClient;
 
 internal static class RaylibWorkbenchInput
 {
-    public static string Dispatch(UiSession session)
+    public static string Dispatch(UiSession session, bool allowEscape = true)
     {
         var source = string.Empty;
         var mouse = RaylibApi.GetMousePosition();
@@ -26,7 +26,7 @@ internal static class RaylibWorkbenchInput
         if (RaylibApi.IsKeyPressed(KeyboardKey.Right)) session.Dispatch(new UiInputEvent("key", Key: "Right"));
         if (RaylibApi.IsKeyPressed(KeyboardKey.Backspace)) session.Dispatch(new UiInputEvent("key", Key: "Backspace"));
         if (RaylibApi.IsKeyPressed(KeyboardKey.Delete)) session.Dispatch(new UiInputEvent("key", Key: "Delete"));
-        if (RaylibApi.IsKeyPressed(KeyboardKey.Escape)) session.Dispatch(new UiInputEvent("key", Key: "Escape"));
+        if (allowEscape && RaylibApi.IsKeyPressed(KeyboardKey.Escape)) session.Dispatch(new UiInputEvent("key", Key: "Escape"));
         var codepoint = RaylibApi.GetCharPressed();
         while (codepoint > 0)
         {

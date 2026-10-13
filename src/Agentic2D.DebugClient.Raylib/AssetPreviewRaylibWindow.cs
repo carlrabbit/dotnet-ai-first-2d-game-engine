@@ -82,8 +82,12 @@ public static class AssetPreviewRaylibWindow
                     viewport = session.Layout.Viewport,
                     observedActions,
                     frameIndex = state.FrameIndex,
+                    frameCount = animationFrames.Count,
                     playing = state.Playing,
                     imageComparison = state.ImageComparison,
+                    mediaDiagnostic,
+                    rawMediaLoaded = rawLoaded,
+                    processedMediaLoaded = processedLoaded || processedLoadedSound,
                     audioState = state.AudioState,
                     audioDeviceReady = audioDevice && RaylibApi.IsAudioDeviceReady(),
                     audioDiagnostic,
@@ -110,12 +114,12 @@ public static class AssetPreviewRaylibWindow
                     observedActions.Add(action.ActionId);
                     if (control == "Play Raw")
                     {
-                        if (audioDevice && rawLoaded) { RaylibApi.PlaySound(rawSound); state.Apply(control, animationFrames.Count); }
+                        if (PreviewAudioPlaybackPolicy.CanStartPlayback(audioDevice && RaylibApi.IsAudioDeviceReady(), rawLoaded)) { RaylibApi.PlaySound(rawSound); state.Apply(control, animationFrames.Count); }
                         else { audioDiagnostic = "Raw/base playback unavailable; " + audioDiagnostic; state.SetAudioDiagnostic(audioDiagnostic); }
                     }
                     else if (control == "Play Processed")
                     {
-                        if (audioDevice && processedLoadedSound) { RaylibApi.PlaySound(processedSound); state.Apply(control, animationFrames.Count); }
+                        if (PreviewAudioPlaybackPolicy.CanStartPlayback(audioDevice && RaylibApi.IsAudioDeviceReady(), processedLoadedSound)) { RaylibApi.PlaySound(processedSound); state.Apply(control, animationFrames.Count); }
                         else { audioDiagnostic = "Processed/current-draft playback unavailable; " + audioDiagnostic; state.SetAudioDiagnostic(audioDiagnostic); }
                     }
                     else

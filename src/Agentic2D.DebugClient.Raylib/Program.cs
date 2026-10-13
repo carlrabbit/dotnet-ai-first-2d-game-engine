@@ -17,7 +17,7 @@ if (args[0] == "m034") return M034RaylibSession.Run(args[1..]);
 if (args[0] == "m035") return M035RaylibSoakSession.Run(args[1..]);
 if (args[0] == "asset-workbench") return AssetWorkbenchRaylibWindow.Run(args[1..]);
 if (args[0] == "asset-preview") return AssetPreviewRaylibWindow.Run(args[1..]);
-if (args[0] == "review-workbench") return ReviewWorkbench(args[1..]);
+if (args[0] == "review-workbench") return await ReviewWorkbench(args[1..]);
 if (args[0] == "shell") return ProductShell(args[1..]);
 string? scenario = null, input = null, capture = null;
 for (var i = 1; i < args.Length; i++)
@@ -157,7 +157,7 @@ static void DrawGeometry(VisualPartSource part)
     }
 }
 static Color ToColor(VisualColor color, double opacity) => new(color.R, color.G, color.B, (int)Math.Round(color.A * opacity));
-static int ReviewWorkbench(string[] arguments)
+static async Task<int> ReviewWorkbench(string[] arguments)
 {
     string? reviewId = null, question = null, capture = null, milestone = null, itemsBase64 = null, probeReport = null; int? frames = null;
     for (var i = 0; i < arguments.Length; i++)
@@ -174,6 +174,6 @@ static int ReviewWorkbench(string[] arguments)
     IReadOnlyList<RaylibGameWindow.ReviewWorkbenchItem> items;
     if (!string.IsNullOrWhiteSpace(itemsBase64)) items = JsonSerializer.Deserialize<List<RaylibGameWindow.ReviewWorkbenchItem>>(Convert.FromBase64String(itemsBase64), new JsonSerializerOptions { PropertyNameCaseInsensitive = true }) ?? [];
     else items = [new(reviewId ?? "review.m038.simple-human-review-boundary-and-workbench", question ?? "Is this review experience clear and understandable?", "pending")];
-    return RaylibGameWindow.ShowReviewWorkbench(milestone ?? "M038", items, frames, capture, probeReport);
+    return await RaylibGameWindow.ShowReviewWorkbench(milestone ?? "M038", items, frames, capture, probeReport);
 }
 static int Usage() { Console.Error.WriteLine("usage: scenario --scenario <id> [--capture <png>] | snapshot --input <render-snapshot.json> [--capture <png>] | review-workbench [--review-id <id>] [--question <text>] [--frames <count>] [--capture <png>] | ui-stress [--frames <count>] [--capture <png>] | m032 --input <structural-frame.json> [--commands <designation-input.jsonl>] (--capture <png> | --interactive) | geometry --input <visual-definition.json> --capture <png> | asset-workbench --session <review-session.json> --commands <input-command.jsonl> [--capture <png>] [--frames <count>] | asset-preview --scene <preview-scene.json> [--capture <png>] [--frames <count>]"); return 2; }

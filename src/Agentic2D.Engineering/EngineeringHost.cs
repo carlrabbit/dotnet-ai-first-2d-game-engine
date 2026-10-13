@@ -94,6 +94,8 @@ public static class EngineeringCli
         return args[0] switch
         {
             "list" => host.ListReviewsFromArguments(args[1..], stdout),
+            "snapshot" when args.Length == 3 && args[1] == "--milestone" => host.WriteMilestoneReviewSnapshot(args[2], stdout),
+            "decide" when args.Length == 3 => await host.DecideReviewAsync(args[1], args[2], stdout),
             "show" when args.Length == 2 => host.ShowReview(args[1], stdout),
             "run" when args.Length == 2 => await host.RunSimpleReviewAsync(args[1], stdout, stderr),
             "run" when args.Length == 3 && args[1] == "--milestone" => await host.RunMilestoneReviewAsync(args[2], stdout, stderr),
@@ -153,11 +155,16 @@ public sealed class EngineeringHost
         if (!M038ReviewPolicy.IsRegistered(review)) { error = "review is not registered to a simple current experience"; return false; }
         if (requireGraphicsPrerequisite)
         {
+            if (review.OwningMilestone == "M053")
+            {
+                if (!HasCurrentSuccessfulVerification(GetSuite("m053-workbenches"), out var readinessError)) { error = "current M053 machine and native evidence is missing or stale: " + readinessError; return false; }
+                error = string.Empty;
+                return true;
+            }
             var graphicsPath = review.OwningMilestone switch
             {
                 "M048" => Absolute("artifacts/validation/m048-smoke/active-platform-graphical-preview.json"),
                 "M052" => Absolute("artifacts/validation/m052-ui/verify.json"),
-                "M053" => Absolute("artifacts/validation/m053-workbenches/verify.json"),
                 _ => Absolute("artifacts/validation/m038-smoke/active-platform-graphics.json")
             };
             if (!File.Exists(graphicsPath) || !File.ReadAllText(graphicsPath).Contains("\"status\": \"passed\"", StringComparison.Ordinal)) { error = "current active-platform graphics prerequisite is missing or failed"; return false; }
@@ -175,11 +182,12 @@ public sealed class EngineeringHost
 
     public IReadOnlyList<ReviewRunItem> GetOpenSimpleReviews(string milestone, out string error, bool requireGraphicsPrerequisite)
     {
+        if (requireGraphicsPrerequisite && milestone == "M053" && !HasCurrentSuccessfulVerification(GetSuite("m053-workbenches"), out error)) return [];
         var reviews = ReadReviews().Where(candidate => candidate.OwningMilestone == milestone && (candidate.Level is "required" or "blocking") && (candidate.Status is "pending" or "changes-requested")).OrderBy(candidate => candidate.Id, StringComparer.Ordinal).ToArray();
         var items = new List<ReviewRunItem>();
         foreach (var review in reviews)
         {
-            if (!TryGetSimpleReview(review.Id, out var current, out error, requireGraphicsPrerequisite))
+            if (!TryGetSimpleReview(review.Id, out var current, out error, requireGraphicsPrerequisite && milestone != "M053"))
             {
                 if (milestone == "M048" && review.Id == "review.m048.03-audio-candidate-curation" && error.StartsWith("current M048 audio review is not ready", StringComparison.Ordinal)) continue;
                 return [];
@@ -196,6 +204,7 @@ public sealed class EngineeringHost
 
     public IReadOnlyList<ReviewRunItem> GetMilestoneReviewSet(string milestone, out string error, bool requireGraphicsPrerequisite)
     {
+        if (requireGraphicsPrerequisite && milestone == "M053" && !HasCurrentSuccessfulVerification(GetSuite("m053-workbenches"), out error)) return [];
         var reviews = ReadReviews()
             .Where(candidate => candidate.OwningMilestone == milestone && (candidate.Level is "required" or "blocking") && M038ReviewPolicy.IsRegistered(candidate))
             .OrderBy(candidate => candidate.Id, StringComparer.Ordinal)
@@ -208,7 +217,7 @@ public sealed class EngineeringHost
                 items.Add(new ReviewRunItem(review.Id, review.Subject, review.Status));
                 continue;
             }
-            if (!TryGetSimpleReview(review.Id, out var current, out error, requireGraphicsPrerequisite)) return [];
+            if (!TryGetSimpleReview(review.Id, out var current, out error, requireGraphicsPrerequisite && milestone != "M053")) return [];
             items.Add(new ReviewRunItem(current!.Id, current.Subject, current.Status));
         }
 
@@ -253,6 +262,33 @@ public sealed class EngineeringHost
 
         await stdout.WriteLineAsync($"review reset: {reviews.Length} active {milestone} review items reopened");
         return 0;
+    }
+
+    public int WriteMilestoneReviewSnapshot(string milestone, TextWriter stdout)
+    {
+        if (!IsMilestoneActive(milestone)) throw new EngineeringException($"review snapshot: milestone '{milestone}' is not active");
+        var items = GetMilestoneReviewSet(milestone, out var error, requireGraphicsPrerequisite: false);
+        if (!string.IsNullOrWhiteSpace(error)) throw new EngineeringException($"review snapshot: {error}");
+        stdout.WriteLine(JsonSerializer.Serialize(items.OrderBy(item => item.Id, StringComparer.Ordinal), json));
+        return 0;
+    }
+
+    public async Task<int> DecideReviewAsync(string id, string decision, TextWriter stdout)
+    {
+        if (decision is not ("approved" or "changes-requested")) throw new EngineeringException("review decide accepts only approved or changes-requested");
+        var current = ReadReviews().FirstOrDefault(review => review.Id == id) ?? throw new EngineeringException($"unknown review '{id}'");
+        if (!IsMilestoneActive(current.OwningMilestone)) throw new EngineeringException($"review '{id}' belongs to completed milestone {current.OwningMilestone}");
+        if (current.Status == decision)
+        {
+            await stdout.WriteLineAsync($"review decision already persisted: {id} {decision}");
+            return 0;
+        }
+        if (IsFinalDecision(current.Status))
+        {
+            var reopenExit = await ReopenReviewAsync([id, "--reason", "explicit decision from current milestone review workbench"], stdout);
+            if (reopenExit != 0) return reopenExit;
+        }
+        return await RecordReviewAsync([id, decision], stdout);
     }
 
     public ValidationSuite GetSuite(string id) => suites.TryGetValue(id, out var suite)
@@ -360,8 +396,10 @@ public sealed class EngineeringHost
         EnsurePlatformState(suite);
         var expectedSuite = Fingerprints.Suite(suite, root);
         var expectedRepository = Fingerprints.Repository(root);
-        var success = true;
-        foreach (var shard in suite.Shards)
+        var success = suite.Id == "m053-workbenches"
+            ? ValidateCurrentReceipts(suite, expectedSuite, expectedRepository, diagnostics)
+            : true;
+        if (suite.Id != "m053-workbenches") foreach (var shard in suite.Shards)
         {
             var receiptPath = Absolute(ReceiptPath(suite, shard));
             if (!ReceiptStore.TryRead(receiptPath, json, out var receipt, out var error))
@@ -401,7 +439,9 @@ public sealed class EngineeringHost
                 suiteFingerprint = expectedSuite,
                 repositoryFingerprint = expectedRepository,
                 currentReceipts = suite.Shards.Count,
-                verifiedReceipts = suite.Shards.Count(shard => HasCurrentReceipt(suite, shard.Id, TextWriter.Null))
+                verifiedReceipts = suite.Id == "m053-workbenches"
+                    ? success ? suite.Shards.Count : 0
+                    : suite.Shards.Count(shard => HasCurrentReceipt(suite, shard.Id, TextWriter.Null))
             }, json));
         }
 
@@ -705,6 +745,74 @@ public sealed class EngineeringHost
             File.WriteAllText(path, JsonSerializer.Serialize(new { schema, suite = suite.Id, status = success ? "passed" : "failed", receiptCount = suite.Shards.Count }, json));
         }
 
+        return success;
+    }
+
+    public bool HasCurrentSuccessfulVerification(ValidationSuite suite, out string error)
+    {
+        error = string.Empty;
+        if (suite.Id != "m053-workbenches") { error = "Current review-readiness verification is only defined for M053."; return false; }
+        try { EnsurePlatformState(suite); }
+        catch (Exception exception) when (exception is EngineeringException or IOException or JsonException)
+        { error = exception.Message; return false; }
+
+        var expectedSuite = Fingerprints.Suite(suite, root);
+        var expectedRepository = Fingerprints.Repository(root);
+        if (!ValidateCurrentReceipts(suite, expectedSuite, expectedRepository, TextWriter.Null))
+        { error = "One or more required M053 shard receipts or evidence fingerprints are stale, missing, or failed."; return false; }
+
+        var verificationPath = Absolute(Path.Combine("artifacts", "validation", suite.Id, "verify.json"));
+        if (!File.Exists(verificationPath)) { error = "M053 verification report is missing."; return false; }
+        try
+        {
+            using var document = JsonDocument.Parse(File.ReadAllText(verificationPath));
+            var report = document.RootElement;
+            var expectedSchema = "agentic2d.m053.verification.v1";
+            if (report.GetProperty("schema").GetString() != expectedSchema ||
+                report.GetProperty("suite").GetString() != suite.Id ||
+                report.GetProperty("status").GetString() != "passed" ||
+                report.GetProperty("suiteFingerprint").GetString() != expectedSuite ||
+                report.GetProperty("repositoryFingerprint").GetString() != expectedRepository ||
+                report.GetProperty("currentReceipts").GetInt32() != suite.Shards.Count ||
+                report.GetProperty("verifiedReceipts").GetInt32() != suite.Shards.Count)
+            { error = "M053 verification report is stale or does not record a successful current verification."; return false; }
+        }
+        catch (Exception exception) when (exception is IOException or JsonException or InvalidOperationException or KeyNotFoundException)
+        { error = "M053 verification report is invalid: " + exception.Message; return false; }
+
+        return true;
+    }
+
+    private bool ValidateCurrentReceipts(ValidationSuite suite, string expectedSuite, string expectedRepository, TextWriter diagnostics)
+    {
+        var success = true;
+        foreach (var shard in suite.Shards)
+        {
+            var receiptPath = Absolute(ReceiptPath(suite, shard));
+            if (!ReceiptStore.TryRead(receiptPath, json, out var receipt, out var error))
+            {
+                diagnostics.WriteLine($"error: {suite.Id}/{shard.Id}: {error}");
+                success = false;
+                continue;
+            }
+
+            var mismatches = new List<string>();
+            if (receipt!.Schema != ReceiptSchema) mismatches.Add("schema");
+            if (receipt.SuiteId != suite.Id) mismatches.Add("suite identity");
+            if (receipt.ShardId != shard.Id) mismatches.Add("shard identity");
+            if (receipt.Status != "passed") mismatches.Add("status");
+            if (receipt.SuiteFingerprint != expectedSuite) mismatches.Add("suite fingerprint");
+            if (receipt.RepositoryFingerprint != expectedRepository) mismatches.Add("repository fingerprint");
+            if (receipt.CommandFingerprint != Fingerprints.Command(shard)) mismatches.Add("command fingerprint");
+            if (receipt.InputFingerprint != Fingerprints.Input(root, shard)) mismatches.Add("input fingerprint");
+            var artifacts = ValidateEvidence(shard, throwOnMissing: false);
+            if (artifacts.Count != shard.Evidence.Count || receipt.ResultFingerprint != Fingerprints.Result(artifacts, root)) mismatches.Add("result/evidence fingerprint");
+            if (mismatches.Count > 0)
+            {
+                diagnostics.WriteLine($"error: {suite.Id}/{shard.Id}: invalid receipt ({string.Join(", ", mismatches)})");
+                success = false;
+            }
+        }
         return success;
     }
 
