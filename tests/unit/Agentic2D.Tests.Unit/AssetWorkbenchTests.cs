@@ -82,6 +82,50 @@ public sealed class AssetWorkbenchTests
     }
 
     [Test]
+    public async Task AssetWorkbenchPointerAndKeyboardDecisionVariantsReachTheCanonicalProvider()
+    {
+        var cases = new[]
+        {
+            (Source: "mouse-touch", Command: "decision accept-proposal", Action: "accept-proposal"),
+            (Source: "enter", Command: "decision reject", Action: "reject"),
+            (Source: "mouse-touch", Command: "decision defer", Action: "defer"),
+            (Source: "enter", Command: "decision approve-with-corrections presentation-only", Action: "approve-with-corrections")
+        };
+
+        foreach (var (source, command, expectedAction) in cases)
+        {
+            var (root, session) = await CreateSession();
+            var commandPath = Path.Combine(root, "decision-input.jsonl");
+            await File.WriteAllTextAsync(commandPath, JsonSerializer.Serialize(new
+            {
+                schema = "agentic2d.asset-workbench-input-command.v1",
+                sessionId = session,
+                source,
+                value = command,
+                generation = 1
+            }) + Environment.NewLine);
+
+            var output = Path.Combine(root, "decision-output");
+            await Run(["asset", "workbench", "--session", session, "--input-command-file", commandPath, "--output", output], root);
+
+            using var result = JsonDocument.Parse(await File.ReadAllTextAsync(Path.Combine(output, "input-result.json")));
+            var commandResult = result.RootElement.GetProperty("command");
+            await Assert.That(commandResult.GetProperty("source").GetString()).IsEqualTo(source);
+            await Assert.That(commandResult.GetProperty("generation").GetInt32()).IsEqualTo(1);
+            await Assert.That(result.RootElement.GetProperty("action").GetProperty("kind").GetString()).Contains("decision");
+            await Assert.That(result.RootElement.GetProperty("action").GetProperty("target").GetString()).IsEqualTo(expectedAction);
+
+            using var record = JsonDocument.Parse((await File.ReadAllLinesAsync(Path.Combine(root, "home", "sessions", session, "review-decisions.jsonl"))).Single());
+            await Assert.That(record.RootElement.GetProperty("action").GetString()).IsEqualTo(expectedAction);
+            await Assert.That(record.RootElement.GetProperty("sessionId").GetString()).IsEqualTo(session);
+            await Assert.That(record.RootElement.GetProperty("sourceId").GetString()).IsEqualTo("asset-source.test");
+            await Assert.That(record.RootElement.GetProperty("candidateId").GetString()).IsEqualTo("candidate.a");
+            if (source == "enter")
+                await Assert.That(record.RootElement.GetProperty("provenance").GetProperty("inputAuthority").GetString()).IsEqualTo("canonical-workbench-action");
+        }
+    }
+
+    [Test]
     public async Task AssetPreviewIpc_RestartAndMalformedSceneKeepWorkbenchInputUsable()
     {
         var (root, session) = await CreateSession();
@@ -89,11 +133,19 @@ public sealed class AssetWorkbenchTests
         await Run(["asset", "workbench", "--session", session, "--preview-restart", "--text", "1", "--output", Path.Combine(root, "after")], root);
         using var scene = JsonDocument.Parse(await File.ReadAllTextAsync(Path.Combine(root, "preview", "preview-scene.json")));
         using var input = JsonDocument.Parse(await File.ReadAllTextAsync(Path.Combine(root, "after", "input-state.json")));
+        using var sessionState = JsonDocument.Parse(await File.ReadAllTextAsync(Path.Combine(root, "home", "sessions", session, "review-session.json")));
         await Assert.That(scene.RootElement.GetProperty("status").GetString()).IsEqualTo("diagnostic");
         await Assert.That(File.Exists(Path.Combine(root, "preview", "render", "render-frame.json"))).IsTrue();
         await Assert.That(File.Exists(Path.Combine(root, "preview", "preview-animation.json"))).IsTrue();
         await Assert.That(File.Exists(Path.Combine(root, "preview", "preview-audio.json"))).IsTrue();
         await Assert.That(input.RootElement.GetProperty("textBuffer").GetString()).IsEqualTo("1");
+        await Assert.That(sessionState.RootElement.GetProperty("preview").GetProperty("restartCount").GetInt32()).IsEqualTo(1);
+        await Assert.That(sessionState.RootElement.GetProperty("preview").GetProperty("status").GetString()).IsEqualTo("reconnected");
+        await Assert.That(input.RootElement.GetProperty("validationMessage").GetString()).IsEqualTo("Preview host restarted and passed its health check.");
+        var endpoint = sessionState.RootElement.GetProperty("preview").GetProperty("endpoint").GetString()!;
+        using var health = await PreviewIpcHost.SendAsync(endpoint, new { schema = "agentic2d.asset-preview-ipc.request.v2", sessionId = session, requestId = "test-preview-recovery-health", operation = "health" });
+        await Assert.That(health.RootElement.GetProperty("status").GetString()).IsEqualTo("ok");
+        await Run(["asset", "workbench", "close", session, "--output", Path.Combine(root, "closed")], root);
     }
 
     [Test]
