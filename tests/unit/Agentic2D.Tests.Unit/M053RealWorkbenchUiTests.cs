@@ -62,6 +62,42 @@ public sealed class M053RealWorkbenchUiTests
     }
 
     [Test]
+    public async Task AssetWorkbenchResizeRecompositionRetainsDraftFocusAndScrollButCancelsPointerCapture()
+    {
+        var candidates = Enumerable.Range(1, 30).Select(i => "candidate.resize." + i).ToArray();
+        var projection = new M053WorkbenchScreens.AssetProjection("session.resize", 4, candidates, candidates[0], "", "Ready");
+        var session = new UiSession(M053WorkbenchScreens.AssetWorkbench(projection), new UiViewport(1280, 720));
+
+        var candidateViewport = session.Layout.Elements.Single(element => element.Id == "asset-workbench.candidate-scroll").PhysicalBounds;
+        session.Dispatch(new UiInputEvent("scroll", candidateViewport.X + 4, candidateViewport.Y + 4, Delta: 120));
+        var scrollBefore = session.Snapshot().ScrollOffsets["asset-workbench.candidate-scroll"];
+        await Assert.That(scrollBefore > 0).IsTrue();
+
+        var command = session.Layout.Elements.Single(element => element.Id == "asset-workbench.command");
+        var x = command.PhysicalBounds.X + command.PhysicalBounds.Width / 2;
+        var y = command.PhysicalBounds.Y + command.PhysicalBounds.Height / 2;
+        session.Dispatch(new UiInputEvent("pointer-down", x, y));
+        session.Dispatch(new UiInputEvent("pointer-up", x, y));
+        session.UpdateTextDraft("asset-workbench.command", "choice 27");
+        await Assert.That(session.FocusedId).IsEqualTo("asset-workbench.command");
+
+        command = session.Layout.Elements.Single(element => element.Id == "asset-workbench.command");
+        x = command.PhysicalBounds.X + command.PhysicalBounds.Width / 2;
+        y = command.PhysicalBounds.Y + command.PhysicalBounds.Height / 2;
+        session.Dispatch(new UiInputEvent("pointer-down", x, y));
+        await Assert.That(session.CapturedId).IsEqualTo("asset-workbench.command");
+
+        session.Recompose(M053WorkbenchScreens.AssetWorkbench(projection with { Feedback = "Resized" }), new UiViewport(1600, 900));
+        session.Dispatch(new UiInputEvent("pointer-up", x, y));
+        var snapshot = session.Snapshot();
+        await Assert.That(snapshot.FocusedId).IsEqualTo("asset-workbench.command");
+        await Assert.That(snapshot.Drafts["asset-workbench.command"]).IsEqualTo("choice 27");
+        await Assert.That(snapshot.ScrollOffsets["asset-workbench.candidate-scroll"]).IsEqualTo(scrollBefore);
+        await Assert.That(snapshot.CapturedId).IsNull();
+        await Assert.That(session.DrainActions()).IsEmpty();
+    }
+
+    [Test]
     public async Task PreviewModalityUsesStructuredKindAndOnlyItsOwnControls()
     {
         var image = CreateSurface("image", "review.id.audio-is-a-trap", "candidate.animation-is-a-trap");
