@@ -18,6 +18,10 @@ Research preserves evidence, reconstructed planning context, uncertainty, and re
 | Architectural correction lessons | Current — 2026-10-12 | new subsystem intentionally changes authority/equivalence/publication patterns | runtime, persistence, fidelity, asset and UI authority | `docs/research/architectural-correction-lessons.md` |
 | Validation and human-review lessons | Current — 2026-10-12 | review framework, validation host, or guide execution model materially changes | AGENTS; validation tiers; human-review contracts | `docs/research/validation-and-human-review-lessons.md` |
 | Platform and development context | Current — 2026-10-12 | platform epoch, renderer, remote-access, graphics or audio topology changes | platform verification; UI direction | `docs/research/platform-and-development-context.md` |
+| Agentic engine design evolution | Current reconstructed rationale — 2026-10-14 | project thesis, runtime/renderer authority, or provider role materially changes | project thesis; runtime/render/CLI authority | `docs/research/agentic-engine-design-evolution.md` |
+| Human review/workbench evolution | Current reconstructed rationale — 2026-10-14 | review authority/workbench architecture materially changes | HUMAN-REVIEW; simple review workbench; M048/M050 | `docs/research/human-review-and-workbench-evolution.md` |
+| Agent-oriented UI research context | Active research context — 2026-10-14 | M052/M053 implementation or M054 evaluation changes the hypothesis | agent-oriented UI direction | `docs/research/agent-oriented-ui-research-context.md` |
+| Planning and bounded-dogfood lessons | Current project-specific methodology context — 2026-10-14 | repository role or external guide planning boundaries materially change | AGENTS; guide 0.9 planning/execution authority | `docs/research/planning-and-dogfood-lessons.md` |
 | Early project summary | Historical / substantially superseded in detail | only when investigating early design intent | current project authority supersedes operative conclusions | `docs/research/agentic-2d-game-engine-project-summary.md` |
 
 ## Retrieval rule
@@ -27,9 +31,13 @@ Planning should load only research relevant to the current decision surface.
 Suggested starting points:
 
 - overall direction: `project-direction-and-roadmap.md`;
+- core engine rationale: `agentic-engine-design-evolution.md`;
 - gameplay/simulation: `simulation-and-settlement-evolution.md`;
 - assets/workbench: `asset-authoring-and-workbench-evolution.md`;
 - future product work: `feature-roadmap-reconstruction.md`;
+- human review/workbenches: `human-review-and-workbench-evolution.md`;
+- active UI hypothesis/rationale: `agent-oriented-ui-research-context.md`;
+- project-specific planning/dogfood methodology: `planning-and-dogfood-lessons.md`;
 - why prior corrective work mattered: `architectural-correction-lessons.md` and `validation-and-human-review-lessons.md`;
 - platform-sensitive planning: `platform-and-development-context.md`.
 
