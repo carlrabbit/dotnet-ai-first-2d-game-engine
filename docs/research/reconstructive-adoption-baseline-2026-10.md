@@ -54,8 +54,12 @@ Unavailable or unverified historical material is not reconstructed.
 - `simulation-and-settlement-evolution.md`
 - `asset-authoring-and-workbench-evolution.md`
 - `feature-roadmap-reconstruction.md`
+- `agentic-engine-design-evolution.md`
+- `human-review-and-workbench-evolution.md`
+- `agent-oriented-ui-research-context.md`
+- `planning-and-dogfood-lessons.md`
 
-These artifacts summarize reusable findings rather than milestone chronology.
+These artifacts summarize reusable findings rather than milestone chronology. The second branch pass also reconstructed conversation-led rationale that repository history alone could not preserve reliably: the original agentic-engine thesis, review/workbench evolution, the active UI research hypothesis, and project-specific provider/dogfood/planning lessons.
 
 ## Authority promotion review
 
